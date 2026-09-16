@@ -303,7 +303,7 @@ reachable the same way once it is in `OTEL_RESOURCE_ATTRIBUTES`. Loki's default 
 structured-metadata entries and 64 KB per line ([loki-otlp]) are far above what the default
 events carry; `OTEL_LOG_TOOL_DETAILS=1` adds a `tool_input` of up to about 4 K characters.
 
-### Prometheus, which the map calls Mimir
+### Prometheus, not Mimir
 
 The image bundles Prometheus, started with `--web.enable-otlp-receiver` and
 `--enable-feature=exemplar-storage`, `otlp.promote_resource_attributes` for the `service.*`,
@@ -431,7 +431,7 @@ provides for the same moment, so the spec can choose one or both.
    trace per Run with a span per tool call is the waterfall an audience reads at a glance; gate it
    on the beta flag and keep the Loki view as the fallback.
 8. **Two corrections to earlier assumptions.** `--bare` refuses `CLAUDE_CODE_OAUTH_TOKEN`
-   (observed), so the sandbox doc's move to bare mode needs an API key. And the map's "Mimir" is
+   (observed), so the sandbox doc's move to bare mode needs an API key. And the metrics store, which an early draft of the map called Mimir, is
    Prometheus 3.9.1 in this image (observed); nothing changes except the name and the delta
    flag's spelling.
 9. **Cost of the fourth signal is nil; cost of the laptop-process form is not.** The export adds
