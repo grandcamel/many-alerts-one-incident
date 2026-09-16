@@ -18,9 +18,18 @@ apart from success, and none of them is the Run reasoning badly.
   never write a probe into a live OPS project, and it must prefer a short filed Report
   over a long denied one.
 - **The Run never ran.** A rate-limited Run's result line says `"subtype": "success"`
-  with zero cost and one turn; only `terminal_reason: "api_error"` and a
-  `rate_limit_event` carrying `"status": "rejected"` are honest. What does the Receiver
-  read to decide a Run worked, and what does the audience see when it did not?
+  with zero cost and one turn, **and the process exits 0** — but the same line also carries
+  `"is_error": true`, `terminal_reason: "api_error"` and a plain-English `result`. So the
+  question is not "is there an honest field" — there is, and it is `is_error`. It is which
+  fields the Receiver branches on, in what order, and what the audience sees when a Run did
+  not happen. Note also that only some models are refused: Fable 5.1 was out of usage
+  credits while Opus 5 and Haiku 4.5 ran, so "the API is down" and "this model is not
+  available to us" are different states and the demo should tell them apart.
+- **The Run stalls.** The worst arm in the timing prototype did not loop or probe: it fell
+  silent at +246.6 s and emitted nothing for 466 s until a synthetic `Output token limit
+  hit` message, having blown the 64,000-token per-message output cap while serializing the
+  Report. A Run can be alive, billing, and producing nothing, and the Receiver cannot see
+  the difference from a Run that is thinking. What, if anything, detects that?
 - **The Run was killed.** A Run killed on the Receiver's timeout writes no result line,
   so its cost and usage are lost, and chapter one's `RUN_TIMEOUT` is 300 s against an
   Opus 5 Run measured at 370 s. Is the guard SIGINT, which yields a result line, rather

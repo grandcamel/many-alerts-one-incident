@@ -6,9 +6,14 @@ Blocked by: none
 
 ## Question
 
-Two measurements from the timing prototype are unfinished, both because the account ran
-out of its seven-day allowance mid-experiment, not because they were judged unnecessary.
-The allowance resets at **2026-09-19 19:00 local**; do this after that.
+Two measurements from the timing prototype are unfinished. They are **not equally
+blocked**, which an earlier version of this ticket got wrong:
+
+- The **length probe is runnable now**. It is driven by Haiku 4.5, and Haiku 4.5 and
+  Opus 5 were both confirmed working right after the arms.
+- The **Fable arm is blocked on usage credits**, not on a weekly window. `claude-fable-5-1`
+  is refused with "You're out of usage credits"; the remedy is topping the balance up at
+  claude.ai/settings/usage, a human-in-the-loop step, and then it can run immediately.
 
 On branch `prototype/run-timing`:
 
