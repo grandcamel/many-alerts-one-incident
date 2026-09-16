@@ -1,0 +1,19 @@
+# PROTOTYPE — throwaway. Ticket 08, "Can the laptop hold it".
+# Stage 4: one Claude container, at the same 2g cap this repo's docker-compose.yml
+# gives its `demo` service. Idle -- the point is whether the RESERVATION fits,
+# not what a Run costs (ticket 11 measured that separately).
+services:
+  claude-headroom:
+    image: grafana-jsm-sandbox:latest
+    container_name: claude-headroom
+    entrypoint: ["sleep", "infinity"]
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    networks:
+      - default
+networks:
+  default:
+    name: opentelemetry-demo
+    external: true

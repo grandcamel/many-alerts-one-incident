@@ -1,0 +1,30 @@
+# stage: 00-baseline-idle
+# recorded: 2026-09-16T16:11:42Z
+
+## docker desktop kubernetes
+  Field               Value
+  ID:                 aaf20e7c
+  State:              disabled
+  Mode:               kind
+  Node Count:         1
+  Version:            1.36.1
+  Progress Message:   Kubernetes is stopped
+  Error:              None
+
+## VM memory (/proc/meminfo as seen from inside the VM)
+  MemTotal:       12244208 kB
+  MemFree:        11359712 kB
+  MemAvailable:   11567092 kB
+  Cached:           333372 kB
+  SwapTotal:       1048572 kB
+  SwapFree:        1048572 kB
+
+## VM cpu count
+  8
+
+## containers running: 0
+
+## docker stats
+
+## container memory total (MiB, sum of docker stats usage)
+  0 MiB across NR=0

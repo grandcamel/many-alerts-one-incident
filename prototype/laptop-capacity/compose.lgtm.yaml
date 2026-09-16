@@ -1,0 +1,17 @@
+# PROTOTYPE — throwaway. Ticket 08, "Can the laptop hold it".
+# Loaded last, after the demo's compose.yaml, as the documented extras seam.
+# Adds the LGTM stack on the demo's own network and points the collector at it.
+services:
+  lgtm:
+    image: grafana/otel-lgtm:latest
+    container_name: lgtm
+    restart: unless-stopped
+    ports:
+      - "3000:3000"   # Grafana
+    environment:
+      - ENABLE_LOGS_ALL=true
+
+  otel-collector:
+    depends_on:
+      lgtm:
+        condition: service_started

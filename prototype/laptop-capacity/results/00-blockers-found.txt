@@ -1,0 +1,31 @@
+# Blockers found before the first container started, 2026-09-16
+
+## 1. The Docker VM disk, not memory, is the first ceiling
+  VM filesystem:      58.4 G total, 48.3 G used, 7.1 G available (87%)
+  settings-store.json DiskSizeMiB: 61035 (~60 GiB)
+  Host disk free:     139 GiB  (so the limit is self-imposed, not physical)
+
+  docker system df:
+    Images        73 total, 14 active, 39.9 GB, 21.85 GB reclaimable
+    Containers    15 stopped (all 2-7 months old), 111.2 MB
+    Local Volumes 11, 6.552 GB
+    Build Cache   582 entries, 0 active, 14.13 GB
+
+  The OpenTelemetry Demo's docs call for ~14 GB of disk. With 7.1 G free the
+  image pull dies partway. Neither ticket 05 nor ticket 18 costed VM DISK --
+  both reasoned only about CPU and memory. Resolution chosen: raise the disk
+  limit rather than prune, since the host has 139 GiB spare.
+
+## 2. `docker desktop` cannot enable Kubernetes
+  `docker desktop kubernetes` offers only: images, reset-cluster, status.
+  There is no `enable` subcommand, and no `docker desktop enable` either.
+
+  Ticket 18's premise note says "Enable, reset and diagnose are all driveable
+  from `docker desktop kubernetes ...`, so this prototype does not need a human
+  at the Dashboard to *operate*." That is WRONG for enable. Reset and status
+  are driveable; enabling is not.
+
+  The toggle exists as "KubernetesEnabled": false in
+  ~/Library/Group Containers/group.com.docker/settings-store.json
+  but flipping it means writing Docker Desktop's own settings store and
+  restarting. A human at the Dashboard is required, or that file is edited.

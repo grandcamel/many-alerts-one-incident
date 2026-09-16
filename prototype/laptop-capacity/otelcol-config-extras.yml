@@ -1,0 +1,18 @@
+# PROTOTYPE — throwaway. Ticket 08, "Can the laptop hold it".
+# Overlays the demo's src/otel-collector/otelcol-config-extras.yml so the demo's own
+# collector chains into the LGTM image instead of only writing to debug.
+# The collector MERGES config but REPLACES arrays, so every pipeline repeats the
+# upstream exporter names (3.0.0 base: debug for all, plus span_metrics on traces).
+
+exporters:
+  otlp_http/lgtm:
+    endpoint: http://lgtm:4318
+
+service:
+  pipelines:
+    traces:
+      exporters: [debug, span_metrics, otlp_http/lgtm]
+    metrics:
+      exporters: [debug, otlp_http/lgtm]
+    logs:
+      exporters: [debug, otlp_http/lgtm]
