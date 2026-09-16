@@ -29,3 +29,75 @@
   ~/Library/Group Containers/group.com.docker/settings-store.json
   but flipping it means writing Docker Desktop's own settings store and
   restarting. A human at the Dashboard is required, or that file is edited.
+
+## 3. Checking out tag 3.0.0 does NOT give you 3.0.0 images
+  The demo's own .env, AT TAG 3.0.0, contains both:
+    line 2:  IMAGE_VERSION=3.0.0     <- only feeds OTEL_RESOURCE_ATTRIBUTES
+    line 4:  DEMO_VERSION=latest     <- what compose.yaml actually interpolates
+
+  compose.yaml writes `${IMAGE_NAME}:${DEMO_VERSION}-ad`, so a clean
+  `git clone --branch 3.0.0` + `docker compose pull` fetches `latest-*`.
+
+  Two consequences, both bad for this effort:
+   - The telemetry LIES about the version. Every service reports
+     service.version=3.0.0 (from IMAGE_VERSION) while running `latest` code.
+     A Run reasoning about versions would be reasoning about a falsehood.
+   - flagd's config is bind-mounted from ./src/flagd in the checked-out tree,
+     so the FLAGS come from 3.0.0 while the SERVICE CODE comes from latest.
+     Post-3.0.0 main added productCatalogLockContention and reverted the load
+     generator from k6 to Locust, so the two are genuinely out of step.
+
+  Fix: set DEMO_VERSION (not IMAGE_VERSION) explicitly. ghcr.io's 3.0.0-* tags
+  do exist -- `docker manifest inspect ghcr.io/open-telemetry/demo:3.0.0-ad`
+  succeeds. run.sh exports DEMO_VERSION=3.0.0.
+
+  Ticket 01 said "pin 3.0.0 or a commit" and noted that `latest` images come
+  from the same workflow as version tags. Both true, but it missed that pinning
+  the REPO does not pin the IMAGES -- the spec must pin DEMO_VERSION by name.
+
+## 4. The Demo's fault flags are NOT self-describing in telemetry
+  Ticket 01 says: "Flag evaluations are already in the telemetry: Python span
+  events, .NET counters, and flagd's `feature_flag.flagd.impression{variant}`
+  metric. The Run can see the cause in the same data as the symptoms."
+
+  Measured at 3.0.0, with adFailure flipped on and traffic running, that last
+  clause is FALSE:
+   - Prometheus holds 240 metric names. NONE match flag/impression/feature.
+     There is no feature_flag.flagd.impression metric at all.
+   - flagd's own service emits only span metrics derived from its traces
+     (traces_span_metrics_* on 4 series) and target_info. No native metrics.
+   - flagd's stdout does NOT reach Loki -- 0 streams for service_name="flagd".
+     flagd DOES log the flip locally ("filepath event: ./etc/flagd/
+     demo.flagd.json WRITE"), but that line dies in the docker log driver.
+   - A Loki search across ALL services for "demo.flagd.json",
+     "configuration_change" or "adFailure" returns 0 matches.
+
+  So the SYMPTOM is richly visible (ad logs UNAVAILABLE, span metrics move) and
+  the CAUSE is invisible. Ticket 01's own sentence "A flip is not yet a Change"
+  was right; the impression-metric sentence contradicting it was wrong.
+
+  Why this matters to the map, beyond this ticket: the Ground truth rule says a
+  Report is judged by whether its Suggested root cause names the Fault's
+  documented Ground truth, and the Citation rule says every root-cause claim
+  cites evidence the Run RETRIEVED. With the cause absent from all three
+  signals, a Run can only ever infer the flag, never cite it. The ~30-line
+  Change watcher ticket 01 sketched is therefore LOAD-BEARING, not optional --
+  it is what makes the citation rule satisfiable for flag-injected Faults.
+
+## 5. The core layer cannot be trimmed by naming services
+  frontend-proxy has `depends_on: [frontend, flagd-ui, telemetry-docs]`, so
+  `docker compose up <17 services>` starts flagd-ui and telemetry-docs anyway.
+  Observed: 20 containers running, not the 18 asked for.
+
+  Cost is small (flagd-ui 178 MiB, telemetry-docs 6.8 MiB) but flagd-ui runs at
+  86.9% of its 200M cap, the closest to its ceiling of anything in the stack.
+  To actually drop them the spec needs `--no-deps` (which would also drop
+  frontend) or an override file that rewrites frontend-proxy's depends_on.
+
+## 6. Only 4 of the running services produced logs in Loki
+  service_name values present: ad, checkout, frontend-proxy, otelcol-contrib.
+  Ticket 01 says fourteen services emit OTLP logs. CAVEAT: this traffic only
+  exercised the ad, product and recommendation paths, so the other services may
+  simply have had nothing to say. Not a contradiction of ticket 01 -- an
+  untested claim. Whoever writes the simulation spec should drive a full
+  checkout flow before trusting "fourteen".

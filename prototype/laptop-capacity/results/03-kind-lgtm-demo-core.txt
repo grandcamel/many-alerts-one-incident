@@ -1,0 +1,52 @@
+# stage: 03-kind-lgtm-demo-core
+# recorded: 2026-09-16T17:25:31Z
+
+## docker desktop kubernetes
+  Field               Value
+  ID:                 c124f6f8
+  State:              running
+  Mode:               kind
+  Node Count:         1
+  Version:            1.36.1
+  Started At:         2026-09-16 13:08:49.876 -0400 EDT
+  Progress Message:   Kubernetes is up and running
+  Error:              None
+
+## VM memory (/proc/meminfo as seen from inside the VM)
+  MemTotal:       12244184 kB
+  MemFree:          209032 kB
+  MemAvailable:    8980276 kB
+  Cached:          8448572 kB
+  SwapTotal:       1048572 kB
+  SwapFree:        1045080 kB
+
+## VM cpu count
+  8
+
+## containers running: 20
+
+## docker stats
+  NAME              MEM USAGE / LIMIT     MEM %     CPU %
+  frontend-proxy    22.25MiB / 90MiB      24.73%    1.03%
+  frontend          62.59MiB / 250MiB     25.04%    0.95%
+  checkout          11.66MiB / 20MiB      58.30%    0.07%
+  recommendation    47.08MiB / 500MiB     9.42%     63.15%
+  ad                205.5MiB / 300MiB     68.52%    0.37%
+  product-catalog   11.81MiB / 20MiB      59.06%    0.28%
+  image-provider    5.938MiB / 120MiB     4.95%     0.75%
+  flagd-ui          178MiB / 200MiB       89.00%    3.96%
+  cart              30.29MiB / 160MiB     18.93%    0.36%
+  quote             18.78MiB / 40MiB      46.95%    0.39%
+  shipping          4.891MiB / 20MiB      24.45%    6.14%
+  payment           76.11MiB / 140MiB     54.37%    2.73%
+  currency          3.617MiB / 20MiB      18.09%    0.12%
+  email             48.76MiB / 100MiB     48.76%    0.11%
+  otel-collector    87.46MiB / 400MiB     21.86%    7.06%
+  flagd             22.78MiB / 75MiB      30.38%    0.82%
+  telemetry-docs    6.758MiB / 100MiB     6.76%     0.93%
+  valkey-cart       8.793MiB / 20MiB      43.96%    0.24%
+  astronomy-db      46.39MiB / 80MiB      57.99%    0.19%
+  lgtm              741.7MiB / 11.68GiB   6.20%     21.31%
+
+## container memory total (MiB, sum of docker stats usage)
+  1637 MiB across NR=20

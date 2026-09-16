@@ -1,0 +1,31 @@
+# stage: 06-after-teardown
+# recorded: 2026-09-16T17:32:01Z
+
+## docker desktop kubernetes
+  Field               Value
+  ID:                 c124f6f8
+  State:              running
+  Mode:               kind
+  Node Count:         1
+  Version:            1.36.1
+  Started At:         2026-09-16 13:08:49.876 -0400 EDT
+  Progress Message:   Kubernetes is up and running
+  Error:              None
+
+## VM memory (/proc/meminfo as seen from inside the VM)
+  MemTotal:       12244184 kB
+  MemFree:         2527400 kB
+  MemAvailable:   10599620 kB
+  Cached:          7676084 kB
+  SwapTotal:       1048572 kB
+  SwapFree:        1048572 kB
+
+## VM cpu count
+  8
+
+## containers running: 0
+
+## docker stats
+
+## container memory total (MiB, sum of docker stats usage)
+  0 MiB across NR=0

@@ -1,0 +1,53 @@
+# stage: 05-under-load-fault-on
+# recorded: 2026-09-16T17:29:38Z
+
+## docker desktop kubernetes
+  Field               Value
+  ID:                 c124f6f8
+  State:              running
+  Mode:               kind
+  Node Count:         1
+  Version:            1.36.1
+  Started At:         2026-09-16 13:08:49.876 -0400 EDT
+  Progress Message:   Kubernetes is up and running
+  Error:              None
+
+## VM memory (/proc/meminfo as seen from inside the VM)
+  MemTotal:       12244184 kB
+  MemFree:          259332 kB
+  MemAvailable:    8793868 kB
+  Cached:          8211492 kB
+  SwapTotal:       1048572 kB
+  SwapFree:        1038908 kB
+
+## VM cpu count
+  8
+
+## containers running: 21
+
+## docker stats
+  NAME              MEM USAGE / LIMIT     MEM %     CPU %
+  claude-headroom   2.84MiB / 2GiB        0.14%     0.00%
+  frontend-proxy    27.18MiB / 90MiB      30.20%    3.65%
+  frontend          81.73MiB / 250MiB     32.69%    21.97%
+  checkout          14.06MiB / 20MiB      70.31%    0.10%
+  recommendation    51.61MiB / 500MiB     10.32%    14.75%
+  ad                218.9MiB / 300MiB     72.97%    6.58%
+  product-catalog   11.65MiB / 20MiB      58.26%    5.91%
+  image-provider    5.949MiB / 120MiB     4.96%     0.18%
+  flagd-ui          173.8MiB / 200MiB     86.90%    0.34%
+  cart              32.75MiB / 160MiB     20.47%    0.11%
+  quote             18.78MiB / 40MiB      46.95%    0.04%
+  shipping          3.895MiB / 20MiB      19.47%    0.38%
+  payment           78.01MiB / 140MiB     55.72%    35.34%
+  currency          3.617MiB / 20MiB      18.09%    0.52%
+  email             52.09MiB / 100MiB     52.09%    65.33%
+  otel-collector    98.04MiB / 400MiB     24.51%    14.82%
+  flagd             62.41MiB / 75MiB      83.22%    0.91%
+  telemetry-docs    5.527MiB / 100MiB     5.53%     0.27%
+  valkey-cart       8.059MiB / 20MiB      40.29%    0.51%
+  astronomy-db      48.74MiB / 80MiB      60.93%    6.07%
+  lgtm              828.7MiB / 11.68GiB   6.93%     38.03%
+
+## container memory total (MiB, sum of docker stats usage)
+  1827 MiB across NR=21

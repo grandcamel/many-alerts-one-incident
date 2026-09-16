@@ -5,6 +5,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DEMO="${DEMO:-/private/tmp/claude-501/-Users-jasonkrueger-projects-many-alerts-one-incident/643337f8-fd73-44db-b4b7-9ca3d8bbf38e/scratchpad/otel-demo}"
 mapfile -t SERVICES < <(grep -v '^[[:space:]]*$' "$HERE/services.txt")
+export DEMO_VERSION=3.0.0
 COMPOSE=(docker compose -f "$DEMO/compose.yaml" -f "$HERE/compose.lgtm.yaml")
 
 case "${1:-}" in

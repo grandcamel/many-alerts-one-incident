@@ -1,0 +1,33 @@
+# stage: 02-kind-plus-lgtm
+# recorded: 2026-09-16T17:22:48Z
+
+## docker desktop kubernetes
+  Field               Value
+  ID:                 c124f6f8
+  State:              running
+  Mode:               kind
+  Node Count:         1
+  Version:            1.36.1
+  Started At:         2026-09-16 13:08:49.876 -0400 EDT
+  Progress Message:   Kubernetes is up and running
+  Error:              None
+
+## VM memory (/proc/meminfo as seen from inside the VM)
+  MemTotal:       12244184 kB
+  MemFree:          577904 kB
+  MemAvailable:   10258004 kB
+  Cached:          9239424 kB
+  SwapTotal:       1048572 kB
+  SwapFree:        1048572 kB
+
+## VM cpu count
+  8
+
+## containers running: 1
+
+## docker stats
+  NAME      MEM USAGE / LIMIT     MEM %     CPU %
+  lgtm      422.2MiB / 11.68GiB   3.53%     138.24%
+
+## container memory total (MiB, sum of docker stats usage)
+  429 MiB across NR=1
