@@ -2,7 +2,7 @@
 
 Written 2026-09-15. Question (ticket 01 of the many-alerts-one-incident map): is the
 OpenTelemetry Demo the system the next chapter simulates, and what would it cost to run it beside
-the `grafana/otel-lgtm` stack on this laptop (Intel MacBook Pro, 8 cores, 16 GB; Docker Desktop
+the `grafana/otel-lgtm` stack on this laptop (Intel MacBook Pro, 4 physical cores and 8 threads, 16 GB; Docker Desktop
 reports 4 CPUs and 7.8 GiB to containers)?
 
 **Method.** Primary sources only, all fetched 2026-09-15: the demo docs on opentelemetry.io, the
@@ -343,7 +343,7 @@ replace it.
   unstated anywhere; image 1.94 GB on disk), plus this repo's Receiver and Runs, inside a 7.8 GiB
   Docker Desktop VM. `make start` (7.9 GB) and `start-minimal` (6.8 GB) are out. Disk is 14 GB.
 - **Kubernetes on the laptop is out; the chart is the DigitalOcean shape.** 8.5 GiB of limits with
-  the LLM services on by default, no requests set, and two open OOM reports on a 4 vCPU / 8 GiB
+  the LLM services on by default, no requests set, and one open OOM report on a 4 vCPU / 8 GiB
   node. If the chapter needs `k8s.*` attributes or a real `NotReady` Event, that is ticket 05's
   cluster, with `agent`, `chatbot`, `mcp` and the four bundled backends switched off and LGTM in
   the cluster.
