@@ -14,3 +14,6 @@ runs/
 # placeholder the build argument defaults to (ticket 02 of hardened-demo-image).
 certs/*
 !certs/NO_EXTRA_CERTS
+
+# Subagent worktrees. Ephemeral; never a commit.
+.claude/worktrees/
