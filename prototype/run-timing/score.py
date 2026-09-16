@@ -35,9 +35,15 @@ CHECKS = {
     "cites the Change id": r"\b412\b",
     "states a confidence": r"[Cc]onfidence",
     "bounds the blast radius": r"cart|payment|shipping|checkout",
-    "RED HERRING blames the payment deploy": r"payment\s+v?1\.8\.3|deploy.{0,40}payment.{0,40}cause|payment deploy.{0,30}(cause|root)",
-    "RED HERRING blames host capacity": r"(host|node).{0,40}(capacity|out of|scale up|insufficient|exhaust)",
+    "mentions the payment deploy": r"#?411|payment.{0,20}v1\.8\.3|13:10",
+    "rules the payment deploy out": r"(rule[sd]? out|excluded?|unrelated|not the cause|discount).{0,120}(411|payment|deploy)"
+                                    r"|(411|payment|deploy).{0,160}(rule[sd]? out|excluded?|unrelated|not the cause|flat)",
+    "calls host CPU a consequence": r"host.{0,80}(consequence|downstream|effect|result of|explained by)"
+                                    r"|(consequence|downstream).{0,60}host",
 }
+# Mention is not attribution: these two need a human to read the Report, so they print as
+# facts rather than verdicts. The first pass of this prototype graded a mention as a
+# failure and was wrong about the medium arm, which had ruled the deploy out in words.
 
 
 def adf_text(blob: str) -> str:
@@ -80,8 +86,8 @@ def look(arm: Path, verbose: bool) -> None:
     for label, pattern in CHECKS.items():
         hit = re.search(pattern, haystack, re.IGNORECASE) is not None
         mark = "yes" if hit else "no "
-        if label.startswith("RED HERRING"):
-            mark = "SWALLOWED" if hit else "avoided"
+        if label.startswith("mentions") or label.startswith("rules") or label.startswith("calls"):
+            mark = "yes" if hit else "no "
         print(f"  {mark:10} {label}")
     found = sum(1 for fingerprint in FINGERPRINTS if f"fp-{fingerprint}" in " ".join(labels))
     print(f"  {found}/7 of 7   Fingerprint labels on the Incident")

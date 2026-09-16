@@ -95,6 +95,10 @@ def main(argv: list[str]) -> int:
             print(f'{key:9} {issue["summary"][:40]:40} {issue["status"]}')
         return 0
 
+    if "--help" in argv or "-h" in argv:
+        print("usage: jira-as <group> <action> [options]  (prototype stub)")
+        return 0
+
     if words[:2] == ["issue", "create"]:
         key = f"OPS-{data['next']}"
         data["next"] += 1
