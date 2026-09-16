@@ -1,5 +1,19 @@
 # grafana-jsm-sandbox
 
+**This repository is chapter two, and it opens with chapter one's code.** Everything below
+describes `grafana-jsm-sandbox`, a finished demo in which one Grafana alert becomes one Jira
+Service Management Incident through a Run that holds no Jira credential. That repository is
+[where chapter one lives](https://github.com/grandcamel/grafana-jsm-sandbox); it stays as it
+is and nothing in this effort touches it, so this repository is the one that moves from here.
+Chapter two asks the harder question it is named for: when one Fault in a simulated distributed
+system raises a Cascade of Alerts, how do many Notifications become one Incident whose Suggested
+root cause cites the evidence a Run retrieved? It is being charted before it is built, and the
+charting is in the open. The map is
+[.scratch/many-alerts-one-incident/map.md](.scratch/many-alerts-one-incident/map.md), the
+vocabulary is in [CONTEXT.md](CONTEXT.md), the decisions are in [docs/adr](docs/adr), and the
+research they rest on is on the `research/*` branches. Nothing in the sections below has
+changed yet.
+
 A Grafana alert opens, updates and resolves a Jira Service Management Incident through a
 headless Claude Code Run that holds no Jira credential. One `docker compose up` brings up a
 Grafana LGTM stack with one alert rule, the small app that rule watches, the synthetic traffic

@@ -2,7 +2,7 @@
 
 Label: wayfinder:map
 Charted: 2026-09-15
-Lives on: branch `many-alerts-one-incident` in grafana-jsm-sandbox, until the ticket "Seed the new repo" moves it.
+Lives on: branch `main` in [many-alerts-one-incident](https://github.com/grandcamel/many-alerts-one-incident), seeded from grafana-jsm-sandbox on 2026-09-15 by the ticket "Seed the new repo".
 
 ## Destination
 
