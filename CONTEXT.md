@@ -1,8 +1,34 @@
-# Grafana to OPS Incident Sync
+# Many Alerts to One Incident
 
-A demo in which a Grafana alert notification triggers a headless Claude run inside a container, and that run creates, updates and resolves Incidents in the Jira OPS project.
+A demo in which the Alerts one Fault raises across a simulated distributed system each trigger a headless Claude run inside a container, and those runs reduce the Alerts to one Incident in the Jira OPS project, with a suggested root cause a responder can check.
 
 ## Language
+
+### Simulation side
+
+**Fault**:
+One injected failure in the simulated system, with a documented Ground truth.
+_Avoid_: scenario, chaos experiment, failure mode, incident, outage
+
+**Ground truth**:
+The documented true cause of a Fault, written when the Fault is. What a Report's Suggested root cause is judged against.
+_Avoid_: root cause, answer key, expected result
+
+**Cascade**:
+The set of Alerts one Fault fires.
+_Avoid_: alert storm, flood, correlated alerts, alert group
+
+**Event**:
+A timestamped, named, structured record that something happened, as distinct from a log line. The only sense the word has here; an Alert and a Notification are not Events. Three kinds: Kubernetes Event, Change and Run event.
+_Avoid_: structured event, log event, occurrence
+
+**Kubernetes Event**:
+An Event the cluster itself records about a pod, node or rollout, such as OOMKilled, BackOff or FailedScheduling.
+_Avoid_: k8s event, cluster event, pod event
+
+**Change**:
+An Event recording something someone did to the system: a deploy, a config edit, a feature-flag flip.
+_Avoid_: deployment event, annotation, change event, release
 
 ### Alerting side
 
@@ -54,19 +80,43 @@ The stream-json output of one Run, one Run event per line. The Receiver renders 
 _Avoid_: log, output, stream, session log
 
 **Run event**:
-One line of a Transcript: one thing the Run did — assistant text, a tool call, a tool result, a denial, or the final result. Never shortened to "event" on its own, because an Alert and a Notification are not events here either.
+One line of a Transcript: one thing the Run did — assistant text, a tool call, a tool result, a denial, or the final result. Never shortened to "event" on its own: an Event is the wider term, and an Alert and a Notification are not Events.
 _Avoid_: event, message, chunk
+
+**Eyes**:
+The read-only tools a Run may execute to look at telemetry: queries against logs, metrics, traces and Events, and whatever read-only view of the cluster the map grants.
+_Avoid_: query tools, observability tools, read tools, sensors
+
+**Hands**:
+The tools a Run may execute that change something outside itself: the Jira and Confluence operations. Never the cluster or the system; a Run reports and does not remediate.
+_Avoid_: write tools, actions, actuators, effectors
+
+**Memory**:
+What a Run can consult that an earlier Run left behind: the Incidents in OPS, the pages in the Confluence space, and the Memory directory.
+_Avoid_: state, history, cache, context, knowledge base
+
+**Memory directory**:
+The one directory that persists across Runs, where a Run writes what it learned about the system for the next Run to read.
+_Avoid_: notes, scratch, memory file, cache
 
 ### Jira side
 
 **Incident**:
-An OPS issue of type Incident that represents one Alert's lifetime, from first Firing to Resolved.
+An OPS issue of type Incident that represents one Fault's lifetime as the Run understands it, carrying the Fingerprint of every Alert it explains.
 _Avoid_: ticket, issue, case, request
 
 **Match**:
-The open Incident that carries an Alert's Fingerprint label. An Alert has at most one Match.
+The open Incident a Run judges an Alert to belong to. A judgment, not a label lookup; an Alert has at most one Match.
 _Avoid_: duplicate, existing incident, correlation
 
+**Report**:
+The body a Run writes into an Incident: what happened, to what, in what order, on what evidence, with a Suggested root cause and a suggested remediation.
+_Avoid_: description, summary, postmortem, RCA, write-up
+
+**Suggested root cause**:
+The cause a Report names, with the evidence it cites and the confidence it states. The Run's claim, never shortened to "root cause", which would blur it with the Ground truth.
+_Avoid_: root cause, diagnosis, finding, conclusion
+
 **Problem**:
-An OPS issue of type Problem that groups repeated Incidents sharing a Fingerprint. Chapter two; not built on day one.
+An OPS issue of type Problem that groups Incidents that recur. Reserved; not built in this effort.
 _Avoid_: parent, root cause ticket
