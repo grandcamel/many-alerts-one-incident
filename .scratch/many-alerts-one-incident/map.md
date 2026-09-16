@@ -74,8 +74,6 @@ Two agent-ready specs, the telemetry simulation and the reasoning Run, plus the 
 - Replay fixtures for a Cascade. Waits on Faults and many-to-one.
 - The Confluence space: which space, what seeds it, what a Run writes there, and restricting the account's write to that space, since `confluence-as` has no space guard. Waits on Memory.
 - What the audience sees of Memory growing. Waits on Memory.
-- The Report's Jira ADF shape. Waits on the Report.
-- How rehearsal scores a Report against Ground truth, by hand or by a script. Waits on the Report. The timing prototype wrote one (`prototype/run-timing/score.py`) and it graded an arm wrongly — it read a mention of the red-herring deploy as an endorsement when the Report had ruled it out in words — so a script narrows what a human reads rather than replacing it.
 - Provisioning the cluster, laptop or cloud, as a task, with the `doctl` rule: never create without `--ha=false`, `--size` and `--count`. Waits on where it runs.
 - The Run telemetry dashboard: what the audience sees of the Run observing itself. Waits on Run telemetry.
 

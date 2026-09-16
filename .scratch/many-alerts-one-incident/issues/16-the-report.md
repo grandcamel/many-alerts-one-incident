@@ -17,8 +17,24 @@ alone**. Largest accepted 9,417 characters, smallest denied 11,313, across nine 
 in four arms; it is not content — a denied command with every shell metacharacter removed
 was denied again at the same length.
 
-So the Report cannot simply be "as long as it needs to be". Either it fits in roughly
-9,000 characters of ADF, or it arrives in pieces — a short Description on create and the
-sections appended as comments, which also suits "what a later Run appends versus
-rewrites". Decide which here. For scale: the arms' Reports ran 445 to 899 words, and the
-899-word one serialized to 9,337 characters and only just fitted.
+So the Report cannot simply be "as long as it needs to be". Either it fits under the
+ceiling, or it arrives in pieces — a short Description on create and the sections appended
+as comments, which also suits "what a later Run appends versus rewrites". Decide which here.
+
+The budget is tighter than the ceiling suggests, because ADF markup is most of the command.
+Measured on the three accepted creates:
+
+| Report | Command | ADF JSON | Actual prose | Markup |
+| ---: | ---: | ---: | ---: | ---: |
+| 445 words | 7,444 | 7,073 | 3,876 | 45% |
+| 731 words | 9,411 | 8,950 | 5,393 | 40% |
+| 899 words | 9,331 | 8,852 | 6,183 | 30% |
+
+So a single create carries roughly **5,400 to 6,200 characters of Report prose** — about
+800 to 900 words — and the 899-word one only just fitted. Markup overhead falls as
+paragraphs get longer, so the shape of the ADF is itself part of the budget: many short
+bullets cost far more per word than a few long paragraphs.
+
+This also collides with a second limit. Both arms that stalled in the timing prototype blew
+the 64,000-token per-message output cap while serializing their ADF, and neither the cap nor
+this ceiling is negotiable at Run time. Report size is the one lever over both.
