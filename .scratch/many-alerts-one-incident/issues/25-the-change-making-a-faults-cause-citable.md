@@ -67,3 +67,36 @@ answers this ticket's last bullet and adds a lead to its second.
   watcher is still needed and now has a Kubernetes-shaped source of truth.
   [Ticket 26](26-can-one-doks-node-hold-the-chart.md) turns that preset on; its
   result is worth having before this ticket is worked.
+
+## Correction from ticket 26, 2026-09-16
+
+**The ConfigMap lead is re-gated, not dead — but its premise was wrong one level
+up.** flagd does **not** read the ConfigMap. The chart mounts `flagd-config`
+only into an init container that does a one-shot `cp` into an `emptyDir`, and
+the Deployment carries no `checksum/config` annotation, so writing the ConfigMap
+bumps `resourceVersion` and changes nothing a service can see. Verified: with
+`adFailure` written to the ConfigMap, the pod still served `off`.
+
+**The flip that works is the ConfigMap edit plus `kubectl rollout restart
+deploy/flagd`** (verified: `adFailure = on` in-pod afterwards). That is *better*
+for this ticket than the original lead, because it produces **two** citable API
+writes — the ConfigMap's `resourceVersion` change and a Deployment rollout that
+emits its own Kubernetes Events. The alternative path, the flagd-ui sidecar on
+port 4000, writes the same `emptyDir` and leaves **no Kubernetes API trace at
+all**, so the presenter's action must be the restart path if the Change is to be
+citable.
+
+**The no-watcher branch now has a measured answer.** Kubernetes Events do reach
+Loki, but only at `opentelemetry-collector.mode: deployment` — the preset is off
+by default and skipped entirely in the chart's shipped daemonset mode. Even
+then, three limits bear on whether a Run can cite a Change from Loki alone:
+the receiver **watches rather than lists, so there is no backfill**; there is
+**no isolating stream selector** (`{event_domain="k8s"}` returns zero streams —
+only `{service_name="unknown_service"}` finds them); and whether `k8sobjects`
+is configured to watch **ConfigMap** updates at all, as opposed to `events`, is
+still unverified — the preset's rendered config watches `events.k8s.io` only.
+
+**The non-flag-Fault bullet's premise does not hold.** There is no non-flag
+Fault on this menu, and the one Kubernetes-shaped candidate,
+`failedReadinessProbe`, produced `restartCount=0` and zero `Unhealthy` Events,
+so there is no restart-loop Event shape for a single Change record to also cover.

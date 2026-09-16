@@ -27,3 +27,46 @@ layer (ADR 0007). That changes this ticket's starting menu:
 - This ticket now also waits on
   [Can one DOKS node hold the chart](26-can-one-doks-node-hold-the-chart.md), so
   the menu is not written against a deployment that has not stood up.
+
+## Correction from ticket 26, 2026-09-16
+
+Measured on the real venue. Three things this ticket carries as settled are
+wrong, and two of them would have shaped the Fault menu around signals that do
+not exist.
+
+**`failedReadinessProbe` is not the Kubernetes-native Fault.** A real cluster was
+never sufficient: chart 0.41.2 templates **no readinessProbe on cart**, the
+service the flag names. `readinessProbe` appears twice in the entire render,
+both on the collector — 2 containers of 26. With the flag genuinely on, cart held
+`ready=true` and `restartCount=0`, its EndpointSlice never changed, and no
+`Unhealthy` Event fired. So the adjudication this ticket was waiting for has **no
+winner**: ticket 05's restart loop and ticket 01's Event are both wrong. Pick a
+different Kubernetes-native Fault, or accept that the Kubernetes signal class
+comes from elsewhere. **13 flags enabled, 12 usable.**
+
+**"Start from the Demo's fifteen fault flags" counts two knobs as faults.**
+Chart 0.41.2 ships 15 flags, but `loadGeneratorTraffic` and `loadGeneratorVUs`
+are load knobs. The menu starts from **13**, and one of those is inert, so **12**.
+
+**A Fault can be invisible in logs.** `adFailure`, genuinely firing, produced
+clean `Targeted ad request received` lines and nothing else in the ad service's
+log. It was visible only in metrics and span metrics — gRPC status 14 at
+0.0167/s, and `STATUS_CODE_ERROR` on **five services at once**: ad,
+frontend-proxy, flagd, fraud-detection, payment. **An Alert rule written on log
+volume would never fire for this Fault.** Per-Fault, this ticket has to name
+which signal class actually carries it rather than assuming logs do.
+
+That five-service spread is also the many-to-one shape **already present** with
+no Grafana grouping change, which is an input to ticket 14.
+
+**Flipping a flag requires a pod restart.** flagd reads an `emptyDir` populated
+once by an init container, not the ConfigMap. The presenter's one action is the
+ConfigMap edit **plus `kubectl rollout restart deploy/flagd`**, which adds a
+rollout delay between the action and the first symptom — size the Cascade window
+accordingly.
+
+**Kubernetes Events are available but awkward.** They reach Loki only at
+`mode: deployment`, watch-only with **no backfill**, and with **no isolating
+stream selector**: `{event_domain="k8s"}` and `{k8s_resource_name="events"}`
+both return zero streams, because those are structured metadata. The only
+selector that finds them is `{service_name="unknown_service"}`.

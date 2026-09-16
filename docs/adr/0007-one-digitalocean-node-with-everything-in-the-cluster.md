@@ -22,3 +22,53 @@ The alternatives were real. Compose on the laptop is everything already measured
 - **`helm` is not installed on this machine.** `kubectl` and `doctl` 1.162.0 are, and `doctl` is authenticated. The Helm install is a prerequisite of the next prototype, not a ticket of its own.
 - **The chosen shape is unmeasured end to end.** The prototype measured Compose on the laptop; nothing has stood the chart up on a DOKS node. "Can one DOKS node hold the chart" carries that risk and blocks the Fault menu.
 - **flagd's flag config is a ConfigMap on the chart**, so the presenter's flip becomes a Kubernetes API write with a real resource-version change. That may make a Fault's cause citable without the watcher the research sketched. It is a lead for "The Change: making a Fault's cause citable", not a decision taken here.
+
+## Amendments
+
+**2026-09-16, from "Can one DOKS node hold the chart" (ticket 26).** The
+decision stands and the capacity gate passed with room to spare: allocatable is
+7880m and 13.33 GiB, and everything up with a fault firing and a Run's 2 GiB cap
+genuinely exercised leaves 9.68 GiB available on a node at about 19% of eight
+CPUs. Nothing OOMKilled, nothing evicted. The measurements correct five of the
+consequences above.
+
+- **"That leaves all 13 fault flags usable" should read 13 enabled, 12 usable.**
+  `failedReadinessProbe` is flippable and inert: the chart templates no probe on
+  the cart Deployment it names, so it produces no Event, no endpoint change and
+  no restart. The Kubernetes-native Fault this venue was chosen to make real is
+  not that flag, and which Fault takes its place belongs to ticket 10.
+- **"two answers for Kubernetes Events" assumed this venue already had one.** It
+  does not, as described here. The `kubernetesEvents` preset is not in the demo
+  chart; it belongs to collector subchart 0.165.0 and defaults to off, and even
+  enabled it is skipped by `daemonsetConfig`, which is the mode the chart ships.
+  This ADR must pin `opentelemetry-collector.mode: deployment`, and that line is
+  part of the one-node decision: a Deployment collector under-collects
+  node-local metrics on a multi-node cluster. Enabling the preset without the
+  mode change is worse than a no-op, because the ClusterRole still gains
+  `events.k8s.io` and nothing reads it.
+- **"the chart declares 8,548 Mi against Compose's 3,167 Mi" is a
+  declared-against-declared comparison and was load-bearing in rejecting
+  chart-on-kind.** Measured, our shape declares 4,317 Mi and the node's actual
+  working set is 5.34 GiB under fault. The memory half of that rejection does
+  not hold; the host-CPU half, which is what actually decided the venue, does.
+- **"one 16 GiB, 8-vCPU scheduling domain instead of 12 GiB allocatable split
+  across two" compares capacity to allocatable.** Like for like, the measured
+  figure is 13.33 GiB allocatable and 7880m CPU. The comparison still favours
+  one node; ticket 05's 12 GiB was never measured either.
+- **"One command brings everything up" carries three more qualifications, not
+  one.** `make up` cannot treat helm's exit code as proof of health —
+  `helm upgrade --install --wait --timeout 20m` exited 0 after 90 seconds with
+  the collector in `CrashLoopBackOff` — so it needs its own readiness gate. It
+  must install metrics-server, which DOKS does not ship, **with
+  `--kubelet-insecure-tls`**, without which the upstream manifest rolls out and
+  still fails. And it must rewrite all three collector exporter arrays
+  wholesale, re-listing the `span_metrics` connector in `traces`, because a
+  partial override crashes every collector pod.
+
+The closing bullet on flagd is **re-gated, not withdrawn**. The flag config is a
+ConfigMap, but flagd does not read it: the chart copies it once into an
+`emptyDir` from an init container and sets no `checksum/config`, so a ConfigMap
+write changes nothing a service can see. The flip only takes effect with
+`kubectl rollout restart deploy/flagd`. Ticket 25's lead survives in that
+modified form — the write is a real API write and the rollout emits its own
+Events — but the restart has to be part of the presenter's one action.
