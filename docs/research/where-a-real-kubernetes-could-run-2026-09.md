@@ -17,8 +17,9 @@ page did not say something, the gap is listed at the end rather than filled by i
    machine is a four-core, eight-thread i5 with 16 GiB ([host]), running Docker Desktop **4.0.0**
    (September 2021: Engine 20.10.8, kernel 5.10 linuxkit, HyperKit) allocated 4 CPUs and 8192 MiB
    ([dd-settings-file], [docker-info]). The current release is 4.91.0, dated 2026-09-14
-   ([dd-release-notes]). Docker Desktop's kind-based cluster and its Kubernetes view exist only in
-   releases from the 4.4x line on ([dd-release-notes], [dd-k8s]). Upgrade first, whatever else.
+   ([dd-release-notes]). Docker Desktop's kind provisioner appears by 4.43.0 and became the default at
+   4.65.0; the Kubernetes view in the Dashboard is 4.51 and later
+   ([dd-release-notes], [dd-k8s]). Upgrade first, whatever else.
 2. **At 12 GiB the workload fits on paper with nothing to spare.** The OpenTelemetry Demo wants
    "6 GB of free RAM for the application" on Kubernetes ([otel-demo-k8s]); the LGTM container is
    using 650 MiB idle today and the demo container is capped at 2 GiB ([docker-stats],
