@@ -28,8 +28,14 @@ Stand it up once and measure, on one `s-8vcpu-16gb` node at 1.36.3-do.5, chart
 - Add the LGTM stack and one Receiver pod with a Run's 2 GiB cap. What is left?
 - Is Grafana usable through `kubectl port-forward` while a Fault fires — the
   75 ms range query ticket 08 measured locally, measured again across the wire?
-- Does `failedReadinessProbe` behave as ticket 05 predicted: a restart loop with
-  a pod-status signal rather than a reliable Kubernetes Event?
+- What does `failedReadinessProbe` actually produce? Ticket 05's "restart loop
+  with a pod-status signal rather than a reliable Event" was about **OOMKill**,
+  not this flag, and ticket 01 found this flag wants the chart's
+  `kubernetesEvents` preset — so its signal is likely an Event, not a restart
+  count. Measure rather than assume: whether a `Warning Unhealthy` Event fires,
+  whether the pod leaves the Service's endpoints, whether the restart count moves
+  at all, and whether the chart puts a liveness probe on the same endpoint.
+  Ticket 10 designs the Cascade off whichever signals are actually there.
 - Turn the chart's `kubernetesEvents` preset on and confirm Kubernetes Events
   reach Loki through the Demo's own collector. This is the fog patch ticket 09
   retired on the strength of the preset existing; confirm it works.
