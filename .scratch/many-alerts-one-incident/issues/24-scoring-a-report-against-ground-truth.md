@@ -39,3 +39,13 @@ is the record a file per rehearsal, a table, or something the demo itself can sh
 
 A fourth, smaller class is worth deciding too: the best-graded arm wrote "54 minutes" for a
 52-minute interval. Arithmetic on screen will be read closely, and no keyword check sees it.
+
+## Related, added 2026-09-16
+
+[The Change: making a Fault's cause citable](25-the-change-making-a-faults-cause-citable.md)
+asks whether a Run can retrieve a Fault's cause at all —
+[Can the laptop hold it](08-can-the-laptop-hold-it.md) measured that today it
+cannot, for flag-injected Faults. Not a blocking edge: the scoring method can be
+decided in shape either way. But the two answers have to agree on how much a
+Report must *cite* versus *infer* before either is final, so whichever is taken
+second should read the first.
