@@ -37,7 +37,7 @@ Two agent-ready specs, the telemetry simulation and the reasoning Run, plus the 
 - Recognizable system preferred: the OpenTelemetry Demo if it fits; a hand-rolled topology copying its shape if not.
 - Many-to-one: one Run per Notification stays; Grafana grouping widens so a Cascade tends to arrive together; the Run judges the Match against open Incidents, so the Report grows across Runs.
 - Memory is three stores: Incidents in OPS, pages in a Confluence space reached through `confluence-as` as the peer of `jira-as`, and the Memory directory. What lives where is a ticket.
-- Model: fit-to-slot. Opus 5 at high effort is the hypothesis to test first.
+- Model: fit-to-slot. Opus 5 at high effort was the hypothesis; it was tested and does not fit five minutes, see [Does a high-effort Run fit the slot](issues/11-does-a-high-effort-run-fit-the-slot.md).
 - Structured events, the fourth signal: Kubernetes Events, Changes, and Run events from the Transcript and the harness's own telemetry export.
 - Carried from chapter one: one command brings everything up; one presenter action starts the story; a replay script survives a broken Grafana.
 
@@ -63,6 +63,7 @@ Two agent-ready specs, the telemetry simulation and the reasoning Run, plus the 
 - [How a Run could see telemetry](issues/03-how-a-run-could-see-telemetry.md) — the LGTM image runs Prometheus, not Mimir; anonymous off works and Viewer answers every read a Run needs; Loki, Tempo and Prometheus must bind to loopback so Grafana is the only door; two candidates survive, `mcp-grafana` read-only in stdio or a standard-library `eyes` CLI, with a prototype to choose.
 - [What the harness tells us about a Run](issues/02-what-the-harness-tells-us-about-a-run.md) — Claude Code exports eight metrics, twenty-six log events and beta traces over OTLP, verified in print mode under `dontAsk`; `session_id` joins export and Transcript; the stack's Prometheus drops the default delta counters unless temporality is cumulative; identity attributes ride on every record and need a collector processor or a demo account; the Transcript itself still has to be shipped.
 - [Seed the new repo](issues/07-seed-the-new-repo.md) — the effort lives at `github.com/grandcamel/many-alerts-one-incident`, public since 2026-09-15, `main` seeded from this branch with the six `research/*` branches alongside and chapter one untouched at 705732d; a pre-publish audit found no secret or identifier in anything published, corrected six factual errors including both bugs the handoff named, and left the third-party quotations to their own ticket.
+- [Does a high-effort Run fit the slot](issues/11-does-a-high-effort-run-fit-the-slot.md) — Opus 5 on high takes 370 s against a seven-Alert Cascade, so five minutes is not realistic; `xhigh` was killed at fifteen minutes having filed nothing, `medium` came out slower and dearer than `high`, and Haiku 4.5 passed in 74 s for $0.15 with a thinner case; Fable 5.1 is unmeasured because the arms exhausted the seven-day allowance. Separately: the allow list denies a `jira-as` command on length alone somewhere between 9,417 and 11,313 characters, which caps the Report, and a rate-limited Run reports `subtype: success`.
 
 ## Not yet specified
 
@@ -73,7 +74,6 @@ Two agent-ready specs, the telemetry simulation and the reasoning Run, plus the 
 - Replay fixtures for a Cascade. Waits on Faults and many-to-one.
 - The Confluence space: which space, what seeds it, what a Run writes there, and restricting the account's write to that space, since `confluence-as` has no space guard. Waits on Memory.
 - What the audience sees of Memory growing. Waits on Memory.
-- Cost per demo. Waits on the Run timing prototype.
 - The Report's Jira ADF shape. Waits on the Report.
 - How rehearsal scores a Report against Ground truth, by hand or by a script. Waits on the Report.
 - Provisioning the cluster, laptop or cloud, as a task, with the `doctl` rule: never create without `--ha=false`, `--size` and `--count`. Waits on where it runs.
