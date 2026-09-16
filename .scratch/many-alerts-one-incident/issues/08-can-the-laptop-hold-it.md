@@ -23,7 +23,12 @@ conditions are better than they were written:
 - **The VM is faster**: off HyperKit onto the Apple Virtualization Framework with VirtioFS,
   which should matter for the bind mounts and for container start-up across 20-odd services.
 - Enable, reset and diagnose are all driveable from `docker desktop kubernetes ...`, so this
-  prototype does not need a human at the Dashboard.
+  prototype does not need a human at the Dashboard to *operate*. It does need one to
+  **consent**: enabling Kubernetes claims several GiB of the 12 GiB allocation, pulls four
+  images, and leaves the laptop running a cluster and twenty-odd containers for as long as
+  the measurement takes. Ask before enabling it, say roughly how long the machine will be
+  busy, and know the way back is `docker desktop kubernetes reset-cluster` plus turning it
+  off again. Do not treat "the CLI can do it" as permission to do it.
 
 The measurement question is unchanged and is now the only one left: how much of the 11.68 GiB
 a kind cluster leaves for the Demo's core layer, LGTM and one Claude container.
