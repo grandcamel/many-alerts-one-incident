@@ -314,7 +314,7 @@ exhaust the budget" ([thinking-cost]). The platform's own default for Opus 5 at 
 6. **The prompt's size is the cost lever chapter one never pulled.** Ninety percent of the recorded
    Run's cost was writing the appended prompt and skill into the 1-hour cache ([fixture],
    arithmetic above). As the one Skill becomes several, that write grows; Runs within an hour that
-   share a byte-identical prefix read it at 5% (Opus 5) or 2.5% (Fable 5.1) of input price
+   share a byte-identical prefix read it at 10% (Opus 5) or 2.5% (Fable 5.1) of input price
    ([pricing]).
 7. **`--bare` and the Forwarder-held API key change the price basis, not the price.** A Run on an
    API key is billed at the list prices above; a Run on OAuth reports the same estimate against a
