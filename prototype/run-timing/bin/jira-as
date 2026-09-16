@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+"""PROTOTYPE — throwaway. Chapter one's Hands, stubbed.
+
+Answers the jira-as invocations the skill uses, in the shapes chapter one's real
+2.0.0 answers them, out of a JSON state file. Every invocation is appended to
+$HANDS_LOG so the measurement can count Hands calls and read the Report that was
+filed. Nothing reaches a real Jira site.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+LOG = Path(os.environ.get("HANDS_LOG", "hands.log"))
+STATE = Path(os.environ.get("HANDS_STATE", "hands-state.json"))
+# The demo's clock. A Run has no `date`, so every duration it reports comes from here.
+NOW = datetime(2026, 9, 15, 14, 8, 30, tzinfo=timezone.utc)
+
+TRANSITIONS = [
+    {"id": "21", "name": "Investigate", "to": {"name": "Work in progress"}},
+    {"id": "31", "name": "Resolve", "to": {"name": "Completed"}},
+    {"id": "41", "name": "Cancel", "to": {"name": "Canceled"}},
+]
+
+
+def state() -> dict:
+    if STATE.exists():
+        return json.loads(STATE.read_text())
+    return {"issues": {}, "next": 4271}
+
+
+def save(payload: dict) -> None:
+    STATE.write_text(json.dumps(payload, indent=2) + "\n")
+
+
+def record(argv: list[str]) -> None:
+    with LOG.open("a") as handle:
+        handle.write(json.dumps({"at": datetime.now(timezone.utc).isoformat(), "argv": argv}) + "\n")
+
+
+def value_after(argv: list[str], *flags: str) -> str | None:
+    for flag in flags:
+        if flag in argv:
+            index = argv.index(flag)
+            if index + 1 < len(argv):
+                return argv[index + 1]
+    return None
+
+
+def values_after(argv: list[str], flag: str) -> list[str]:
+    """Everything between `flag` and the next flag — jira-as takes several labels."""
+    if flag not in argv:
+        return []
+    collected = []
+    for item in argv[argv.index(flag) + 1:]:
+        if item.startswith("-"):
+            break
+        collected.extend(part.strip() for part in item.split(",") if part.strip())
+    return collected
+
+
+def main(argv: list[str]) -> int:
+    record(argv)
+    data = state()
+    words = [item for item in argv if not item.startswith("-")]
+    wants_json = "-o" in argv and value_after(argv, "-o") == "json"
+
+    if "getServerInfo" in argv:
+        print(json.dumps({"serverTime": NOW.strftime("%Y-%m-%dT%H:%M:%S.000+0000"),
+                          "baseUrl": "https://example.atlassian.net"}))
+        return 0
+
+    if "getProjectComponents" in argv:
+        print(json.dumps([{"name": "rolldice"}, {"name": "frontend"}, {"name": "recommendation"}]))
+        return 0
+
+    if words[:1] == ["search"]:
+        jql = words[-1]
+        matches = [
+            key for key, issue in data["issues"].items()
+            if issue["status"] not in ("Completed", "Closed", "Canceled")
+            and any(f'"{label}"' in jql or f"= {label}" in jql for label in issue["labels"])
+        ]
+        if not matches:
+            print("Found 0 issue(s)")
+            return 0
+        print(f"Found {len(matches)} issue(s)")
+        print("Key       Summary                                  Status")
+        for key in matches:
+            issue = data["issues"][key]
+            print(f'{key:9} {issue["summary"][:40]:40} {issue["status"]}')
+        return 0
+
+    if words[:2] == ["issue", "create"]:
+        key = f"OPS-{data['next']}"
+        data["next"] += 1
+        data["issues"][key] = {
+            "summary": value_after(argv, "-s", "--summary") or "(no summary)",
+            "labels": values_after(argv, "--labels"),
+            "status": "Open",
+            "created": (NOW - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S.000+0000"),
+            "custom": value_after(argv, "--custom-fields") or "",
+            "comments": [],
+        }
+        save(data)
+        print(f"Created issue {key}")
+        print(f"https://example.atlassian.net/browse/{key}")
+        return 0
+
+    if words[:2] == ["issue", "get"]:
+        key = words[2]
+        issue = data["issues"].get(key)
+        if issue is None:
+            print(f"Issue {key} not found", file=sys.stderr)
+            return 1
+        print(json.dumps({"key": key, "fields": {"summary": issue["summary"],
+                                                 "created": issue["created"],
+                                                 "labels": issue["labels"],
+                                                 "status": {"name": issue["status"]}}}, indent=2))
+        return 0
+
+    if words[:2] == ["issue", "update"]:
+        key = words[2]
+        issue = data["issues"].get(key)
+        if issue is None:
+            print(f"Issue {key} not found", file=sys.stderr)
+            return 1
+        added = values_after(argv, "--labels")
+        issue["labels"] = list(dict.fromkeys(issue["labels"] + added))
+        if value_after(argv, "--custom-fields"):
+            issue["custom"] = value_after(argv, "--custom-fields")
+        if value_after(argv, "-s", "--summary"):
+            issue["summary"] = value_after(argv, "-s", "--summary")
+        save(data)
+        print(f"Updated issue {key}")
+        return 0
+
+    if words[:3] == ["collaborate", "comment", "add"]:
+        key = words[3]
+        issue = data["issues"].get(key)
+        if issue is None:
+            print(f"Issue {key} not found", file=sys.stderr)
+            return 1
+        issue["comments"].append(value_after(argv, "-b", "--body") or "")
+        save(data)
+        print(f"Added comment to {key}")
+        return 0
+
+    if words[:3] == ["collaborate", "comment", "list"]:
+        key = words[3]
+        issue = data["issues"].get(key)
+        if issue is None:
+            print(f"Issue {key} not found", file=sys.stderr)
+            return 1
+        if not issue["comments"]:
+            print("No comments")
+            return 0
+        for index, body in enumerate(issue["comments"], start=1):
+            print(f"[{index}] {body}")
+        return 0
+
+    if words[:2] == ["lifecycle", "transitions"]:
+        print(json.dumps(TRANSITIONS, indent=2) if wants_json else
+              "\n".join(f'{one["id"]}  {one["name"]} -> {one["to"]["name"]}' for one in TRANSITIONS))
+        return 0
+
+    if words[:2] == ["lifecycle", "transition"]:
+        key = words[2]
+        issue = data["issues"].get(key)
+        if issue is None:
+            print(f"Issue {key} not found", file=sys.stderr)
+            return 1
+        wanted = value_after(argv, "--id")
+        target = next((one for one in TRANSITIONS if one["id"] == wanted), None)
+        if target is None:
+            print(f"No transition with id {wanted}", file=sys.stderr)
+            return 1
+        issue["status"] = target["to"]["name"]
+        save(data)
+        print(f'Transitioned {key} to {target["to"]["name"]}')
+        return 0
+
+    print(f"jira-as: unsupported in this prototype: {' '.join(argv)}", file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

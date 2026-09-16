@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+"""PROTOTYPE — throwaway. The Eyes a Run reads telemetry through, canned.
+
+Stands in for whatever ticket 12 chooses, `mcp-grafana` or a real `eyes` CLI. It
+answers from the files in $EYES_DATA and never touches a network, so a Run's
+reasoning is measured against fixed data. Matching is forgiving on purpose: a
+missed query should cost the Run a turn, not send it hunting for syntax.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from pathlib import Path
+
+DATA = Path(os.environ.get("EYES_DATA", "telemetry"))
+
+USAGE = """eyes — read the telemetry of the system under observation.
+
+  eyes metrics list
+  eyes metrics query <name-or-substring> [--since ISO] [--until ISO]
+  eyes logs query [--service S] [--contains TEXT] [--since ISO] [--limit N]
+  eyes traces list [--service S] [--min-duration-ms N] [--limit N]
+  eyes traces get <traceId>
+  eyes changes list [--since ISO] [--limit N]
+
+All times are UTC ISO-8601 like 2026-09-15T14:02:00Z. Everything is read-only.
+"""
+
+
+def load(name: str):
+    path = DATA / name
+    if not path.exists():
+        sys.exit(f"eyes: no such data file: {path}")
+    if path.suffix == ".jsonl":
+        return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    return json.loads(path.read_text())
+
+
+def within(stamp: str, since: str | None, until: str | None) -> bool:
+    if since and stamp < since:
+        return False
+    if until and stamp > until:
+        return False
+    return True
+
+
+def metrics_list() -> int:
+    for name, body in load("metrics.json").items():
+        print(f"{name}  [{body['unit']}]  {body['help']}")
+    return 0
+
+
+def metrics_query(args) -> int:
+    metrics = load("metrics.json")
+    needle = args.name.lower()
+    matched = {name: body for name, body in metrics.items() if needle in name.lower()}
+    if not matched:
+        print(f"no metric matches {args.name!r}. Try: eyes metrics list")
+        return 0
+    for name, body in matched.items():
+        print(f"{name}  [{body['unit']}]")
+        for stamp, value in body["series"]:
+            if within(stamp, args.since, args.until):
+                print(f"  {stamp}  {value}")
+        print()
+    return 0
+
+
+def logs_query(args) -> int:
+    records = load("logs.jsonl")
+    hits = [
+        record for record in records
+        if (not args.service or args.service.lower() in record["service"].lower())
+        and (not args.contains or args.contains.lower() in record["body"].lower())
+        and within(record["timestamp"], args.since, args.until)
+    ]
+    if not hits:
+        print("no log lines match. Services seen: " + ", ".join(
+            sorted({record["service"] for record in records})))
+        return 0
+    for record in hits[: args.limit]:
+        print(f'{record["timestamp"]}  {record["severity"]:5}  {record["service"]:16}  {record["body"]}')
+    if len(hits) > args.limit:
+        print(f"... {len(hits) - args.limit} more, raise --limit to see them")
+    return 0
+
+
+def traces_list(args) -> int:
+    traces = load("traces.json")
+    hits = [
+        trace for trace in traces
+        if (not args.service or any(
+            args.service.lower() in span["service"].lower() for span in trace["spans"]))
+        and trace["durationMs"] >= args.min_duration_ms
+    ]
+    if not hits:
+        print("no traces match.")
+        return 0
+    for trace in hits[: args.limit]:
+        services = ", ".join(dict.fromkeys(span["service"] for span in trace["spans"]))
+        print(f'{trace["traceId"]}  {trace["startTime"]}  {trace["durationMs"]}ms  '
+              f'{trace["status"]}  {trace["rootService"]} {trace["rootName"]}  [{services}]')
+    return 0
+
+
+def traces_get(args) -> int:
+    for trace in load("traces.json"):
+        if trace["traceId"].startswith(args.trace_id):
+            print(json.dumps(trace, indent=2))
+            return 0
+    print(f"no trace {args.trace_id}. Try: eyes traces list")
+    return 0
+
+
+def changes_list(args) -> int:
+    changes = [
+        change for change in load("changes.json") if within(change["time"], args.since, None)
+    ]
+    changes.sort(key=lambda change: change["time"])
+    for change in changes[: args.limit]:
+        tags = ",".join(change["tags"])
+        print(f'{change["time"]}  #{change["id"]}  [{change["source"]}] ({tags}) {change["text"]}')
+    if not changes:
+        print("no changes in that window.")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="eyes", add_help=False, usage=USAGE)
+    parser.add_argument("-h", "--help", action="store_true")
+    subparsers = parser.add_subparsers(dest="group")
+
+    metrics = subparsers.add_parser("metrics", add_help=False).add_subparsers(dest="action")
+    metrics.add_parser("list", add_help=False)
+    query = metrics.add_parser("query", add_help=False)
+    query.add_argument("name")
+    query.add_argument("--since")
+    query.add_argument("--until")
+
+    logs = subparsers.add_parser("logs", add_help=False).add_subparsers(dest="action")
+    log_query = logs.add_parser("query", add_help=False)
+    log_query.add_argument("--service")
+    log_query.add_argument("--contains")
+    log_query.add_argument("--since")
+    log_query.add_argument("--until")
+    log_query.add_argument("--limit", type=int, default=50)
+
+    traces = subparsers.add_parser("traces", add_help=False).add_subparsers(dest="action")
+    trace_list = traces.add_parser("list", add_help=False)
+    trace_list.add_argument("--service")
+    trace_list.add_argument("--min-duration-ms", type=int, default=0)
+    trace_list.add_argument("--limit", type=int, default=20)
+    trace_get = traces.add_parser("get", add_help=False)
+    trace_get.add_argument("trace_id")
+
+    changes = subparsers.add_parser("changes", add_help=False).add_subparsers(dest="action")
+    change_list = changes.add_parser("list", add_help=False)
+    change_list.add_argument("--since")
+    change_list.add_argument("--limit", type=int, default=20)
+
+    args = parser.parse_args()
+    if args.help or not args.group:
+        print(USAGE)
+        return 0
+    dispatch = {
+        ("metrics", "list"): lambda: metrics_list(),
+        ("metrics", "query"): lambda: metrics_query(args),
+        ("logs", "query"): lambda: logs_query(args),
+        ("traces", "list"): lambda: traces_list(args),
+        ("traces", "get"): lambda: traces_get(args),
+        ("changes", "list"): lambda: changes_list(args),
+    }
+    handler = dispatch.get((args.group, getattr(args, "action", None)))
+    if handler is None:
+        print(USAGE)
+        return 2
+    return handler()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
