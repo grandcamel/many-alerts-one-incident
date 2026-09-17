@@ -1,0 +1,94 @@
+# opentelemetry-demo chart 0.41.2 (appVersion 3.0.0), shaped by ADR 0007.
+#
+# ADR 0007: "the chart's default component set, minus four" — agent, chatbot and
+# mcp go off, and so do the four bundled backends. kafka, accounting,
+# fraud-detection and load-generator ship enabled and STAY enabled.
+#
+# Everything else is left at the chart's default ON PURPOSE. The ticket is a
+# measurement, so what the chart brings that ADR 0007 never named (astronomy-db,
+# opamp-server, firepit, telemetry-docs, otel-ebpf-profiler) is left alone and
+# weighed rather than pre-trimmed. What it costs is a finding, not a setting.
+
+components:
+  # --- ADR 0007's three, off. 500 Mi each by ticket 09's reckoning. ---
+  agent:
+    enabled: false
+  chatbot:
+    enabled: false
+  mcp:
+    enabled: false
+
+  # --- ADR 0007's four that stay on, pinned here so a chart bump cannot
+  #     silently flip them and quietly change the fault-flag menu. ---
+  kafka:
+    enabled: true
+  accounting:
+    enabled: true
+  fraud-detection:
+    enabled: true
+  load-generator:
+    enabled: true
+
+# --- the four bundled backends, off. LGTM replaces them (lgtm.yaml). ---
+jaeger:
+  enabled: false
+prometheus:
+  enabled: false
+grafana:
+  enabled: false
+opensearch:
+  enabled: false
+
+opentelemetry-collector:
+  # MEASURED, not assumed. The chart ships mode: daemonset, and the
+  # kubernetesEvents preset is HARD-GATED to deployment/statefulset: with the
+  # preset enabled, `helm template` renders k8sobjects 0 times at daemonset and
+  # 2 times at deployment or statefulset, and the daemonset render is
+  # byte-identical to leaving the preset off. It fails silently — no error, no
+  # warning, no Event collection.
+  #
+  # Switching costs nothing HERE and only here: at mode=deployment the metrics
+  # receivers render identically (otlp, kafkametrics, span_metrics,
+  # prometheus/ad, receiver_creator/metrics, hostmetrics, kubeletstats,
+  # k8s_cluster) and the logs pipeline GAINS k8sobjects. hostmetrics and
+  # kubeletstats scrape the node their pod sits on, so on ADR 0007's
+  # single-node venue a Deployment covers every node. On a multi-node cluster
+  # it would silently under-collect, which is why this line belongs to the
+  # one-node decision and must be revisited if that ever changes.
+  mode: deployment
+
+  presets:
+    kubernetesEvents:
+      enabled: true
+    kubernetesAttributes:
+      enabled: true
+    kubeletMetrics:
+      enabled: true
+    clusterMetrics:
+      enabled: true
+
+  config:
+    exporters:
+      otlp/lgtm:
+        endpoint: lgtm:4317
+        tls:
+          insecure: true
+    service:
+      pipelines:
+        # The collector merges config but REPLACES arrays. Ticket 08's harness
+        # found that for exporter names; this found the sharper edge: span_metrics
+        # is a CONNECTOR, traces-exporter and metrics-receiver at once. Listing
+        # traces exporters without it crashed every collector pod with
+        # `connector "span_metrics" used as receiver in [metrics] pipeline but
+        # not used in any supported exporter pipeline`, which took the whole
+        # install down. Each list below is the chart's own default with the
+        # bundled-backend exporter swapped for LGTM and NOTHING else dropped.
+        traces:
+          # default: otlp_grpc/jaeger, debug, span_metrics
+          exporters: [otlp/lgtm, debug, span_metrics]
+        metrics:
+          # default: otlp_http/prometheus, debug
+          exporters: [otlp/lgtm, debug]
+        logs:
+          # default: opensearch, debug
+          exporters: [otlp/lgtm, debug]
