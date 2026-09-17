@@ -11,7 +11,7 @@ One injected failure in the simulated system, with a documented Ground truth.
 _Avoid_: scenario, chaos experiment, failure mode, incident, outage
 
 **Ground truth**:
-The documented true cause of a Fault, written when the Fault is. What a Report's Suggested root cause is judged against.
+The documented true cause of a Fault, written when the Fault is, in two layers: the **Mechanism**, what actually breaks stated in system terms, and the **Trigger**, the switch that injected it. A Report's Suggested root cause is judged against the Mechanism alone, so naming the Trigger is not a diagnosis.
 _Avoid_: root cause, answer key, expected result
 
 **Cascade**:
@@ -31,6 +31,10 @@ An Event recording something someone did to the system: a deploy, a config edit,
 _Avoid_: deployment event, annotation, change event, release
 
 ### Alerting side
+
+**Alertable condition**:
+One distinct thing that is true of the system while a Fault is firing, named against a signal that exists. The unit a Cascade is designed in, before any threshold turns it into an Alert.
+_Avoid_: alert rule, condition, symptom, trigger
 
 **Alert**:
 One Grafana alert rule instance, identified by its Fingerprint. It is either Firing or Resolved.

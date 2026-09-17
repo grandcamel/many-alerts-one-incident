@@ -47,3 +47,47 @@ far inside a Run's patience. Grafana knows four datasources by uid: `prometheus`
 status, endpoints and restart counts have no other carrier here: Events reach
 Loki only at `mode: deployment`, watch-only with no backfill, so anything that
 happened before the collector started is unreachable from Loki by construction.
+
+## Correction from ticket 10, 2026-09-16
+
+**Point 2 above is false, and it is the stronger of two versions of a claim that was
+never measured.** [Can one DOKS node hold the chart](26-can-one-doks-node-hold-the-chart.md)
+said the ad service "logged clean request lines throughout" — an observation about one
+service's log. This ticket restated that as "`adFailure` produced no error lines at all",
+a claim about the whole telemetry system, and that stronger version is now driving the
+Eyes design.
+
+Neither version was measured. **No Loki query for ad logs exists anywhere in that
+prototype**, and no Loki access occurred at any time while the flag was on; see the
+correction appended to that ticket. Meanwhile [Can the laptop hold it](08-can-the-laptop-hold-it.md)
+did retrieve `GetAds Failed with status Status{code=UNAVAILABLE}` from Loki on the same
+`3.0.0-ad` image, and the ad Deployment sets `OTEL_LOGS_EXPORTER: otlp`.
+
+So the premise "a Fault can be invisible in logs, therefore Eyes must reach metrics
+well" loses this example. **The conclusion still holds, on better examples**: resolving
+[Faults and their Cascades](10-faults-and-their-cascades.md) found two faults that are
+genuinely log-silent at source — `paymentUnreachable` (all 34 `logger.*` calls read; the
+failure branch is `status.Errorf` with no logging) and `productCatalogFailure`
+(`span.SetStatus` and `span.AddEvent` only, in a service that demonstrably exports OTLP
+logs). Rewrite point 2 against those.
+
+**Two facts Eyes needs that this ticket does not yet carry:**
+
+- **No application service's logs have ever been retrieved from this venue's Loki, and
+  Tempo has never been queried at this venue for anything.** Every log and trace
+  capability this ticket assumes is source-derived, not measured. The confirmed stream
+  labels are `k8s_container_name`, `k8s_deployment_name`, `k8s_namespace_name`,
+  `k8s_pod_name`, `k8s_replicaset_name`, `service_instance_id`, `service_name`,
+  `service_namespace`.
+- **`service_namespace="otel-demo"` on an application selector returns zero streams
+  forever.** All 22 demo pod templates carry
+  `resource.opentelemetry.io/service.namespace: opentelemetry-demo`, and the collector
+  runs `k8s_attributes` with `otel_annotations: true`, which overwrites the
+  namespace-derived value. `"otel-demo"` is correct **only** for Kubernetes Event streams,
+  which come from the collector pod — the one pod carrying no such annotation. Eyes must
+  steer a Run to a bare `{service_name="…"}`.
+
+**Read-only `kubectl` is more load-bearing than this ticket already says.**
+`OOMKilled` emits **no Kubernetes Event** — it is a
+`containerStatuses[].lastState.terminated.reason`, carried by neither Loki nor
+Prometheus. Pod status via `kubectl` is the *only* carrier for it.

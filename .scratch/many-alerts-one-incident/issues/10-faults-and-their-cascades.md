@@ -1,7 +1,7 @@
 # Faults and their Cascades
 
 Type: grilling
-Status: open
+Status: resolved
 Blocked by: 09, 26
 
 ## Question
@@ -70,3 +70,244 @@ accordingly.
 stream selector**: `{event_domain="k8s"}` and `{k8s_resource_name="events"}`
 both return zero streams, because those are structured metadata. The only
 selector that finds them is `{service_name="unknown_service"}`.
+
+## Answer
+
+Resolved 2026-09-17 by a grilling session, against eight candidate flags mapped and
+then adversarially refuted. **The refutation changed the outcome three times**: it
+rehabilitated a Fault this ticket had written off, it killed the premise on which the
+Kubernetes-native Fault had been chosen, and it revealed that the whole logs-and-traces
+column rests on something nobody has ever measured at this venue.
+
+### The rules, before the menu
+
+1. **A Fault is exactly one flag.** Compound Faults — two flags at once, decoys — are
+   out of scope. They would reopen ADR 0006's counting rule and the Ground truth rule
+   together, and `adFailure` alone already spreads across five services, so width is
+   not a reason to reach for them.
+2. **A Ground truth is two layers** — the **Mechanism**, what breaks in system terms,
+   and the **Trigger**, the flag and variant — and a Report is scored against the
+   Mechanism alone. The Ground truth lives only in this repository and never enters
+   the Run's world. **ADR 0008** records this; the Memory directory is the live leak
+   risk, not Jira or Confluence.
+3. **This ticket names alertable conditions, not Alert rules.** It owns what is true
+   of the system when a Fault fires; thresholds, `for` durations, labels and grouping
+   belong to [Alert rules for a Cascade](28-alert-rules-for-a-cascade.md).
+4. **The traffic level is venue, not Fault.** `make up` pins `loadGeneratorVUs` once
+   and every timing budget is written against that level. A Fault is a flag flip and
+   nothing else.
+5. **Timing is budgeted here and measured later.** "Injection to last Alert" is not a
+   property of a Fault — it is a property of a Fault *and* a rule, and the rules do
+   not exist yet.
+6. **Each Fault defines its own undo, and "one presenter action" means one command,
+   not one API call.** `make fault NAME=x` and `make clear`. All three chosen Faults
+   need a service restart in their undo, so a script was always required.
+
+### The menu
+
+Chart 0.41.2 ships **15 flags**. Two are load knobs (`loadGeneratorTraffic`,
+`loadGeneratorVUs`), leaving **13 Faults**. `failedReadinessProbe` is inert — no probe
+is templated on cart — so **12 are usable**. `productCatalogFailure` is usable only via
+a targeting edit: its rule returns `"off"` on **both** branches, so `defaultVariant` is
+never consulted and a plain flip does nothing. It is the only flag in the set carrying
+a `targeting` key.
+
+**Three are written in full. The rest are named only and carry no Ground truth:**
+`adHighCpu`, `adManualGc`, `imageSlowLoad`, `intlShippingSlowdown`, `kafkaQueueProblems`,
+`paymentFailure`, `productCatalogFailure`, `recommendationCacheFailure`, and
+`failedReadinessProbe` (inert, recorded so nobody nominates it a fourth time).
+
+`adFailure` is the **designated fallback for the live slot** — not one of the nine.
+It is the only Fault ever actually injected at this venue, and if rehearsal kills the
+live Fault we should not be choosing a replacement under time pressure.
+
+---
+
+### Fault 1 — Checkout-to-payment connection (LIVE)
+
+**Trigger**: `paymentUnreachable` → `on`.
+
+**Ground truth (Mechanism)**: Every checkout attempt abandons the healthy connection it
+holds to the payment service and instead dials a hostname that does not exist in cluster
+DNS, so the charge call fails name resolution and returns gRPC UNAVAILABLE; checkout
+converts that into gRPC INTERNAL for its caller, so every order fails at the payment step
+while the payment service itself stays perfectly healthy and simply stops receiving any
+traffic at all. Everything sequenced after the charge — shipping dispatch, cart clearing,
+the confirmation email, and the order stream that feeds accounting and fraud detection —
+is never reached, while the browse and add-to-cart path ahead of the charge keeps working
+normally. Each failed attempt also leaves behind an undisposed connection that keeps
+retrying the unresolvable name in the background.
+
+**Signals**: metrics ✅, traces ✅, **logs a proven zero** (all 34 `logger.*` calls read;
+the failure branch is `status.Errorf` with no logging), Kubernetes ❌.
+
+**Alertable conditions** (2, instantiating to 6–9 Alerts):
+
+- *Checkout error ratio* — `sum(rate(traces_span_metrics_calls_total{service_name="checkout",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="checkout"}[5m]))`, real ratio 20–28%, clearing a 5% threshold by 4–5×. Instantiates across checkout, frontend-proxy and the edge.
+- *Service traffic absent* — `sum(rate(traces_span_metrics_calls_total{service_name="payment"}[5m])) < 0.01`. Payment's traffic goes to **exactly zero**, so this is unambiguous rather than a dip inside Poisson noise. Instantiates across payment, email, accounting, fraud-detection, shipping and cart clearing.
+
+**Diagnostic path**: `{resource.service.name="checkout" && span.rpc.method="oteldemo.PaymentService/Charge" && status=error}`, then the `exception` event on the PlaceOrder span carrying `could not charge the card: rpc error: code = Unavailable`. The orphaned client span with no server-side child is the structural signature of dialling a destination that is not there — a Run reaches the Mechanism without ever naming the Trigger.
+
+**Timing budget**: flagd rollout 20–45 s + mean 18 s to the next checkout + ~5 s trace lag → a failing trace searchable at **~90 s**; first metric-backed Alert at **3–5 min**; absence Alerts landing by **9–12 min**. Fits a thirty-minute slot with room for a visible recovery.
+
+**Undo**: flip off → `rollout restart deploy/flagd` → **`rollout restart deploy/checkout`** (the leaked connections do not clear otherwise).
+
+**⚠️ Stage hazard**: checkout is the tightest container in the demo — **18 Mi against a
+20 Mi limit with `GOMEMLIMIT=16MiB`** — and this Fault leaks a `grpc.ClientConn` per
+failed order and never closes it, in a file where every startup connection gets
+`defer c.Close()`. A long window can OOM checkout on stage and **replace the Fault with a
+different one**. Keep the fault window under ~15 minutes.
+
+---
+
+### Fault 2 — Email confirmation service (REHEARSAL, carries the Kubernetes signal class)
+
+**Trigger**: `emailMemoryLeak` → `1000x`.
+
+**Ground truth (Mechanism)**: The email service keeps every order-confirmation message it
+"sends" in an in-process test mailbox that is emptied only on a branch the running
+configuration no longer takes, and each message body is padded to roughly a thousand times
+its natural size, so the container's resident memory climbs until it crosses its
+hundred-mebibyte limit and the kernel kills it. The kill lands mid-request, so its one
+caller's in-flight confirmation POST is reset at least once per cycle. With no liveness or
+readiness probe on that container, exhausting the limit is the only thing that ends the
+pod; Kubernetes restarts it with an empty mailbox and the climb repeats. The caller treats
+the confirmation as fire-and-forget — it logs the failure and completes the order anyway —
+so no customer ever sees an error and no order is lost.
+
+**Signals**: Kubernetes ⚠️ (**pod status, not Events**), metrics ⚠️, logs ⚠️ caller-only,
+traces ⚠️ thin.
+
+**The correction that matters**: **`OOMKilled` emits no Kubernetes Event.** It is a
+`containerStatuses[].lastState.terminated.reason`, carried by neither Loki nor Prometheus.
+The Event evidence is the restart lifecycle (`Created`/`Started`, `BackOff` after repeats),
+which has never been observed here. **The strongest citable evidence is pod status via
+read-only `kubectl`** — already granted through `kubectl proxy` behind the Forwarder by
+[Which system, and where it runs](09-which-system-and-where-it-runs.md). This makes
+[Eyes](12-eyes.md) a hard dependency for this Fault rather than a parallel concern.
+
+**Alertable conditions**: container memory approaching limit —
+`max by (k8s_pod_name)(container_memory_working_set_bytes{k8s_container_name="email"}) > 70Mi`
+(re-thresholded from 90%/`for:1m`, which is **unreachable**: 90→100 MiB takes 56 s);
+restart count rising — note `k8s.container.restarts` is a **gauge**, so `changes()` or
+`max_over_time − min_over_time`, never `increase()`; and the caller's WARN,
+`{service_name="checkout"} |= "failed to send order confirmation"`.
+
+**Timing budget**: at `1000x`, an OOM cycle in roughly **3–9 min**, repeating. At `100x`
+it is 28–83 min and does not fit. There is no variant landing cleanly mid-slot, so
+`1000x` is the choice and the repeat is the demo.
+
+**Undo**: flip off → `rollout restart deploy/flagd` → **delete the email pod**. Beware a
+restart backoff of up to 300 s, during which a flip-off does nothing at all, because the
+process must be running to execute the clear.
+
+---
+
+### Fault 3 — Cart clearing (REHEARSAL, carries the logs signal class)
+
+**Trigger**: `cartFailure` → a percentage variant.
+
+**Ground truth (Mechanism)**: Every request to empty a shopper's cart is routed to a
+second, misconfigured cart-store client pointed at a hostname that does not resolve, so
+those calls fail with gRPC FAILED_PRECONDITION after a failed connection attempt, and each
+failure leaves behind another connection object that keeps retrying that hostname forever.
+Checkout calls empty-cart at the very end of every order and discards the error, so the
+order still completes — payment, shipping and the confirmation email all succeed and the
+shopper sees nothing wrong — and the only symptoms are errored cart and checkout spans plus
+cart error logs, while every shopper's cart is silently never cleared.
+
+**Signals**: logs ✅, traces ✅, metrics ⚠️, Kubernetes ❌.
+
+**Why this one over `adFailure`**: it is the only candidate giving an Error-level log line
+**on the fault path** whose OTLP bridge is compiled into `Program.cs` rather than depending
+on an env var, plus a ratio discriminator computable entirely inside Loki (Error lines ÷
+`EmptyCartAsync called with` lines = the failure percentage). And it is a **different
+shape** — a silent data-integrity failure behind green checkouts, which is the failure
+alerting is worst at. The three Faults then span resource exhaustion, hard dependency
+failure, and silent partial failure, rather than three variations of "errors reach the edge".
+
+**Alertable conditions**: `{service_name="cart"} |= "Wasn't able to connect to redis"`
+(**no `service_namespace` matcher** — see the traps); and an absolute error rate against a
+measured baseline, **not** a ratio, because the ~5.2% ratio straddles a 0.05 threshold.
+
+**Diagnostic path**: `{resource.service.name="cart" && status=error}` — the cause appears
+twice, as an `exception` span event carrying
+`Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis`
+with the `ValkeyCartStore.EnsureRedisConnected` frame, and as the OpenFeature evaluation event.
+
+**Undo**: flip off → `rollout restart deploy/flagd` → **restart `cart`** (undisposed
+multiplexers retry `badhost:1234` forever).
+
+**Unmeasured and decisive**: the bad-path connect duration. The upper bound is exactly
+**150.5 s** (`ConnectTimeout 5000 × ConnectRetry 30`), and `EnsureRedisConnected` holds a
+lock around a *synchronous* `Connect()`, so concurrent failures serialise. This single
+number decides whether this is a silent two-service Fault or a demo-destabilising stall.
+
+---
+
+### Cascade breadth: the target is reachable honestly
+
+The map wants five to ten Alerts from one Fault. Post-refutation the live Fault yields
+**two independent facts**, and inflating that to ten rules would manufacture the very
+alert fatigue the demo argues against. The glossary dissolves it: an **Alert** is one
+rule *instance* identified by its Fingerprint, so one rule with `by (service_name)` gives
+one Alert per series. **Two to four alertable conditions, instantiated per affected
+service, give six to nine Alerts** — breadth coming from the blast radius, which is
+exactly the demo's claim.
+
+### What is not measured, and it is more than expected
+
+**No application service's logs have ever been retrieved from this venue's Loki, and
+Tempo has never been queried at this venue for anything.** Every ✅ in the logs and traces
+columns above is source-derived. The 578 Prometheus metric names were counted, never
+enumerated, so `traces_span_metrics_calls_total` is a *probable* name backed only by prose.
+Until [Verify the signal surface and settle the Fault gates](27-verify-the-signal-surface-and-settle-the-fault-gates.md)
+runs, every query above is **proposed, not verified**, and the spec must say so.
+
+### Traps the spec must carry
+
+- **`service_namespace="otel-demo"` on an application selector returns zero streams
+  forever.** All 22 demo pod templates carry
+  `resource.opentelemetry.io/service.namespace: opentelemetry-demo`, and the collector's
+  `k8s_attributes` runs with `otel_annotations: true`, which overwrites the
+  namespace-derived value. `"otel-demo"` is correct **only** for Kubernetes Event streams,
+  which come from the collector pod — the one pod with no such annotation. Use a bare
+  `{service_name="…"}`.
+- **Empty vector ≠ 0.** Every `> 0` rule here is written on an error-only series that does
+  not exist at steady state. Grafana puts those in **NoData**, not Normal, so NoData
+  handling decides whether the Cascade misses entirely or fires before injection. Wrap in
+  `or vector(0)`.
+- **Metric families do not transfer across languages.** Java emits
+  `rpc_server_duration_milliseconds_*` (old semconv); Go emits
+  `rpc_server_call_duration_seconds_*` with a string status; Python recommendation emits no
+  rpc server metrics at all; .NET cart never adds the `Grpc.AspNetCore.Server` meter.
+  Copying one service's rule onto another returns an empty series forever — **this is the
+  exact class of error that already cost this project a decision.**
+- **Span-metrics ratios count client and internal spans.** Without
+  `span_kind="SPAN_KIND_SERVER"` the checkout ratio reads ~3% instead of 18%.
+- `collector_instance_id` has been a default span-metrics dimension since v0.136.0 and its
+  UUID changes on every collector restart. Always `sum by (service_name)`.
+- **`transform/sanitize_spans` is defined in chart 0.41.2 and wired into no pipeline**, so
+  `http.route` is never backfilled and any rule on a normalised frontend span name targets
+  a value that does not exist.
+- **flagd v0.16.0 is distroless**: `kubectl exec deploy/flagd -- cat` fails. Use
+  `-c flagd-ui -- cat /app/data/demo.flagd.json`, or OFREP on `:8016` *after*
+  `rollout status` returns.
+- **Verifying flagd is not verifying the caller.** Only the Java provider's reconnect after
+  a flagd rollout has ever been confirmed. Confirm one real symptom before starting the clock.
+- **The flagd rollout contaminates evidence in both directions** — identical Events for
+  injection and remediation, and it briefly zeroes *every* flag as providers fall back to
+  code defaults. Flip one Fault at a time.
+- **Nothing is idempotent across flips**, which is why every undo above restarts a service.
+
+### Corrections this ticket made to the record
+
+- [Can one DOKS node hold the chart](26-can-one-doks-node-hold-the-chart.md): "`adFailure`
+  is invisible in logs" **was never measured** — no Loki query for ad logs exists in that
+  prototype and no Loki access occurred while the flag was on, while
+  [Can the laptop hold it](08-can-the-laptop-hold-it.md) *did* retrieve the WARN line from
+  Loki on the same image. Two further numbers there have no artifact: the Loki query
+  latency and the `traces_span_metrics_*` names.
+- [Eyes](12-eyes.md): had escalated that claim to "produced no error lines at all" and was
+  designing against it. The conclusion survives on better examples —
+  `paymentUnreachable` and `productCatalogFailure` are genuinely log-silent at source.

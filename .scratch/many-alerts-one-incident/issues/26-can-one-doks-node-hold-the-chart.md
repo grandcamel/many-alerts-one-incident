@@ -195,3 +195,43 @@ killed four inspection scripts; and `lib/kubelet_usage.py` required `{labels}`,
 so unlabeled node metrics never matched and every result file reported a node
 working set of zero — the container sum is not node usage, and here the gap is
 3.39 vs 5.34 GiB.
+
+## Correction from ticket 10, 2026-09-16
+
+**"`adFailure` is invisible in logs" was never measured, and the opposite was.**
+Resolving [Faults and their Cascades](10-faults-and-their-cascades.md) went looking
+for why this finding contradicted the ad service's source, which carries
+`logger.log(Level.WARN, "GetAds Failed with status {}", e.getStatus())` squarely on
+the fault path. The contradiction dissolves asymmetrically: the source side is
+corroborated and the measurement side turns out not to be a measurement.
+
+- **No Loki query for ad logs exists anywhere in this prototype.** The only query
+  site in the whole branch is `loki-events.sh`, whose only LogQL is
+  `$SEL |= "maoi-probe-<epoch>"` — a planted pod name — over a 10-minute window.
+  The strings `ad`, `GetAds` and `Targeted ad request` appear in no query.
+- **The only moment anything touched Loki was 20:13:51Z**, five minutes *before*
+  even the fault window this document itself declares invalid, and 86 minutes before
+  the genuinely-on run. **No Loki access occurred at any time while `adFailure` was on.**
+- `results/05-under-real-fault.txt`, the file the claim would have to rest on, contains
+  no telemetry query at all — it is a pure `measure.sh` capacity snapshot.
+- The suspected cause, that ad does not export OTLP logs, is **refuted**:
+  `results/rendered.yaml` sets `OTEL_LOGS_EXPORTER: otlp` on the ad Deployment, the only
+  such setting in the 3,337-line render, with the collector's logs pipeline exporting to LGTM.
+- **[Can the laptop hold it](08-can-the-laptop-hold-it.md) measured the line in Loki**, on
+  the same `3.0.0-ad` image: "`GetAds Failed with status Status{code=UNAVAILABLE}` in Loki".
+  The working selector is `{service_name="ad"} |= "GetAds Failed"`; `service_name` is a
+  confirmed stream label.
+
+Two further numbers here have no artifact behind them and should be treated as
+unreproduced rather than measured: the Loki `query_range` latency of 148–180 ms
+(`check-grafana.sh` issues no Loki request at all), and the
+`traces_span_metrics_*` series names, which appear only in this summary's prose —
+no results file contains the string `traces_span`.
+
+What survives untouched: the capacity findings, the three broken mechanisms, and the
+Kubernetes Events work. This correction is about one sentence in "What a Fault actually
+looks like", not about the prototype's conclusions.
+
+Also corrected: `results/rendered.yaml` is the **stale pre-fix daemonset render** whose
+collector crashlooped. It is authoritative for demo-chart facts — flag JSON, Deployments,
+probes, resources, env — and invalid for anything about the collector's pipelines.

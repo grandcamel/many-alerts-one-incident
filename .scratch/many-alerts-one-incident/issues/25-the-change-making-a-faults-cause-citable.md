@@ -100,3 +100,28 @@ still unverified — the preset's rendered config watches `events.k8s.io` only.
 Fault on this menu, and the one Kubernetes-shaped candidate,
 `failedReadinessProbe`, produced `restartCount=0` and zero `Unhealthy` Events,
 so there is no restart-loop Event shape for a single Change record to also cover.
+
+## What ticket 10 settled, 2026-09-17
+
+**The tension this ticket was built around is resolved, and in the Change's favour.**
+ADR 0008 splits the Ground truth into Mechanism and Trigger and scores only the Mechanism.
+So **a Change may name the Trigger freely** — flag, variant, who flipped it, when — because
+a Run retrieving a flag flip is citing evidence, not copying an answer. The bullet asking
+"how much of the Ground truth may the Change reveal before a Report naming it is cheating"
+is answered: all of it, as long as the Mechanism is what gets scored.
+
+Also settled or narrowed:
+
+- **The non-flag-Fault bullet is dead.** All three chosen Faults are flag flips; there is
+  no second shape for one Change record to cover.
+- **`OOMKilled` emits no Kubernetes Event**, so even the memory Fault has no Event-shaped
+  cause record. Its Kubernetes evidence is pod status via read-only `kubectl`.
+- **The presenter's action is fixed** for all three: ConfigMap edit plus
+  `kubectl rollout restart deploy/flagd`, then confirm one real symptom before starting the
+  clock. The flagd-ui path writes the same emptyDir and leaves no Kubernetes API trace, and
+  flagd v0.16.0 is distroless so `kubectl exec ... cat` fails — use `-c flagd-ui` or OFREP
+  on `:8016` after `rollout status` returns.
+- **A new problem for the Change to solve.** The flagd rollout emits *identical* Events for
+  injection and for remediation, and it briefly zeroes every flag as providers fall back to
+  code defaults. A Run investigating after recovery sees two indistinguishable rollouts, so
+  a Change record has to disambiguate what a Kubernetes Event cannot.

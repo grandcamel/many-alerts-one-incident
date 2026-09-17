@@ -49,3 +49,24 @@ cannot, for flag-injected Faults. Not a blocking edge: the scoring method can be
 decided in shape either way. But the two answers have to agree on how much a
 Report must *cite* versus *infer* before either is final, so whichever is taken
 second should read the first.
+
+## What ticket 10 settled, 2026-09-17
+
+**ADR 0008 changes what this ticket scores.** A Ground truth is now two layers — the
+**Mechanism**, what breaks in system terms, and the **Trigger**, the flag and variant —
+and a Suggested root cause is judged **against the Mechanism alone**. Naming the flag is
+not a diagnosis.
+
+Two consequences this ticket inherits:
+
+- **Scoring is no longer a string match.** The three Mechanisms are written as prose
+  paragraphs in [Faults and their Cascades](10-faults-and-their-cascades.md), deliberately
+  naming no flag. Judging a Report against one takes a judgment, which is this ticket's
+  problem now.
+- **Memory is untrusted.** The Ground truth lives only in this repository — never in the
+  cluster, Grafana, an OPS Incident, the Confluence space, or the Memory directory. The
+  live leak risk is a Run writing a Ground truth into Memory for a later Run to read,
+  which would contaminate every later score with no visible symptom.
+
+Sample size: three Faults are written in full and nine are named without Ground truths.
+If scoring wants more samples, it graduates its own ticket to write them.
