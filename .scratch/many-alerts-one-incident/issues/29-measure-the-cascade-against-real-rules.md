@@ -1,7 +1,7 @@
 # Measure the Cascade against real rules
 
 Type: prototype
-Status: open
+Status: claimed
 Blocked by: 28
 
 ## Question
