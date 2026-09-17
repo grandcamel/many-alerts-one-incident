@@ -235,3 +235,34 @@ looks like", not about the prototype's conclusions.
 Also corrected: `results/rendered.yaml` is the **stale pre-fix daemonset render** whose
 collector crashlooped. It is authoritative for demo-chart facts — flag JSON, Deployments,
 probes, resources, env — and invalid for anything about the collector's pipelines.
+
+## Correction from ticket 27, 2026-09-17
+
+**Kubernetes Events DO have an isolating stream selector.** This ticket recorded
+"no isolating stream selector: `{event_domain="k8s"}` and
+`{k8s_resource_name="events"}` both return zero streams … the only selector that
+finds them is `{service_name="unknown_service"}`, which collides with anything
+else unlabeled." The first half stands; the conclusion does not.
+
+`service_namespace` **is** a stream label on Event streams, and it carries the
+namespace of the *object the Event is about*:
+`{service_name="unknown_service", service_namespace="otel-demo"}` returns **45
+streams** of demo-namespace Events, cleanly separated from the 17 `kube-system`
+ones. A Run can isolate demo Events without a line filter.
+
+**Two latency figures this ticket already flagged as unreproduced were also too
+low.** Measured through the Grafana proxy, medians of 5: **Loki `query_range`
+251 ms** (claimed 148–180 ms) and **Tempo search 324 ms** (claimed 190 ms).
+Prometheus `query_range` at **171 ms** and health at **148 ms** corroborate this
+ticket's figures. Everything stays far inside a Run's patience.
+
+**`traces_span_metrics_*` is confirmed** as a real family — this ticket's summary
+named it in prose with no artifact behind it, and it is correct. But there are
+**two** span-metrics families here: the collector's `span_metrics` connector emits
+`traces_span_metrics_*`, while the LGTM image's own Tempo metrics-generator emits
+`traces_spanmetrics_*`, which carries **no `service_name` label** and **never
+emits `STATUS_CODE_ERROR`**.
+
+**585 metric names**, against this ticket's 578 — the difference is the four
+`feature_flag_evaluation_*` metrics and the `traces_spanmetrics_*` family
+appearing once traffic warms.

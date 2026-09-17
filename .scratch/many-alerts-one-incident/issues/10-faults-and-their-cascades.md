@@ -311,3 +311,74 @@ runs, every query above is **proposed, not verified**, and the spec must say so.
 - [Eyes](12-eyes.md): had escalated that claim to "produced no error lines at all" and was
   designing against it. The conclusion survives on better examples —
   `paymentUnreachable` and `productCatalogFailure` are genuinely log-silent at source.
+
+## Correction from ticket 27, 2026-09-17
+
+Measured on the real venue. **Every query this ticket wrote has now been run.**
+The three Faults survive and most of this ticket's reasoning is confirmed —
+including the two claims it flagged as unmeasured and decisive. Seven things move.
+
+**Both gates came back clean.** The **Float gate does not fire** —
+`emailMemoryLeak` leaks as designed, so the Kubernetes signal class is not
+refuted a fourth time. And **cart's bad-path connect costs 5.58 s at p99, not
+150.5 s**, about 27× under the theoretical ceiling, so **Fault 3 is silent, not
+demo-destabilising**. Both were this ticket's own open questions and both resolve
+in its favour.
+
+**1. Two of Fault 1's six absence services do not go absent.** `shipping` runs
+0.279 → **0.267/s**, essentially unchanged, because the quote is fetched *before*
+the charge — only `POST /ship-order` goes to zero. `cart` stays at **2.8/s**
+because GetCart/AddItem dominate the service total. **A service-level absence
+rule on either never fires.** The absence condition instantiates over **4**
+services, not 6: email, accounting, fraud-detection, payment. With the 3
+error-ratio services that is **7 Alerts**, still inside this ticket's six-to-nine
+target.
+
+**2. "Payment traffic goes to *exactly* zero" is wrong.** It is **0.0042/s**,
+about one call every four minutes. A `< 0.01` threshold still works.
+
+**3. The `span_kind` correction understates itself.** checkout carries **131
+CLIENT spans to 13 SERVER** — a **10×** denominator inflation. The verbatim ratio
+measured **0.2079**, matching this ticket's predicted 20–28% almost exactly; the
+SERVER-only ratio is **1.0000**, not "~18%". Every checkout SERVER span errors, so
+a 5% threshold clears by 20×.
+
+**4. Fault 3's diagnostic path cannot be reached by a LogQL line filter.**
+cart's .NET log bodies are message **templates** —
+`Error status code '{StatusCode}' with detail '{Detail}' raised.` — with the
+values in **structured metadata**. `|= "EnsureRedisConnected"` and
+`|= "ApplicationException"` both return **0 lines**;
+`| Detail =~ ".*EnsureRedisConnected.*"` returns 5. The full frame with file and
+line numbers is there, in `Detail`. Separately, these lines carry
+**`severity_text: "Information"`**, so a severity-based rule misses the Fault.
+
+**5. `or vector(0)` is the right fix for a ratio rule and the wrong one for an
+absence rule.** The collector pushes every 60 s, so `rate()` over `[30s]` or
+`[1m]` returns **no series**, and `or vector(0)` turns that into a confident 0
+indistinguishable from the Fault — firing the rule permanently at steady state.
+`[2m]` is the floor; this ticket's `[5m]` is correct.
+
+**6. Fault 2 raises almost no Cascade.** email's error span-metric is an **empty
+series**, `{resource.service.name="email" && status=error}` returns **0 traces**,
+and the blast radius is noise-level — about **2–3 Alerts**, on one service. The
+signal is pod status and the caller's WARN, exactly as written. This *confirms*
+the Ground truth ("no customer ever sees an error and no order is lost") and
+means [Alert rules for a Cascade](28-alert-rules-for-a-cascade.md) should not
+size rules expecting breadth here.
+
+**7. Timing: the flagd rollout is 4–5 s, not 20–45 s**, and the first errored
+trace is searchable at **39 s**, not ~90 s. The OOM cycle is **124–373 s, mean
+264 s** — **inside** the budgeted 3–9 minutes, though the *first* cycle at 119 s
+is an outlier that would mislead anyone reading the rate off one kill.
+
+**Confirmed as written**, with files behind them: all five metric names; the
+`service_namespace` trap (and sharpened — cart, quote and accounting carry **no**
+such label, so even the correct value returns zero); Fault 1's logs being a proven
+zero; cart's `Wasn't able to connect to redis` line; the `EmptyCartAsync` ratio
+denominator; `k8s_container_restarts` as a gauge; **no OOMKilled Kubernetes
+Event**; `http_route` as a cart label; and the ~5.2% ratio straddling 0.05 —
+measured **0.05337** at the `100%` variant, so lower variants sit below it.
+
+**One risk downgraded**: over a full 12-minute window the checkout container went
+**17 → 18 Mi against its 20 Mi limit with restarts=0**. The stage hazard did not
+materialise. Untested beyond 12 minutes.

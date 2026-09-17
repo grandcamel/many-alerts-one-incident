@@ -4,6 +4,8 @@ Type: grilling
 Status: open
 Blocked by: 10, 27
 
+Unblocked 2026-09-17: ticket 27 has reported.
+
 ## Question
 
 Graduated from the map's fog on 2026-09-17, once

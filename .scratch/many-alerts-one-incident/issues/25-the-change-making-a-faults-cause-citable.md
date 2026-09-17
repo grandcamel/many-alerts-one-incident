@@ -125,3 +125,43 @@ Also settled or narrowed:
   injection and for remediation, and it briefly zeroes every flag as providers fall back to
   code defaults. A Run investigating after recovery sees two indistinguishable rollouts, so
   a Change record has to disambiguate what a Kubernetes Event cannot.
+
+## Correction from ticket 27, 2026-09-17
+
+**A Fault's cause IS citable at this venue, from traces, with no watcher.** This
+ticket — and the map's standing fact behind it — rests on
+[Can the laptop hold it](08-can-the-laptop-hold-it.md)'s finding at the **Compose**
+venue: 240 metric names, none `feature_flag*`, and flagd's stdout never reaching
+Loki, therefore "the Change watcher is load-bearing for the Citation rule, not
+optional". Measured on the **chart-on-DOKS** venue, one third of that holds.
+
+- **Traces: fully citable.** Services emit a **`feature_flag.evaluation` span
+  event** carrying `feature_flag.key`, **`feature_flag.result.variant`**,
+  `feature_flag.result.value`, `feature_flag.result.reason` and
+  `feature_flag.provider.name`. Observed on **checkout** (`paymentUnreachable`),
+  **cart** (`cartFailure`) and **product-catalog** (`productCatalogFailure`).
+  The TraceQL filter genuinely discriminates:
+  `{event.feature_flag.key="paymentUnreachable"}` returns traces,
+  `{event.feature_flag.key="thisFlagDoesNotExist"}` returns **0**.
+- **Metrics: not citable.** Four `feature_flag_evaluation_*` metrics **do** exist
+  here (the map says none), but they carry **no `key` label** and come from
+  `service_name="cart"` only, so they identify no flag.
+- **Logs: not citable.** flagd's stdout still never reaches Loki —
+  `{service_name="flagd"}`, `{k8s_deployment_name="flagd"}` and
+  `{k8s_container_name="flagd"}` all return 0 streams. Unchanged.
+
+**`emailMemoryLeak` emits no `feature_flag.evaluation` event at all** (0 traces),
+so the three Faults are **asymmetric**: Faults 1 and 3 have a citable Trigger in
+traces, Fault 2 does not.
+
+This re-gates the ticket rather than closing it. A watcher may still be wanted for
+a Grafana annotation, for a Change the audience can see, or to cover Fault 2 — but
+**the Citation rule can already be satisfied from Tempo for two of three Faults**,
+which changes what the watcher is *for*.
+
+It does not collide with ADR 0008 — a Report is scored on the **Mechanism**, and
+naming the Trigger is not a diagnosis — but it raises the stakes on that scoring
+rule, since a Run can now name the Trigger cheaply and must not be credited for it.
+
+Also relevant: **`badhost` appears in no log line anywhere**. The bad hostname —
+the literal cause — exists only in the flag config and the evaluation span event.
