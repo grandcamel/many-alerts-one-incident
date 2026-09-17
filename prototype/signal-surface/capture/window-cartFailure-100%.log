@@ -1,0 +1,303 @@
+
+=== FAULT WINDOW: cartFailure -> 100% for 12 min; watching cart checkout ===
+utc: 2026-09-17T18:03:37Z
+
+=== pre-flip baseline for cart checkout (60 s) ===
+# podwatch cartFailure-baseline: cart,checkout for 60s every 20s -> capture/podwatch-cartFailure-baseline.jsonl
+   t+s  pod                                container     cpu_m   mem_Mi restarts  lastTerminated
+     0  cart-766c5f85df-n8p2n              cart            5.0     58.0        0  
+     0  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+    20  cart-766c5f85df-n8p2n              cart            4.0     58.0        0  
+    20  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+    41  cart-766c5f85df-n8p2n              cart            3.0     58.0        0  
+    41  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+
+# peak memory observed
+   cart-766c5f85df-n8p2n                    cart       58 Mi
+   checkout-6554854cd6-pvh4p                checkout   17 Mi
+# artifact: capture/podwatch-cartFailure-baseline.jsonl
+
+=== injecting ===
+configmap=flagd-config key=demo.flagd.json resourceVersion(before)=15573
+cartFailure: off -> 100% (value=1)
+resourceVersion: 15573 -> 16338 (changed: yes)
+
+=== rollout restart deploy/flagd (the ConfigMap write alone is inert) ===
+deployment.apps/flagd restarted
+Waiting for deployment "flagd" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "flagd" rollout to finish: 1 old replicas are pending termination...
+deployment "flagd" successfully rolled out
+
+=== flagd's own copy, after the rollout ===
+  cartFailure
+    defaultVariant: 100%
+    variants: {"10%": 0.1, "100%": 1, "25%": 0.25, "50%": 0.5, "75%": 0.75, "90%": 0.9, "off": 0}
+    state: ENABLED
+in-pod defaultVariant for cartFailure: 100%  (wanted: 100%)
+VERIFIED: flagd holds the new variant
+
+injection -> flagd ready: 3s (ConfigMap 1s + rollout 2s)
+timing artifact: capture/timing-cartFailure-100%.json
+
+NOTE: flagd holding the variant is NOT the caller holding it. The .NET and Go
+      providers' reconnect after a flagd rollout has never been verified here.
+      Confirm one real symptom (./symptom.sh) before starting any clock.
+
+=== item 13 — confirm one real symptom before trusting any clock ===
+# item 13 — symptom watch for cartFailure
+# t0 = 2026-09-17T18:04:39Z (injection start)
+# polling every 15s for up to 720s, across all four signal classes
+
+   t+s  class        check                                                            value
+     5  logs         cart redis-connect error log                                     0 lines
+     5  logs         cart any error log                                               0 lines
+     5  traces       errored cart trace                                               1 traces   <-- FIRST
+     5  metrics      cart error span-metric                                           0.0042/s   <-- FIRST
+
+    21  logs         cart redis-connect error log                                     0 lines
+    21  logs         cart any error log                                               0 lines
+    21  traces       errored cart trace                                               2 traces
+    21  metrics      cart error span-metric                                           0.0042/s
+
+    37  logs         cart redis-connect error log                                     0 lines
+    37  logs         cart any error log                                               0 lines
+    37  traces       errored cart trace                                               2 traces
+    37  metrics      cart error span-metric                                           0.0042/s
+
+    53  logs         cart redis-connect error log                                     1 lines   <-- FIRST
+    53  logs         cart any error log                                               1 lines   <-- FIRST
+    53  traces       errored cart trace                                               3 traces
+    53  metrics      cart error span-metric                                           0.0042/s
+
+# every symptom has fired
+
+# first symptom per check:
+   t+5    s  traces       errored cart trace  (1 traces)
+   t+5    s  metrics      cart error span-metric  (0.0042/s)
+   t+53   s  logs         cart redis-connect error log  (1 lines)
+   t+53   s  logs         cart any error log  (1 lines)
+
+# artifact: capture/symptom-cartFailure.json
+
+=== letting the [5m] rate windows fill before probing ===
+
+=== items 9 to 12 — ticket 10's queries, run against the live Fault ===
+========================================================================
+FAULT PROBE — cartFailure (on)
+utc: 2026-09-17T18:10:33Z   span metric: traces_span_metrics_calls_total
+========================================================================
+
+### alertable condition — the error log line
+
+  cart's redis-connect line, ticket 10 verbatim
+    {service_name="cart"} |= "Wasn't able to connect to redis"
+    -> 6 line(s)
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       stream labels: {"container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa", "detected_level": "Error", "flags": "1", "host_arch": "amd64", "host_name": "otel-collector-78cd45cc87-5zxnj", "observed_timestamp": "1789668599619089900", "os_type": "linux", "scope_name": "cart.cartstore.ValkeyCartStore", "service_criticality": "high", "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140", "service_name": "cart", "service_version": "3.0.0", "severity_number": "17", "severity_text": "Error", "span_id": "94f2c1369138fd96", "telemetry_sdk_language": "dotnet", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.15.3", "trace_id": "6e7ac5804be6617ce5749de5a91c14e0"}
+
+  cart logs with service_namespace (ticket 10 says this returns ZERO forever)
+    {service_name="cart", service_namespace="otel-demo"} |= "redis"
+    -> 0 line(s)   EMPTY
+
+  cart, any error
+    {service_name="cart"} |~ "(?i)error|exception"
+    -> 6 line(s)
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       stream labels: {"Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182", "StatusCode": "FailedPrecondition", "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa", "detected_level": "Information", "flags": "1", "host_arch": "amd64", "host_name": "otel-collector-78cd45cc87-5zxnj", "observed_timestamp": "1789668599620225200", "os_type": "linux", "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler", "service_criticality": "high", "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140", "service_name": "cart", "service_version": "3.0.0", "severity_number": "9", "severity_text": "Information", "span_id": "94f2c1369138fd96", "telemetry_sdk_language": "dotnet", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.15.3", "trace_id": "6e7ac5804be6617ce5749de5a91c14e0"}
+
+  cart's EmptyCartAsync line, the ratio denominator
+    {service_name="cart"} |= "EmptyCartAsync called with"
+    -> 4 line(s)
+       EmptyCartAsync called with userId={userId}
+       EmptyCartAsync called with userId={userId}
+       EmptyCartAsync called with userId={userId}
+       EmptyCartAsync called with userId={userId}
+       stream labels: {"container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa", "detected_level": "Information", "flags": "1", "host_arch": "amd64", "host_name": "otel-collector-78cd45cc87-5zxnj", "observed_timestamp": "1789668627069377200", "os_type": "linux", "scope_name": "cart.cartstore.ValkeyCartStore", "service_criticality": "high", "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140", "service_name": "cart", "service_version": "3.0.0", "severity_number": "9", "severity_text": "Information", "span_id": "8f2c7003093709d0", "telemetry_sdk_language": "dotnet", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.15.3", "trace_id": "e1735cd3f78472c0f20d1b84910f5a6e", "userId": "bbdfbc89-04d3-4388-8e34-3ff0d090decf"}
+
+### item 12 — the metric shape
+
+  cart http server metric exists at all
+    sum by (service_name) (rate(http_server_request_duration_seconds_count{service_name="cart"}[5m]))
+    -> cart                               0.92500
+
+  http_route as a label on cart
+    sum by (http_route) (rate(http_server_request_duration_seconds_count{service_name="cart"}[5m]))
+    -> {"http_route": "/oteldemo.CartService/GetCart"} 0.66667
+    -> {"http_route": "/oteldemo.CartService/AddItem"} 0.21250
+    -> {"http_route": "/oteldemo.CartService/EmptyCart"} 0.04583
+
+  cart error ratio on span metrics (ticket 10: ~5.2%, straddles 0.05)
+    sum(rate(traces_span_metrics_calls_total{service_name="cart",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="cart"}[5m]))
+    -> {}                                 0.02071
+
+  cart SERVER-only error ratio
+    sum(rate(traces_span_metrics_calls_total{service_name="cart",span_kind="SPAN_KIND_SERVER",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="cart",span_kind="SPAN_KIND_SERVER"}[5m]))
+    -> {}                                 0.05337
+
+  cart ABSOLUTE error rate (ticket 10 wants this instead of a ratio)
+    sum(rate(traces_span_metrics_calls_total{service_name="cart",status_code="STATUS_CODE_ERROR"}[5m])) or vector(0)
+    -> {}                                 0.04960
+
+### item 11 — the bad-path connect duration, the decisive number
+
+  cart p95 http server duration, ticket 10 verbatim
+    histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name="cart"}[5m])))
+    -> {}                                 0.06250
+
+  cart p99 http server duration
+    histogram_quantile(0.99, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name="cart"}[5m])))
+    -> {}                                 5.58333
+
+  cart p95 SPAN duration, whatever the span-metrics histogram is called
+    histogram_quantile(0.95, sum by (le) (rate({__name__=~"traces_span_metrics_duration.*bucket",service_name="cart"}[5m])))
+    -> {}                                 7.39167
+
+  checkout p95 span duration — does cart's stall propagate?
+    histogram_quantile(0.95, sum by (le) (rate({__name__=~"traces_span_metrics_duration.*bucket",service_name="checkout"}[5m])))
+    -> {}                                 304.94680
+
+### diagnostic path
+
+  cart errored spans
+    {resource.service.name="cart" && status=error}
+    -> HTTP 200  16 trace(s)  315 ms
+       trace e1735cd3f78472c0f20d1b84910f5a6e: 27 span event(s) captured
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [POST /oteldemo.CartService/GetCart] Fetch cart  {}
+         [POST /oteldemo.CartService/GetCart] Fetch cart  {}
+
+  Kubernetes-side evidence for cart
+    cart-766c5f85df-n8p2n/cart restarts=0 ready=True lastState.terminated=(none)
+    18 Kubernetes Event(s) naming cart*:
+      Normal     Pulled                 Successfully pulled image "busybox:latest" in 4.02s (4.02s including waiting). Image size: 2236931 bytes.
+      Normal     Started                Container started
+      Normal     Created                Container created
+      Normal     Pulled                 Successfully pulled image "ghcr.io/valkey-io/valkey:9.0.4-alpine3.23" in 7.296s (7.296s including waiting). Im
+      Normal     Created                Container created
+      Normal     Started                Container started
+      Normal     Pulling                Pulling image "ghcr.io/open-telemetry/demo:3.0.0-cart"
+      Normal     Pulled                 Successfully pulled image "ghcr.io/open-telemetry/demo:3.0.0-cart" in 8.753s (8.753s including waiting). Image
+      Normal     Created                Container created
+      Normal     Started                Container started
+
+# artifact: capture/faultprobe-cartFailure-on.json
+
+=== waiting out the rest of the window ===
+
+=== end-of-window state ===
+========================================================================
+FAULT PROBE — cartFailure (end)
+utc: 2026-09-17T18:16:52Z   span metric: traces_span_metrics_calls_total
+========================================================================
+
+### alertable condition — the error log line
+
+  cart's redis-connect line, ticket 10 verbatim
+    {service_name="cart"} |= "Wasn't able to connect to redis"
+    -> 6 line(s)
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       Wasn't able to connect to redis
+       stream labels: {"container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa", "detected_level": "Error", "flags": "1", "host_arch": "amd64", "host_name": "otel-collector-78cd45cc87-5zxnj", "observed_timestamp": "1789669006425373000", "os_type": "linux", "scope_name": "cart.cartstore.ValkeyCartStore", "service_criticality": "high", "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140", "service_name": "cart", "service_version": "3.0.0", "severity_number": "17", "severity_text": "Error", "span_id": "0168ef43da489ab0", "telemetry_sdk_language": "dotnet", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.15.3", "trace_id": "084bfe2705033bbdcd23a4113caff2b4"}
+
+  cart logs with service_namespace (ticket 10 says this returns ZERO forever)
+    {service_name="cart", service_namespace="otel-demo"} |= "redis"
+    -> 0 line(s)   EMPTY
+
+  cart, any error
+    {service_name="cart"} |~ "(?i)error|exception"
+    -> 6 line(s)
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       Error status code '{StatusCode}' with detail '{Detail}' raised.
+       stream labels: {"Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182", "StatusCode": "FailedPrecondition", "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa", "detected_level": "Information", "flags": "1", "host_arch": "amd64", "host_name": "otel-collector-78cd45cc87-5zxnj", "observed_timestamp": "1789669006425882600", "os_type": "linux", "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler", "service_criticality": "high", "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140", "service_name": "cart", "service_version": "3.0.0", "severity_number": "9", "severity_text": "Information", "span_id": "0168ef43da489ab0", "telemetry_sdk_language": "dotnet", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.15.3", "trace_id": "084bfe2705033bbdcd23a4113caff2b4"}
+
+  cart's EmptyCartAsync line, the ratio denominator
+    {service_name="cart"} |= "EmptyCartAsync called with"
+    -> 4 line(s)
+       EmptyCartAsync called with userId={userId}
+       EmptyCartAsync called with userId={userId}
+       EmptyCartAsync called with userId={userId}
+       EmptyCartAsync called with userId={userId}
+       stream labels: {"container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa", "detected_level": "Information", "flags": "1", "host_arch": "amd64", "host_name": "otel-collector-78cd45cc87-5zxnj", "observed_timestamp": "1789668998740711500", "os_type": "linux", "scope_name": "cart.cartstore.ValkeyCartStore", "service_criticality": "high", "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140", "service_name": "cart", "service_version": "3.0.0", "severity_number": "9", "severity_text": "Information", "span_id": "0168ef43da489ab0", "telemetry_sdk_language": "dotnet", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.15.3", "trace_id": "084bfe2705033bbdcd23a4113caff2b4", "userId": "912395d9-b743-4848-bd38-7074958c0176"}
+
+### item 12 — the metric shape
+
+  cart http server metric exists at all
+    sum by (service_name) (rate(http_server_request_duration_seconds_count{service_name="cart"}[5m]))
+    -> cart                               0.96250
+
+  http_route as a label on cart
+    sum by (http_route) (rate(http_server_request_duration_seconds_count{service_name="cart"}[5m]))
+    -> {"http_route": "/oteldemo.CartService/GetCart"} 0.66667
+    -> {"http_route": "/oteldemo.CartService/AddItem"} 0.23333
+    -> {"http_route": "/oteldemo.CartService/EmptyCart"} 0.06250
+
+  cart error ratio on span metrics (ticket 10: ~5.2%, straddles 0.05)
+    sum(rate(traces_span_metrics_calls_total{service_name="cart",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="cart"}[5m]))
+    -> {}                                 0.02504
+
+  cart SERVER-only error ratio
+    sum(rate(traces_span_metrics_calls_total{service_name="cart",span_kind="SPAN_KIND_SERVER",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="cart",span_kind="SPAN_KIND_SERVER"}[5m]))
+    -> {}                                 0.06550
+
+  cart ABSOLUTE error rate (ticket 10 wants this instead of a ratio)
+    sum(rate(traces_span_metrics_calls_total{service_name="cart",status_code="STATUS_CODE_ERROR"}[5m])) or vector(0)
+    -> {}                                 0.06250
+
+### item 11 — the bad-path connect duration, the decisive number
+
+  cart p95 http server duration, ticket 10 verbatim
+    histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name="cart"}[5m])))
+    -> {}                                 0.08018
+
+  cart p99 http server duration
+    histogram_quantile(0.99, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name="cart"}[5m])))
+    -> {}                                 0.23838
+
+  cart p95 SPAN duration, whatever the span-metrics histogram is called
+    histogram_quantile(0.95, sum by (le) (rate({__name__=~"traces_span_metrics_duration.*bucket",service_name="cart"}[5m])))
+    -> {}                                 5.70000
+
+  checkout p95 span duration — does cart's stall propagate?
+    histogram_quantile(0.95, sum by (le) (rate({__name__=~"traces_span_metrics_duration.*bucket",service_name="checkout"}[5m])))
+    -> {}                                 164.66667
+
+### diagnostic path
+
+  cart errored spans
+    {resource.service.name="cart" && status=error}
+    -> HTTP 200  20 trace(s)  280 ms
+       trace 84bfe2705033bbdcd23a4113caff2b4: 84 span event(s) captured
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+
+  Kubernetes-side evidence for cart
+    cart-766c5f85df-n8p2n/cart restarts=0 ready=True lastState.terminated=(none)
+    0 Kubernetes Event(s) naming cart*:
+
+# artifact: capture/faultprobe-cartFailure-end.json
+window log: capture/window-cartFailure-100%.log

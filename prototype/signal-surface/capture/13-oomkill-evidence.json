@@ -1,0 +1,142 @@
+{
+  "kubectl_pod_status": {
+    "pod": "email-b498b7dc6-xkgsn",
+    "restarts": 1,
+    "ready": true,
+    "lastState_terminated": {
+      "containerID": "containerd://ded11813ab8acdb6c74b1065a6c1abd80a73b0ef36a403000b5dedb3b7310f31",
+      "exitCode": 137,
+      "finishedAt": "2026-09-17T17:42:35Z",
+      "reason": "OOMKilled",
+      "startedAt": "2026-09-17T17:11:37Z"
+    }
+  },
+  "kubectl_events": [
+    {
+      "type": "Normal",
+      "reason": "Scheduled",
+      "message": "Successfully assigned otel-demo/email-b498b7dc6-xkgsn to pool-3y39ax",
+      "count": null
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "message": "Pulling image \"ghcr.io/open-telemetry/demo:3.0.0-email\"",
+      "count": 1
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulled",
+      "message": "Successfully pulled image \"ghcr.io/open-telemetry/demo:3.0.0-email\" in 18.772s (18.772s including waiting). Image size: 103400466 bytes.",
+      "count": 1
+    },
+    {
+      "type": "Normal",
+      "reason": "Created",
+      "message": "Container created",
+      "count": 2
+    },
+    {
+      "type": "Normal",
+      "reason": "Started",
+      "message": "Container started",
+      "count": 2
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulled",
+      "message": "Container image \"ghcr.io/open-telemetry/demo:3.0.0-email\" already present on machine and can be accessed by the pod",
+      "count": 1
+    },
+    {
+      "type": "Normal",
+      "reason": "SuccessfulCreate",
+      "message": "Created pod: email-b498b7dc6-xkgsn",
+      "count": 1
+    },
+    {
+      "type": "Normal",
+      "reason": "ScalingReplicaSet",
+      "message": "Scaled up replica set email-b498b7dc6 from 0 to 1",
+      "count": 1
+    }
+  ],
+  "loki_events": {
+    "{service_name=\"unknown_service\", service_namespace=\"otel-demo\"} |= \"email-\"": {
+      "lines": 3,
+      "reasons": [
+        [
+          "Normal",
+          "Started",
+          "Container started"
+        ],
+        [
+          "Normal",
+          "Created",
+          "Container created"
+        ],
+        [
+          "Normal",
+          "Pulled",
+          "Container image \"ghcr.io/open-telemetry/demo:3.0.0-email\" al"
+        ]
+      ]
+    },
+    "{service_name=\"unknown_service\"} |= \"email-\"": {
+      "lines": 3,
+      "reasons": [
+        [
+          "Normal",
+          "Started",
+          "Container started"
+        ],
+        [
+          "Normal",
+          "Created",
+          "Container created"
+        ],
+        [
+          "Normal",
+          "Pulled",
+          "Container image \"ghcr.io/open-telemetry/demo:3.0.0-email\" al"
+        ]
+      ]
+    }
+  },
+  "prom": {
+    "max by (k8s_pod_name)(k8s_container_restarts{k8s_container_name=\"email\"})": [
+      {
+        "labels": {
+          "k8s_pod_name": "email-b498b7dc6-xkgsn"
+        },
+        "value": 1.0
+      }
+    ],
+    "changes(k8s_container_restarts{k8s_container_name=\"email\"}[10m])": [
+      {
+        "labels": {
+          "instance": "otel-demo.email-b498b7dc6-xkgsn.email",
+          "job": "opentelemetry-demo/email",
+          "k8s_container_name": "email",
+          "k8s_deployment_name": "email",
+          "k8s_namespace_name": "otel-demo",
+          "k8s_pod_name": "email-b498b7dc6-xkgsn",
+          "k8s_replicaset_name": "email-b498b7dc6",
+          "service_instance_id": "otel-demo.email-b498b7dc6-xkgsn.email",
+          "service_name": "email",
+          "service_namespace": "opentelemetry-demo",
+          "service_version": "3.0.0"
+        },
+        "value": 1.0
+      }
+    ],
+    "max by (k8s_pod_name)(container_memory_working_set_bytes{k8s_container_name=\"email\"})": [
+      {
+        "labels": {
+          "k8s_pod_name": "email-b498b7dc6-xkgsn"
+        },
+        "value": 55672832.0
+      }
+    ]
+  }
+}

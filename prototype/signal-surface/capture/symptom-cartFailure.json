@@ -1,0 +1,33 @@
+{
+  "fault": "cartFailure",
+  "t0_epoch": 1789668279,
+  "t0_utc": "2026-09-17T18:04:39Z",
+  "watched_seconds": 54,
+  "first_symptoms": {
+    "errored cart trace": {
+      "t_plus_seconds": 5,
+      "detail": "1 traces",
+      "signal_class": "traces",
+      "utc": "2026-09-17T18:04:45Z"
+    },
+    "cart error span-metric": {
+      "t_plus_seconds": 5,
+      "detail": "0.0042/s",
+      "signal_class": "metrics",
+      "utc": "2026-09-17T18:04:45Z"
+    },
+    "cart redis-connect error log": {
+      "t_plus_seconds": 53,
+      "detail": "1 lines",
+      "signal_class": "logs",
+      "utc": "2026-09-17T18:05:32Z"
+    },
+    "cart any error log": {
+      "t_plus_seconds": 53,
+      "detail": "1 lines",
+      "signal_class": "logs",
+      "utc": "2026-09-17T18:05:32Z"
+    }
+  },
+  "never_fired": []
+}

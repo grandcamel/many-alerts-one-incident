@@ -1,0 +1,123 @@
+# podwatch emailMemoryLeak-window: email,checkout for 1200s every 20s -> capture/podwatch-emailMemoryLeak-window.jsonl
+   t+s  pod                                container     cpu_m   mem_Mi restarts  lastTerminated
+     0  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+     0  email-b498b7dc6-xkgsn              email           2.0     52.0        0  
+    20  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+    20  email-b498b7dc6-xkgsn              email           2.0     52.0        0  
+    41  checkout-6554854cd6-pvh4p          checkout        5.0     15.0        0  
+    41  email-b498b7dc6-xkgsn              email           7.0     59.0        0  
+    62  checkout-6554854cd6-pvh4p          checkout        3.0     15.0        0  
+    62  email-b498b7dc6-xkgsn              email           7.0     75.0        0  
+    82  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+    82  email-b498b7dc6-xkgsn              email           2.0     75.0        0  
+   103  checkout-6554854cd6-pvh4p          checkout        5.0     15.0        0  
+   103  email-b498b7dc6-xkgsn              email             -        -        1  OOMKilled exit=137 at=2026-09-17T17:42:35Z
+   124  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   124  email-b498b7dc6-xkgsn              email         194.0     47.0        1  OOMKilled exit=137 at=2026-09-17T17:42:35Z
+   145  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   145  email-b498b7dc6-xkgsn              email           1.0     47.0        1  OOMKilled exit=137 at=2026-09-17T17:42:35Z
+   165  checkout-6554854cd6-pvh4p          checkout        3.0     15.0        0  
+   165  email-b498b7dc6-xkgsn              email          15.0     75.0        1  OOMKilled exit=137 at=2026-09-17T17:42:35Z
+   186  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   186  email-b498b7dc6-xkgsn              email          15.0     84.0        1  OOMKilled exit=137 at=2026-09-17T17:42:35Z
+   207  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   207  email-b498b7dc6-xkgsn              email           2.0     84.0        1  OOMKilled exit=137 at=2026-09-17T17:42:35Z
+   227  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   227  email-b498b7dc6-xkgsn              email             -        -        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   248  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   248  email-b498b7dc6-xkgsn              email         157.0     47.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   269  checkout-6554854cd6-pvh4p          checkout        7.0     16.0        0  
+   269  email-b498b7dc6-xkgsn              email          13.0     62.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   289  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   289  email-b498b7dc6-xkgsn              email           1.0     62.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   310  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   310  email-b498b7dc6-xkgsn              email           5.0     68.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   331  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   331  email-b498b7dc6-xkgsn              email           5.0     76.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   351  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   351  email-b498b7dc6-xkgsn              email           5.0     76.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   372  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   372  email-b498b7dc6-xkgsn              email           9.0     93.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   393  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   393  email-b498b7dc6-xkgsn              email          11.0     95.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   414  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   414  email-b498b7dc6-xkgsn              email           2.0     82.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   434  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   434  email-b498b7dc6-xkgsn              email           6.0     90.0        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   455  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   455  email-b498b7dc6-xkgsn              email             -        -        2  OOMKilled exit=137 at=2026-09-17T17:44:29Z
+   476  checkout-6554854cd6-pvh4p          checkout        5.0     16.0        0  
+   476  email-b498b7dc6-xkgsn              email             -        -        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   496  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   496  email-b498b7dc6-xkgsn              email         195.0     58.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   517  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   517  email-b498b7dc6-xkgsn              email           7.0     60.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   538  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   538  email-b498b7dc6-xkgsn              email           5.0     61.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   558  checkout-6554854cd6-pvh4p          checkout        5.0     16.0        0  
+   558  email-b498b7dc6-xkgsn              email           6.0     75.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   579  checkout-6554854cd6-pvh4p          checkout        5.0     16.0        0  
+   579  email-b498b7dc6-xkgsn              email           9.0     74.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   600  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   600  email-b498b7dc6-xkgsn              email           2.0     90.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   621  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   621  email-b498b7dc6-xkgsn              email           3.0     90.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   641  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   641  email-b498b7dc6-xkgsn              email          17.0     94.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   662  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   662  email-b498b7dc6-xkgsn              email           6.0     96.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   683  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   683  email-b498b7dc6-xkgsn              email           2.0     96.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   704  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   704  email-b498b7dc6-xkgsn              email           8.0     98.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   724  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   724  email-b498b7dc6-xkgsn              email           2.0     82.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   745  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   745  email-b498b7dc6-xkgsn              email           6.0     90.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   766  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   766  email-b498b7dc6-xkgsn              email           6.0     98.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   787  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   787  email-b498b7dc6-xkgsn              email           2.0     98.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   807  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   807  email-b498b7dc6-xkgsn              email           2.0     98.0        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   828  checkout-6554854cd6-pvh4p          checkout        5.0     16.0        0  
+   828  email-b498b7dc6-xkgsn              email             -        -        3  OOMKilled exit=137 at=2026-09-17T17:48:18Z
+   849  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   849  email-b498b7dc6-xkgsn              email             -        -        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+   869  checkout-6554854cd6-pvh4p          checkout        1.0     16.0        0  
+   869  email-b498b7dc6-xkgsn              email         197.0     47.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+   890  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   890  email-b498b7dc6-xkgsn              email          13.0     58.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+   911  checkout-6554854cd6-pvh4p          checkout        5.0     16.0        0  
+   911  email-b498b7dc6-xkgsn              email          13.0     58.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+   932  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   932  email-b498b7dc6-xkgsn              email           2.0     60.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+   953  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   953  email-b498b7dc6-xkgsn              email           1.0     60.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+   973  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   973  email-b498b7dc6-xkgsn              email           1.0     61.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+   994  checkout-6554854cd6-pvh4p          checkout        5.0     16.0        0  
+   994  email-b498b7dc6-xkgsn              email           9.0     66.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+  1015  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+  1015  email-b498b7dc6-xkgsn              email           7.0     66.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+  1036  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+  1036  email-b498b7dc6-xkgsn              email           6.0     81.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+  1056  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+  1056  email-b498b7dc6-xkgsn              email           7.0     95.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+  1077  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+  1077  email-b498b7dc6-xkgsn              email           7.0     95.0        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+  1098  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+  1098  email-b498b7dc6-xkgsn              email             -        -        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+  1119  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+  1119  email-b498b7dc6-xkgsn              email             -        -        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+  1140  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+  1140  email-b498b7dc6-xkgsn              email             -        -        4  OOMKilled exit=137 at=2026-09-17T17:54:10Z
+  1160  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+  1160  email-b498b7dc6-xkgsn              email             -        -        5  OOMKilled exit=137 at=2026-09-17T17:58:53Z
+  1181  checkout-6554854cd6-pvh4p          checkout        7.0     16.0        0  
+  1181  email-b498b7dc6-xkgsn              email             -        -        5  OOMKilled exit=137 at=2026-09-17T17:58:53Z
+
+# peak memory observed
+   checkout-6554854cd6-pvh4p                checkout   16 Mi
+   email-b498b7dc6-xkgsn                    email      98 Mi
+# artifact: capture/podwatch-emailMemoryLeak-window.jsonl

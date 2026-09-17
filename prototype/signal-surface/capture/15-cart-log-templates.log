@@ -1,0 +1,33 @@
+=== the .NET log bodies arrive as TEMPLATES. Are the values recoverable? ===
+
+  body: Error status code '{StatusCode}' with detail '{Detail}' raised.
+  (none returned)
+  stream/meta of interest: {"Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182", "StatusCode": "FailedPrecondition", "detected_level": "Information", "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler", "severity_text": "Information", "span_id": "65f9ee0e337bf52b", "trace_id": "1790a993aea520793081e25a761c49ae"}
+
+  body: Error status code '{StatusCode}' with detail '{Detail}' raised.
+  (none returned)
+  stream/meta of interest: {"Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182", "StatusCode": "FailedPrecondition", "detected_level": "Information", "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler", "severity_text": "Information", "span_id": "e9f8ed857b9617c9", "trace_id": "3694d957bc914909fb6188880504ae14"}
+
+  body: EmptyCartAsync called with userId={userId}
+  (none returned)
+  stream/meta of interest: {"detected_level": "Information", "scope_name": "cart.cartstore.ValkeyCartStore", "severity_text": "Information", "span_id": "65f9ee0e337bf52b", "trace_id": "1790a993aea520793081e25a761c49ae", "userId": "92766d3f-e955-4193-97a2-956a4ebfd7e3"}
+
+  body: EmptyCartAsync called with userId={userId}
+  (none returned)
+  stream/meta of interest: {"detected_level": "Information", "scope_name": "cart.cartstore.ValkeyCartStore", "severity_text": "Information", "span_id": "e9f8ed857b9617c9", "trace_id": "3694d957bc914909fb6188880504ae14", "userId": "40708e41-3cd1-41a3-b6cc-9ee58985b2f8"}
+
+=== can a Run filter on the rendered value instead? ===
+   {service_name="cart"} |= "Wasn't able to connect to redis" 5 lines
+   {service_name="cart"} |= "badhost"                         0 lines
+   {service_name="cart"} |~ "userId=[0-9a-f]"                 0 lines
+   {service_name="cart"} | userId != ""                       5 lines
+
+=== the full ApplicationException text ticket 10's diagnostic path wants ===
+
+=== is the exception detail reachable by a LINE filter, or only as metadata? ===
+   line filter on the frame             {service_name="cart"} |= "EnsureRedisConnected"                0 lines
+   line filter on the exception type    {service_name="cart"} |= "ApplicationException"                0 lines
+   structured-metadata filter           {service_name="cart"} | Detail =~ ".*EnsureRedisConnected.*"   5 lines
+   structured-metadata, exception type  {service_name="cart"} | Detail =~ ".*ApplicationException.*"   5 lines
+   StatusCode metadata                  {service_name="cart"} | StatusCode = "FailedPrecondition"      5 lines
+   the bare message line                {service_name="cart"} |= "Wasn't able to connect to redis"     5 lines

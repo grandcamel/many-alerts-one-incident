@@ -1,0 +1,10 @@
+{
+  "flag": "cartFailure", "from": "100%", "to": "off", "value": "0",
+  "configmap": "flagd-config", "rv_before": "16338", "rv_after": "19835",
+  "in_pod_variant": "off", "verified": true,
+  "t_start_epoch": 1789669116, "t_configmap_epoch": 1789669118, "t_rollout_done_epoch": 1789669120,
+  "ts_start": "2026-09-17T18:18:36.3NZ", "ts_configmap": "2026-09-17T18:18:38.3NZ", "ts_rollout_done": "2026-09-17T18:18:40.3NZ",
+  "configmap_write_seconds": 2,
+  "flagd_rollout_seconds": 2,
+  "injection_to_flagd_ready_seconds": 4
+}

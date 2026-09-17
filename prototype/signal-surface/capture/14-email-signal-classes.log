@@ -1,0 +1,33 @@
+=== ticket 10's signal table for Fault 2: K8s OK, metrics ?, logs caller-only, traces thin ===
+
+-- does EMAIL log anything itself on the fault path? (ticket 10: 'caller-only') --
+   {service_name="email"}                               6 lines
+      Order confirmation email sent
+      Order confirmation email sent
+      Order confirmation email sent
+      Order confirmation email sent
+   {service_name="email"} |~ "(?i)error|exception|memor 0 lines
+
+-- traces: are email spans errored, or just absent? --
+   {resource.service.name="email"}                      20 traces
+   {resource.service.name="email" && status=error}      0 traces
+   {resource.service.name="checkout" && status=error}   15 traces
+
+-- metrics: email error span-metric, and the caller's --
+   email all                0.26667
+   email errors             EMPTY SERIES
+   checkout errors          0.00774
+   checkout SERVER ratio    0.00000
+
+-- the memory rule ticket 10 re-thresholded to >70Mi --
+   working set now: 99.1 Mi  (limit 100 Mi, baseline 51.7 Mi, threshold 70 Mi)
+
+-- blast radius: which services see this Fault at all? --
+   checkout             0.00779/s
+   cart                 0.00417/s
+   fraud-detection      0.00417/s
+   recommendation       0.00417/s
+   ad                   0.00417/s
+   payment              0.00417/s
+   frontend             0.00000/s
+   frontend-proxy       0.00000/s

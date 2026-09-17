@@ -1,0 +1,1077 @@
+{
+  "loki": {
+    "cart's redis-connect line, ticket 10 verbatim": {
+      "query": "{service_name=\"cart\"} |= \"Wasn't able to connect to redis\"",
+      "lines": 6,
+      "sample": [
+        {
+          "ts": "1789669119339993800",
+          "line": "Wasn't able to connect to redis",
+          "stream": {
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Error",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669119339993800",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "17",
+            "severity_text": "Error",
+            "span_id": "a359968a9a083c36",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "540ef50c817d8d9edf7e1b5165ca58a2"
+          }
+        },
+        {
+          "ts": "1789669091224116900",
+          "line": "Wasn't able to connect to redis",
+          "stream": {
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Error",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669091224116900",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "17",
+            "severity_text": "Error",
+            "span_id": "1933e95f51737d16",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "6cf4836858227707007bcdad6439e39e"
+          }
+        },
+        {
+          "ts": "1789669091070776200",
+          "line": "Wasn't able to connect to redis",
+          "stream": {
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Error",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669091070776200",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "17",
+            "severity_text": "Error",
+            "span_id": "705fa8c6a4fd5e25",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "8b7f8eeafef7db8a22f8882b31ec48ed"
+          }
+        },
+        {
+          "ts": "1789669083341916700",
+          "line": "Wasn't able to connect to redis",
+          "stream": {
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Error",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669083341916700",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "17",
+            "severity_text": "Error",
+            "span_id": "4d4163886892403f",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "841b3f316c7d861f3287ae464d74f3fb"
+          }
+        },
+        {
+          "ts": "1789669062738454700",
+          "line": "Wasn't able to connect to redis",
+          "stream": {
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Error",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669062738454700",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "17",
+            "severity_text": "Error",
+            "span_id": "e9f8ed857b9617c9",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "3694d957bc914909fb6188880504ae14"
+          }
+        },
+        {
+          "ts": "1789669013531715600",
+          "line": "Wasn't able to connect to redis",
+          "stream": {
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Error",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669013531715600",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "17",
+            "severity_text": "Error",
+            "span_id": "65f9ee0e337bf52b",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "1790a993aea520793081e25a761c49ae"
+          }
+        }
+      ]
+    },
+    "cart logs with service_namespace (ticket 10 says this returns ZERO forever)": {
+      "query": "{service_name=\"cart\", service_namespace=\"otel-demo\"} |= \"redis\"",
+      "lines": 0,
+      "sample": []
+    },
+    "cart, any error": {
+      "query": "{service_name=\"cart\"} |~ \"(?i)error|exception\"",
+      "lines": 6,
+      "sample": [
+        {
+          "ts": "1789669119342278600",
+          "line": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
+          "stream": {
+            "Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182",
+            "StatusCode": "FailedPrecondition",
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669119342278600",
+            "os_type": "linux",
+            "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "a359968a9a083c36",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "540ef50c817d8d9edf7e1b5165ca58a2"
+          }
+        },
+        {
+          "ts": "1789669091224889500",
+          "line": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
+          "stream": {
+            "Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182",
+            "StatusCode": "FailedPrecondition",
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669091224889500",
+            "os_type": "linux",
+            "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "1933e95f51737d16",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "6cf4836858227707007bcdad6439e39e"
+          }
+        },
+        {
+          "ts": "1789669091071415500",
+          "line": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
+          "stream": {
+            "Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182",
+            "StatusCode": "FailedPrecondition",
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669091071415500",
+            "os_type": "linux",
+            "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "705fa8c6a4fd5e25",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "8b7f8eeafef7db8a22f8882b31ec48ed"
+          }
+        },
+        {
+          "ts": "1789669083343721200",
+          "line": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
+          "stream": {
+            "Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182",
+            "StatusCode": "FailedPrecondition",
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669083343721200",
+            "os_type": "linux",
+            "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "4d4163886892403f",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "841b3f316c7d861f3287ae464d74f3fb"
+          }
+        },
+        {
+          "ts": "1789669062739793900",
+          "line": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
+          "stream": {
+            "Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182",
+            "StatusCode": "FailedPrecondition",
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669062739793900",
+            "os_type": "linux",
+            "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "e9f8ed857b9617c9",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "3694d957bc914909fb6188880504ae14"
+          }
+        },
+        {
+          "ts": "1789669013532833700",
+          "line": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
+          "stream": {
+            "Detail": "Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182",
+            "StatusCode": "FailedPrecondition",
+            "container_id": "f475a3c5c138a1b7f70425664a0094d285f9a81a9aaf1f70207c876b55fc8efa",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669013532833700",
+            "os_type": "linux",
+            "scope_name": "Grpc.AspNetCore.Server.ServerCallHandler",
+            "service_criticality": "high",
+            "service_instance_id": "17658e5e-6ea3-4e74-a816-a1ec5c682140",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "65f9ee0e337bf52b",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "1790a993aea520793081e25a761c49ae"
+          }
+        }
+      ]
+    },
+    "cart's EmptyCartAsync line, the ratio denominator": {
+      "query": "{service_name=\"cart\"} |= \"EmptyCartAsync called with\"",
+      "lines": 4,
+      "sample": [
+        {
+          "ts": "1789669182040638000",
+          "line": "EmptyCartAsync called with userId={userId}",
+          "stream": {
+            "container_id": "ca150da393fd78ba84fbfaef632cb784324661760e217693c63e589fa6dba881",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669182040638000",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "4cd5017b-c983-4a2f-8e00-e730a3af5eb3",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "b4a176f784fa3f98",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "fb842d3fae6b18bd88b06da73b2f1b99",
+            "userId": "3b284438-4f0a-4bcb-8285-239b05045fd4"
+          }
+        },
+        {
+          "ts": "1789669173884991400",
+          "line": "EmptyCartAsync called with userId={userId}",
+          "stream": {
+            "container_id": "ca150da393fd78ba84fbfaef632cb784324661760e217693c63e589fa6dba881",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669173884991400",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "4cd5017b-c983-4a2f-8e00-e730a3af5eb3",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "8d4776302dfc828e",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "32efda89811e706ee86560e399f5fc36",
+            "userId": "34282a7e-18cf-4c9a-b3da-683ec691dd50"
+          }
+        },
+        {
+          "ts": "1789669160475201600",
+          "line": "EmptyCartAsync called with userId={userId}",
+          "stream": {
+            "container_id": "ca150da393fd78ba84fbfaef632cb784324661760e217693c63e589fa6dba881",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669160475201600",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "4cd5017b-c983-4a2f-8e00-e730a3af5eb3",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "e08b055aee3a179b",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "68c28bb11d04404d63939d03983d8f2a",
+            "userId": "f92bba15-2aa3-4e42-9015-2563f57f51e4"
+          }
+        },
+        {
+          "ts": "1789669151451362400",
+          "line": "EmptyCartAsync called with userId={userId}",
+          "stream": {
+            "container_id": "ca150da393fd78ba84fbfaef632cb784324661760e217693c63e589fa6dba881",
+            "detected_level": "Information",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "observed_timestamp": "1789669151451362400",
+            "os_type": "linux",
+            "scope_name": "cart.cartstore.ValkeyCartStore",
+            "service_criticality": "high",
+            "service_instance_id": "4cd5017b-c983-4a2f-8e00-e730a3af5eb3",
+            "service_name": "cart",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "Information",
+            "span_id": "1d4e20f3a3b19cc0",
+            "telemetry_sdk_language": "dotnet",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.15.3",
+            "trace_id": "fa4c3a4c3c7b4010b0c78ea7773e0494",
+            "userId": "4a57b4fb-1e08-40f1-8d02-abe7afc23a7a"
+          }
+        }
+      ]
+    }
+  },
+  "prom": {
+    "cart http server metric exists at all": {
+      "query": "sum by (service_name) (rate(http_server_request_duration_seconds_count{service_name=\"cart\"}[5m]))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {
+            "service_name": "cart"
+          },
+          "value": 0.7365671464413045
+        }
+      ]
+    },
+    "http_route as a label on cart": {
+      "query": "sum by (http_route) (rate(http_server_request_duration_seconds_count{service_name=\"cart\"}[5m]))",
+      "series": 3,
+      "values": [
+        {
+          "labels": {
+            "http_route": "/oteldemo.CartService/EmptyCart"
+          },
+          "value": 0.04497970641313439
+        },
+        {
+          "labels": {
+            "http_route": "/oteldemo.CartService/GetCart"
+          },
+          "value": 0.4947767705444783
+        },
+        {
+          "labels": {
+            "http_route": "/oteldemo.CartService/AddItem"
+          },
+          "value": 0.19627508253004095
+        }
+      ]
+    },
+    "cart error ratio on span metrics (ticket 10: ~5.2%, straddles 0.05)": {
+      "query": "sum(rate(traces_span_metrics_calls_total{service_name=\"cart\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name=\"cart\"}[5m]))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 0.025052192066805843
+        }
+      ]
+    },
+    "cart SERVER-only error ratio": {
+      "query": "sum(rate(traces_span_metrics_calls_total{service_name=\"cart\",span_kind=\"SPAN_KIND_SERVER\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name=\"cart\",span_kind=\"SPAN_KIND_SERVER\"}[5m]))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 0.062146892655367235
+        }
+      ]
+    },
+    "cart ABSOLUTE error rate (ticket 10 wants this instead of a ratio)": {
+      "query": "sum(rate(traces_span_metrics_calls_total{service_name=\"cart\",status_code=\"STATUS_CODE_ERROR\"}[5m])) or vector(0)",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 0.049999999999999996
+        }
+      ]
+    },
+    "cart p95 http server duration, ticket 10 verbatim": {
+      "query": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=\"cart\"}[5m])))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 0.08500000000000002
+        }
+      ]
+    },
+    "cart p99 http server duration": {
+      "query": "histogram_quantile(0.99, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=\"cart\"}[5m])))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 8.00000000000004
+        }
+      ]
+    },
+    "cart p95 SPAN duration, whatever the span-metrics histogram is called": {
+      "query": "histogram_quantile(0.95, sum by (le) (rate({__name__=~\"traces_span_metrics_duration.*bucket\",service_name=\"cart\"}[5m])))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 6.525000000000004
+        }
+      ]
+    },
+    "checkout p95 span duration \u2014 does cart's stall propagate?": {
+      "query": "histogram_quantile(0.95, sum by (le) (rate({__name__=~\"traces_span_metrics_duration.*bucket\",service_name=\"checkout\"}[5m])))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 185.99999999999994
+        }
+      ]
+    }
+  },
+  "tempo": {
+    "cart errored spans": {
+      "query": "{resource.service.name=\"cart\" && status=error}",
+      "code": 200,
+      "traces": 20,
+      "ms": 329,
+      "first_trace_events": [
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/EmptyCart",
+          "name": "Empty cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/EmptyCart",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "cartFailure",
+            "feature_flag.provider.name": "flagd Provider",
+            "feature_flag.result.reason": "static",
+            "feature_flag.result.variant": "100%",
+            "feature_flag.result.value": 1
+          }
+        },
+        {
+          "span": "POST /oteldemo.CartService/EmptyCart",
+          "name": "exception",
+          "attrs": {
+            "exception.message": "Status(StatusCode=\"FailedPrecondition\", Detail=\"Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182\")",
+            "exception.stacktrace": "Grpc.Core.RpcException: Status(StatusCode=\"FailedPrecondition\", Detail=\"Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis\n   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 182\")\n   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 191\n   at cart.services.CartService.EmptyCart(EmptyCartRequest request, ServerCallContext context) in /usr/src/app/src/services/CartService.cs:line 85",
+            "exception.type": "Grpc.Core.RpcException"
+          }
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "prepared",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "paymentUnreachable",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "cached",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "charged",
+          "attrs": {
+            "demo.payment.transaction.id": "062b3b09-fccc-4110-9582-0958248c5e3b"
+          }
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "shipped",
+          "attrs": {
+            "demo.shipping.tracking.id": "183714d0-4cf1-48f0-bd80-3a31648d00b9"
+          }
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "kafkaQueueProblems",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": "0",
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "cached",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "POST /get-quote",
+          "name": "shipping.quote.received",
+          "attrs": {
+            "demo.shipping.cost.total": "107.88"
+          }
+        },
+        {
+          "span": "{closure}",
+          "name": "Received get quote request, processing it",
+          "attrs": {}
+        },
+        {
+          "span": "{closure}",
+          "name": "Quote processed, response sent back",
+          "attrs": {
+            "demo.shipping.quote.cost.total": 107.88
+          }
+        },
+        {
+          "span": "calculate-quote",
+          "name": "Calculating quote",
+          "attrs": {}
+        },
+        {
+          "span": "calculate-quote",
+          "name": "Quote calculated, returning its value",
+          "attrs": {}
+        },
+        {
+          "span": "flagd.evaluation.v2.Service/ResolveFloat",
+          "name": "message",
+          "attrs": {
+            "message.type": "RECEIVED",
+            "message.id": "1",
+            "message.uncompressed_size": "15"
+          }
+        },
+        {
+          "span": "flagd.evaluation.v2.Service/ResolveFloat",
+          "name": "message",
+          "attrs": {
+            "message.type": "SENT",
+            "message.id": "1",
+            "message.uncompressed_size": "25"
+          }
+        }
+      ],
+      "trace_ids": [
+        "540ef50c817d8d9edf7e1b5165ca58a2",
+        "6cf4836858227707007bcdad6439e39e",
+        "8b7f8eeafef7db8a22f8882b31ec48ed",
+        "841b3f316c7d861f3287ae464d74f3fb",
+        "3694d957bc914909fb6188880504ae14"
+      ]
+    }
+  },
+  "kubectl": {
+    "cart": [
+      {
+        "pod": "cart-66cbcf6bb4-27rrb",
+        "container": "cart",
+        "restarts": 0,
+        "ready": true,
+        "lastState_terminated": null
+      }
+    ]
+  },
+  "k8s_events": {
+    "cart": [
+      {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "message": "Successfully assigned otel-demo/cart-66cbcf6bb4-27rrb to pool-3y39ax",
+        "count": null,
+        "lastTimestamp": null
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "message": "Created pod: cart-66cbcf6bb4-27rrb",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:41Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled up replica set cart-66cbcf6bb4 from 0 to 1",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:41Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:43Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:43Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Successfully pulled image \"busybox:latest\" in 254ms (254ms including waiting). Image size: 2236931 bytes.",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:43Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulling",
+        "message": "Pulling image \"busybox:latest\"",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:43Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:3.0.0-cart\" already present on machine and can be accessed by the pod",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:44Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:44Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:44Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Killing",
+        "message": "Stopping container cart",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:44Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "message": "Deleted pod: cart-766c5f85df-n8p2n",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:44Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled down replica set cart-766c5f85df from 1 to 0",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:18:44Z"
+      }
+    ]
+  },
+  "_meta": {
+    "fault": "cartFailure",
+    "label": "recovered",
+    "span_metric": "traces_span_metrics_calls_total",
+    "utc": "2026-09-17T18:20:18Z"
+  }
+}

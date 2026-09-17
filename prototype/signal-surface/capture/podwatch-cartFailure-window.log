@@ -1,0 +1,77 @@
+# podwatch cartFailure-window: cart,checkout for 720s every 20s -> capture/podwatch-cartFailure-window.jsonl
+   t+s  pod                                container     cpu_m   mem_Mi restarts  lastTerminated
+     0  cart-766c5f85df-n8p2n              cart            3.0     58.0        0  
+     0  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+    20  cart-766c5f85df-n8p2n              cart            3.0     58.0        0  
+    20  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+    41  cart-766c5f85df-n8p2n              cart            6.0     58.0        0  
+    41  checkout-6554854cd6-pvh4p          checkout        3.0     17.0        0  
+    62  cart-766c5f85df-n8p2n              cart           47.0     64.0        0  
+    62  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+    82  cart-766c5f85df-n8p2n              cart            9.0     66.0        0  
+    82  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+   103  cart-766c5f85df-n8p2n              cart            7.0     63.0        0  
+   103  checkout-6554854cd6-pvh4p          checkout        1.0     17.0        0  
+   124  cart-766c5f85df-n8p2n              cart           30.0     64.0        0  
+   124  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   145  cart-766c5f85df-n8p2n              cart            8.0     63.0        0  
+   145  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+   165  cart-766c5f85df-n8p2n              cart           14.0     63.0        0  
+   165  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+   186  cart-766c5f85df-n8p2n              cart           14.0     63.0        0  
+   186  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   207  cart-766c5f85df-n8p2n              cart           12.0     63.0        0  
+   207  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   228  cart-766c5f85df-n8p2n              cart           18.0     64.0        0  
+   228  checkout-6554854cd6-pvh4p          checkout        2.0     16.0        0  
+   249  cart-766c5f85df-n8p2n              cart            5.0     64.0        0  
+   249  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   269  cart-766c5f85df-n8p2n              cart           22.0     62.0        0  
+   269  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   290  cart-766c5f85df-n8p2n              cart           43.0     65.0        0  
+   290  checkout-6554854cd6-pvh4p          checkout        8.0     16.0        0  
+   311  cart-766c5f85df-n8p2n              cart            9.0     67.0        0  
+   311  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+   332  cart-766c5f85df-n8p2n              cart           16.0     67.0        0  
+   332  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   353  cart-766c5f85df-n8p2n              cart            9.0     68.0        0  
+   353  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   373  cart-766c5f85df-n8p2n              cart            9.0     68.0        0  
+   373  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   394  cart-766c5f85df-n8p2n              cart           16.0     68.0        0  
+   394  checkout-6554854cd6-pvh4p          checkout        3.0     17.0        0  
+   415  cart-766c5f85df-n8p2n              cart           15.0     65.0        0  
+   415  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+   436  cart-766c5f85df-n8p2n              cart           33.0     69.0        0  
+   436  checkout-6554854cd6-pvh4p          checkout        4.0     16.0        0  
+   456  cart-766c5f85df-n8p2n              cart           12.0     66.0        0  
+   456  checkout-6554854cd6-pvh4p          checkout        3.0     17.0        0  
+   477  cart-766c5f85df-n8p2n              cart           16.0     73.0        0  
+   477  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+   498  cart-766c5f85df-n8p2n              cart           13.0     65.0        0  
+   498  checkout-6554854cd6-pvh4p          checkout        2.0     17.0        0  
+   519  cart-766c5f85df-n8p2n              cart           22.0     64.0        0  
+   519  checkout-6554854cd6-pvh4p          checkout        5.0     16.0        0  
+   540  cart-766c5f85df-n8p2n              cart           14.0     64.0        0  
+   540  checkout-6554854cd6-pvh4p          checkout        3.0     16.0        0  
+   561  cart-766c5f85df-n8p2n              cart           14.0     64.0        0  
+   561  checkout-6554854cd6-pvh4p          checkout        6.0     16.0        0  
+   582  cart-766c5f85df-n8p2n              cart           26.0     68.0        0  
+   582  checkout-6554854cd6-pvh4p          checkout        5.0     16.0        0  
+   602  cart-766c5f85df-n8p2n              cart           18.0     61.0        0  
+   602  checkout-6554854cd6-pvh4p          checkout        3.0     17.0        0  
+   623  cart-766c5f85df-n8p2n              cart           12.0     63.0        0  
+   623  checkout-6554854cd6-pvh4p          checkout        3.0     17.0        0  
+   644  cart-766c5f85df-n8p2n              cart            8.0     64.0        0  
+   644  checkout-6554854cd6-pvh4p          checkout        3.0     17.0        0  
+   665  cart-766c5f85df-n8p2n              cart            5.0     64.0        0  
+   665  checkout-6554854cd6-pvh4p          checkout        3.0     17.0        0  
+   685  cart-766c5f85df-n8p2n              cart           16.0     65.0        0  
+   685  checkout-6554854cd6-pvh4p          checkout        3.0     17.0        0  
+   706  cart-766c5f85df-n8p2n              cart           12.0     61.0        0  
+   706  checkout-6554854cd6-pvh4p          checkout        4.0     17.0        0  
+
+# peak memory observed
+   cart-766c5f85df-n8p2n                    cart       73 Mi
+   checkout-6554854cd6-pvh4p                checkout   17 Mi
+# artifact: capture/podwatch-cartFailure-window.jsonl

@@ -1,0 +1,1104 @@
+{
+  "prom": {
+    "email working set, ticket 10's metric": {
+      "query": "max by (k8s_pod_name) (container_memory_working_set_bytes{k8s_container_name=\"email\"})",
+      "series": 2,
+      "values": [
+        {
+          "labels": {
+            "k8s_pod_name": "email-b498b7dc6-xkgsn"
+          },
+          "value": 78917632.0
+        },
+        {
+          "labels": {
+            "k8s_pod_name": "email-777bcdcc48-s6fgm"
+          },
+          "value": 46161920.0
+        }
+      ]
+    },
+    "email working set, whatever the real metric family is": {
+      "query": "max by (k8s_pod_name) ({__name__=~\"k8s_container_memory.*|container_memory.*\",k8s_container_name=\"email\"})",
+      "series": 2,
+      "values": [
+        {
+          "labels": {
+            "k8s_pod_name": "email-b498b7dc6-xkgsn"
+          },
+          "value": 104857600.0
+        },
+        {
+          "labels": {
+            "k8s_pod_name": "email-777bcdcc48-s6fgm"
+          },
+          "value": 104857600.0
+        }
+      ]
+    },
+    "k8s_container_restarts on email": {
+      "query": "max by (k8s_pod_name) (k8s_container_restarts{k8s_container_name=\"email\"})",
+      "series": 2,
+      "values": [
+        {
+          "labels": {
+            "k8s_pod_name": "email-b498b7dc6-xkgsn"
+          },
+          "value": 5.0
+        },
+        {
+          "labels": {
+            "k8s_pod_name": "email-777bcdcc48-s6fgm"
+          },
+          "value": 0.0
+        }
+      ]
+    },
+    "any restart-shaped metric on email": {
+      "query": "max by (__name__, k8s_pod_name) ({__name__=~\".*restart.*\",k8s_container_name=\"email\"})",
+      "series": 2,
+      "values": [
+        {
+          "labels": {
+            "__name__": "k8s_container_restarts",
+            "k8s_pod_name": "email-b498b7dc6-xkgsn"
+          },
+          "value": 5.0
+        },
+        {
+          "labels": {
+            "__name__": "k8s_container_restarts",
+            "k8s_pod_name": "email-777bcdcc48-s6fgm"
+          },
+          "value": 0.0
+        }
+      ]
+    }
+  },
+  "loki": {
+    "checkout's confirmation WARN": {
+      "query": "{service_name=\"checkout\"} |= \"failed to send order confirmation\"",
+      "lines": 5,
+      "sample": [
+        {
+          "ts": "1789668123845561512",
+          "line": "failed to send order confirmation: failed POST to email service: Post \"http://email:8080/send_order_confirmation\": dial tcp 10.108.62.150:8080: connect: connection refused",
+          "stream": {
+            "detected_level": "WARN",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789668123845565316",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "13",
+            "severity_text": "WARN",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789667999079572094",
+          "line": "failed to send order confirmation: failed POST to email service: Post \"http://email:8080/send_order_confirmation\": dial tcp 10.108.62.150:8080: connect: connection refused",
+          "stream": {
+            "detected_level": "WARN",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789667999079578488",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "13",
+            "severity_text": "WARN",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789667994575621216",
+          "line": "failed to send order confirmation: failed POST to email service: Post \"http://email:8080/send_order_confirmation\": dial tcp 10.108.62.150:8080: connect: connection refused",
+          "stream": {
+            "detected_level": "WARN",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789667994575624907",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "13",
+            "severity_text": "WARN",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789667971128550454",
+          "line": "failed to send order confirmation: failed POST to email service: Post \"http://email:8080/send_order_confirmation\": dial tcp 10.108.62.150:8080: connect: connection refused",
+          "stream": {
+            "detected_level": "WARN",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789667971128554164",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "13",
+            "severity_text": "WARN",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789667954378290729",
+          "line": "failed to send order confirmation: failed POST to email service: Post \"http://email:8080/send_order_confirmation\": dial tcp 10.108.62.150:8080: connect: connection refused",
+          "stream": {
+            "detected_level": "WARN",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789667954378294088",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "13",
+            "severity_text": "WARN",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        }
+      ]
+    },
+    "checkout logs mentioning email": {
+      "query": "{service_name=\"checkout\"} |~ \"(?i)email|confirmation\"",
+      "lines": 5,
+      "sample": [
+        {
+          "ts": "1789668206196008336",
+          "line": "order confirmation email sent",
+          "stream": {
+            "detected_level": "INFO",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789668206196012547",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789668146585469330",
+          "line": "order confirmation email sent",
+          "stream": {
+            "detected_level": "INFO",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789668146585490546",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789668123845561512",
+          "line": "failed to send order confirmation: failed POST to email service: Post \"http://email:8080/send_order_confirmation\": dial tcp 10.108.62.150:8080: connect: connection refused",
+          "stream": {
+            "detected_level": "WARN",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789668123845565316",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "13",
+            "severity_text": "WARN",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789668108950054630",
+          "line": "order confirmation email sent",
+          "stream": {
+            "detected_level": "INFO",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789668108950059954",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789668101071031640",
+          "line": "order confirmation email sent",
+          "stream": {
+            "detected_level": "INFO",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789668101071035961",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        }
+      ]
+    },
+    "email's own logs": {
+      "query": "{service_name=\"email\"}",
+      "lines": 6,
+      "sample": [
+        {
+          "ts": "1789668206195040354",
+          "line": "Order confirmation email sent",
+          "stream": {
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-email",
+            "demo_order_id": "1471ec02-b2c2-11f1-83b5-da3f417b9664",
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "email",
+            "k8s_deployment_name": "email",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "email-777bcdcc48-s6fgm",
+            "k8s_pod_start_time": "2026-09-17T18:02:01Z",
+            "k8s_pod_uid": "911e15b0-fc68-4abd-97ed-0b13575244a5",
+            "k8s_replicaset_name": "email-777bcdcc48",
+            "k8s_replicaset_uid": "2a720d3f-a164-4d99-9a6a-e141b6b0217c",
+            "observed_timestamp": "1789668206195046704",
+            "os_type": "linux",
+            "process_command": "email_server.rb",
+            "process_pid": "1",
+            "process_runtime_description": "ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [x86_64-linux-musl]",
+            "process_runtime_name": "ruby",
+            "process_runtime_version": "4.0.5",
+            "scope_name": "email",
+            "service_criticality": "medium",
+            "service_instance_id": "otel-demo.email-777bcdcc48-s6fgm.email",
+            "service_name": "email",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_text": "INFO",
+            "span_id": "ecbd538552940cd2",
+            "telemetry_sdk_language": "ruby",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.12.1",
+            "trace_id": "2885ef67fb818ebaf5d59aba3479f938"
+          }
+        },
+        {
+          "ts": "1789668146584080958",
+          "line": "Order confirmation email sent",
+          "stream": {
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-email",
+            "demo_order_id": "f0be884a-b2c1-11f1-83b5-da3f417b9664",
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "email",
+            "k8s_deployment_name": "email",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "email-777bcdcc48-s6fgm",
+            "k8s_pod_start_time": "2026-09-17T18:02:01Z",
+            "k8s_pod_uid": "911e15b0-fc68-4abd-97ed-0b13575244a5",
+            "k8s_replicaset_name": "email-777bcdcc48",
+            "k8s_replicaset_uid": "2a720d3f-a164-4d99-9a6a-e141b6b0217c",
+            "observed_timestamp": "1789668146584094847",
+            "os_type": "linux",
+            "process_command": "email_server.rb",
+            "process_pid": "1",
+            "process_runtime_description": "ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [x86_64-linux-musl]",
+            "process_runtime_name": "ruby",
+            "process_runtime_version": "4.0.5",
+            "scope_name": "email",
+            "service_criticality": "medium",
+            "service_instance_id": "otel-demo.email-777bcdcc48-s6fgm.email",
+            "service_name": "email",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_text": "INFO",
+            "span_id": "429b84dfe6f0e9d5",
+            "telemetry_sdk_language": "ruby",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.12.1",
+            "trace_id": "9512e6c6249f4e35a923f309cb5ad7eb"
+          }
+        },
+        {
+          "ts": "1789668108949142217",
+          "line": "Order confirmation email sent",
+          "stream": {
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-email",
+            "demo_order_id": "da71df50-b2c1-11f1-83b5-da3f417b9664",
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "email",
+            "k8s_deployment_name": "email",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "email-b498b7dc6-xkgsn",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "6f684e8a-74c2-458c-86fe-41d4626cb4f5",
+            "k8s_replicaset_name": "email-b498b7dc6",
+            "k8s_replicaset_uid": "d35f4ba4-98b9-47b9-9153-29c4e00f4dc3",
+            "observed_timestamp": "1789668108949149607",
+            "os_type": "linux",
+            "process_command": "email_server.rb",
+            "process_pid": "1",
+            "process_runtime_description": "ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [x86_64-linux-musl]",
+            "process_runtime_name": "ruby",
+            "process_runtime_version": "4.0.5",
+            "scope_name": "email",
+            "service_criticality": "medium",
+            "service_instance_id": "otel-demo.email-b498b7dc6-xkgsn.email",
+            "service_name": "email",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_text": "INFO",
+            "span_id": "27aa8b08c1b4a434",
+            "telemetry_sdk_language": "ruby",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.12.1",
+            "trace_id": "6561c0a3ac4aae2b21bfa3d348033a4a"
+          }
+        },
+        {
+          "ts": "1789668101069846107",
+          "line": "Order confirmation email sent",
+          "stream": {
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-email",
+            "demo_order_id": "d5c3874a-b2c1-11f1-83b5-da3f417b9664",
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "email",
+            "k8s_deployment_name": "email",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "email-b498b7dc6-xkgsn",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "6f684e8a-74c2-458c-86fe-41d4626cb4f5",
+            "k8s_replicaset_name": "email-b498b7dc6",
+            "k8s_replicaset_uid": "d35f4ba4-98b9-47b9-9153-29c4e00f4dc3",
+            "observed_timestamp": "1789668101069852100",
+            "os_type": "linux",
+            "process_command": "email_server.rb",
+            "process_pid": "1",
+            "process_runtime_description": "ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [x86_64-linux-musl]",
+            "process_runtime_name": "ruby",
+            "process_runtime_version": "4.0.5",
+            "scope_name": "email",
+            "service_criticality": "medium",
+            "service_instance_id": "otel-demo.email-b498b7dc6-xkgsn.email",
+            "service_name": "email",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_text": "INFO",
+            "span_id": "6033bd2ad62bad7a",
+            "telemetry_sdk_language": "ruby",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.12.1",
+            "trace_id": "4608b4b79730a41d7a69b2ba2742f444"
+          }
+        },
+        {
+          "ts": "1789668097525517021",
+          "line": "Order confirmation email sent",
+          "stream": {
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-email",
+            "demo_order_id": "d3a4600c-b2c1-11f1-83b5-da3f417b9664",
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "email",
+            "k8s_deployment_name": "email",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "email-b498b7dc6-xkgsn",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "6f684e8a-74c2-458c-86fe-41d4626cb4f5",
+            "k8s_replicaset_name": "email-b498b7dc6",
+            "k8s_replicaset_uid": "d35f4ba4-98b9-47b9-9153-29c4e00f4dc3",
+            "observed_timestamp": "1789668097525522684",
+            "os_type": "linux",
+            "process_command": "email_server.rb",
+            "process_pid": "1",
+            "process_runtime_description": "ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [x86_64-linux-musl]",
+            "process_runtime_name": "ruby",
+            "process_runtime_version": "4.0.5",
+            "scope_name": "email",
+            "service_criticality": "medium",
+            "service_instance_id": "otel-demo.email-b498b7dc6-xkgsn.email",
+            "service_name": "email",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_text": "INFO",
+            "span_id": "ee3c48474b44322d",
+            "telemetry_sdk_language": "ruby",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.12.1",
+            "trace_id": "68e7329dd76b16c5b2f1defb33350b04"
+          }
+        },
+        {
+          "ts": "1789668092489313715",
+          "line": "Order confirmation email sent",
+          "stream": {
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-email",
+            "demo_order_id": "d0a20970-b2c1-11f1-83b5-da3f417b9664",
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "email",
+            "k8s_deployment_name": "email",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "email-b498b7dc6-xkgsn",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "6f684e8a-74c2-458c-86fe-41d4626cb4f5",
+            "k8s_replicaset_name": "email-b498b7dc6",
+            "k8s_replicaset_uid": "d35f4ba4-98b9-47b9-9153-29c4e00f4dc3",
+            "observed_timestamp": "1789668092489321029",
+            "os_type": "linux",
+            "process_command": "email_server.rb",
+            "process_pid": "1",
+            "process_runtime_description": "ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [x86_64-linux-musl]",
+            "process_runtime_name": "ruby",
+            "process_runtime_version": "4.0.5",
+            "scope_name": "email",
+            "service_criticality": "medium",
+            "service_instance_id": "otel-demo.email-b498b7dc6-xkgsn.email",
+            "service_name": "email",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_text": "INFO",
+            "span_id": "0a1734c07a669370",
+            "telemetry_sdk_language": "ruby",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.12.1",
+            "trace_id": "398c980695ad0ae044a1a944d07318bf"
+          }
+        }
+      ]
+    },
+    "email logs carrying an error or a Ruby TypeError (THE FLOAT GATE)": {
+      "query": "{service_name=\"email\"} |~ \"(?i)error|typeerror|exception|no implicit conversion\"",
+      "lines": 0,
+      "sample": []
+    },
+    "Kubernetes Events in Loki naming the email pod (ticket 26's only selector)": {
+      "query": "{service_name=\"unknown_service\"} |= \"email-\"",
+      "lines": 8,
+      "sample": [
+        {
+          "ts": "1789668123660661808",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"kubelet\",\"host\":\"pool-3y39ax\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:reportingInstance\":{},\"f:source\":{\"f:component\":{},\"f:host\":{}},\"f:type\":{}},\"manager\":\"kubelet\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-b498b7dc6-xkgsn.18d62dad2812324e\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15673\",\"uid\":\"a92fa4a0-7193-4dac-bee4-2047df585d2b\"},\"note\":\"Stopping container email\",\"reason\":\"Killing\",\"regarding\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.containers{email}\",\"kind\":\"Pod\",\"name\":\"email-b498b7dc6-xkgsn\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"2115\",\"uid\":\"6f684e8a-74c2-458c-86fe-41d4626cb4f5\"},\"reportingController\":\"kubelet\",\"reportingInstance\":\"pool-3y39ax\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-b498b7dc6-xkgsn.18d62dad2812324e",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123652669300",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"replicaset-controller\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:source\":{\"f:component\":{}},\"f:type\":{}},\"manager\":\"kube-controller-manager\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-b498b7dc6.18d62dad2861d0b2\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15669\",\"uid\":\"a4eaafa3-afbb-41e4-ac99-73f399cdba22\"},\"note\":\"Deleted pod: email-b498b7dc6-xkgsn\",\"reason\":\"SuccessfulDelete\",\"regarding\":{\"apiVersion\":\"apps/v1\",\"kind\":\"ReplicaSet\",\"name\":\"email-b498b7dc6\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15665\",\"uid\":\"d35f4ba4-98b9-47b9-9153-29c4e00f4dc3\"},\"reportingController\":\"replicaset-controller\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-b498b7dc6.18d62dad2861d0b2",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123643918687",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"deployment-controller\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:source\":{\"f:component\":{}},\"f:type\":{}},\"manager\":\"kube-controller-manager\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email.18d62dad27e9c971\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15666\",\"uid\":\"825213a2-71fc-4e7b-8b98-de78e0b500a7\"},\"note\":\"Scaled down replica set email-b498b7dc6 from 1 to 0\",\"reason\":\"ScalingReplicaSet\",\"regarding\":{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"name\":\"email\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15647\",\"uid\":\"fb08c156-fcb0-402b-8563-03e78c61c779\"},\"reportingController\":\"deployment-controller\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email.18d62dad27e9c971",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123605918639",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"kubelet\",\"host\":\"pool-3y39ax\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:reportingInstance\":{},\"f:source\":{\"f:component\":{},\"f:host\":{}},\"f:type\":{}},\"manager\":\"kubelet\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-777bcdcc48-s6fgm.18d62dad248d00a7\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15660\",\"uid\":\"32bfff28-9e18-49ca-bcc4-1e0bbeef0874\"},\"note\":\"Container started\",\"reason\":\"Started\",\"regarding\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.containers{email}\",\"kind\":\"Pod\",\"name\":\"email-777bcdcc48-s6fgm\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15642\",\"uid\":\"911e15b0-fc68-4abd-97ed-0b13575244a5\"},\"reportingController\":\"kubelet\",\"reportingInstance\":\"pool-3y39ax\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48-s6fgm.18d62dad248d00a7",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123435398835",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"kubelet\",\"host\":\"pool-3y39ax\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:reportingInstance\":{},\"f:source\":{\"f:component\":{},\"f:host\":{}},\"f:type\":{}},\"manager\":\"kubelet\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-777bcdcc48-s6fgm.18d62dad1ac4e75f\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15657\",\"uid\":\"5b5cfbcf-6bbf-471f-83d7-d00492cc294a\"},\"note\":\"Container created\",\"reason\":\"Created\",\"regarding\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.containers{email}\",\"kind\":\"Pod\",\"name\":\"email-777bcdcc48-s6fgm\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15642\",\"uid\":\"911e15b0-fc68-4abd-97ed-0b13575244a5\"},\"reportingController\":\"kubelet\",\"reportingInstance\":\"pool-3y39ax\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48-s6fgm.18d62dad1ac4e75f",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123369149435",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"kubelet\",\"host\":\"pool-3y39ax\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:reportingInstance\":{},\"f:source\":{\"f:component\":{},\"f:host\":{}},\"f:type\":{}},\"manager\":\"kubelet\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-777bcdcc48-s6fgm.18d62dad16c9c938\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15653\",\"uid\":\"6491f7c3-d980-4d33-8771-48e75386114c\"},\"note\":\"Container image \\\"ghcr.io/open-telemetry/demo:3.0.0-email\\\" already present on machine and can be accessed by the pod\",\"reason\":\"Pulled\",\"regarding\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.containers{email}\",\"kind\":\"Pod\",\"name\":\"email-777bcdcc48-s6fgm\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15642\",\"uid\":\"911e15b0-fc68-4abd-97ed-0b13575244a5\"},\"reportingController\":\"kubelet\",\"reportingInstance\":\"pool-3y39ax\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48-s6fgm.18d62dad16c9c938",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668121787195604",
+          "line": "{\"object\":{\"action\":\"Binding\",\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedFirstTimestamp\":null,\"deprecatedLastTimestamp\":null,\"deprecatedSource\":{},\"eventTime\":\"2026-09-17T18:02:01.788249Z\",\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:01Z\",\"managedFields\":[{\"apiVersion\":\"events.k8s.io/v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:action\":{},\"f:eventTime\":{},\"f:note\":{},\"f:reason\":{},\"f:regarding\":{},\"f:reportingController\":{},\"f:reportingInstance\":{},\"f:type\":{}},\"manager\":\"kube-scheduler\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:01Z\"}],\"name\":\"email-777bcdcc48-s6fgm.18d62dacb9078e21\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15644\",\"uid\":\"9986369d-e2f5-4392-a199-baece778d4d6\"},\"note\":\"Successfully assigned otel-demo/email-777bcdcc48-s6fgm to pool-3y39ax\",\"reason\":\"Scheduled\",\"regarding\":{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"name\":\"email-777bcdcc48-s6fgm\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15639\",\"uid\":\"911e15b0-fc68-4abd-97ed-0b13575244a5\"},\"reportingController\":\"default-scheduler\",\"reportingInstance\":\"default-scheduler-kube-scheduler-5549ff856-j8x78\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48-s6fgm.18d62dacb9078e21",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668121780412706",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:01Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:01Z\",\"deprecatedSource\":{\"component\":\"replicaset-controller\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:01Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:source\":{\"f:component\":{}},\"f:type\":{}},\"manager\":\"kube-controller-manager\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:01Z\"}],\"name\":\"email-777bcdcc48.18d62dacb904ba1d\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15641\",\"uid\":\"3e4f2b13-1ac9-4dea-b424-69c7fe46c5ed\"},\"note\":\"Created pod: email-777bcdcc48-s6fgm\",\"reason\":\"SuccessfulCreate\",\"regarding\":{\"apiVersion\":\"apps/v1\",\"kind\":\"ReplicaSet\",\"name\":\"email-777bcdcc48\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15637\",\"uid\":\"2a720d3f-a164-4d99-9a6a-e141b6b0217c\"},\"reportingController\":\"replicaset-controller\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48.18d62dacb904ba1d",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        }
+      ]
+    },
+    "Kubernetes Events in Loki, ticket 27's proposed selector": {
+      "query": "{service_name=\"unknown_service\", service_namespace=\"otel-demo\"} |= \"email-\"",
+      "lines": 8,
+      "sample": [
+        {
+          "ts": "1789668123660661808",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"kubelet\",\"host\":\"pool-3y39ax\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:reportingInstance\":{},\"f:source\":{\"f:component\":{},\"f:host\":{}},\"f:type\":{}},\"manager\":\"kubelet\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-b498b7dc6-xkgsn.18d62dad2812324e\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15673\",\"uid\":\"a92fa4a0-7193-4dac-bee4-2047df585d2b\"},\"note\":\"Stopping container email\",\"reason\":\"Killing\",\"regarding\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.containers{email}\",\"kind\":\"Pod\",\"name\":\"email-b498b7dc6-xkgsn\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"2115\",\"uid\":\"6f684e8a-74c2-458c-86fe-41d4626cb4f5\"},\"reportingController\":\"kubelet\",\"reportingInstance\":\"pool-3y39ax\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-b498b7dc6-xkgsn.18d62dad2812324e",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123652669300",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"replicaset-controller\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:source\":{\"f:component\":{}},\"f:type\":{}},\"manager\":\"kube-controller-manager\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-b498b7dc6.18d62dad2861d0b2\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15669\",\"uid\":\"a4eaafa3-afbb-41e4-ac99-73f399cdba22\"},\"note\":\"Deleted pod: email-b498b7dc6-xkgsn\",\"reason\":\"SuccessfulDelete\",\"regarding\":{\"apiVersion\":\"apps/v1\",\"kind\":\"ReplicaSet\",\"name\":\"email-b498b7dc6\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15665\",\"uid\":\"d35f4ba4-98b9-47b9-9153-29c4e00f4dc3\"},\"reportingController\":\"replicaset-controller\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-b498b7dc6.18d62dad2861d0b2",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123643918687",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"deployment-controller\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:source\":{\"f:component\":{}},\"f:type\":{}},\"manager\":\"kube-controller-manager\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email.18d62dad27e9c971\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15666\",\"uid\":\"825213a2-71fc-4e7b-8b98-de78e0b500a7\"},\"note\":\"Scaled down replica set email-b498b7dc6 from 1 to 0\",\"reason\":\"ScalingReplicaSet\",\"regarding\":{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"name\":\"email\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15647\",\"uid\":\"fb08c156-fcb0-402b-8563-03e78c61c779\"},\"reportingController\":\"deployment-controller\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email.18d62dad27e9c971",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123605918639",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"kubelet\",\"host\":\"pool-3y39ax\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:reportingInstance\":{},\"f:source\":{\"f:component\":{},\"f:host\":{}},\"f:type\":{}},\"manager\":\"kubelet\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-777bcdcc48-s6fgm.18d62dad248d00a7\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15660\",\"uid\":\"32bfff28-9e18-49ca-bcc4-1e0bbeef0874\"},\"note\":\"Container started\",\"reason\":\"Started\",\"regarding\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.containers{email}\",\"kind\":\"Pod\",\"name\":\"email-777bcdcc48-s6fgm\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15642\",\"uid\":\"911e15b0-fc68-4abd-97ed-0b13575244a5\"},\"reportingController\":\"kubelet\",\"reportingInstance\":\"pool-3y39ax\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48-s6fgm.18d62dad248d00a7",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123435398835",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"kubelet\",\"host\":\"pool-3y39ax\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:reportingInstance\":{},\"f:source\":{\"f:component\":{},\"f:host\":{}},\"f:type\":{}},\"manager\":\"kubelet\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-777bcdcc48-s6fgm.18d62dad1ac4e75f\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15657\",\"uid\":\"5b5cfbcf-6bbf-471f-83d7-d00492cc294a\"},\"note\":\"Container created\",\"reason\":\"Created\",\"regarding\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.containers{email}\",\"kind\":\"Pod\",\"name\":\"email-777bcdcc48-s6fgm\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15642\",\"uid\":\"911e15b0-fc68-4abd-97ed-0b13575244a5\"},\"reportingController\":\"kubelet\",\"reportingInstance\":\"pool-3y39ax\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48-s6fgm.18d62dad1ac4e75f",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668123369149435",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:03Z\",\"deprecatedSource\":{\"component\":\"kubelet\",\"host\":\"pool-3y39ax\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:03Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:reportingInstance\":{},\"f:source\":{\"f:component\":{},\"f:host\":{}},\"f:type\":{}},\"manager\":\"kubelet\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:03Z\"}],\"name\":\"email-777bcdcc48-s6fgm.18d62dad16c9c938\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15653\",\"uid\":\"6491f7c3-d980-4d33-8771-48e75386114c\"},\"note\":\"Container image \\\"ghcr.io/open-telemetry/demo:3.0.0-email\\\" already present on machine and can be accessed by the pod\",\"reason\":\"Pulled\",\"regarding\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.containers{email}\",\"kind\":\"Pod\",\"name\":\"email-777bcdcc48-s6fgm\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15642\",\"uid\":\"911e15b0-fc68-4abd-97ed-0b13575244a5\"},\"reportingController\":\"kubelet\",\"reportingInstance\":\"pool-3y39ax\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48-s6fgm.18d62dad16c9c938",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668121787195604",
+          "line": "{\"object\":{\"action\":\"Binding\",\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedFirstTimestamp\":null,\"deprecatedLastTimestamp\":null,\"deprecatedSource\":{},\"eventTime\":\"2026-09-17T18:02:01.788249Z\",\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:01Z\",\"managedFields\":[{\"apiVersion\":\"events.k8s.io/v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:action\":{},\"f:eventTime\":{},\"f:note\":{},\"f:reason\":{},\"f:regarding\":{},\"f:reportingController\":{},\"f:reportingInstance\":{},\"f:type\":{}},\"manager\":\"kube-scheduler\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:01Z\"}],\"name\":\"email-777bcdcc48-s6fgm.18d62dacb9078e21\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15644\",\"uid\":\"9986369d-e2f5-4392-a199-baece778d4d6\"},\"note\":\"Successfully assigned otel-demo/email-777bcdcc48-s6fgm to pool-3y39ax\",\"reason\":\"Scheduled\",\"regarding\":{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"name\":\"email-777bcdcc48-s6fgm\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15639\",\"uid\":\"911e15b0-fc68-4abd-97ed-0b13575244a5\"},\"reportingController\":\"default-scheduler\",\"reportingInstance\":\"default-scheduler-kube-scheduler-5549ff856-j8x78\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48-s6fgm.18d62dacb9078e21",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        },
+        {
+          "ts": "1789668121780412706",
+          "line": "{\"object\":{\"apiVersion\":\"events.k8s.io/v1\",\"deprecatedCount\":1,\"deprecatedFirstTimestamp\":\"2026-09-17T18:02:01Z\",\"deprecatedLastTimestamp\":\"2026-09-17T18:02:01Z\",\"deprecatedSource\":{\"component\":\"replicaset-controller\"},\"eventTime\":null,\"kind\":\"Event\",\"metadata\":{\"creationTimestamp\":\"2026-09-17T18:02:01Z\",\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:count\":{},\"f:firstTimestamp\":{},\"f:involvedObject\":{},\"f:lastTimestamp\":{},\"f:message\":{},\"f:reason\":{},\"f:reportingComponent\":{},\"f:source\":{\"f:component\":{}},\"f:type\":{}},\"manager\":\"kube-controller-manager\",\"operation\":\"Update\",\"time\":\"2026-09-17T18:02:01Z\"}],\"name\":\"email-777bcdcc48.18d62dacb904ba1d\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15641\",\"uid\":\"3e4f2b13-1ac9-4dea-b424-69c7fe46c5ed\"},\"note\":\"Created pod: email-777bcdcc48-s6fgm\",\"reason\":\"SuccessfulCreate\",\"regarding\":{\"apiVersion\":\"apps/v1\",\"kind\":\"ReplicaSet\",\"name\":\"email-777bcdcc48\",\"namespace\":\"otel-demo\",\"resourceVersion\":\"15637\",\"uid\":\"2a720d3f-a164-4d99-9a6a-e141b6b0217c\"},\"reportingController\":\"replicaset-controller\",\"type\":\"Normal\"},\"type\":\"ADDED\"}",
+          "stream": {
+            "detected_level": "unknown",
+            "event_domain": "k8s",
+            "event_name": "email-777bcdcc48.18d62dacb904ba1d",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_resource_name": "events",
+            "os_type": "linux",
+            "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver",
+            "scope_version": "0.156.0",
+            "service_name": "unknown_service",
+            "service_namespace": "otel-demo"
+          }
+        }
+      ]
+    }
+  },
+  "kubectl": {
+    "email": [
+      {
+        "pod": "email-777bcdcc48-s6fgm",
+        "container": "email",
+        "restarts": 0,
+        "ready": true,
+        "lastState_terminated": null
+      }
+    ]
+  },
+  "k8s_events": {
+    "email": [
+      {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "message": "Successfully assigned otel-demo/email-b498b7dc6-xkgsn to pool-3y39ax",
+        "count": null,
+        "lastTimestamp": null
+      },
+      {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "message": "Successfully assigned otel-demo/email-777bcdcc48-s6fgm to pool-3y39ax",
+        "count": null,
+        "lastTimestamp": null
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled up replica set email-b498b7dc6 from 0 to 1",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:11Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "message": "Created pod: email-b498b7dc6-xkgsn",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:11Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulling",
+        "message": "Pulling image \"ghcr.io/open-telemetry/demo:3.0.0-email\"",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:17Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Successfully pulled image \"ghcr.io/open-telemetry/demo:3.0.0-email\" in 18.772s (18.772s including waiting). Image size: 103400466 bytes.",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:36Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "BackOff",
+        "message": "Back-off restarting failed container email in pod email-b498b7dc6-xkgsn_otel-demo(6f684e8a-74c2-458c-86fe-41d4626cb4f5)",
+        "count": 5,
+        "lastTimestamp": "2026-09-17T18:00:02Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:3.0.0-email\" already present on machine and can be accessed by the pod",
+        "count": 5,
+        "lastTimestamp": "2026-09-17T18:00:16Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 6,
+        "lastTimestamp": "2026-09-17T18:00:16Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 6,
+        "lastTimestamp": "2026-09-17T18:00:16Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "message": "Created pod: email-777bcdcc48-s6fgm",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:02:01Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled up replica set email-777bcdcc48 from 0 to 1",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:02:01Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:02:03Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled down replica set email-b498b7dc6 from 1 to 0",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:02:03Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:02:03Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "message": "Deleted pod: email-b498b7dc6-xkgsn",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:02:03Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:3.0.0-email\" already present on machine and can be accessed by the pod",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:02:03Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Killing",
+        "message": "Stopping container email",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T18:02:03Z"
+      }
+    ]
+  },
+  "tempo": {
+    "email spans": {
+      "query": "{resource.service.name=\"email\"}",
+      "code": 200,
+      "traces": 20,
+      "ms": 331,
+      "first_trace_events": null,
+      "trace_ids": [
+        "1030404f7d524ffdba723a50036668d8",
+        "e6557782e663bf18e6c51044c65b17e9",
+        "b38505680afcd6cfe883a7478d836d27",
+        "3bad2659833ac717d399d46172a0b07",
+        "98a033e5bc39830b6632e18026c4871e"
+      ]
+    },
+    "email errored spans": {
+      "query": "{resource.service.name=\"email\" && status=error}",
+      "code": 200,
+      "traces": 0,
+      "ms": 272,
+      "first_trace_events": null,
+      "trace_ids": []
+    }
+  },
+  "_meta": {
+    "fault": "emailMemoryLeak",
+    "label": "recovered",
+    "span_metric": "traces_span_metrics_calls_total",
+    "utc": "2026-09-17T18:03:37Z"
+  }
+}

@@ -1,0 +1,635 @@
+
+=== FAULT WINDOW: emailMemoryLeak -> 1000x for 20 min; watching email checkout ===
+utc: 2026-09-17T17:39:48Z
+
+=== pre-flip baseline for email checkout (60 s) ===
+# podwatch emailMemoryLeak-baseline: email,checkout for 60s every 20s -> capture/podwatch-emailMemoryLeak-baseline.jsonl
+   t+s  pod                                container     cpu_m   mem_Mi restarts  lastTerminated
+     0  checkout-6554854cd6-pvh4p          checkout        2.0     15.0        0  
+     0  email-b498b7dc6-xkgsn              email           2.0     51.0        0  
+    20  checkout-6554854cd6-pvh4p          checkout        2.0     15.0        0  
+    20  email-b498b7dc6-xkgsn              email           2.0     51.0        0  
+    41  checkout-6554854cd6-pvh4p          checkout        5.0     15.0        0  
+    41  email-b498b7dc6-xkgsn              email           5.0     52.0        0  
+
+# peak memory observed
+   checkout-6554854cd6-pvh4p                checkout   15 Mi
+   email-b498b7dc6-xkgsn                    email      52 Mi
+# artifact: capture/podwatch-emailMemoryLeak-baseline.jsonl
+
+=== injecting ===
+configmap=flagd-config key=demo.flagd.json resourceVersion(before)=9471
+emailMemoryLeak: off -> 1000x (value=1000)
+resourceVersion: 9471 -> 10254 (changed: yes)
+
+=== rollout restart deploy/flagd (the ConfigMap write alone is inert) ===
+deployment.apps/flagd restarted
+Waiting for deployment "flagd" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "flagd" rollout to finish: 1 old replicas are pending termination...
+deployment "flagd" successfully rolled out
+
+=== flagd's own copy, after the rollout ===
+  emailMemoryLeak
+    defaultVariant: 1000x
+    variants: {"10000x": 10000, "1000x": 1000, "100x": 100, "10x": 10, "1x": 1, "off": 0}
+    state: ENABLED
+in-pod defaultVariant for emailMemoryLeak: 1000x  (wanted: 1000x)
+VERIFIED: flagd holds the new variant
+
+injection -> flagd ready: 4s (ConfigMap 2s + rollout 2s)
+timing artifact: capture/timing-emailMemoryLeak-1000x.json
+
+NOTE: flagd holding the variant is NOT the caller holding it. The .NET and Go
+      providers' reconnect after a flagd rollout has never been verified here.
+      Confirm one real symptom (./symptom.sh) before starting any clock.
+
+=== item 13 — confirm one real symptom before trusting any clock ===
+# item 13 — symptom watch for emailMemoryLeak
+# t0 = 2026-09-17T17:40:51Z (injection start)
+# polling every 15s for up to 900s, across all four signal classes
+
+   t+s  class        check                                                            value
+     5  kubernetes   email RSS climbing                                               52.0 Mi
+     5  kubernetes   email restarted                                                  restarts=0 last=None
+     5  logs         checkout WARN on confirmation                                    0 lines
+     5  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+     5  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+    22  kubernetes   email RSS climbing                                               52.0 Mi
+    22  kubernetes   email restarted                                                  restarts=0 last=None
+    22  logs         checkout WARN on confirmation                                    0 lines
+    22  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+    22  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+    38  kubernetes   email RSS climbing                                               59.0 Mi
+    38  kubernetes   email restarted                                                  restarts=0 last=None
+    38  logs         checkout WARN on confirmation                                    0 lines
+    38  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+    38  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+    54  kubernetes   email RSS climbing                                               75.0 Mi   <-- FIRST
+    54  kubernetes   email restarted                                                  restarts=0 last=None
+    54  logs         checkout WARN on confirmation                                    0 lines
+    54  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+    54  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+    70  kubernetes   email RSS climbing                                               75.0 Mi
+    70  kubernetes   email restarted                                                  restarts=0 last=None
+    70  logs         checkout WARN on confirmation                                    0 lines
+    70  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+    70  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+    86  kubernetes   email RSS climbing                                               75.0 Mi
+    86  kubernetes   email restarted                                                  restarts=0 last=None
+    86  logs         checkout WARN on confirmation                                    0 lines
+    86  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+    86  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   103  kubernetes   email RSS climbing                                               76.0 Mi
+   103  kubernetes   email restarted                                                  restarts=0 last=None
+   103  logs         checkout WARN on confirmation                                    0 lines
+   103  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   103  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   119  kubernetes   email RSS climbing                                               None Mi
+   119  kubernetes   email restarted                                                  restarts=1 last=OOMKilled   <-- FIRST
+   119  logs         checkout WARN on confirmation                                    1 lines   <-- FIRST
+   119  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   119  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   135  kubernetes   email RSS climbing                                               47.0 Mi
+   135  kubernetes   email restarted                                                  restarts=1 last=OOMKilled
+   135  logs         checkout WARN on confirmation                                    1 lines
+   135  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   135  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   151  kubernetes   email RSS climbing                                               47.0 Mi
+   151  kubernetes   email restarted                                                  restarts=1 last=OOMKilled
+   151  logs         checkout WARN on confirmation                                    1 lines
+   151  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   151  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   167  kubernetes   email RSS climbing                                               53.0 Mi
+   167  kubernetes   email restarted                                                  restarts=1 last=OOMKilled
+   167  logs         checkout WARN on confirmation                                    1 lines
+   167  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   167  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   184  kubernetes   email RSS climbing                                               84.0 Mi
+   184  kubernetes   email restarted                                                  restarts=1 last=OOMKilled
+   184  logs         checkout WARN on confirmation                                    1 lines
+   184  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   184  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   200  kubernetes   email RSS climbing                                               84.0 Mi
+   200  kubernetes   email restarted                                                  restarts=1 last=OOMKilled
+   200  logs         checkout WARN on confirmation                                    1 lines
+   200  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   200  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   216  kubernetes   email RSS climbing                                               99.0 Mi
+   216  kubernetes   email restarted                                                  restarts=1 last=OOMKilled
+   216  logs         checkout WARN on confirmation                                    1 lines
+   216  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   216  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   232  kubernetes   email RSS climbing                                               None Mi
+   232  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   232  logs         checkout WARN on confirmation                                    3 lines
+   232  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   232  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   248  kubernetes   email RSS climbing                                               47.0 Mi
+   248  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   248  logs         checkout WARN on confirmation                                    3 lines
+   248  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   248  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   265  kubernetes   email RSS climbing                                               59.0 Mi
+   265  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   265  logs         checkout WARN on confirmation                                    3 lines
+   265  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   265  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   281  kubernetes   email RSS climbing                                               62.0 Mi
+   281  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   281  logs         checkout WARN on confirmation                                    3 lines
+   281  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   281  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   297  kubernetes   email RSS climbing                                               62.0 Mi
+   297  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   297  logs         checkout WARN on confirmation                                    3 lines
+   297  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   297  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   313  kubernetes   email RSS climbing                                               68.0 Mi
+   313  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   313  logs         checkout WARN on confirmation                                    3 lines
+   313  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   313  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   329  kubernetes   email RSS climbing                                               68.0 Mi
+   329  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   329  logs         checkout WARN on confirmation                                    3 lines
+   329  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   329  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   346  kubernetes   email RSS climbing                                               76.0 Mi
+   346  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   346  logs         checkout WARN on confirmation                                    3 lines
+   346  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   346  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   362  kubernetes   email RSS climbing                                               76.0 Mi
+   362  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   362  logs         checkout WARN on confirmation                                    3 lines
+   362  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   362  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   378  kubernetes   email RSS climbing                                               93.0 Mi
+   378  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   378  logs         checkout WARN on confirmation                                    3 lines
+   378  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   378  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   394  kubernetes   email RSS climbing                                               95.0 Mi
+   394  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   394  logs         checkout WARN on confirmation                                    3 lines
+   394  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   394  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   410  kubernetes   email RSS climbing                                               82.0 Mi
+   410  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   410  logs         checkout WARN on confirmation                                    2 lines
+   410  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   410  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   427  kubernetes   email RSS climbing                                               82.0 Mi
+   427  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   427  logs         checkout WARN on confirmation                                    2 lines
+   427  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   427  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   443  kubernetes   email RSS climbing                                               90.0 Mi
+   443  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   443  logs         checkout WARN on confirmation                                    2 lines
+   443  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   443  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   459  kubernetes   email RSS climbing                                               None Mi
+   459  kubernetes   email restarted                                                  restarts=2 last=OOMKilled
+   459  logs         checkout WARN on confirmation                                    3 lines
+   459  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   459  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   475  kubernetes   email RSS climbing                                               None Mi
+   475  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   475  logs         checkout WARN on confirmation                                    4 lines
+   475  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   475  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   492  kubernetes   email RSS climbing                                               None Mi
+   492  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   492  logs         checkout WARN on confirmation                                    4 lines
+   492  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   492  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   508  kubernetes   email RSS climbing                                               58.0 Mi
+   508  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   508  logs         checkout WARN on confirmation                                    4 lines
+   508  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   508  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   524  kubernetes   email RSS climbing                                               60.0 Mi
+   524  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   524  logs         checkout WARN on confirmation                                    3 lines
+   524  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   524  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   540  kubernetes   email RSS climbing                                               61.0 Mi
+   540  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   540  logs         checkout WARN on confirmation                                    2 lines
+   540  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   540  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   556  kubernetes   email RSS climbing                                               67.0 Mi
+   556  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   556  logs         checkout WARN on confirmation                                    2 lines
+   556  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   556  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   573  kubernetes   email RSS climbing                                               75.0 Mi
+   573  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   573  logs         checkout WARN on confirmation                                    2 lines
+   573  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   573  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   589  kubernetes   email RSS climbing                                               90.0 Mi
+   589  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   589  logs         checkout WARN on confirmation                                    2 lines
+   589  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   589  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   605  kubernetes   email RSS climbing                                               90.0 Mi
+   605  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   605  logs         checkout WARN on confirmation                                    2 lines
+   605  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   605  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   621  kubernetes   email RSS climbing                                               90.0 Mi
+   621  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   621  logs         checkout WARN on confirmation                                    2 lines
+   621  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   621  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   637  kubernetes   email RSS climbing                                               94.0 Mi
+   637  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   637  logs         checkout WARN on confirmation                                    2 lines
+   637  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   637  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   654  kubernetes   email RSS climbing                                               87.0 Mi
+   654  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   654  logs         checkout WARN on confirmation                                    2 lines
+   654  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   654  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   670  kubernetes   email RSS climbing                                               96.0 Mi
+   670  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   670  logs         checkout WARN on confirmation                                    2 lines
+   670  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   670  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   686  kubernetes   email RSS climbing                                               96.0 Mi
+   686  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   686  logs         checkout WARN on confirmation                                    2 lines
+   686  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   686  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   702  kubernetes   email RSS climbing                                               96.0 Mi
+   702  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   702  logs         checkout WARN on confirmation                                    2 lines
+   702  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   702  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   719  kubernetes   email RSS climbing                                               98.0 Mi
+   719  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   719  logs         checkout WARN on confirmation                                    2 lines
+   719  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   719  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   735  kubernetes   email RSS climbing                                               82.0 Mi
+   735  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   735  logs         checkout WARN on confirmation                                    2 lines
+   735  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   735  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   751  kubernetes   email RSS climbing                                               90.0 Mi
+   751  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   751  logs         checkout WARN on confirmation                                    1 lines
+   751  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   751  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   767  kubernetes   email RSS climbing                                               89.0 Mi
+   767  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   767  logs         checkout WARN on confirmation                                    0 lines
+   767  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   767  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   783  kubernetes   email RSS climbing                                               98.0 Mi
+   783  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   783  logs         checkout WARN on confirmation                                    0 lines
+   783  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   783  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   800  kubernetes   email RSS climbing                                               98.0 Mi
+   800  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   800  logs         checkout WARN on confirmation                                    1 lines
+   800  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   800  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   816  kubernetes   email RSS climbing                                               None Mi
+   816  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   816  logs         checkout WARN on confirmation                                    2 lines
+   816  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   816  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   832  kubernetes   email RSS climbing                                               None Mi
+   832  kubernetes   email restarted                                                  restarts=3 last=OOMKilled
+   832  logs         checkout WARN on confirmation                                    2 lines
+   832  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   832  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   848  kubernetes   email RSS climbing                                               None Mi
+   848  kubernetes   email restarted                                                  restarts=4 last=OOMKilled
+   848  logs         checkout WARN on confirmation                                    3 lines
+   848  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   848  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   866  kubernetes   email RSS climbing                                               47.0 Mi
+   866  kubernetes   email restarted                                                  restarts=4 last=OOMKilled
+   866  logs         checkout WARN on confirmation                                    3 lines
+   866  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   866  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   882  kubernetes   email RSS climbing                                               47.0 Mi
+   882  kubernetes   email restarted                                                  restarts=4 last=OOMKilled
+   882  logs         checkout WARN on confirmation                                    3 lines
+   882  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   882  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+   898  kubernetes   email RSS climbing                                               58.0 Mi
+   898  kubernetes   email restarted                                                  restarts=4 last=OOMKilled
+   898  logs         checkout WARN on confirmation                                    3 lines
+   898  metrics      email error span-metric (the FLOAT GATE tell: a TypeError 500s i 0.0000/s
+   898  logs         email error log (Float gate raises, look for TypeError)          0 lines
+
+
+# first symptom per check:
+   t+54   s  kubernetes   email RSS climbing  (75.0 Mi)
+   t+119  s  kubernetes   email restarted  (restarts=1 last=OOMKilled)
+   t+119  s  logs         checkout WARN on confirmation  (1 lines)
+
+# NEVER FIRED within the window:
+   email error span-metric (the FLOAT GATE tell: a TypeError 500s instead of leaking)
+   email error log (Float gate raises, look for TypeError)
+
+# artifact: capture/symptom-emailMemoryLeak.json
+
+=== letting the [5m] rate windows fill before probing ===
+
+=== items 9 to 12 — ticket 10's queries, run against the live Fault ===
+========================================================================
+FAULT PROBE — emailMemoryLeak (on)
+utc: 2026-09-17T18:01:05Z   span metric: traces_span_metrics_calls_total
+========================================================================
+
+### alertable condition — container memory approaching limit
+
+  email working set, ticket 10's metric
+    max by (k8s_pod_name) (container_memory_working_set_bytes{k8s_container_name="email"})
+    -> email-b498b7dc6-xkgsn              64495616.00000
+
+  email working set, whatever the real metric family is
+    max by (k8s_pod_name) ({__name__=~"k8s_container_memory.*|container_memory.*",k8s_container_name="email"})
+    -> email-b498b7dc6-xkgsn              104857600.00000
+
+### alertable condition — restart count (a GAUGE, per ticket 10)
+
+  k8s_container_restarts on email
+    max by (k8s_pod_name) (k8s_container_restarts{k8s_container_name="email"})
+    -> email-b498b7dc6-xkgsn              5.00000
+
+  any restart-shaped metric on email
+    max by (__name__, k8s_pod_name) ({__name__=~".*restart.*",k8s_container_name="email"})
+    -> email-b498b7dc6-xkgsn              5.00000
+
+### alertable condition — the caller's WARN
+
+  checkout's confirmation WARN
+    {service_name="checkout"} |= "failed to send order confirmation"
+    -> 5 line(s)
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       stream labels: {"detected_level": "WARN", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_deployment_name": "checkout", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "checkout-6554854cd6-pvh4p", "k8s_pod_start_time": "2026-09-17T17:38:11Z", "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2", "k8s_replicaset_name": "checkout-6554854cd6", "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8", "observed_timestamp": "1789667999079578488", "os_type": "linux", "scope_name": "checkout", "service_criticality": "critical", "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2", "service_name": "checkout", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_number": "13", "severity_text": "WARN", "telemetry_sdk_language": "go", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.44.0"}
+
+  checkout logs mentioning email
+    {service_name="checkout"} |~ "(?i)email|confirmation"
+    -> 5 line(s)
+       order confirmation email sent
+       order confirmation email sent
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       stream labels: {"detected_level": "INFO", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_deployment_name": "checkout", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "checkout-6554854cd6-pvh4p", "k8s_pod_start_time": "2026-09-17T17:38:11Z", "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2", "k8s_replicaset_name": "checkout-6554854cd6", "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8", "observed_timestamp": "1789668049855988829", "os_type": "linux", "scope_name": "checkout", "service_criticality": "critical", "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2", "service_name": "checkout", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_number": "9", "severity_text": "INFO", "telemetry_sdk_language": "go", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.44.0"}
+
+  email's own logs
+    {service_name="email"}
+    -> 6 line(s)
+       Order confirmation email sent
+       Order confirmation email sent
+       Order confirmation email sent
+       Order confirmation email sent
+       Order confirmation email sent
+       Order confirmation email sent
+       stream labels: {"container_image_name": "ghcr.io/open-telemetry/demo", "container_image_tag": "3.0.0-email", "demo_order_id": "b7390ce7-b2c1-11f1-83b5-da3f417b9664", "detected_level": "INFO", "flags": "1", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_container_name": "email", "k8s_deployment_name": "email", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "email-b498b7dc6-xkgsn", "k8s_pod_start_time": "2026-09-17T17:11:11Z", "k8s_pod_uid": "6f684e8a-74c2-458c-86fe-41d4626cb4f5", "k8s_replicaset_name": "email-b498b7dc6", "k8s_replicaset_uid": "d35f4ba4-98b9-47b9-9153-29c4e00f4dc3", "observed_timestamp": "1789668049855060301", "os_type": "linux", "process_command": "email_server.rb", "process_pid": "1", "process_runtime_description": "ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [x86_64-linux-musl]", "process_runtime_name": "ruby", "process_runtime_version": "4.0.5", "scope_name": "email", "service_criticality": "medium", "service_instance_id": "otel-demo.email-b498b7dc6-xkgsn.email", "service_name": "email", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_text": "INFO", "span_id": "cb189d437a26375c", "telemetry_sdk_language": "ruby", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.12.1", "trace_id": "6d60344d64b1f301db23cf19837ed0b6"}
+
+  email logs carrying an error or a Ruby TypeError (THE FLOAT GATE)
+    {service_name="email"} |~ "(?i)error|typeerror|exception|no implicit conversion"
+    -> 0 line(s)   EMPTY
+
+### item 9 — the restart evidence a read-only Run can retrieve
+
+  Kubernetes-side evidence for email
+    email-b498b7dc6-xkgsn/email restarts=5 ready=True lastState.terminated={"containerID": "containerd://29c5186a5fd858fbd217b01a21855ab7e5356b755e4a5094b672fade5985443b", "exitCode": 137, "finishedAt": "2026-09-17T17:58:53Z", "reason": "OOMKilled", "startedAt": "2026-09-17T17:54:59Z"}
+    9 Kubernetes Event(s) naming email*:
+      Normal     Scheduled              Successfully assigned otel-demo/email-b498b7dc6-xkgsn to pool-3y39ax
+      Normal     ScalingReplicaSet      Scaled up replica set email-b498b7dc6 from 0 to 1
+      Normal     SuccessfulCreate       Created pod: email-b498b7dc6-xkgsn
+      Normal     Pulling                Pulling image "ghcr.io/open-telemetry/demo:3.0.0-email"
+      Normal     Pulled                 Successfully pulled image "ghcr.io/open-telemetry/demo:3.0.0-email" in 18.772s (18.772s including waiting). Im
+      Warning    BackOff                Back-off restarting failed container email in pod email-b498b7dc6-xkgsn_otel-demo(6f684e8a-74c2-458c-86fe-41d4
+      Normal     Created                Container created
+      Normal     Started                Container started
+      Normal     Pulled                 Container image "ghcr.io/open-telemetry/demo:3.0.0-email" already present on machine and can be accessed by th
+
+  Kubernetes Events in Loki naming the email pod (ticket 26's only selector)
+    {service_name="unknown_service"} |= "email-"
+    -> 8 line(s)
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":6,"deprecatedFirstTimestamp":"2026-09-17T17:11:37Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":6,"deprecatedFirstTimestamp":"2026-09-17T17:11:36Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:42:36Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:44:30Z","deprecatedLastTimestamp":"2026-09-17T18:00:02Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":4,"deprecatedFirstTimestamp":"2026-09-17T17:44:30Z","deprecatedLastTimestamp":"2026-09-17T17:58:54Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:11:37Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:11:36Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":4,"deprecatedFirstTimestamp":"2026-09-17T17:42:36Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       stream labels: {"detected_level": "unknown", "event_domain": "k8s", "event_name": "email-b498b7dc6-xkgsn.18d62aec774b3476", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_namespace_name": "otel-demo", "k8s_resource_name": "events", "os_type": "linux", "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver", "scope_version": "0.156.0", "service_name": "unknown_service", "service_namespace": "otel-demo"}
+
+  Kubernetes Events in Loki, ticket 27's proposed selector
+    {service_name="unknown_service", service_namespace="otel-demo"} |= "email-"
+    -> 8 line(s)
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":6,"deprecatedFirstTimestamp":"2026-09-17T17:11:37Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":6,"deprecatedFirstTimestamp":"2026-09-17T17:11:36Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:42:36Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:44:30Z","deprecatedLastTimestamp":"2026-09-17T18:00:02Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":4,"deprecatedFirstTimestamp":"2026-09-17T17:44:30Z","deprecatedLastTimestamp":"2026-09-17T17:58:54Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:11:37Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:11:36Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":4,"deprecatedFirstTimestamp":"2026-09-17T17:42:36Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       stream labels: {"detected_level": "unknown", "event_domain": "k8s", "event_name": "email-b498b7dc6-xkgsn.18d62aec774b3476", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_namespace_name": "otel-demo", "k8s_resource_name": "events", "os_type": "linux", "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver", "scope_version": "0.156.0", "service_name": "unknown_service", "service_namespace": "otel-demo"}
+
+### traces
+
+  email spans
+    {resource.service.name="email"}
+    -> HTTP 200  20 trace(s)  396 ms
+
+  email errored spans
+    {resource.service.name="email" && status=error}
+    -> HTTP 200  0 trace(s)  351 ms
+
+# artifact: capture/faultprobe-emailMemoryLeak-on.json
+
+=== waiting out the rest of the window ===
+
+=== end-of-window state ===
+========================================================================
+FAULT PROBE — emailMemoryLeak (end)
+utc: 2026-09-17T18:01:09Z   span metric: traces_span_metrics_calls_total
+========================================================================
+
+### alertable condition — container memory approaching limit
+
+  email working set, ticket 10's metric
+    max by (k8s_pod_name) (container_memory_working_set_bytes{k8s_container_name="email"})
+    -> email-b498b7dc6-xkgsn              64495616.00000
+
+  email working set, whatever the real metric family is
+    max by (k8s_pod_name) ({__name__=~"k8s_container_memory.*|container_memory.*",k8s_container_name="email"})
+    -> email-b498b7dc6-xkgsn              104857600.00000
+
+### alertable condition — restart count (a GAUGE, per ticket 10)
+
+  k8s_container_restarts on email
+    max by (k8s_pod_name) (k8s_container_restarts{k8s_container_name="email"})
+    -> email-b498b7dc6-xkgsn              5.00000
+
+  any restart-shaped metric on email
+    max by (__name__, k8s_pod_name) ({__name__=~".*restart.*",k8s_container_name="email"})
+    -> email-b498b7dc6-xkgsn              5.00000
+
+### alertable condition — the caller's WARN
+
+  checkout's confirmation WARN
+    {service_name="checkout"} |= "failed to send order confirmation"
+    -> 5 line(s)
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       stream labels: {"detected_level": "WARN", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_deployment_name": "checkout", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "checkout-6554854cd6-pvh4p", "k8s_pod_start_time": "2026-09-17T17:38:11Z", "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2", "k8s_replicaset_name": "checkout-6554854cd6", "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8", "observed_timestamp": "1789667999079578488", "os_type": "linux", "scope_name": "checkout", "service_criticality": "critical", "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2", "service_name": "checkout", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_number": "13", "severity_text": "WARN", "telemetry_sdk_language": "go", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.44.0"}
+
+  checkout logs mentioning email
+    {service_name="checkout"} |~ "(?i)email|confirmation"
+    -> 5 line(s)
+       order confirmation email sent
+       order confirmation email sent
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": dial tcp 10.108.62.150:8080: connect: connection refused
+       stream labels: {"detected_level": "INFO", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_deployment_name": "checkout", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "checkout-6554854cd6-pvh4p", "k8s_pod_start_time": "2026-09-17T17:38:11Z", "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2", "k8s_replicaset_name": "checkout-6554854cd6", "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8", "observed_timestamp": "1789668049855988829", "os_type": "linux", "scope_name": "checkout", "service_criticality": "critical", "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2", "service_name": "checkout", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_number": "9", "severity_text": "INFO", "telemetry_sdk_language": "go", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.44.0"}
+
+  email's own logs
+    {service_name="email"}
+    -> 6 line(s)
+       Order confirmation email sent
+       Order confirmation email sent
+       Order confirmation email sent
+       Order confirmation email sent
+       Order confirmation email sent
+       Order confirmation email sent
+       stream labels: {"container_image_name": "ghcr.io/open-telemetry/demo", "container_image_tag": "3.0.0-email", "demo_order_id": "b7390ce7-b2c1-11f1-83b5-da3f417b9664", "detected_level": "INFO", "flags": "1", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_container_name": "email", "k8s_deployment_name": "email", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "email-b498b7dc6-xkgsn", "k8s_pod_start_time": "2026-09-17T17:11:11Z", "k8s_pod_uid": "6f684e8a-74c2-458c-86fe-41d4626cb4f5", "k8s_replicaset_name": "email-b498b7dc6", "k8s_replicaset_uid": "d35f4ba4-98b9-47b9-9153-29c4e00f4dc3", "observed_timestamp": "1789668049855060301", "os_type": "linux", "process_command": "email_server.rb", "process_pid": "1", "process_runtime_description": "ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [x86_64-linux-musl]", "process_runtime_name": "ruby", "process_runtime_version": "4.0.5", "scope_name": "email", "service_criticality": "medium", "service_instance_id": "otel-demo.email-b498b7dc6-xkgsn.email", "service_name": "email", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_text": "INFO", "span_id": "cb189d437a26375c", "telemetry_sdk_language": "ruby", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.12.1", "trace_id": "6d60344d64b1f301db23cf19837ed0b6"}
+
+  email logs carrying an error or a Ruby TypeError (THE FLOAT GATE)
+    {service_name="email"} |~ "(?i)error|typeerror|exception|no implicit conversion"
+    -> 0 line(s)   EMPTY
+
+### item 9 — the restart evidence a read-only Run can retrieve
+
+  Kubernetes-side evidence for email
+    email-b498b7dc6-xkgsn/email restarts=5 ready=True lastState.terminated={"containerID": "containerd://29c5186a5fd858fbd217b01a21855ab7e5356b755e4a5094b672fade5985443b", "exitCode": 137, "finishedAt": "2026-09-17T17:58:53Z", "reason": "OOMKilled", "startedAt": "2026-09-17T17:54:59Z"}
+    9 Kubernetes Event(s) naming email*:
+      Normal     Scheduled              Successfully assigned otel-demo/email-b498b7dc6-xkgsn to pool-3y39ax
+      Normal     ScalingReplicaSet      Scaled up replica set email-b498b7dc6 from 0 to 1
+      Normal     SuccessfulCreate       Created pod: email-b498b7dc6-xkgsn
+      Normal     Pulling                Pulling image "ghcr.io/open-telemetry/demo:3.0.0-email"
+      Normal     Pulled                 Successfully pulled image "ghcr.io/open-telemetry/demo:3.0.0-email" in 18.772s (18.772s including waiting). Im
+      Warning    BackOff                Back-off restarting failed container email in pod email-b498b7dc6-xkgsn_otel-demo(6f684e8a-74c2-458c-86fe-41d4
+      Normal     Created                Container created
+      Normal     Started                Container started
+      Normal     Pulled                 Container image "ghcr.io/open-telemetry/demo:3.0.0-email" already present on machine and can be accessed by th
+
+  Kubernetes Events in Loki naming the email pod (ticket 26's only selector)
+    {service_name="unknown_service"} |= "email-"
+    -> 8 line(s)
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":6,"deprecatedFirstTimestamp":"2026-09-17T17:11:37Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":6,"deprecatedFirstTimestamp":"2026-09-17T17:11:36Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:42:36Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:44:30Z","deprecatedLastTimestamp":"2026-09-17T18:00:02Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":4,"deprecatedFirstTimestamp":"2026-09-17T17:44:30Z","deprecatedLastTimestamp":"2026-09-17T17:58:54Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:11:37Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:11:36Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":4,"deprecatedFirstTimestamp":"2026-09-17T17:42:36Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       stream labels: {"detected_level": "unknown", "event_domain": "k8s", "event_name": "email-b498b7dc6-xkgsn.18d62aec774b3476", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_namespace_name": "otel-demo", "k8s_resource_name": "events", "os_type": "linux", "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver", "scope_version": "0.156.0", "service_name": "unknown_service", "service_namespace": "otel-demo"}
+
+  Kubernetes Events in Loki, ticket 27's proposed selector
+    {service_name="unknown_service", service_namespace="otel-demo"} |= "email-"
+    -> 8 line(s)
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":6,"deprecatedFirstTimestamp":"2026-09-17T17:11:37Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":6,"deprecatedFirstTimestamp":"2026-09-17T17:11:36Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:42:36Z","deprecatedLastTimestamp":"2026-09-17T18:00:16Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:44:30Z","deprecatedLastTimestamp":"2026-09-17T18:00:02Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":4,"deprecatedFirstTimestamp":"2026-09-17T17:44:30Z","deprecatedLastTimestamp":"2026-09-17T17:58:54Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:11:37Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":5,"deprecatedFirstTimestamp":"2026-09-17T17:11:36Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       {"object":{"apiVersion":"events.k8s.io/v1","deprecatedCount":4,"deprecatedFirstTimestamp":"2026-09-17T17:42:36Z","deprecatedLastTimestamp":"2026-09-17T17:54:59Z","deprecatedSource":{"component":"kubelet","host":"pool-3y39ax"},"eventTime":null,"kind":"Event","metadata":{"creationTimestamp":"2026-09-1
+       stream labels: {"detected_level": "unknown", "event_domain": "k8s", "event_name": "email-b498b7dc6-xkgsn.18d62aec774b3476", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_namespace_name": "otel-demo", "k8s_resource_name": "events", "os_type": "linux", "scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver", "scope_version": "0.156.0", "service_name": "unknown_service", "service_namespace": "otel-demo"}
+
+### traces
+
+  email spans
+    {resource.service.name="email"}
+    -> HTTP 200  20 trace(s)  398 ms
+
+  email errored spans
+    {resource.service.name="email" && status=error}
+    -> HTTP 200  0 trace(s)  338 ms
+
+# artifact: capture/faultprobe-emailMemoryLeak-end.json
+window log: capture/window-emailMemoryLeak-1000x.log

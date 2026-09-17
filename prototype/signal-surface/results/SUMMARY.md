@@ -339,3 +339,261 @@ the 18-of-20-Mi framing implies.**
 | **injection → flagd ready** | **5 s** | 20–45 s |
 | **injection → first errored trace in Tempo** | **39 s** | ~90 s |
 | injection → error series present at `[5m]` | ~2–5 min | 3–5 min ✓ |
+
+---
+
+## Fault 2 — `emailMemoryLeak` at `1000x` (REHEARSAL). Measured 17:41–18:04 UTC.
+
+`capture/13-oomkill-evidence.json`, `capture/14-email-signal-classes.log`,
+`capture/podwatch-emailMemoryLeak-window.jsonl`, `capture/symptom-emailMemoryLeak.json`.
+
+### Item 8 — THE FLOAT GATE DOES NOT FIRE. The Fault survives.
+
+The flag JSON holds integers (`{"1000x": 1000, "100x": 100, …}`), flagd serves
+them, and **the Ruby service leaks as designed**. No `TypeError`, no 500s: email
+logged **zero** lines matching `error|exception|memory` across the window.
+
+**The Kubernetes signal class is NOT refuted a fourth time.** `emailMemoryLeak`
+stays the Fault that carries it.
+
+### Item 7 — the leak rate, and the baseline nobody had measured
+
+**Baseline RSS 51.7 Mi against a 100 Mi limit** — so the climb crosses 48.3 Mi,
+not 100.
+
+Cycle, from `podwatch`:
+
+    t+0    52 Mi
+    t+41   59 Mi
+    t+62   75 Mi
+    t+103  OOMKilled, restart #1      (finishedAt 17:42:35Z)
+    t+124  47 Mi   (fresh process)
+    t+165  75 Mi
+    t+186  84 Mi
+
+**Five OOMKills in a 1181-second window**, peak working set 98 Mi against the
+100 Mi limit:
+
+| kill | t+ | finishedAt | period since previous |
+|---|---|---|---|
+| #1 | 103 s | 17:42:35Z | — |
+| #2 | 227 s | 17:44:29Z | 124 s |
+| #3 | 476 s | 17:48:18Z | 249 s |
+| #4 | 849 s | 17:54:10Z | 373 s |
+| #5 | 1160 s | 17:58:53Z | 311 s |
+
+**Cycle period 124–373 s, mean 264 s (~4.4 min) — inside ticket 10's budgeted
+3–9 minutes. The budget is CONFIRMED.** A thirty-minute slot sees roughly **7
+cycles**.
+
+The *first* cycle is the outlier at 103 s; reading the rate off it alone would
+have said "~100 s, 2–5× faster than budget", which the next four kills refute.
+Cycles also lengthen as the window goes on (124 → 373 s), so the period is a
+range, not a constant.
+
+**Threshold consequence**: 70 Mi is crossed at roughly **t+40 s** of each cycle,
+leaving **~60 s** before the kill. Ticket 10 moved off `90%`/`for:1m` because
+90→100 MiB takes 56 s. `>70Mi` with `for: 1m` is *also* marginal here — it fires
+approximately when the container dies.
+
+### Item 9 — the restart evidence, answered in full
+
+| evidence | available? | detail |
+|---|---|---|
+| `lastState.terminated.reason` via `kubectl` | **YES** | `OOMKilled`, `exitCode: 137`, with `startedAt`/`finishedAt` |
+| an `OOMKilled` **Kubernetes Event** | **NO** | 8 Events name the pod, all `Normal`, none mention OOM |
+| restart-lifecycle Events in Loki | **YES** | `Created`/`Started` arrive with `count=2` |
+| `k8s_container_restarts` metric | **YES** | reads `1.0`; `changes(…[10m])` reads `1.0` |
+| the caller's WARN | **YES** | see below |
+
+**Ticket 10's central correction is confirmed at this venue**: OOMKill emits no
+Kubernetes Event, and pod status via read-only `kubectl` is the strongest citable
+evidence. Both Loki selectors work —
+`{service_name="unknown_service", service_namespace="otel-demo"} |= "email-"`
+and the bare form.
+
+The caller's WARN, retrieved:
+
+> `failed to send order confirmation: failed POST to email service:`
+> `Post "http://email:8080/send_order_confirmation": EOF`
+
+**The `EOF` is the kill landing mid-request** — the Ground truth's claim, in one
+log line a Run can cite.
+
+**New**: the pod reports **`ready: True` with `restartCount: 1`**. There is no
+readiness or liveness probe on the container, so a readiness-based rule never fires.
+
+### The signal table, verified — and Fault 2 raises almost no Cascade
+
+| class | ticket 10 | measured |
+|---|---|---|
+| Kubernetes | ⚠️ pod status, not Events | **confirmed exactly** |
+| logs | ⚠️ caller-only | **confirmed** — email logs only `Order confirmation email sent`, 0 error lines |
+| traces | ⚠️ thin | **weaker than that** — `{resource.service.name="email" && status=error}` → **0 traces** |
+| metrics | ⚠️ | **email error span-metric is an EMPTY SERIES** |
+
+Blast radius under this Fault: checkout 0.0078/s, everything else ≤0.0042/s —
+noise level. checkout's SERVER error ratio is **0.0000**, because the order
+completes anyway.
+
+**This confirms the Ground truth** ("no customer ever sees an error and no order
+is lost") **and means Fault 2 cannot produce a six-to-nine Alert Cascade.** It has
+two alertable conditions — container memory and restart count — instantiating on
+**one** service, plus the caller's WARN. Roughly **2–3 Alerts**. That is fine for
+a rehearsal Fault, but ticket 28 should not size its rules expecting breadth here.
+
+### Timing
+
+| step | measured | ticket 10 budgeted |
+|---|---|---|
+| injection → flagd ready | **4 s** | — |
+| injection → email RSS above baseline+20 Mi | **54 s** | — |
+| **injection → first OOMKill** | **119 s** | 3–9 min (this is the *first* cycle) |
+| steady-state OOM cycle period | **124–373 s, mean 264 s** | 3–9 min ✓ |
+| injection → caller's WARN in Loki | **119 s** | — |
+
+---
+
+## Fault 3 — `cartFailure` at `100%` (REHEARSAL). Measured 18:02–18:17 UTC.
+
+`capture/faultprobe-cartFailure-*.json`, `capture/15-cart-log-templates.log`,
+`capture/window-cartFailure-100%.log`. Run at **`100%`** — the worst case, so the
+connect-duration question gets its maximum signal and the ratio its upper bound.
+
+### Item 11 — THE DECISIVE NUMBER. The Fault is silent, not destabilising.
+
+Ticket 10: "The upper bound is exactly **150.5 s** (`ConnectTimeout 5000 ×
+ConnectRetry 30`) with a lock around a *synchronous* `Connect()`, so concurrent
+failures serialise. This single number decides whether this is a silent
+two-service Fault or a demo-destabilising stall."
+
+Measured, with every empty-cart call on the bad path:
+
+| | measured | theoretical ceiling |
+|---|---|---|
+| cart p95 HTTP server duration | **0.0625 s** | 150.5 s |
+| cart p99 HTTP server duration | **5.58 s** | 150.5 s |
+| cart p95 span duration | 7.39 ms | — |
+| checkout p95 span duration | 305 ms | — |
+
+**The 150.5 s ceiling does not materialise — the bad path costs ~5.6 s at p99,
+about 27× under the bound.** Almost certainly the same mechanism Fault 1 showed:
+the hostname does not resolve, so the connection fails at DNS rather than
+exhausting 30 × 5 s of connect timeouts.
+
+**Fault 3 is a silent Fault. The demo-destabilising risk is refuted, and cart and
+checkout both stay healthy** (cart `restarts=0`, `ready=True`, 0 Kubernetes Events).
+
+### Item 12 — the metric shape, and ticket 10's ratio warning confirmed exactly
+
+- **`http_route` IS a label** on `http_server_request_duration_seconds_count` for
+  cart — 3 routes: `EmptyCart` 0.046/s, `GetCart` 0.667/s, `AddItem` 0.213/s.
+  (It is **not** a span-metrics dimension — see item 6.)
+- **cart SERVER-only error ratio: 0.05337.** Ticket 10 predicted "~5.2%
+  straddles a 0.05 threshold". Measured **5.34% at the `100%` variant** — above
+  0.05 by **0.34 percentage points**, at the Fault's maximum strength.
+  **Any lower variant sits decisively below 0.05.** The ratio rule is unusable;
+  ticket 10's call to use an absolute rate instead is confirmed.
+- all-span-kind ratio: 0.0207 — the same denominator inflation as everywhere.
+- **cart absolute error rate: 0.0496/s against a measured baseline of 0.0000/s.**
+  A clean, unambiguous rule.
+
+### Logs — the alertable condition works, the diagnostic path does not
+
+`{service_name="cart"} |= "Wasn't able to connect to redis"` → **6 lines.
+Confirmed.** `{service_name="cart", service_namespace="otel-demo"}` → **0 lines**,
+confirming the trap. `EmptyCartAsync called with` → 4 lines, so the ratio
+denominator exists in Loki as ticket 10 said.
+
+**New trap, and it is sharp: the .NET log body is the message TEMPLATE, and the
+values live in structured metadata.** The body arrives literally as:
+
+    Error status code '{StatusCode}' with detail '{Detail}' raised.
+    EmptyCartAsync called with userId={userId}
+
+The rendered values are structured metadata fields (`StatusCode`, `Detail`,
+`userId`). Consequences, measured:
+
+| query | lines |
+|---|---|
+| `{service_name="cart"} \|= "EnsureRedisConnected"` | **0** |
+| `{service_name="cart"} \|= "ApplicationException"` | **0** |
+| `{service_name="cart"} \| Detail =~ ".*EnsureRedisConnected.*"` | **5** |
+| `{service_name="cart"} \| StatusCode = "FailedPrecondition"` | **5** |
+| `{service_name="cart"} \|= "badhost"` | **0** |
+
+**Ticket 10's diagnostic path expects the `ValkeyCartStore.EnsureRedisConnected`
+frame and the `System.ApplicationException` text. Neither is reachable by a LogQL
+line filter** — both live in the `Detail` structured-metadata field and need
+`| Detail =~ "…"`. The full frame *is* there, with file and line numbers:
+
+> `Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis`
+> `   at cart.cartstore.ValkeyCartStore.EnsureRedisConnected() in /usr/src/app/src/cartstore/ValkeyCartStore.cs:line 98`
+> `   at cart.cartstore.ValkeyCartStore.EmptyCartAsync(String userId) in …:line 182`
+
+**`badhost` appears in no log line at all** — the bad hostname, the actual cause,
+is not in the logs. It is only in the flag config and the `feature_flag.evaluation`
+span event.
+
+Also worth noting for Eyes: these error lines carry `severity_text: "Information"`,
+not Error — `detected_level` is `Information` too. **A severity-based log rule
+would miss this Fault entirely.**
+
+---
+
+## The recovery edge — a direct answer to ticket 28's resolution question
+
+`capture/16-recovery-edge.log`. Measured after `cartFailure` was undone
+(flip off → flagd rollout → `rollout restart deploy/cart`), sampled every minute:
+
+| after undo | cart error rate, bare | with `or vector(0)` | SERVER ratio | redis log lines |
+|---|---|---|---|---|
+| +1 min | 0.03750 | 0.03750 | 0.03194 | 0 |
+| +2 min | 0.02500 | 0.02500 | 0.01945 | 0 |
+| +3 min | 0.00833 | 0.00833 | 0.00451 | 0 |
+| +4 min | **0.00000** | **0.00000** | **0.00000** | 0 |
+| +5 min | 0.00000 | 0.00000 | 0.00000 | 0 |
+| +6 min | 0.00000 | 0.00000 | 0.00000 | 0 |
+
+Ticket 28 asks: "does a rule that goes NoData on recovery ever send a Resolved at
+all?" **It does not go NoData on recovery.** The bare query and the
+`or vector(0)` query return the *same* value at every step, which means the
+series still **exists** and reads a genuine **0** — Prometheus keeps the counter
+once it has been created, so `rate()` over an unchanging counter is 0, not empty.
+
+The asymmetry that matters:
+
+- **before injection** — the error series has never existed → **NoData**
+- **during** — series present, > 0 → **Alerting**
+- **after recovery** — series present, = 0 → **Normal**, so **Resolved does fire**
+
+**Recovery takes ~4 minutes**, which is the `[5m]` window draining, not the
+system healing — the log condition stopped inside the first minute.
+
+---
+
+## Cost and disposal
+
+Cluster `maoi-signal` created **17:05:36Z**, destroyed **18:26:47Z** — **81 min**,
+**1.353 h × $0.142860 = $0.19**. `--ha=false`, `--size s-8vcpu-16gb`, `--count 1`,
+as the runbook rule requires.
+
+Post-delete sweep: **no clusters, no load balancers.** One 100 GiB volume is
+listed, `8bbfce67-4b5f-11ea-…`, attached to droplet `154910143` — its UUID
+timestamp is 2020 and it predates this account's work on this effort. **It is not
+ours and was not created by this run.**
+
+---
+
+## What this prototype did NOT measure
+
+- **First Alert and last Alert.** No Grafana Alert rules existed, by design —
+  those thresholds are [Alert rules for a Cascade](../../.scratch/many-alerts-one-incident/issues/28-alert-rules-for-a-cascade.md)'s
+  to pick from the baselines above. Injection → flagd ready → first symptom is
+  measured; the rest is not.
+- **`cartFailure` at variants below `100%`.** Only the worst case was run. The
+  ratio finding is an upper bound, which is the direction that matters.
+- **`paymentUnreachable` beyond 12 minutes.** checkout did not OOM in that window;
+  ticket 10's "keep it under ~15 minutes" is neither confirmed nor refuted.
+- **Whether LGTM's memory climb is a leak or cache warm-up.** Still open, still
+  costs cluster time.

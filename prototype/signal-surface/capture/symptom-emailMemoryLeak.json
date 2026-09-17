@@ -1,0 +1,30 @@
+{
+  "fault": "emailMemoryLeak",
+  "t0_epoch": 1789666851,
+  "t0_utc": "2026-09-17T17:40:51Z",
+  "watched_seconds": 914,
+  "first_symptoms": {
+    "email RSS climbing": {
+      "t_plus_seconds": 54,
+      "detail": "75.0 Mi",
+      "signal_class": "kubernetes",
+      "utc": "2026-09-17T17:41:45Z"
+    },
+    "email restarted": {
+      "t_plus_seconds": 119,
+      "detail": "restarts=1 last=OOMKilled",
+      "signal_class": "kubernetes",
+      "utc": "2026-09-17T17:42:51Z"
+    },
+    "checkout WARN on confirmation": {
+      "t_plus_seconds": 119,
+      "detail": "1 lines",
+      "signal_class": "logs",
+      "utc": "2026-09-17T17:42:51Z"
+    }
+  },
+  "never_fired": [
+    "email error span-metric (the FLOAT GATE tell: a TypeError 500s instead of leaking)",
+    "email error log (Float gate raises, look for TypeError)"
+  ]
+}

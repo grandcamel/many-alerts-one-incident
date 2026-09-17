@@ -1,0 +1,1516 @@
+{
+  "prom": {
+    "checkout error ratio, ticket 10 verbatim (no span_kind)": {
+      "query": "sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\"}[5m]))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 0.11652989509719887
+        }
+      ]
+    },
+    "checkout error ratio, SERVER spans only (the span_kind fix)": {
+      "query": "sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\",span_kind=\"SPAN_KIND_SERVER\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\",span_kind=\"SPAN_KIND_SERVER\"}[5m]))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 0.6665843722997161
+        }
+      ]
+    },
+    "error ratio by service, the instantiation that makes the Cascade": {
+      "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum by (service_name) (rate(traces_span_metrics_calls_total[5m]))",
+      "series": 10,
+      "values": [
+        {
+          "labels": {
+            "service_name": "frontend"
+          },
+          "value": 0.01085615593387614
+        },
+        {
+          "labels": {
+            "service_name": "cart"
+          },
+          "value": 0.0014265335235378032
+        },
+        {
+          "labels": {
+            "service_name": "frontend-proxy"
+          },
+          "value": 0.0052757793764988
+        },
+        {
+          "labels": {
+            "service_name": "accounting"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "checkout"
+          },
+          "value": 0.11629145014921485
+        },
+        {
+          "labels": {
+            "service_name": "fraud-detection"
+          },
+          "value": 0.07692307692307691
+        },
+        {
+          "labels": {
+            "service_name": "recommendation"
+          },
+          "value": 0.0029673590504451035
+        },
+        {
+          "labels": {
+            "service_name": "ad"
+          },
+          "value": 0.006666666666666666
+        },
+        {
+          "labels": {
+            "service_name": "payment"
+          },
+          "value": 0.07692307692307691
+        },
+        {
+          "labels": {
+            "service_name": "flagd"
+          },
+          "value": 0.0
+        }
+      ]
+    },
+    "payment traffic (ticket 10 says EXACTLY zero)": {
+      "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{service_name=~\"payment|email|accounting|fraud-detection|shipping\"}[5m]))",
+      "series": 5,
+      "values": [
+        {
+          "labels": {
+            "service_name": "shipping"
+          },
+          "value": 0.30416666666666664
+        },
+        {
+          "labels": {
+            "service_name": "fraud-detection"
+          },
+          "value": 0.05416666666666667
+        },
+        {
+          "labels": {
+            "service_name": "payment"
+          },
+          "value": 0.05416666666666667
+        },
+        {
+          "labels": {
+            "service_name": "email"
+          },
+          "value": 0.06666666666666667
+        },
+        {
+          "labels": {
+            "service_name": "accounting"
+          },
+          "value": 0.05416666666666667
+        }
+      ]
+    },
+    "every service's call rate, to see the blast radius": {
+      "query": "sum by (service_name) (rate(traces_span_metrics_calls_total[5m]))",
+      "series": 18,
+      "values": [
+        {
+          "labels": {
+            "service_name": "frontend"
+          },
+          "value": 16.8875
+        },
+        {
+          "labels": {
+            "service_name": "checkout"
+          },
+          "value": 0.6463455555555555
+        },
+        {
+          "labels": {
+            "service_name": "shipping"
+          },
+          "value": 0.30416666666666664
+        },
+        {
+          "labels": {
+            "service_name": "recommendation"
+          },
+          "value": 1.4041666666666668
+        },
+        {
+          "labels": {
+            "service_name": "frontend-web"
+          },
+          "value": 6.525
+        },
+        {
+          "labels": {
+            "service_name": "cart"
+          },
+          "value": 2.9208333333333334
+        },
+        {
+          "labels": {
+            "service_name": "flagd"
+          },
+          "value": 11.383627222222222
+        },
+        {
+          "labels": {
+            "service_name": "frontend-proxy"
+          },
+          "value": 17.375
+        },
+        {
+          "labels": {
+            "service_name": "load-generator"
+          },
+          "value": 2.2875
+        },
+        {
+          "labels": {
+            "service_name": "quote"
+          },
+          "value": 0.425
+        },
+        {
+          "labels": {
+            "service_name": "fraud-detection"
+          },
+          "value": 0.05416666666666667
+        },
+        {
+          "labels": {
+            "service_name": "payment"
+          },
+          "value": 0.05416666666666667
+        },
+        {
+          "labels": {
+            "service_name": "email"
+          },
+          "value": 0.06666666666666667
+        },
+        {
+          "labels": {
+            "service_name": "product-catalog"
+          },
+          "value": 6.691666666666666
+        },
+        {
+          "labels": {
+            "service_name": "image-provider"
+          },
+          "value": 2.0708333333333333
+        },
+        {
+          "labels": {
+            "service_name": "accounting"
+          },
+          "value": 0.05416666666666667
+        },
+        {
+          "labels": {
+            "service_name": "ad"
+          },
+          "value": 0.625
+        },
+        {
+          "labels": {
+            "service_name": "currency"
+          },
+          "value": 0.5041666666666667
+        }
+      ]
+    }
+  },
+  "tempo": {
+    "checkout Charge spans, errored": {
+      "query": "{resource.service.name=\"checkout\" && span.rpc.method=\"oteldemo.PaymentService/Charge\" && status=error}",
+      "code": 200,
+      "traces": 20,
+      "ms": 311,
+      "first_trace_events": [
+        {
+          "span": "executing api route (pages) /api/checkout",
+          "name": "exception",
+          "attrs": {
+            "exception.type": "13",
+            "exception.message": "13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses",
+            "exception.stacktrace": "Error: 13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses\n    at callErrorFromStatus (/app/node_modules/@grpc/grpc-js/build/src/call.js:32:19)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client.js:193:76)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:367:141)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)\n    at /app/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)\nfor call at\n    at ServiceClientImpl.makeUnaryRequest (/app/node_modules/@grpc/grpc-js/build/src/client.js:161:32)\n    at ServiceClientImpl.<anonymous> (/app/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)\n    at /app/node_modules/@opentelemetry/instrumentation-grpc/build/src/clientUtils.js:119:31\n    at /app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:204:209\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)\n    at AsyncLocalStorageContextManager.with (/app/node_modules/@opentelemetry/context-async-hooks/build/src/AsyncLocalStorageContextManager.js:22:40)\n    at ContextAPI.with (/app/node_modules/@opentelemetry/api/build/src/api/context.js:51:46)\n    at ServiceClientImpl.clientMethodTrace [as placeOrder] (/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:204:42)\n    at /app/.next/server/chunks/[root-of-the-server]__009k40p._.js:1:1906\n    at new Promise (<anonymous>)"
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "prepared",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "paymentUnreachable",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": true,
+            "feature_flag.result.variant": "on",
+            "feature_flag.result.reason": "cached",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "exception",
+          "attrs": {
+            "exception.type": "*errors.errorString",
+            "exception.message": "could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses"
+          }
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "POST /get-quote",
+          "name": "shipping.quote.received",
+          "attrs": {
+            "demo.shipping.cost.total": "134.85"
+          }
+        },
+        {
+          "span": "{closure}",
+          "name": "Received get quote request, processing it",
+          "attrs": {}
+        },
+        {
+          "span": "{closure}",
+          "name": "Quote processed, response sent back",
+          "attrs": {
+            "demo.shipping.quote.cost.total": 134.85
+          }
+        },
+        {
+          "span": "calculate-quote",
+          "name": "Calculating quote",
+          "attrs": {}
+        },
+        {
+          "span": "calculate-quote",
+          "name": "Quote calculated, returning its value",
+          "attrs": {}
+        }
+      ],
+      "trace_ids": [
+        "ec8e635aabeaa99c0fe97420d4d58376",
+        "dd92e2e1cafcb7071e378ecb59efc68f",
+        "b2d41810e57a407410356640a8812b16",
+        "6a37194b694ba39d82c077d4ea4ec232",
+        "b9d4585a1e4aac06514f4cea0ce1a5c"
+      ]
+    },
+    "checkout errored spans, any method": {
+      "query": "{resource.service.name=\"checkout\" && status=error}",
+      "code": 200,
+      "traces": 20,
+      "ms": 272,
+      "first_trace_events": [
+        {
+          "span": "executing api route (pages) /api/checkout",
+          "name": "exception",
+          "attrs": {
+            "exception.type": "13",
+            "exception.message": "13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses",
+            "exception.stacktrace": "Error: 13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses\n    at callErrorFromStatus (/app/node_modules/@grpc/grpc-js/build/src/call.js:32:19)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client.js:193:76)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:367:141)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)\n    at /app/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)\nfor call at\n    at ServiceClientImpl.makeUnaryRequest (/app/node_modules/@grpc/grpc-js/build/src/client.js:161:32)\n    at ServiceClientImpl.<anonymous> (/app/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)\n    at /app/node_modules/@opentelemetry/instrumentation-grpc/build/src/clientUtils.js:119:31\n    at /app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:204:209\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)\n    at AsyncLocalStorageContextManager.with (/app/node_modules/@opentelemetry/context-async-hooks/build/src/AsyncLocalStorageContextManager.js:22:40)\n    at ContextAPI.with (/app/node_modules/@opentelemetry/api/build/src/api/context.js:51:46)\n    at ServiceClientImpl.clientMethodTrace [as placeOrder] (/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:204:42)\n    at /app/.next/server/chunks/[root-of-the-server]__009k40p._.js:1:1906\n    at new Promise (<anonymous>)"
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "prepared",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "paymentUnreachable",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": true,
+            "feature_flag.result.variant": "on",
+            "feature_flag.result.reason": "cached",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "exception",
+          "attrs": {
+            "exception.type": "*errors.errorString",
+            "exception.message": "could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses"
+          }
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "POST /get-quote",
+          "name": "shipping.quote.received",
+          "attrs": {
+            "demo.shipping.cost.total": "134.85"
+          }
+        },
+        {
+          "span": "{closure}",
+          "name": "Received get quote request, processing it",
+          "attrs": {}
+        },
+        {
+          "span": "{closure}",
+          "name": "Quote processed, response sent back",
+          "attrs": {
+            "demo.shipping.quote.cost.total": 134.85
+          }
+        },
+        {
+          "span": "calculate-quote",
+          "name": "Calculating quote",
+          "attrs": {}
+        },
+        {
+          "span": "calculate-quote",
+          "name": "Quote calculated, returning its value",
+          "attrs": {}
+        }
+      ],
+      "trace_ids": [
+        "ec8e635aabeaa99c0fe97420d4d58376",
+        "dd92e2e1cafcb7071e378ecb59efc68f",
+        "1b0a0b36a38a01f589d811b0f1cfd7c",
+        "7d12236503f9b762a484b50c7f51af16",
+        "b82396704cdc41d50442035163678557"
+      ]
+    }
+  },
+  "loki": {
+    "checkout logs at all": {
+      "query": "{service_name=\"checkout\"}",
+      "lines": 3,
+      "sample": [
+        {
+          "ts": "1789666774457725749",
+          "line": "Successful to write message. offset: 0, duration: 299.085\u00b5s",
+          "stream": {
+            "detected_level": "INFO",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789666774457728237",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789666774457270717",
+          "line": "sending to postProcessor",
+          "stream": {
+            "detected_level": "INFO",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789666774457271525",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        },
+        {
+          "ts": "1789666774457260481",
+          "line": "order confirmation email sent",
+          "stream": {
+            "detected_level": "INFO",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789666774457263851",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0"
+          }
+        }
+      ]
+    },
+    "checkout logs mentioning the failure": {
+      "query": "{service_name=\"checkout\"} |~ \"(?i)charge|payment|unavailable|rpc error\"",
+      "lines": 5,
+      "sample": [
+        {
+          "ts": "1789666774442983281",
+          "line": "payment went through",
+          "stream": {
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789666774442995997",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "span_id": "2da2396e4187bf60",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0",
+            "trace_id": "6618d404cad95e741525a21cf2a8c4ca",
+            "transaction_id": "1b5da741-86d3-4842-8715-2ba7d0a56911"
+          }
+        },
+        {
+          "ts": "1789666750852670887",
+          "line": "payment went through",
+          "stream": {
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789666750852677929",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "span_id": "9e7e26097b755f75",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0",
+            "trace_id": "a664b343fc3caf00dadb7011078b1206",
+            "transaction_id": "60520306-aff4-415f-adcf-5a037e2befc9"
+          }
+        },
+        {
+          "ts": "1789666720150729224",
+          "line": "payment went through",
+          "stream": {
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789666720150737187",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "span_id": "0a75ae1c61cf71b8",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0",
+            "trace_id": "ae67245295e76c91ad832fd0670facb5",
+            "transaction_id": "d273622a-a080-413d-9fa0-83d224d15e95"
+          }
+        },
+        {
+          "ts": "1789666713385187396",
+          "line": "payment went through",
+          "stream": {
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789666713385192692",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "span_id": "f84a62cc65ea14ee",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0",
+            "trace_id": "f5ff0052688e70d8d1dafc1c03f1efc1",
+            "transaction_id": "1b743309-a33e-4612-ab9e-f3192ccec6f3"
+          }
+        },
+        {
+          "ts": "1789666700751379024",
+          "line": "payment went through",
+          "stream": {
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-6554854cd6-pvh4p",
+            "k8s_pod_start_time": "2026-09-17T17:38:11Z",
+            "k8s_pod_uid": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "k8s_replicaset_name": "checkout-6554854cd6",
+            "k8s_replicaset_uid": "acb0e15d-e646-48e7-92dc-69c4596b40a8",
+            "observed_timestamp": "1789666700751383899",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "f8ac3bf2-1687-4b38-bc4f-2da50c2ac0b2",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "span_id": "877dfebe5126f9d1",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0",
+            "trace_id": "2375ab74ad4c7e1f0048f54e5df3d988",
+            "transaction_id": "c5b03015-ca51-4458-a2c6-f8c1bcca3410"
+          }
+        }
+      ]
+    },
+    "payment logs at all": {
+      "query": "{service_name=\"payment\"}",
+      "lines": 3,
+      "sample": [
+        {
+          "ts": "1789666774441000000",
+          "line": "Transaction complete.",
+          "stream": {
+            "amount_currencyCode": "USD",
+            "amount_nanos": "950000000",
+            "amount_units_high": "0",
+            "amount_units_low": "919",
+            "amount_units_unsigned": "false",
+            "cardType": "visa",
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-payment",
+            "detected_level": "info",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "payment",
+            "k8s_deployment_name": "payment",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "payment-5d6476fcfd-l7c27",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "2a2a28f4-5d4a-4ea1-bbde-ba9be983a674",
+            "k8s_replicaset_name": "payment-5d6476fcfd",
+            "k8s_replicaset_uid": "744113d4-8451-44e3-892b-bff1e07c432f",
+            "lastFourDigits": "3547",
+            "loyalty_level": "gold",
+            "observed_timestamp": "1789666774441000000",
+            "os_type": "linux",
+            "os_version": "6.12.96+deb13-amd64",
+            "process_command": "/usr/src/app/index.js",
+            "process_command_args": "[\"/nodejs/bin/node\",\"/usr/src/app/index.js\"]",
+            "process_executable_name": "/nodejs/bin/node",
+            "process_executable_path": "/nodejs/bin/node",
+            "process_pid": "1",
+            "process_runtime_description": "Node.js",
+            "process_runtime_name": "nodejs",
+            "process_runtime_version": "22.22.0",
+            "scope_name": "@opentelemetry/instrumentation-pino",
+            "scope_version": "0.66.0",
+            "service_criticality": "critical",
+            "service_instance_id": "9fe26901-1bd9-4d86-a428-814c9c3bfbef",
+            "service_name": "payment",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "info",
+            "span_id": "6de47c38a4d83b4c",
+            "telemetry_sdk_language": "nodejs",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "2.9.0",
+            "trace_id": "6618d404cad95e741525a21cf2a8c4ca",
+            "transactionId": "1b5da741-86d3-4842-8715-2ba7d0a56911"
+          }
+        },
+        {
+          "ts": "1789666774441000000",
+          "line": "Transaction complete.",
+          "stream": {
+            "amount_currencyCode": "USD",
+            "amount_nanos": "950000000",
+            "amount_units_high": "0",
+            "amount_units_low": "919",
+            "amount_units_unsigned": "false",
+            "cardType": "visa",
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-payment",
+            "detected_level": "info",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "payment",
+            "k8s_deployment_name": "payment",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "payment-5d6476fcfd-l7c27",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "2a2a28f4-5d4a-4ea1-bbde-ba9be983a674",
+            "k8s_replicaset_name": "payment-5d6476fcfd",
+            "k8s_replicaset_uid": "744113d4-8451-44e3-892b-bff1e07c432f",
+            "lastFourDigits": "3547",
+            "loyalty_level": "gold",
+            "observed_timestamp": "1789666774443000000",
+            "os_type": "linux",
+            "os_version": "6.12.96+deb13-amd64",
+            "process_command": "/usr/src/app/node_modules/thread-stream/lib/worker.js",
+            "process_command_args": "[\"/nodejs/bin/node\",\"/usr/src/app/node_modules/thread-stream/lib/worker.js\"]",
+            "process_executable_name": "/nodejs/bin/node",
+            "process_executable_path": "/nodejs/bin/node",
+            "process_pid": "1",
+            "process_runtime_description": "Node.js",
+            "process_runtime_name": "nodejs",
+            "process_runtime_version": "22.22.0",
+            "scope_name": "payment-logger",
+            "scope_version": "1.0.0",
+            "service_criticality": "critical",
+            "service_instance_id": "fa12fe15-3e9c-4453-9691-bcaeaf259987",
+            "service_name": "payment",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "info",
+            "span_id": "6de47c38a4d83b4c",
+            "trace_id": "6618d404cad95e741525a21cf2a8c4ca",
+            "transactionId": "1b5da741-86d3-4842-8715-2ba7d0a56911"
+          }
+        },
+        {
+          "ts": "1789666774440000000",
+          "line": "Charge request received.",
+          "stream": {
+            "container_image_name": "ghcr.io/open-telemetry/demo",
+            "container_image_tag": "3.0.0-payment",
+            "detected_level": "info",
+            "flags": "1",
+            "host_arch": "amd64",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_container_name": "payment",
+            "k8s_deployment_name": "payment",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "payment-5d6476fcfd-l7c27",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "2a2a28f4-5d4a-4ea1-bbde-ba9be983a674",
+            "k8s_replicaset_name": "payment-5d6476fcfd",
+            "k8s_replicaset_uid": "744113d4-8451-44e3-892b-bff1e07c432f",
+            "observed_timestamp": "1789666774443000000",
+            "os_type": "linux",
+            "os_version": "6.12.96+deb13-amd64",
+            "process_command": "/usr/src/app/node_modules/thread-stream/lib/worker.js",
+            "process_command_args": "[\"/nodejs/bin/node\",\"/usr/src/app/node_modules/thread-stream/lib/worker.js\"]",
+            "process_executable_name": "/nodejs/bin/node",
+            "process_executable_path": "/nodejs/bin/node",
+            "process_pid": "1",
+            "process_runtime_description": "Node.js",
+            "process_runtime_name": "nodejs",
+            "process_runtime_version": "22.22.0",
+            "scope_name": "payment-logger",
+            "scope_version": "1.0.0",
+            "service_criticality": "critical",
+            "service_instance_id": "fa12fe15-3e9c-4453-9691-bcaeaf259987",
+            "service_name": "payment",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "info",
+            "span_id": "6de47c38a4d83b4c",
+            "trace_id": "6618d404cad95e741525a21cf2a8c4ca"
+          }
+        }
+      ]
+    }
+  },
+  "kubectl": {
+    "checkout": [
+      {
+        "pod": "checkout-6554854cd6-pvh4p",
+        "container": "checkout",
+        "restarts": 0,
+        "ready": true,
+        "lastState_terminated": null
+      }
+    ]
+  },
+  "k8s_events": {
+    "checkout": [
+      {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "message": "Successfully assigned otel-demo/checkout-77f464555c-f67td to pool-3y39ax",
+        "count": null,
+        "lastTimestamp": null
+      },
+      {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "message": "Successfully assigned otel-demo/checkout-6554854cd6-pvh4p to pool-3y39ax",
+        "count": null,
+        "lastTimestamp": null
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "message": "Created pod: checkout-77f464555c-f67td",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:11Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled up replica set checkout-77f464555c from 0 to 1",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:11Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulling",
+        "message": "Pulling image \"busybox:latest\"",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:13Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Successfully pulled image \"busybox:latest\" in 3.857s (3.857s including waiting). Image size: 2236931 bytes.",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:17Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:18Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:18Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulling",
+        "message": "Pulling image \"ghcr.io/open-telemetry/demo:3.0.0-checkout\"",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:12:06Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Successfully pulled image \"ghcr.io/open-telemetry/demo:3.0.0-checkout\" in 3.071s (3.071s including waiting). Image size: 14427744 bytes.",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:12:09Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:12:09Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:12:09Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled up replica set checkout-6554854cd6 from 0 to 1",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:11Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "message": "Created pod: checkout-6554854cd6-pvh4p",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:11Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:13Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:13Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Successfully pulled image \"busybox:latest\" in 212ms (212ms including waiting). Image size: 2236931 bytes.",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:13Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulling",
+        "message": "Pulling image \"busybox:latest\"",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:13Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:14Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled down replica set checkout-77f464555c from 1 to 0",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:14Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:14Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "message": "Deleted pod: checkout-77f464555c-f67td",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:14Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Killing",
+        "message": "Stopping container checkout",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:14Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:3.0.0-checkout\" already present on machine and can be accessed by the pod",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:38:14Z"
+      }
+    ]
+  },
+  "_meta": {
+    "fault": "paymentUnreachable",
+    "label": "recovered",
+    "span_metric": "traces_span_metrics_calls_total",
+    "utc": "2026-09-17T17:39:48Z"
+  }
+}

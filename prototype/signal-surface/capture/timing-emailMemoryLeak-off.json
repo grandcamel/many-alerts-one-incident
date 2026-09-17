@@ -1,0 +1,10 @@
+{
+  "flag": "emailMemoryLeak", "from": "1000x", "to": "off", "value": "0",
+  "configmap": "flagd-config", "rv_before": "10254", "rv_after": "15573",
+  "in_pod_variant": "off", "verified": true,
+  "t_start_epoch": 1789668116, "t_configmap_epoch": 1789668117, "t_rollout_done_epoch": 1789668120,
+  "ts_start": "2026-09-17T18:01:56.3NZ", "ts_configmap": "2026-09-17T18:01:57.3NZ", "ts_rollout_done": "2026-09-17T18:02:00.3NZ",
+  "configmap_write_seconds": 1,
+  "flagd_rollout_seconds": 3,
+  "injection_to_flagd_ready_seconds": 4
+}

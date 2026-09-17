@@ -1,0 +1,43 @@
+=== ITEM 9 — what can a READ-ONLY Run actually retrieve after an OOMKill? ===
+utc: 2026-09-17T17:43:26Z
+
+-- (a) pod status via kubectl (ticket 10 says this is the strongest evidence) --
+   pod: email-b498b7dc6-xkgsn
+   restartCount: 1   ready: True
+   lastState.terminated: {
+      "containerID": "containerd://ded11813ab8acdb6c74b1065a6c1abd80a73b0ef36a403000b5dedb3b7310f31",
+      "exitCode": 137,
+      "finishedAt": "2026-09-17T17:42:35Z",
+      "reason": "OOMKilled",
+      "startedAt": "2026-09-17T17:11:37Z"
+}
+
+-- (b) Kubernetes Events via kubectl --
+   8 Event(s) naming email*:
+     Normal   Scheduled          count=None Successfully assigned otel-demo/email-b498b7dc6-xkgsn to pool-3y39ax
+     Normal   Pulling            count=1   Pulling image "ghcr.io/open-telemetry/demo:3.0.0-email"
+     Normal   Pulled             count=1   Successfully pulled image "ghcr.io/open-telemetry/demo:3.0.0-email" in 18.772s (18.772s in
+     Normal   Created            count=2   Container created
+     Normal   Started            count=2   Container started
+     Normal   Pulled             count=1   Container image "ghcr.io/open-telemetry/demo:3.0.0-email" already present on machine and c
+     Normal   SuccessfulCreate   count=1   Created pod: email-b498b7dc6-xkgsn
+     Normal   ScalingReplicaSet  count=1   Scaled up replica set email-b498b7dc6 from 0 to 1
+   ** is there an OOMKilled Event? NO — confirming ticket 10 **
+
+-- (c) the SAME Events in Loki, ticket 27's proposed selector --
+   {service_name="unknown_service", service_namespace="otel-demo" 3 lines
+      Normal   Started            Container started
+      Normal   Created            Container created
+      Normal   Pulled             Container image "ghcr.io/open-telemetry/demo:3.0.0-email" al
+   {service_name="unknown_service"} |= "email-"                   3 lines
+      Normal   Started            Container started
+      Normal   Created            Container created
+      Normal   Pulled             Container image "ghcr.io/open-telemetry/demo:3.0.0-email" al
+
+-- (d) restart count as a METRIC (ticket 10: a GAUGE, not a counter) --
+   max by (k8s_pod_name)(k8s_container_restarts{k8s_container_name="email"} -> [('email-b498b7dc6-xkgsn', 1.0)]
+   changes(k8s_container_restarts{k8s_container_name="email"}[10m])         -> [('email-b498b7dc6-xkgsn', 1.0)]
+   max by (k8s_pod_name)(container_memory_working_set_bytes{k8s_container_n -> [('email-b498b7dc6-xkgsn', 55672832.0)]
+
+-- (e) the caller's WARN --
+   failed to send order confirmation: failed POST to email service: Post "http://email:8080/send_order_confirmation": EOF
