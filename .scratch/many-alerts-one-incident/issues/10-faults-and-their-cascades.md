@@ -382,3 +382,40 @@ measured **0.05337** at the `100%` variant, so lower variants sit below it.
 **One risk downgraded**: over a full 12-minute window the checkout container went
 **17 → 18 Mi against its 20 Mi limit with restarts=0**. The stage hazard did not
 materialise. Untested beyond 12 minutes.
+
+## Correction from ticket 28, 2026-09-17
+
+Three things this ticket carries are wrong, and one of them would have made the
+live Fault's own Cascade collapse to a single Alert.
+
+**The checkout error ratio is refuted, twice over.** Ticket 27 measured the
+verbatim ratio at 0.2079 and that number is right, but the *rule* built on it is
+not. Run as a by-service query it yields **one** Alert, not three:
+`capture/faultprobe-paymentUnreachable-on.json` gives frontend `0.01594` and
+frontend-proxy `0.00705`, 3.1× and 7.1× below a 5% threshold. Worse, **the ratio
+inverts** — frontend-proxy's fault-time `0.00705` is *lower* than the `0.00808`
+measured with every flag off (`capture/05-baseline-span-metrics.json`) — and it
+returns `NaN` for accounting, fraud-detection and payment, whose denominators
+collapse, which are three of the four services the absence condition already
+owns. The `span_kind` fix does not rescue it: SERVER-only saturates checkout at
+`1.0000`, freezing every trend comment at "unchanged". **The condition is an
+absolute error rate**, not a ratio.
+
+**The email memory condition as written mints five Incidents from one Fault.**
+`> 70Mi` instantaneous goes Firing→Resolved→Firing **five times in 1181 s**: the
+container falls to 47 Mi after each kill and sits below 70 Mi for 67, 119, 118
+and 243 s (`capture/podwatch-emailMemoryLeak-window.jsonl`). Under ADR 0004 each
+of those is a new Incident. It needs a `max_over_time([5m])` latch.
+
+**`adFailure`, the designated fallback, has never been measured at this venue.**
+Every number about it in the record — 12 errors in 140 requests, the five-service
+`STATUS_CODE_ERROR` spread — is from ticket 08 on the **Compose** venue, which
+the map itself marks as Compose-only. Nothing proves it raises a Cascade here.
+Ticket 28's system-shaped rules mean it *should* light up without a rule set of
+its own, but "should" is the word this project has lost three decisions to.
+
+Also: **this ticket's own trap list is half right about cart's log severity.**
+`Wasn't able to connect to redis` carries `severity_text: "Error"`; only the
+separate `Grpc.AspNetCore.Server.ServerCallHandler` template line carries
+`"Information"`. The conclusion holds for a different reason — `severity_text` is
+structured metadata and is **not selectable as a stream label at all**.

@@ -41,3 +41,57 @@ before the kill, so a `for: 1m` fires about when the container dies.
 harness on `prototype/signal-surface` brings the cluster up in ~9 minutes and
 already does the flip, the flagd rollout and the symptom confirmation; it needs
 only the rules and an Alert-side watcher. A run costs about **$0.20**.
+
+## What ticket 28 hands this ticket, 2026-09-17
+
+**The rules exist and are loadable**, on branch `rules/cascade`: six rules in
+`alerting/cascade-rules.yaml`, plus the ConfigMap builder, the `lgtm.yaml` volume
+patch and `preflight.sh`. Load them with the ConfigMap at
+`/otel-lgtm/grafana/conf/provisioning/alerting` — it must carry all three files,
+because the mount replaces the whole directory.
+
+Expected Cascades to measure against: `paymentUnreachable` **7 Alerts** (3 error
++ 4 absence), `emailMemoryLeak` **3**, `cartFailure` at `100%` **1**.
+
+**Run `preflight.sh` before every clock.** Every rule sets `execErrState: OK`, so
+a rule whose query model is wrong is forced to Normal and vanishes silently. That
+risk is not hypothetical: **no Loki-datasource alert rule has ever been
+provisioned at this venue**, and two of the six are Loki rules.
+
+### The brief, ranked by damage. Item 2 is BLOCKING.
+
+1. **The fire edge** — the thing this ticket exists for. Projected by arithmetic
+   on measured endpoints: C2 crosses `0.01` at ~t+5.2–5.5 min, first Alert
+   ~t+7.5 min with the `for: 2m`. Never observed.
+2. **Which baseline is the baseline — BLOCKING; the thresholds are not settled
+   until this reports.** The two flags-off captures disagree by `0.069/s` on
+   frontend-proxy, and the `> 0.1/s` threshold clears the worse of them by only
+   **1.44×** while its worst fault-side margin is **1.17×**. There is currently
+   **exactly one instant sample per service in the entire capture set** — no
+   repeated sampling, no variance, anywhere. Measure 30 flags-off minutes at
+   60 s on a stack up longer than 13 minutes, reporting min/mean/max/stddev per
+   service.
+3. **Whether a Loki-datasource rule provisions here at all.** Two of six rules at
+   stake, silently. Settle `noDataState: KeepLast` while there.
+4. **Whether `container_memory_working_set_bytes` ever reads ≥ 70 Mi on a *live*
+   email pod.** The threshold is calibrated on `kubectl top`, a different
+   instrument; the only ≥70 Prometheus reading is on the **deleted** pod.
+5. **The Resolved edge for anything that is not cart** — including whether a
+   `count_over_time` log rule going Firing→NoData→Normal emits a Resolved at all,
+   and whether the Firing and Resolved carry the same `fingerprint`.
+6. **Cross-Fault contamination.** The by-service sweep was run for
+   `paymentUnreachable` only. Run C1 and C2 at t+6 min under the other two Faults.
+7. **Sample cadence of the kubeletstats family.** 60 s is measured for the
+   span-metrics connector only. If that series gaps, `noDataState: OK` POSTs a
+   Resolved mid-Fault.
+8. **`adFailure`, the designated fallback, has never been measured at this
+   venue** — every number about it is from the Compose venue. The system-shaped
+   rules mean it should raise a Cascade with no rule set of its own. Worth one
+   injection to find out, since discovering otherwise under time pressure is
+   exactly what a fallback exists to prevent.
+9. **`label_replace` and Grafana annotation templating at this venue** — C1, C2
+   and C4 depend on `label_replace` supplying the `service` label, and it has
+   never been run here.
+10. **Whether a multi-Alert Notification works end to end.** The Receiver has
+    never been handed one carrying 3 or 4 Alerts, and ticket 11 measured Opus 5
+    at high taking 370 s against a seven-Alert Cascade.

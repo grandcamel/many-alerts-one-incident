@@ -31,3 +31,36 @@ Both blockers are resolved, so this is on the frontier.
 - **Recovery looks like injection.** Each Fault's undo restarts a service and the flagd
   rollout emits Events identical to the injection's, so a Run investigating after recovery
   sees two indistinguishable rollouts.
+
+## What ticket 28 hands this ticket, 2026-09-17
+
+**The premise needs correcting first.** "A Cascade of N rules is N Notifications"
+is true of *rules*, not *Alerts*. With `group_by: [grafana_folder, alertname]`
+Grafana already collapses instances of one rule, so Fault 1's **7 Alerts arrive
+as two Notifications** — one carrying 3 error Alerts, one carrying 4 absence
+Alerts — and start **2 Runs, not 7**. The Receiver hands one whole Notification
+to one Run (`grafana_jsm_sandbox/notification.py`) and the Skill handles every
+Alert inside it. This ticket inherits 2 Runs.
+
+**The handle.** Every rule carries a constant `cascade: otel-demo` label and sits
+in folder `demo`, so this ticket can choose `[grafana_folder, cascade]` for one
+Notification per Cascade, or keep today's behaviour, **without any rule
+changing** — which matters because changing a rule's labels re-Fingerprints it
+and orphans every open Incident carrying the old `fp-` label.
+
+**Two hard constraints.**
+
+- `group_by` must **never** contain `service` or `service_name`, or the collapse
+  cannot happen: those are the labels that vary across a Cascade.
+- Only the **global notification policy** can drop `alertname`. Per-rule
+  `notification_settings` is available in Grafana 12.0.1's file provisioning and
+  carries `group_by`, but `NormalizedGroupBy()` always prepends `grafana_folder`
+  and `alertname` to any non-empty value — the only escape is the special `...`,
+  which groups by *all* labels. So per-rule settings make grouping **finer,
+  never coarser**.
+
+**A question this ticket now owns.** Severity is graded, not uniform: C1 and C4
+are `critical`, the other four `warning`. **If a Cascade collapses to one
+Notification carrying mixed severities, what Severity does the single Incident
+take?** The Skill has no rule for it, because today it creates one Incident per
+Alert and reads the severity off that Alert.

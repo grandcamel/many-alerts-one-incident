@@ -270,3 +270,42 @@ both were **too low**.
 - `paymentUnreachable` past 12 minutes, so the checkout OOM hazard is untested
   beyond that.
 - Whether LGTM's memory climb is a leak or cache warm-up. Still open.
+
+## Correction from ticket 28, 2026-09-17
+
+**This ticket's own symptom watch for `paymentUnreachable` ran at `[1m]`, not
+`[5m]`, and its output has been read as evidence three times since.**
+`capture/symptom-paymentUnreachable.json`'s `never_fired` list and its t+7 s
+"first symptom" are `[1m]` artifacts — exactly the trap
+`capture/10-absence-rule-trap.log` documents. Settled against git, not prose:
+`git show 5194d38 -- prototype/signal-surface/lib/symptom.py` is a one-line diff
+changing `window="1m"` to `window="5m"`, committed at **17:38:50 UTC**, eighteen
+minutes *after* that watch ended. The two later Faults' watches ran after the
+commit and return real non-zero values. Two of ticket 28's verifiers built
+high-confidence kills on that file without checking it; taking the majority
+would have killed **both of the live Fault's conditions**. Annotate the file.
+
+**Trap 4 is half right.** "cart's error lines carry `severity_text: Information`"
+is true of the `Grpc.AspNetCore.Server.ServerCallHandler` template line only. The
+`cart.cartstore.ValkeyCartStore` line `Wasn't able to connect to redis` carries
+`severity_text: "Error"`, `severity_number: 17`, `detected_level: "Error"` — both
+are visible side by side in `capture/16-recovery-edge.log`. The conclusion
+survives for a stronger reason: **`severity_text` and `detected_level` are
+structured metadata and are not selectable as stream labels at all**, so no
+severity-based log rule is possible for any service.
+
+**"Eight Events, all `Normal`" was measured too early.** It came from
+`capture/13-oomkill-evidence.json` after **one** restart, before a back-off could
+exist. `capture/faultprobe-emailMemoryLeak-on.json` and `-end.json` retrieve
+`Warning`/`BackOff` — *"Back-off restarting failed container email"* — first at
+t+219 s, `deprecatedCount` rising to 5. `OOMKilled` still emits no Event, but the
+Kubernetes signal class does have a Warning Event after all.
+
+**`results/SUMMARY.md` over-claims its own file.** "Every service reads 0.0000/s
+error rate" — `capture/05-baseline-authoritative.json`'s `error` map has four
+entries and `server_error` two; checkout and thirteen others appear in **neither**,
+which is a different and stronger statement (the series does not exist). And its
+timing row "injection → error series present at `[5m]` | ~2–5 min" cites no
+capture file, in a document whose header promises every number has one. No
+annotation quoting the first claim may ship: a Run copies annotations verbatim
+into an OPS Incident.
