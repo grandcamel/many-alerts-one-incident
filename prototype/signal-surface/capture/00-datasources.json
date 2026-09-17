@@ -1,0 +1,7 @@
+{
+  "loki": "loki",
+  "prometheus": "prometheus",
+  "grafana-pyroscope-datasource": "pyroscope",
+  "pyroscope": "pyroscope",
+  "tempo": "tempo"
+}

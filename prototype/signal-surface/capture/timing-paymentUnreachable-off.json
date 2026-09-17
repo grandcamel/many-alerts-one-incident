@@ -1,0 +1,10 @@
+{
+  "flag": "paymentUnreachable", "from": "on", "to": "off", "value": "False",
+  "configmap": "flagd-config", "rv_before": "4990", "rv_after": "9471",
+  "in_pod_variant": "off", "verified": true,
+  "t_start_epoch": 1789666685, "t_configmap_epoch": 1789666687, "t_rollout_done_epoch": 1789666690,
+  "ts_start": "2026-09-17T17:38:05.3NZ", "ts_configmap": "2026-09-17T17:38:07.3NZ", "ts_rollout_done": "2026-09-17T17:38:10.3NZ",
+  "configmap_write_seconds": 2,
+  "flagd_rollout_seconds": 3,
+  "injection_to_flagd_ready_seconds": 5
+}

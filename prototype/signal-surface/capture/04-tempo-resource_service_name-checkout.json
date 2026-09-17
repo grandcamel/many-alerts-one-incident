@@ -1,0 +1,1790 @@
+{
+  "traces": [
+    {
+      "traceID": "b441b265e62622e60823f28d34140ae5",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665287660695700",
+      "durationMs": 48,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "3376ead677821033",
+            "startTimeUnixNano": "1789665287674423895",
+            "durationNanos": "34900564",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "3f862cf6064a3b0d",
+            "startTimeUnixNano": "1789665287674530751",
+            "durationNanos": "1962988",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "2c2c5c882f334228",
+            "startTimeUnixNano": "1789665287676552174",
+            "durationNanos": "3750985",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "3376ead677821033",
+              "startTimeUnixNano": "1789665287674423895",
+              "durationNanos": "34900564",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "3f862cf6064a3b0d",
+              "startTimeUnixNano": "1789665287674530751",
+              "durationNanos": "1962988",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "2c2c5c882f334228",
+              "startTimeUnixNano": "1789665287676552174",
+              "durationNanos": "3750985",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 6
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "f318669dcab1019dbc08676bfde9dbb8",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665266112000000",
+      "durationMs": 68,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "9fbc5237a71138fb",
+            "startTimeUnixNano": "1789665266132454508",
+            "durationNanos": "1497498",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "1c8f442d1aa7d73c",
+            "startTimeUnixNano": "1789665266134010666",
+            "durationNanos": "2639582",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "fcf920612e0f1c70",
+            "startTimeUnixNano": "1789665266136696433",
+            "durationNanos": "1015346",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "9fbc5237a71138fb",
+              "startTimeUnixNano": "1789665266132454508",
+              "durationNanos": "1497498",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "1c8f442d1aa7d73c",
+              "startTimeUnixNano": "1789665266134010666",
+              "durationNanos": "2639582",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "fcf920612e0f1c70",
+              "startTimeUnixNano": "1789665266136696433",
+              "durationNanos": "1015346",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 6
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 14
+        }
+      }
+    },
+    {
+      "traceID": "48f2d373037dd65461842d4b15e1a7f9",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665259400121000",
+      "durationMs": 137,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "e6a54a42f581d7e6",
+            "startTimeUnixNano": "1789665259479116949",
+            "durationNanos": "41682307",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "5978ccbb576e4774",
+            "startTimeUnixNano": "1789665259479242852",
+            "durationNanos": "2648619",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "4a7a812d09d6bad4",
+            "startTimeUnixNano": "1789665259481968320",
+            "durationNanos": "3168345",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 16
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "e6a54a42f581d7e6",
+              "startTimeUnixNano": "1789665259479116949",
+              "durationNanos": "41682307",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "5978ccbb576e4774",
+              "startTimeUnixNano": "1789665259479242852",
+              "durationNanos": "2648619",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "4a7a812d09d6bad4",
+              "startTimeUnixNano": "1789665259481968320",
+              "durationNanos": "3168345",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 16
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 10
+        },
+        "checkout": {
+          "spanCount": 16
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend-proxy": {
+          "spanCount": 13
+        }
+      }
+    },
+    {
+      "traceID": "a31ca9dc9854b03b17876fd2a4931b7c",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665249453519500",
+      "durationMs": 49,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "51442aa723cbb1f5",
+            "startTimeUnixNano": "1789665249466268618",
+            "durationNanos": "2690284",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "58f0e9df7669a693",
+            "startTimeUnixNano": "1789665249469028118",
+            "durationNanos": "3042635",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "b14135a03cc0cf30",
+            "startTimeUnixNano": "1789665249472219609",
+            "durationNanos": "1198314",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "51442aa723cbb1f5",
+              "startTimeUnixNano": "1789665249466268618",
+              "durationNanos": "2690284",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "58f0e9df7669a693",
+              "startTimeUnixNano": "1789665249469028118",
+              "durationNanos": "3042635",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "b14135a03cc0cf30",
+              "startTimeUnixNano": "1789665249472219609",
+              "durationNanos": "1198314",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 6
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "1f6f2e462484815e6e510fa4f4862fb8",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_multi",
+      "startTimeUnixNano": "1789665238213720424",
+      "durationMs": 134,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "c31c9cc579739cd8",
+            "startTimeUnixNano": "1789665238264371622",
+            "durationNanos": "1515353",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "876579b3dfa3906b",
+            "startTimeUnixNano": "1789665238266047347",
+            "durationNanos": "3248208",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "42c9879a6942a9a3",
+            "startTimeUnixNano": "1789665238269354109",
+            "durationNanos": "874188",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 14
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "c31c9cc579739cd8",
+              "startTimeUnixNano": "1789665238264371622",
+              "durationNanos": "1515353",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "876579b3dfa3906b",
+              "startTimeUnixNano": "1789665238266047347",
+              "durationNanos": "3248208",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "42c9879a6942a9a3",
+              "startTimeUnixNano": "1789665238269354109",
+              "durationNanos": "874188",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 14
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 8
+        },
+        "checkout": {
+          "spanCount": 14
+        },
+        "currency": {
+          "spanCount": 3
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 24
+        },
+        "frontend-proxy": {
+          "spanCount": 10
+        },
+        "load-generator": {
+          "spanCount": 3
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "5fe462a92274b3655b156865c3f0d72b",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_single",
+      "startTimeUnixNano": "1789665223337316582",
+      "durationMs": 75,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "7596b3fe2a49369a",
+            "startTimeUnixNano": "1789665223364790279",
+            "durationNanos": "1891033",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "14d8db0a4ae01c15",
+            "startTimeUnixNano": "1789665223366752895",
+            "durationNanos": "3789539",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "94866907d6ef7556",
+            "startTimeUnixNano": "1789665223370615979",
+            "durationNanos": "1227717",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "7596b3fe2a49369a",
+              "startTimeUnixNano": "1789665223364790279",
+              "durationNanos": "1891033",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "14d8db0a4ae01c15",
+              "startTimeUnixNano": "1789665223366752895",
+              "durationNanos": "3789539",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "94866907d6ef7556",
+              "startTimeUnixNano": "1789665223370615979",
+              "durationNanos": "1227717",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 13
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "currency": {
+          "spanCount": 2
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 14
+        },
+        "frontend-proxy": {
+          "spanCount": 6
+        },
+        "load-generator": {
+          "spanCount": 2
+        },
+        "payment": {
+          "spanCount": 2
+        },
+        "product-catalog": {
+          "spanCount": 6
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "83e9bda627cd9a1d48a0b20f81cb0025",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_multi",
+      "startTimeUnixNano": "1789665217906835184",
+      "durationMs": 205,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "d6a2ccc5aafe8342",
+            "startTimeUnixNano": "1789665218026660202",
+            "durationNanos": "2996578",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "1844ec27028f2ca1",
+            "startTimeUnixNano": "1789665218029712615",
+            "durationNanos": "8473783",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "5e9feb27cf51203b",
+            "startTimeUnixNano": "1789665218038289418",
+            "durationNanos": "2553753",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 16
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "d6a2ccc5aafe8342",
+              "startTimeUnixNano": "1789665218026660202",
+              "durationNanos": "2996578",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "1844ec27028f2ca1",
+              "startTimeUnixNano": "1789665218029712615",
+              "durationNanos": "8473783",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "5e9feb27cf51203b",
+              "startTimeUnixNano": "1789665218038289418",
+              "durationNanos": "2553753",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 16
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 25
+        },
+        "checkout": {
+          "spanCount": 16
+        },
+        "currency": {
+          "spanCount": 4
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 34
+        },
+        "frontend-proxy": {
+          "spanCount": 14
+        },
+        "load-generator": {
+          "spanCount": 4
+        },
+        "payment": {
+          "spanCount": 2
+        },
+        "product-catalog": {
+          "spanCount": 18
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "6b2ad01f72d8f089697e644737d40f65",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_single",
+      "startTimeUnixNano": "1789665204989148196",
+      "durationMs": 99,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "79db3c64fd8308fd",
+            "startTimeUnixNano": "1789665205030405201",
+            "durationNanos": "1720717",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "9af2842e40b0ec67",
+            "startTimeUnixNano": "1789665205032209971",
+            "durationNanos": "3751621",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "d4285068f929ec37",
+            "startTimeUnixNano": "1789665205036020988",
+            "durationNanos": "1204075",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "79db3c64fd8308fd",
+              "startTimeUnixNano": "1789665205030405201",
+              "durationNanos": "1720717",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "9af2842e40b0ec67",
+              "startTimeUnixNano": "1789665205032209971",
+              "durationNanos": "3751621",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "d4285068f929ec37",
+              "startTimeUnixNano": "1789665205036020988",
+              "durationNanos": "1204075",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 13
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "currency": {
+          "spanCount": 2
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 14
+        },
+        "frontend-proxy": {
+          "spanCount": 6
+        },
+        "load-generator": {
+          "spanCount": 2
+        },
+        "payment": {
+          "spanCount": 2
+        },
+        "product-catalog": {
+          "spanCount": 6
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "8c189c097dc32e17d76351aad718b2e6",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_single",
+      "startTimeUnixNano": "1789665201306599359",
+      "durationMs": 95,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "ff4a80a0461362e7",
+            "startTimeUnixNano": "1789665201342826236",
+            "durationNanos": "3511730",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "2fa23b0ab98e47ba",
+            "startTimeUnixNano": "1789665201346411257",
+            "durationNanos": "4579279",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "1dadc5f993fd20c4",
+            "startTimeUnixNano": "1789665201351066557",
+            "durationNanos": "1022678",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "ff4a80a0461362e7",
+              "startTimeUnixNano": "1789665201342826236",
+              "durationNanos": "3511730",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "2fa23b0ab98e47ba",
+              "startTimeUnixNano": "1789665201346411257",
+              "durationNanos": "4579279",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "1dadc5f993fd20c4",
+              "startTimeUnixNano": "1789665201351066557",
+              "durationNanos": "1022678",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 13
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "currency": {
+          "spanCount": 2
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 14
+        },
+        "frontend-proxy": {
+          "spanCount": 6
+        },
+        "load-generator": {
+          "spanCount": 2
+        },
+        "payment": {
+          "spanCount": 2
+        },
+        "product-catalog": {
+          "spanCount": 6
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "caf89d28b1f508eaec236f1b90a213ed",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_single",
+      "startTimeUnixNano": "1789665179261679459",
+      "durationMs": 92,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "db25ecf4610560ab",
+            "startTimeUnixNano": "1789665179295812030",
+            "durationNanos": "2439106",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "fd3b6635c9216e6a",
+            "startTimeUnixNano": "1789665179298310446",
+            "durationNanos": "2976412",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "5c997035168f8098",
+            "startTimeUnixNano": "1789665179301342964",
+            "durationNanos": "911856",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "db25ecf4610560ab",
+              "startTimeUnixNano": "1789665179295812030",
+              "durationNanos": "2439106",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "fd3b6635c9216e6a",
+              "startTimeUnixNano": "1789665179298310446",
+              "durationNanos": "2976412",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "5c997035168f8098",
+              "startTimeUnixNano": "1789665179301342964",
+              "durationNanos": "911856",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 13
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "currency": {
+          "spanCount": 2
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 14
+        },
+        "frontend-proxy": {
+          "spanCount": 6
+        },
+        "load-generator": {
+          "spanCount": 2
+        },
+        "payment": {
+          "spanCount": 2
+        },
+        "product-catalog": {
+          "spanCount": 6
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "2edb397aa84c0e1fd437444c9c58b67f",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_single",
+      "startTimeUnixNano": "1789665171403167144",
+      "durationMs": 119,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "a0986dbb87a5c8d8",
+            "startTimeUnixNano": "1789665171462586560",
+            "durationNanos": "2611421",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "767a04c1f3ed4203",
+            "startTimeUnixNano": "1789665171465265222",
+            "durationNanos": "3412641",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "331b4d573a4d02ff",
+            "startTimeUnixNano": "1789665171468739828",
+            "durationNanos": "1187611",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "a0986dbb87a5c8d8",
+              "startTimeUnixNano": "1789665171462586560",
+              "durationNanos": "2611421",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "767a04c1f3ed4203",
+              "startTimeUnixNano": "1789665171465265222",
+              "durationNanos": "3412641",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "331b4d573a4d02ff",
+              "startTimeUnixNano": "1789665171468739828",
+              "durationNanos": "1187611",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 13
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "currency": {
+          "spanCount": 2
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 14
+        },
+        "frontend-proxy": {
+          "spanCount": 6
+        },
+        "load-generator": {
+          "spanCount": 2
+        },
+        "payment": {
+          "spanCount": 2
+        },
+        "product-catalog": {
+          "spanCount": 6
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "7e48b6b0364856d5a43ea54883806650",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_multi",
+      "startTimeUnixNano": "1789665156577694874",
+      "durationMs": 110,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "cfad581e632eff2e",
+            "startTimeUnixNano": "1789665156629594543",
+            "durationNanos": "2483181",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "995c895789fe1f91",
+            "startTimeUnixNano": "1789665156632147266",
+            "durationNanos": "2951983",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "1c3ca99ded778cca",
+            "startTimeUnixNano": "1789665156635145813",
+            "durationNanos": "1066307",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 14
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "cfad581e632eff2e",
+              "startTimeUnixNano": "1789665156629594543",
+              "durationNanos": "2483181",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "995c895789fe1f91",
+              "startTimeUnixNano": "1789665156632147266",
+              "durationNanos": "2951983",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "1c3ca99ded778cca",
+              "startTimeUnixNano": "1789665156635145813",
+              "durationNanos": "1066307",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 14
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 19
+        },
+        "checkout": {
+          "spanCount": 14
+        },
+        "currency": {
+          "spanCount": 3
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 24
+        },
+        "frontend-proxy": {
+          "spanCount": 10
+        },
+        "load-generator": {
+          "spanCount": 3
+        },
+        "payment": {
+          "spanCount": 2
+        },
+        "product-catalog": {
+          "spanCount": 12
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "b3ef190c2a462755ddcb1f7d9941d20c",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_single",
+      "startTimeUnixNano": "1789665150107876050",
+      "durationMs": 161,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "edec8b76bc5e3fbd",
+            "startTimeUnixNano": "1789665150188485380",
+            "durationNanos": "4854396",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "5532e93ee96bd799",
+            "startTimeUnixNano": "1789665150193551204",
+            "durationNanos": "4430754",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "137779402b728bf6",
+            "startTimeUnixNano": "1789665150198040188",
+            "durationNanos": "3272804",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 12
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "edec8b76bc5e3fbd",
+              "startTimeUnixNano": "1789665150188485380",
+              "durationNanos": "4854396",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "5532e93ee96bd799",
+              "startTimeUnixNano": "1789665150193551204",
+              "durationNanos": "4430754",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "137779402b728bf6",
+              "startTimeUnixNano": "1789665150198040188",
+              "durationNanos": "3272804",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 12
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 13
+        },
+        "checkout": {
+          "spanCount": 12
+        },
+        "currency": {
+          "spanCount": 2
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 3
+        },
+        "frontend": {
+          "spanCount": 14
+        },
+        "frontend-proxy": {
+          "spanCount": 6
+        },
+        "load-generator": {
+          "spanCount": 2
+        },
+        "payment": {
+          "spanCount": 2
+        },
+        "product-catalog": {
+          "spanCount": 6
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "bf76860115a29424fbdc146f40cd7ea",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_multi",
+      "startTimeUnixNano": "1789665148037191305",
+      "durationMs": 508,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "7b69ee873780eb15",
+            "startTimeUnixNano": "1789665148104140291",
+            "durationNanos": "4344326",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "58aa13135b11c199",
+            "startTimeUnixNano": "1789665148115895081",
+            "durationNanos": "5598910",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "8fe862843cc236c4",
+            "startTimeUnixNano": "1789665148128757035",
+            "durationNanos": "2246196",
+            "attributes": [
+              {
+                "key": "service.name",
+                "value": {
+                  "stringValue": "checkout"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 14
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "7b69ee873780eb15",
+              "startTimeUnixNano": "1789665148104140291",
+              "durationNanos": "4344326",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "58aa13135b11c199",
+              "startTimeUnixNano": "1789665148115895081",
+              "durationNanos": "5598910",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "8fe862843cc236c4",
+              "startTimeUnixNano": "1789665148128757035",
+              "durationNanos": "2246196",
+              "attributes": [
+                {
+                  "key": "service.name",
+                  "value": {
+                    "stringValue": "checkout"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 14
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 19
+        },
+        "checkout": {
+          "spanCount": 14
+        },
+        "currency": {
+          "spanCount": 3
+        },
+        "email": {
+          "spanCount": 4
+        },
+        "flagd": {
+          "spanCount": 6
+        },
+        "frontend": {
+          "spanCount": 24
+        },
+        "frontend-proxy": {
+          "spanCount": 10
+        },
+        "load-generator": {
+          "spanCount": 3
+        },
+        "payment": {
+          "spanCount": 5
+        },
+        "product-catalog": {
+          "spanCount": 12
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    }
+  ],
+  "metrics": {
+    "inspectedBytes": "1112898",
+    "completedJobs": 3,
+    "totalJobs": 3
+  }
+}

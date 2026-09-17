@@ -1,0 +1,116 @@
+{
+  "baseline": {
+    "all": {
+      "frontend": 13.320439777777779,
+      "checkout": 0.85,
+      "shipping": 0.2791666666666667,
+      "recommendation": 1.0625,
+      "frontend-web": 4.5581455,
+      "cart": 2.658333333333333,
+      "flagd": 9.975,
+      "frontend-proxy": 12.645833333333334,
+      "load-generator": 2.0999686944444447,
+      "quote": 0.325,
+      "fraud-detection": 0.125,
+      "payment": 0.11666666666666667,
+      "email": 0.25,
+      "product-catalog": 5.3,
+      "image-provider": 1.3541666666666667,
+      "accounting": 0.175,
+      "ad": 0.4791465416666667,
+      "currency": 0.4083333333333333
+    },
+    "error": {
+      "frontend": 0.0,
+      "cart": 0.0,
+      "frontend-proxy": 0.0,
+      "accounting": 0.0
+    },
+    "server_all": {
+      "frontend": 7.304166666666666,
+      "checkout": 0.06666666666666667,
+      "shipping": 0.175,
+      "recommendation": 0.36666666666666664,
+      "flagd": 6.4875,
+      "quote": 0.10833333333333334,
+      "email": 0.06666666666666667,
+      "product-catalog": 2.7625,
+      "cart": 1.0,
+      "image-provider": 1.2958333333333334,
+      "frontend-proxy": 6.5375,
+      "currency": 0.44583333333333336,
+      "ad": 0.2625,
+      "payment": 0.06666666666666667
+    },
+    "server_error": {
+      "frontend": 0.0,
+      "frontend-proxy": 0.0
+    },
+    "client_error": {
+      "cart": 0.0,
+      "frontend-proxy": 0.0,
+      "frontend": 0.0
+    }
+  },
+  "extra": {
+    "cart_http_by_route": [
+      {
+        "labels": {
+          "http_route": "/oteldemo.CartService/EmptyCart"
+        },
+        "value": 0.06666694444560185
+      },
+      {
+        "labels": {
+          "http_route": "/oteldemo.CartService/GetCart"
+        },
+        "value": 0.6916695486231192
+      },
+      {
+        "labels": {
+          "http_route": "/oteldemo.CartService/AddItem"
+        },
+        "value": 0.24166767361530672
+      }
+    ],
+    "cart_p95": [
+      {
+        "labels": {},
+        "value": 0.0073372896606760255
+      }
+    ],
+    "checkout_mem": [
+      {
+        "labels": {
+          "k8s_pod_name": "checkout-77f464555c-f67td"
+        },
+        "value": 18628608.0
+      }
+    ],
+    "email_mem": [
+      {
+        "labels": {
+          "k8s_pod_name": "email-b498b7dc6-xkgsn"
+        },
+        "value": 54251520.0
+      }
+    ],
+    "email_limit": [
+      {
+        "labels": {
+          "k8s_pod_name": "email-b498b7dc6-xkgsn"
+        },
+        "value": 104857600.0
+      }
+    ],
+    "checkout_limit": [
+      {
+        "labels": {
+          "k8s_pod_name": "checkout-77f464555c-f67td"
+        },
+        "value": 20971520.0
+      }
+    ]
+  },
+  "utc": "2026-09-17T17:18:35Z"
+}

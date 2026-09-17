@@ -1,0 +1,35 @@
+=== traffic per service: flags-off baseline vs paymentUnreachable, [5m] ===
+service              baseline/s    fault/s      ratio   verdict
+frontend                13.3204    14.3292       1.08   
+frontend-proxy          12.6458    13.7458       1.09   
+flagd                    9.9750     9.5737       0.96   
+product-catalog          5.3000     5.2667       0.99   
+frontend-web             4.5581     4.7500       1.04   
+cart                     2.6583     2.8000       1.05   
+load-generator           2.1000     2.1917       1.04   
+image-provider           1.3542     1.4000       1.03   
+recommendation           1.0625     1.0542       0.99   
+checkout                 0.8500     0.8417       0.99   
+ad                       0.4791     0.5292       1.10   
+currency                 0.4083     0.5167       1.27   
+quote                    0.3250     0.4000       1.23   
+shipping                 0.2792     0.2667       0.96   
+email                    0.2500     0.0000       0.00   GONE
+accounting               0.1750     0.0000       0.00   GONE
+fraud-detection          0.1250     0.0042       0.03   GONE
+payment                  0.1167     0.0042       0.04   GONE
+
+  services that GO TO ZERO under this Fault: ['email', 'accounting', 'fraud-detection', 'payment']
+  services merely reduced: none
+
+=== ticket 10's Ground truth says shipping is 'never reached'. Is it? ===
+   shipping           baseline 0.2792/s -> fault 0.2667/s   UNCHANGED
+   email              baseline 0.2500/s -> fault 0.0000/s   ABSENT
+   accounting         baseline 0.1750/s -> fault 0.0000/s   ABSENT
+   fraud-detection    baseline 0.1250/s -> fault 0.0042/s   ABSENT
+   cart               baseline 2.6583/s -> fault 2.8000/s   UNCHANGED
+   payment            baseline 0.1167/s -> fault 0.0042/s   ABSENT
+   shipping traces still arriving: 20
+     shipping span: POST /get-quote                                0.1333/s
+     shipping span: POST /ship-order                               0.0000/s
+     shipping span: POST quote                                     0.1333/s

@@ -1,0 +1,1313 @@
+{
+  "traces": [
+    {
+      "traceID": "e8badc92a9edef691603dce3dc2cb018",
+      "rootServiceName": "frontend-web",
+      "rootTraceName": "HTTP GET",
+      "startTimeUnixNano": "1789665322668000000",
+      "durationMs": 72,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "875a5db3b02d0c70",
+            "startTimeUnixNano": "1789665322683620306",
+            "durationNanos": "1501653",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/ListProducts"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "2e41aa21a2fd4839",
+            "startTimeUnixNano": "1789665322695309020",
+            "durationNanos": "6501619",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "17d02c712ba3fca5",
+            "startTimeUnixNano": "1789665322695322228",
+            "durationNanos": "17070838",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 5
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "875a5db3b02d0c70",
+              "startTimeUnixNano": "1789665322683620306",
+              "durationNanos": "1501653",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/ListProducts"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "2e41aa21a2fd4839",
+              "startTimeUnixNano": "1789665322695309020",
+              "durationNanos": "6501619",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "17d02c712ba3fca5",
+              "startTimeUnixNano": "1789665322695322228",
+              "durationNanos": "17070838",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 5
+        }
+      ],
+      "serviceStats": {
+        "frontend-proxy": {
+          "spanCount": 2
+        },
+        "frontend-web": {
+          "spanCount": 1
+        },
+        "product-catalog": {
+          "spanCount": 10
+        }
+      }
+    },
+    {
+      "traceID": "216cfbf67e2a983133757fc6efe5c3bf",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665322648494524",
+      "durationMs": 2,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "76936f3080b71be2",
+            "startTimeUnixNano": "1789665322648494524",
+            "durationNanos": "2457741",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "76936f3080b71be2",
+              "startTimeUnixNano": "1789665322648494524",
+              "durationNanos": "2457741",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "product-catalog": {
+          "spanCount": 2
+        }
+      }
+    },
+    {
+      "traceID": "5d9af5682287e61e91e63f29adb14730",
+      "rootServiceName": "frontend-web",
+      "rootTraceName": "HTTP GET",
+      "startTimeUnixNano": "1789665322592000000",
+      "durationMs": 83,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "6d7c4b0fd4553de3",
+            "startTimeUnixNano": "1789665322603265212",
+            "durationNanos": "1036399",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/ListProducts"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "e34c6e675af8b14d",
+            "startTimeUnixNano": "1789665322611810025",
+            "durationNanos": "5151464",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "fe12e3f0e308aa43",
+            "startTimeUnixNano": "1789665322611797738",
+            "durationNanos": "11733495",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 5
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "6d7c4b0fd4553de3",
+              "startTimeUnixNano": "1789665322603265212",
+              "durationNanos": "1036399",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/ListProducts"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "e34c6e675af8b14d",
+              "startTimeUnixNano": "1789665322611810025",
+              "durationNanos": "5151464",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "fe12e3f0e308aa43",
+              "startTimeUnixNano": "1789665322611797738",
+              "durationNanos": "11733495",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 5
+        }
+      ],
+      "serviceStats": {
+        "frontend-web": {
+          "spanCount": 1
+        },
+        "product-catalog": {
+          "spanCount": 10
+        }
+      }
+    },
+    {
+      "traceID": "d8f9ab4807b66e1022836e04d3034994",
+      "rootServiceName": "frontend-web",
+      "rootTraceName": "HTTP GET",
+      "startTimeUnixNano": "1789665322501000000",
+      "durationMs": 125,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "f229d6315b0c615a",
+            "startTimeUnixNano": "1789665322518776386",
+            "durationNanos": "1075600",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/ListProducts"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "09a3fd4b2365e101",
+            "startTimeUnixNano": "1789665322531986579",
+            "durationNanos": "5067025",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "45cec0b0431d6c3d",
+            "startTimeUnixNano": "1789665322531508192",
+            "durationNanos": "6077883",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 5
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "f229d6315b0c615a",
+              "startTimeUnixNano": "1789665322518776386",
+              "durationNanos": "1075600",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/ListProducts"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "09a3fd4b2365e101",
+              "startTimeUnixNano": "1789665322531986579",
+              "durationNanos": "5067025",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "45cec0b0431d6c3d",
+              "startTimeUnixNano": "1789665322531508192",
+              "durationNanos": "6077883",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 5
+        }
+      ],
+      "serviceStats": {
+        "frontend-web": {
+          "spanCount": 1
+        },
+        "product-catalog": {
+          "spanCount": 10
+        }
+      }
+    },
+    {
+      "traceID": "5463582f8354c5b0536ad13b52ff0558",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665319560740242",
+      "durationMs": 2,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "5817697ae2e9ff42",
+            "startTimeUnixNano": "1789665319560740242",
+            "durationNanos": "2273840",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "5817697ae2e9ff42",
+              "startTimeUnixNano": "1789665319560740242",
+              "durationNanos": "2273840",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "product-catalog": {
+          "spanCount": 2
+        }
+      }
+    },
+    {
+      "traceID": "8ab579e5681a58e388a62712379ce0d0",
+      "rootServiceName": "cart",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665280513040300",
+      "durationMs": 2,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "2b6b2b4713a1ca76",
+            "startTimeUnixNano": "1789665280513040300",
+            "durationNanos": "2518600",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "ResolveBoolean"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "2b6b2b4713a1ca76",
+              "startTimeUnixNano": "1789665280513040300",
+              "durationNanos": "2518600",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "ResolveBoolean"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 2
+        }
+      }
+    },
+    {
+      "traceID": "db471f4669bba7270b6272568e6f8535",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665279525264660",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "d0cea974dccd58a5",
+            "startTimeUnixNano": "1789665279525264660",
+            "durationNanos": "162972",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "ResolveBoolean"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "d0cea974dccd58a5",
+              "startTimeUnixNano": "1789665279525264660",
+              "durationNanos": "162972",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "ResolveBoolean"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "4bcba241f5dc5bc374d0c3e7f38ec8cf",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665278996268050",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "2ef59ab2b25ea89f",
+            "startTimeUnixNano": "1789665278996268050",
+            "durationNanos": "113497",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "ResolveBoolean"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "2ef59ab2b25ea89f",
+              "startTimeUnixNano": "1789665278996268050",
+              "durationNanos": "113497",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "ResolveBoolean"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "dc404924eb941980df70da7f5ea0cd96",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665277592479681",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "15a93e4f6a204a74",
+            "startTimeUnixNano": "1789665277592479681",
+            "durationNanos": "112028",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "ResolveBoolean"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "15a93e4f6a204a74",
+              "startTimeUnixNano": "1789665277592479681",
+              "durationNanos": "112028",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "ResolveBoolean"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "4886b61de78805b92584bf2f024b4d2c",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665277592407640",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "5edcfba93fdab612",
+            "startTimeUnixNano": "1789665277592407640",
+            "durationNanos": "122282",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "ResolveBoolean"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "5edcfba93fdab612",
+              "startTimeUnixNano": "1789665277592407640",
+              "durationNanos": "122282",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "ResolveBoolean"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "80ddb56177bd2f4b6a0a4d66c4fb0487",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665277591329551",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "fde2f94b2d54f00d",
+            "startTimeUnixNano": "1789665277591329551",
+            "durationNanos": "121035",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "ResolveBoolean"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "fde2f94b2d54f00d",
+              "startTimeUnixNano": "1789665277591329551",
+              "durationNanos": "121035",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "ResolveBoolean"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "c78c403b4e40b602bf3166f26e6c8258",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665271834142014",
+      "durationMs": 3,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "66f722d775e94502",
+            "startTimeUnixNano": "1789665271834142014",
+            "durationNanos": "3445142",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "66f722d775e94502",
+              "startTimeUnixNano": "1789665271834142014",
+              "durationNanos": "3445142",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "oteldemo.ProductCatalogService/GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "product-catalog": {
+          "spanCount": 2
+        }
+      }
+    },
+    {
+      "traceID": "3fc7794942b6760ee4d2d700a8ecda9d",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665252259000000",
+      "durationMs": 24,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "c6412e8ffa0776c6",
+            "startTimeUnixNano": "1789665252261000000",
+            "durationNanos": "5444710",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "GetProduct"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "c054984398b35f9e",
+            "startTimeUnixNano": "1789665252274000000",
+            "durationNanos": "5841109",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "AddItem"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "99537b8359e5aab0",
+            "startTimeUnixNano": "1789665252280000000",
+            "durationNanos": "2806826",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "GetCart"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 3
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "c6412e8ffa0776c6",
+              "startTimeUnixNano": "1789665252261000000",
+              "durationNanos": "5444710",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetProduct"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "c054984398b35f9e",
+              "startTimeUnixNano": "1789665252274000000",
+              "durationNanos": "5841109",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "AddItem"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "99537b8359e5aab0",
+              "startTimeUnixNano": "1789665252280000000",
+              "durationNanos": "2806826",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetCart"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 3
+        }
+      ],
+      "serviceStats": {
+        "frontend": {
+          "spanCount": 9
+        }
+      }
+    },
+    {
+      "traceID": "3453a9df57b3ad8fc278d7686d26be7a",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_browse_product",
+      "startTimeUnixNano": "1789665251618112807",
+      "durationMs": 10,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "9f909955a81ec4cd",
+            "startTimeUnixNano": "1789665251621000000",
+            "durationNanos": "5826909",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "9f909955a81ec4cd",
+              "startTimeUnixNano": "1789665251621000000",
+              "durationNanos": "5826909",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "frontend": {
+          "spanCount": 4
+        },
+        "frontend-proxy": {
+          "spanCount": 2
+        },
+        "load-generator": {
+          "spanCount": 1
+        }
+      }
+    },
+    {
+      "traceID": "a31ca9dc9854b03b17876fd2a4931b7c",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_checkout_single",
+      "startTimeUnixNano": "1789665249434134695",
+      "durationMs": 84,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "a3a560a14a531516",
+            "startTimeUnixNano": "1789665249438000000",
+            "durationNanos": "5277952",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "GetProduct"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "779889f57cf8a318",
+            "startTimeUnixNano": "1789665249451000000",
+            "durationNanos": "5723316",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "AddItem"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "f84385e6c50aa283",
+            "startTimeUnixNano": "1789665249457000000",
+            "durationNanos": "2840465",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "GetCart"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 7
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "a3a560a14a531516",
+              "startTimeUnixNano": "1789665249438000000",
+              "durationNanos": "5277952",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetProduct"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "779889f57cf8a318",
+              "startTimeUnixNano": "1789665249451000000",
+              "durationNanos": "5723316",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "AddItem"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "f84385e6c50aa283",
+              "startTimeUnixNano": "1789665249457000000",
+              "durationNanos": "2840465",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetCart"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 7
+        }
+      ],
+      "serviceStats": {
+        "currency": {
+          "spanCount": 2
+        },
+        "frontend": {
+          "spanCount": 14
+        },
+        "frontend-proxy": {
+          "spanCount": 1
+        },
+        "load-generator": {
+          "spanCount": 2
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "34357ca96addb3b5cefb99c68812b355",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_get_ads",
+      "startTimeUnixNano": "1789665248628313188",
+      "durationMs": 21,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "5c300bf7abd7452c",
+            "startTimeUnixNano": "1789665248634000000",
+            "durationNanos": "13913457",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "GetAds"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "5c300bf7abd7452c",
+              "startTimeUnixNano": "1789665248634000000",
+              "durationNanos": "13913457",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetAds"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "frontend": {
+          "spanCount": 5
+        },
+        "frontend-proxy": {
+          "spanCount": 1
+        },
+        "load-generator": {
+          "spanCount": 1
+        }
+      }
+    },
+    {
+      "traceID": "f915c4480c7d79d030bff572e2e9372",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_browse_product",
+      "startTimeUnixNano": "1789665248477026468",
+      "durationMs": 9,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "ba5ff5acd27fbcd1",
+            "startTimeUnixNano": "1789665248481000000",
+            "durationNanos": "4206605",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "ba5ff5acd27fbcd1",
+              "startTimeUnixNano": "1789665248481000000",
+              "durationNanos": "4206605",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "frontend": {
+          "spanCount": 4
+        },
+        "frontend-proxy": {
+          "spanCount": 2
+        },
+        "load-generator": {
+          "spanCount": 1
+        }
+      }
+    },
+    {
+      "traceID": "c767b32d516ef2a58323191f1c2c1187",
+      "rootServiceName": "load-generator",
+      "rootTraceName": "user_browse_product",
+      "startTimeUnixNano": "1789665247436976134",
+      "durationMs": 8,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "88229ad72d91ee70",
+            "startTimeUnixNano": "1789665247440000000",
+            "durationNanos": "4412212",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "GetProduct"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "88229ad72d91ee70",
+              "startTimeUnixNano": "1789665247440000000",
+              "durationNanos": "4412212",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "GetProduct"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "frontend": {
+          "spanCount": 4
+        },
+        "frontend-proxy": {
+          "spanCount": 2
+        },
+        "load-generator": {
+          "spanCount": 1
+        }
+      }
+    },
+    {
+      "traceID": "5c72b2b177873db1f607f76d2493ffa5",
+      "rootServiceName": "cart",
+      "rootTraceName": "flagd.evaluation.v2.Service/EventStream",
+      "startTimeUnixNano": "1789665101764359400",
+      "durationMs": 14,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "a7ce49f6af573d88",
+            "startTimeUnixNano": "1789665101764359400",
+            "durationNanos": "14840900",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "EventStream"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "a7ce49f6af573d88",
+              "startTimeUnixNano": "1789665101764359400",
+              "durationNanos": "14840900",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "EventStream"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 2,
+          "errorCount": 2
+        }
+      }
+    },
+    {
+      "traceID": "a276460a3542beb6bfe893d58b92665a",
+      "rootServiceName": "cart",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665100586195700",
+      "durationMs": 10,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "42cb54bebe793819",
+            "startTimeUnixNano": "1789665100586195700",
+            "durationNanos": "10786600",
+            "attributes": [
+              {
+                "key": "rpc.method",
+                "value": {
+                  "stringValue": "ResolveBoolean"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "42cb54bebe793819",
+              "startTimeUnixNano": "1789665100586195700",
+              "durationNanos": "10786600",
+              "attributes": [
+                {
+                  "key": "rpc.method",
+                  "value": {
+                    "stringValue": "ResolveBoolean"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "cart": {
+          "spanCount": 2,
+          "errorCount": 2
+        }
+      }
+    }
+  ],
+  "metrics": {
+    "inspectedBytes": "294765",
+    "completedJobs": 3,
+    "totalJobs": 3
+  }
+}

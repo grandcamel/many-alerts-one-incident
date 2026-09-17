@@ -1,0 +1,10 @@
+=== Run-shaped query latency through the Grafana proxy, 5 attempts each ===
+  prometheus range 15m/30s     HTTP 200  median   171 ms   max   190 ms   [159, 170, 172, 175, 191]
+  prometheus instant           HTTP 200  median   176 ms   max   207 ms   [161, 177, 208, 172, 184]
+  loki query_range 15m         HTTP 200  median   251 ms   max   308 ms   [229, 259, 238, 308, 251]
+  loki label values            HTTP 200  median   172 ms   max   191 ms   [172, 191, 165, 163, 177]
+  tempo search 15m             HTTP 200  median   324 ms   max   362 ms   [363, 304, 325, 297, 344]
+  tempo tags                   HTTP 200  median   718 ms   max   809 ms   [701, 810, 718, 709, 729]
+  grafana health               HTTP 200  median   148 ms   max   173 ms   [149, 174, 136, 145, 159]
+
+# artifact: capture/09-query-latency.json (measured during the paymentUnreachable window)

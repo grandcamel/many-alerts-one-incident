@@ -1,0 +1,19 @@
+[
+  "accounting",
+  "ad",
+  "cart",
+  "checkout",
+  "currency",
+  "email",
+  "fraud-detection",
+  "frontend-proxy",
+  "kafka",
+  "load-generator",
+  "otelcol-contrib",
+  "payment",
+  "product-catalog",
+  "quote",
+  "recommendation",
+  "shipping",
+  "unknown_service"
+]

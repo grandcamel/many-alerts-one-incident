@@ -1,0 +1,33 @@
+=== does checkout's error span-metric exist under the Fault? [1m] vs [5m] ===
+  [1m  ] -> EMPTY SERIES
+  [2m  ] -> 0.13333/s
+  [5m  ] -> 0.17500/s
+  [10m ] -> 0.13704/s
+
+=== the real ratios under the Fault, [5m] ===
+  checkout ratio, ticket 10 verbatim (all span kinds)  0.2079
+  checkout ratio, SERVER only (the span_kind fix)      1.0000
+
+=== blast radius: error rate by service, [5m] ===
+   frontend             0.35000/s
+   frontend-proxy       0.18333/s
+   checkout             0.17500/s
+   flagd                0.01131/s
+   fraud-detection      0.00417/s
+   recommendation       0.00417/s
+   ad                   0.00417/s
+   payment              0.00417/s
+   cart                 0.00000/s
+   accounting           0.00000/s
+
+=== payment traffic, [5m] — is it EXACTLY zero as ticket 10 says? ===
+  [5m] payment -> 0.00417/s
+  [10m] payment -> 0.00185/s
+     shipping           0.26667/s
+     fraud-detection    0.00417/s
+     payment            0.00417/s
+     email              0.00000/s
+     accounting         0.00000/s
+
+=== checkout memory now (2.2 Mi of headroom at baseline) ===
+   checkout-77f464555c-f67td  18.0 Mi

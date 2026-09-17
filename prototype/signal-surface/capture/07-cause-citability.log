@@ -1,0 +1,51 @@
+=== is a Fault's cause citable at THIS venue? (map standing fact says no) ===
+  prometheus feature_flag metrics: ['feature_flag_evaluation_active_count', 'feature_flag_evaluation_error_total', 'feature_flag_evaluation_requests_total', 'feature_flag_evaluation_success_total']
+  ... but key label present: False ; only services: ['cart']
+  tempo {event.feature_flag.key="paymentUnreachable"}      20 traces (expected >0)
+  tempo {event.feature_flag.key="cartFailure"}             20 traces (expected >0)
+  tempo {event.feature_flag.key="emailMemoryLeak"}         0 traces (expected ?)
+  tempo {event.feature_flag.key="thisFlagDoesNotEx"}       0 traces (expected 0)
+  flagd's own logs in Loki: 0 lines
+
+=== authoritative flags-off baseline, ~20 min of load ===
+service                   all/s    error/s     server/s    srv_err/s
+frontend                13.3204     0.0000       7.3042       0.0000
+frontend-proxy          12.6458     0.0000       6.5375       0.0000
+flagd                    9.9750     0.0000       6.4875       0.0000
+product-catalog          5.3000     0.0000       2.7625       0.0000
+frontend-web             4.5581     0.0000       0.0000       0.0000
+cart                     2.6583     0.0000       1.0000       0.0000
+load-generator           2.1000     0.0000       0.0000       0.0000
+image-provider           1.3542     0.0000       1.2958       0.0000
+recommendation           1.0625     0.0000       0.3667       0.0000
+checkout                 0.8500     0.0000       0.0667       0.0000
+ad                       0.4791     0.0000       0.2625       0.0000
+currency                 0.4083     0.0000       0.4458       0.0000
+quote                    0.3250     0.0000       0.1083       0.0000
+shipping                 0.2792     0.0000       0.1750       0.0000
+email                    0.2500     0.0000       0.0667       0.0000
+accounting               0.1750     0.0000       0.0000       0.0000
+fraud-detection          0.1250     0.0000       0.0000       0.0000
+payment                  0.1167     0.0000       0.0667       0.0000
+
+  cart_http_by_route:
+     {"http_route": "/oteldemo.CartService/EmptyCart"}        0.0667
+     {"http_route": "/oteldemo.CartService/GetCart"}          0.6917
+     {"http_route": "/oteldemo.CartService/AddItem"}          0.2417
+
+  cart_p95:
+     {}                                                       0.0073
+
+  checkout_mem:
+     {"k8s_pod_name": "checkout-77f464555c-f67td"}            18628608.0000  (17.8 Mi)
+
+  email_mem:
+     {"k8s_pod_name": "email-b498b7dc6-xkgsn"}                54251520.0000  (51.7 Mi)
+
+  email_limit:
+     {"k8s_pod_name": "email-b498b7dc6-xkgsn"}                104857600.0000  (100.0 Mi)
+
+  checkout_limit:
+     {"k8s_pod_name": "checkout-77f464555c-f67td"}            20971520.0000  (20.0 Mi)
+
+# artifacts: capture/07-cause-citability.json, capture/05-baseline-authoritative.json

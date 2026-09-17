@@ -1,0 +1,182 @@
+# ticket 27, items 1-6, venue-wide sweep
+# utc: 2026-09-17T17:15:20Z
+# datasources: {"loki": "loki", "prometheus": "prometheus", "grafana-pyroscope-datasource": "pyroscope", "pyroscope": "pyroscope", "tempo": "tempo"}
+
+========================================================================
+ITEM 1 — does any application log reach this venue's Loki?
+========================================================================
+17 service_name values in Loki:
+    accounting
+    ad
+    cart
+    checkout
+    currency
+    email
+    fraud-detection
+    frontend-proxy
+    kafka
+    load-generator
+    otelcol-contrib
+    payment
+    product-catalog
+    quote
+    recommendation
+    shipping
+    unknown_service
+
+ticket 10's services PRESENT (14): accounting, ad, cart, checkout, currency, email, fraud-detection, frontend-proxy, load-generator, payment, product-catalog, quote, recommendation, shipping
+ticket 10's services ABSENT  (3): flagd, frontend, image-provider
+
+all Loki stream labels (8): k8s_container_name, k8s_deployment_name, k8s_namespace_name, k8s_pod_name, k8s_replicaset_name, service_instance_id, service_name, service_namespace
+
+sample lines from {service_name="checkout"}: 3
+    1789665287709236092 Successful to write message. offset: 0, duration: 266.444µs
+    1789665287708529841 sending to postProcessor
+    1789665287708519121 order confirmation email sent
+
+========================================================================
+ITEM 2 — which service_namespace do application streams carry?
+========================================================================
+service_namespace values: kube-system, opentelemetry-demo, otel-demo
+  {service_namespace="opentelemetry-demo"} -> 5 streams
+  {service_namespace="otel-demo"} -> 5 streams
+  checkout stream labels: {"detected_level": "INFO", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_deployment_name": "checkout", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "checkout-77f464555c-f67td", "k8s_pod_start_time": "2026-09-17T17:11:11Z", "k8s_pod_uid": "9c25b2ee-402a-4700-8208-1b67d150e105", "k8s_replicaset_name": "checkout-77f464555c", "k8s_replicaset_uid": "32517699-17f8-4ada-9b35-24b3f2398629", "observed_timestamp": "1789665287709239644", "os_type": "linux", "scope_name": "checkout", "service_criticality": "critical", "service_instance_id": "9c25b2ee-402a-4700-8208-1b67d150e105", "service_name": "checkout", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_number": "9", "severity_text": "INFO", "telemetry_sdk_language": "go", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.44.0"}
+
+========================================================================
+ITEM 3 — enumerate the metric names
+========================================================================
+585 metric names (full list: capture/03-prom-metric-names.txt)
+
+the five ticket 10 rests on:
+  traces_span_metrics_calls_total                      CONFIRMED
+  traces_span_metrics_duration_milliseconds_bucket     CONFIRMED
+  container_memory_working_set_bytes                   CONFIRMED
+  k8s_container_restarts                               CONFIRMED
+  rpc_server_call_duration_seconds_count               CONFIRMED
+
+  traces_span* (9): traces_span_metrics_calls_total, traces_span_metrics_duration_milliseconds_bucket, traces_span_metrics_duration_milliseconds_count, traces_span_metrics_duration_milliseconds_sum, traces_spanmetrics_calls_total, traces_spanmetrics_latency_bucket, traces_spanmetrics_latency_count, traces_spanmetrics_latency_sum, traces_spanmetrics_size_total
+
+  rpc_server* (12): rpc_server_call_duration_seconds_bucket, rpc_server_call_duration_seconds_count, rpc_server_call_duration_seconds_sum, rpc_server_duration_milliseconds_bucket, rpc_server_duration_milliseconds_count, rpc_server_duration_milliseconds_sum, rpc_server_request_size_bytes_bucket, rpc_server_request_size_bytes_count, rpc_server_request_size_bytes_sum, rpc_server_response_size_bytes_bucket, rpc_server_response_size_bytes_count, rpc_server_response_size_bytes_sum
+
+  container_memory* (6): container_memory_available_bytes, container_memory_major_page_faults_ratio, container_memory_page_faults_ratio, container_memory_rss_bytes, container_memory_usage_bytes, container_memory_working_set_bytes
+
+  k8s_container* (6): k8s_container_cpu_limit, k8s_container_cpu_request, k8s_container_memory_limit_bytes, k8s_container_memory_request_bytes, k8s_container_ready, k8s_container_restarts
+
+  http_server* (13): http_server_active_requests, http_server_duration_milliseconds_bucket, http_server_duration_milliseconds_count, http_server_duration_milliseconds_sum, http_server_request_body_size_bytes_bucket, http_server_request_body_size_bytes_count, http_server_request_body_size_bytes_sum, http_server_request_duration_seconds_bucket, http_server_request_duration_seconds_count, http_server_request_duration_seconds_sum, http_server_response_body_size_bytes_bucket, http_server_response_body_size_bytes_count
+
+  kube_* (0): 
+
+========================================================================
+ITEM 4 — query Tempo once, at all
+========================================================================
+tags endpoint: HTTP 200 in 278 ms
+  scope event        16 tags: demo.payment.transaction.id, demo.shipping.cost.total, demo.shipping.quote.cost.total, demo.shipping.tracking.id, exception.message, exception.stacktrace, exception.type, feature_flag.context.id, feature_flag.key, feature_flag.provider.name
+  scope resource     44 tags: browser.language, container.id, container.image.name, container.image.tag, host.arch, host.name, k8s.cluster.uid, k8s.container.name, k8s.deployment.name, k8s.namespace.name
+  scope intrinsic    20 tags: duration, event:name, event:timeSinceStart, instrumentation:name, instrumentation:version, kind, name, rootName, rootServiceName, span:duration
+  scope span         155 tags: canceled, category, client.address, code.file.path, code.function, code.function.name, code.line.number, code.namespace, component, db.namespace
+
+  {resource.service.name="checkout"}                       HTTP 200  14 traces  193 ms
+
+  {resource.service.name="checkout" && status=error}       HTTP 200  0 traces  175 ms
+
+  {event:name!=""}                                         HTTP 200  20 traces  176 ms
+
+  {span.rpc.method!=""}                                    HTTP 200  20 traces  200 ms
+
+========================================================================
+ITEM 5 — flags-off baseline
+========================================================================
+
+  all — 18 series
+     frontend               9.0170/s
+     frontend-proxy         8.5855/s
+     flagd                  7.2778/s
+     product-catalog        3.5950/s
+     frontend-web           2.9385/s
+     cart                   1.8114/s
+     load-generator         1.6330/s
+     image-provider         0.8364/s
+     checkout               0.7855/s
+     recommendation         0.6977/s
+     ad                     0.3669/s
+     currency               0.3096/s
+     quote                  0.2495/s
+     email                  0.2403/s
+     shipping               0.2264/s
+     accounting             0.1941/s
+     payment                0.1386/s
+     fraud-detection        0.1294/s
+
+  error — 4 series
+     frontend-proxy         0.0694/s
+     cart                   0.0370/s
+     frontend               0.0324/s
+     accounting             0.0046/s
+
+  server_all — 14 series
+     frontend               4.7736/s
+     flagd                  4.5598/s
+     frontend-proxy         4.3005/s
+     product-catalog        1.8008/s
+     image-provider         0.8379/s
+     cart                   0.6249/s
+     currency               0.3102/s
+     recommendation         0.2315/s
+     ad                     0.1944/s
+     shipping               0.1435/s
+     quote                  0.0833/s
+     checkout               0.0602/s
+     email                  0.0602/s
+     payment                0.0602/s
+
+  server_error — 2 series
+     frontend-proxy         0.0649/s
+     frontend               0.0093/s
+
+  steady-state SERVER error ratio per service:
+     frontend-proxy         0.0151
+     frontend               0.0019
+     checkout               0.0000
+     shipping               0.0000
+     recommendation         0.0000
+     flagd                  0.0000
+     quote                  0.0000
+     email                  0.0000
+     product-catalog        0.0000
+     cart                   0.0000
+     image-provider         0.0000
+     currency               0.0000
+     ad                     0.0000
+     payment                0.0000
+
+  sum by (service_name) (rate(http_server_request_duration_seconds_count[5m])) -> 4 series
+     {"service_name": "otelcol-contrib"}      2.7907
+     {"service_name": "shipping"}             0.1320
+     {"service_name": "cart"}                 0.6107
+     {"service_name": "ad"}                   0.0648
+
+  sum by (http_route) (rate(http_server_request_duration_seconds_count{service_name="cart"}[5m])) -> 3 series
+     {"http_route": "/oteldemo.CartService/EmptyCart"} 0.0585
+     {"http_route": "/oteldemo.CartService/GetCart"} 0.4088
+     {"http_route": "/oteldemo.CartService/AddItem"} 0.1439
+
+========================================================================
+ITEM 6 — do span metrics carry span_kind?
+========================================================================
+span_kind label values on traces_span_metrics_calls_total: SPAN_KIND_CLIENT, SPAN_KIND_CONSUMER, SPAN_KIND_INTERNAL, SPAN_KIND_PRODUCER, SPAN_KIND_SERVER
+
+  checkout totals by span_kind:
+     SPAN_KIND_SERVER             13.0
+     SPAN_KIND_PRODUCER           13.0
+     SPAN_KIND_INTERNAL           13.0
+     SPAN_KIND_CLIENT             131.0
+  dimension service_name             18 values
+  dimension status_code              3 values  STATUS_CODE_ERROR, STATUS_CODE_OK, STATUS_CODE_UNSET
+  dimension span_kind                5 values  SPAN_KIND_CLIENT, SPAN_KIND_CONSUMER, SPAN_KIND_INTERNAL, SPAN_KIND_PRODUCER
+  dimension span_name                116 values
+  dimension collector_instance_id    1 values  eb641f6b-eeb6-4af0-85c0-750bbe8b9325
+  dimension service_namespace        1 values  opentelemetry-demo
+  dimension http_route               0 values
+
+
+# items 1-6 complete; raw artifacts in capture/

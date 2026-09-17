@@ -1,0 +1,49 @@
+{
+  "baseline": {
+    "frontend": 13.320439777777779,
+    "checkout": 0.85,
+    "shipping": 0.2791666666666667,
+    "recommendation": 1.0625,
+    "frontend-web": 4.5581455,
+    "cart": 2.658333333333333,
+    "flagd": 9.975,
+    "frontend-proxy": 12.645833333333334,
+    "load-generator": 2.0999686944444447,
+    "quote": 0.325,
+    "fraud-detection": 0.125,
+    "payment": 0.11666666666666667,
+    "email": 0.25,
+    "product-catalog": 5.3,
+    "image-provider": 1.3541666666666667,
+    "accounting": 0.175,
+    "ad": 0.4791465416666667,
+    "currency": 0.4083333333333333
+  },
+  "fault": {
+    "frontend": 14.329166666666666,
+    "checkout": 0.8416666666666666,
+    "shipping": 0.26666666666666666,
+    "recommendation": 1.0541666666666667,
+    "frontend-web": 4.75,
+    "cart": 2.8,
+    "flagd": 9.573695555555554,
+    "frontend-proxy": 13.745833333333334,
+    "load-generator": 2.191666666666667,
+    "quote": 0.4,
+    "fraud-detection": 0.004166666666666667,
+    "payment": 0.004166666666666667,
+    "email": 0.0,
+    "product-catalog": 5.266666666666667,
+    "image-provider": 1.4,
+    "accounting": 0.0,
+    "ad": 0.5291666666666667,
+    "currency": 0.5166666666666667
+  },
+  "absent": [
+    "email",
+    "accounting",
+    "fraud-detection",
+    "payment"
+  ],
+  "reduced": []
+}

@@ -1,0 +1,86 @@
+{
+  "prometheus range 15m/30s": {
+    "code": 200,
+    "ms": [
+      159,
+      170,
+      172,
+      175,
+      191
+    ],
+    "median": 172,
+    "max": 191
+  },
+  "prometheus instant": {
+    "code": 200,
+    "ms": [
+      161,
+      177,
+      208,
+      172,
+      184
+    ],
+    "median": 177,
+    "max": 208
+  },
+  "loki query_range 15m": {
+    "code": 200,
+    "ms": [
+      229,
+      259,
+      238,
+      308,
+      251
+    ],
+    "median": 251,
+    "max": 308
+  },
+  "loki label values": {
+    "code": 200,
+    "ms": [
+      172,
+      191,
+      165,
+      163,
+      177
+    ],
+    "median": 172,
+    "max": 191
+  },
+  "tempo search 15m": {
+    "code": 200,
+    "ms": [
+      363,
+      304,
+      325,
+      297,
+      344
+    ],
+    "median": 325,
+    "max": 363
+  },
+  "tempo tags": {
+    "code": 200,
+    "ms": [
+      701,
+      810,
+      718,
+      709,
+      729
+    ],
+    "median": 718,
+    "max": 810
+  },
+  "grafana health": {
+    "code": 200,
+    "ms": [
+      149,
+      174,
+      136,
+      145,
+      159
+    ],
+    "median": 149,
+    "max": 174
+  }
+}

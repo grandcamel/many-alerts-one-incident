@@ -1,0 +1,851 @@
+{
+  "prom": {
+    "checkout error ratio, ticket 10 verbatim (no span_kind)": {
+      "query": "sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\"}[5m]))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 0.22727272727272727
+        }
+      ]
+    },
+    "checkout error ratio, SERVER spans only (the span_kind fix)": {
+      "query": "sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\",span_kind=\"SPAN_KIND_SERVER\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\",span_kind=\"SPAN_KIND_SERVER\"}[5m]))",
+      "series": 1,
+      "values": [
+        {
+          "labels": {},
+          "value": 1.0
+        }
+      ]
+    },
+    "error ratio by service, the instantiation that makes the Cascade": {
+      "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum by (service_name) (rate(traces_span_metrics_calls_total[5m]))",
+      "series": 10,
+      "values": [
+        {
+          "labels": {
+            "service_name": "frontend"
+          },
+          "value": 0.01594472495349455
+        },
+        {
+          "labels": {
+            "service_name": "cart"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "frontend-proxy"
+          },
+          "value": 0.007049345417925478
+        },
+        {
+          "labels": {
+            "service_name": "accounting"
+          },
+          "value": NaN
+        },
+        {
+          "labels": {
+            "service_name": "checkout"
+          },
+          "value": 0.22727272727272727
+        },
+        {
+          "labels": {
+            "service_name": "fraud-detection"
+          },
+          "value": NaN
+        },
+        {
+          "labels": {
+            "service_name": "recommendation"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "ad"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "payment"
+          },
+          "value": NaN
+        },
+        {
+          "labels": {
+            "service_name": "flagd"
+          },
+          "value": 0.0
+        }
+      ]
+    },
+    "payment traffic (ticket 10 says EXACTLY zero)": {
+      "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{service_name=~\"payment|email|accounting|fraud-detection|shipping\"}[5m]))",
+      "series": 5,
+      "values": [
+        {
+          "labels": {
+            "service_name": "shipping"
+          },
+          "value": 0.25
+        },
+        {
+          "labels": {
+            "service_name": "fraud-detection"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "payment"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "email"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "accounting"
+          },
+          "value": 0.0
+        }
+      ]
+    },
+    "every service's call rate, to see the blast radius": {
+      "query": "sum by (service_name) (rate(traces_span_metrics_calls_total[5m]))",
+      "series": 18,
+      "values": [
+        {
+          "labels": {
+            "service_name": "frontend"
+          },
+          "value": 15.679166666666667
+        },
+        {
+          "labels": {
+            "service_name": "checkout"
+          },
+          "value": 0.55
+        },
+        {
+          "labels": {
+            "service_name": "shipping"
+          },
+          "value": 0.25
+        },
+        {
+          "labels": {
+            "service_name": "recommendation"
+          },
+          "value": 1.2874999999999999
+        },
+        {
+          "labels": {
+            "service_name": "frontend-web"
+          },
+          "value": 6.2125
+        },
+        {
+          "labels": {
+            "service_name": "cart"
+          },
+          "value": 2.3666666666666667
+        },
+        {
+          "labels": {
+            "service_name": "flagd"
+          },
+          "value": 10.8
+        },
+        {
+          "labels": {
+            "service_name": "frontend-proxy"
+          },
+          "value": 16.55
+        },
+        {
+          "labels": {
+            "service_name": "load-generator"
+          },
+          "value": 2.283333333333333
+        },
+        {
+          "labels": {
+            "service_name": "quote"
+          },
+          "value": 0.375
+        },
+        {
+          "labels": {
+            "service_name": "fraud-detection"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "payment"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "email"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "product-catalog"
+          },
+          "value": 6.091666666666667
+        },
+        {
+          "labels": {
+            "service_name": "image-provider"
+          },
+          "value": 1.9041666666666666
+        },
+        {
+          "labels": {
+            "service_name": "accounting"
+          },
+          "value": 0.0
+        },
+        {
+          "labels": {
+            "service_name": "ad"
+          },
+          "value": 0.6125
+        },
+        {
+          "labels": {
+            "service_name": "currency"
+          },
+          "value": 0.4125
+        }
+      ]
+    }
+  },
+  "tempo": {
+    "checkout Charge spans, errored": {
+      "query": "{resource.service.name=\"checkout\" && span.rpc.method=\"oteldemo.PaymentService/Charge\" && status=error}",
+      "code": 200,
+      "traces": 20,
+      "ms": 266,
+      "first_trace_events": [
+        {
+          "span": "executing api route (pages) /api/checkout",
+          "name": "exception",
+          "attrs": {
+            "exception.type": "13",
+            "exception.message": "13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses",
+            "exception.stacktrace": "Error: 13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses\n    at callErrorFromStatus (/app/node_modules/@grpc/grpc-js/build/src/call.js:32:19)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client.js:193:76)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:367:141)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)\n    at /app/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)\nfor call at\n    at ServiceClientImpl.makeUnaryRequest (/app/node_modules/@grpc/grpc-js/build/src/client.js:161:32)\n    at ServiceClientImpl.<anonymous> (/app/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)\n    at /app/node_modules/@opentelemetry/instrumentation-grpc/build/src/clientUtils.js:119:31\n    at /app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:204:209\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)\n    at AsyncLocalStorageContextManager.with (/app/node_modules/@opentelemetry/context-async-hooks/build/src/AsyncLocalStorageContextManager.js:22:40)\n    at ContextAPI.with (/app/node_modules/@opentelemetry/api/build/src/api/context.js:51:46)\n    at ServiceClientImpl.clientMethodTrace [as placeOrder] (/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:204:42)\n    at /app/.next/server/chunks/[root-of-the-server]__009k40p._.js:1:1906\n    at new Promise (<anonymous>)"
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "POST /oteldemo.CartService/GetCart",
+          "name": "Fetch cart",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HMSET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "EXPIRE",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Enqueued",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "Sent",
+          "attrs": {}
+        },
+        {
+          "span": "HGET",
+          "name": "ResponseReceived",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "prepared",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "paymentUnreachable",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": true,
+            "feature_flag.result.variant": "on",
+            "feature_flag.result.reason": "cached",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "exception",
+          "attrs": {
+            "exception.type": "*errors.errorString",
+            "exception.message": "could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses"
+          }
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "POST /get-quote",
+          "name": "shipping.quote.received",
+          "attrs": {
+            "demo.shipping.cost.total": "89.90"
+          }
+        },
+        {
+          "span": "{closure}",
+          "name": "Received get quote request, processing it",
+          "attrs": {}
+        },
+        {
+          "span": "{closure}",
+          "name": "Quote processed, response sent back",
+          "attrs": {
+            "demo.shipping.quote.cost.total": 89.9
+          }
+        },
+        {
+          "span": "calculate-quote",
+          "name": "Calculating quote",
+          "attrs": {}
+        },
+        {
+          "span": "calculate-quote",
+          "name": "Quote calculated, returning its value",
+          "attrs": {}
+        }
+      ],
+      "trace_ids": [
+        "39c8bf5edce6d1a7ff5733f1551fc293",
+        "158285699cc77e5e268b5fc5299f779e",
+        "78b759157a4675d54e2e2b43dbc4f40",
+        "2770350b1e2ba71a41911b0c94b9d736",
+        "546eac839cd207421b83200886d44f49"
+      ]
+    },
+    "checkout errored spans, any method": {
+      "query": "{resource.service.name=\"checkout\" && status=error}",
+      "code": 200,
+      "traces": 20,
+      "ms": 331,
+      "first_trace_events": [
+        {
+          "span": "executing api route (pages) /api/checkout",
+          "name": "exception",
+          "attrs": {
+            "exception.type": "13",
+            "exception.message": "13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses",
+            "exception.stacktrace": "Error: 13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses\n    at callErrorFromStatus (/app/node_modules/@grpc/grpc-js/build/src/call.js:32:19)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client.js:193:76)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:367:141)\n    at Object.onReceiveStatus (/app/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)\n    at /app/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)\nfor call at\n    at ServiceClientImpl.makeUnaryRequest (/app/node_modules/@grpc/grpc-js/build/src/client.js:161:32)\n    at ServiceClientImpl.<anonymous> (/app/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)\n    at /app/node_modules/@opentelemetry/instrumentation-grpc/build/src/clientUtils.js:119:31\n    at /app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:204:209\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)\n    at AsyncLocalStorageContextManager.with (/app/node_modules/@opentelemetry/context-async-hooks/build/src/AsyncLocalStorageContextManager.js:22:40)\n    at ContextAPI.with (/app/node_modules/@opentelemetry/api/build/src/api/context.js:51:46)\n    at ServiceClientImpl.clientMethodTrace [as placeOrder] (/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:204:42)\n    at /app/.next/server/chunks/[root-of-the-server]__009k40p._.js:1:1906\n    at new Promise (<anonymous>)"
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "productCatalogFailure",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": false,
+            "feature_flag.result.variant": "off",
+            "feature_flag.result.reason": "targeting_match",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.ProductCatalogService/GetProduct",
+          "name": "Product Found",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "prepared",
+          "attrs": {}
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "feature_flag.evaluation",
+          "attrs": {
+            "feature_flag.key": "paymentUnreachable",
+            "feature_flag.provider.name": "flagd",
+            "feature_flag.result.value": true,
+            "feature_flag.result.variant": "on",
+            "feature_flag.result.reason": "cached",
+            "feature_flag.context.id": ""
+          }
+        },
+        {
+          "span": "oteldemo.CheckoutService/PlaceOrder",
+          "name": "exception",
+          "attrs": {
+            "exception.type": "*errors.errorString",
+            "exception.message": "could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses"
+          }
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Processing currency conversion request",
+          "attrs": {}
+        },
+        {
+          "span": "Currency/Convert",
+          "name": "Conversion successful, response sent back",
+          "attrs": {}
+        },
+        {
+          "span": "POST /get-quote",
+          "name": "shipping.quote.received",
+          "attrs": {
+            "demo.shipping.cost.total": "161.82"
+          }
+        }
+      ],
+      "trace_ids": [
+        "c6e0937d18680d62a4df81e005c636e3",
+        "3fede2a0bde71bdf8f4c8c064c850b9b",
+        "eec66ae47cefc7e859efe68632a5644c",
+        "a3586f7149501eb6c9d1dab0c5b7d221",
+        "a232e2991f8091985c049332a739049f"
+      ]
+    }
+  },
+  "loki": {
+    "checkout logs at all": {
+      "query": "{service_name=\"checkout\"}",
+      "lines": 3,
+      "sample": [
+        {
+          "ts": "1789666642404489542",
+          "line": "[PlaceOrder]",
+          "stream": {
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-77f464555c-f67td",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "9c25b2ee-402a-4700-8208-1b67d150e105",
+            "k8s_replicaset_name": "checkout-77f464555c",
+            "k8s_replicaset_uid": "32517699-17f8-4ada-9b35-24b3f2398629",
+            "observed_timestamp": "1789666642404514068",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "9c25b2ee-402a-4700-8208-1b67d150e105",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "span_id": "8a6ddd861401aca0",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0",
+            "trace_id": "c6e0937d18680d62a4df81e005c636e3",
+            "user_currency": "USD",
+            "user_id": "3a22a8be-8550-4b1c-a233-819a565c4cc4"
+          }
+        },
+        {
+          "ts": "1789666634921016540",
+          "line": "[PlaceOrder]",
+          "stream": {
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-77f464555c-f67td",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "9c25b2ee-402a-4700-8208-1b67d150e105",
+            "k8s_replicaset_name": "checkout-77f464555c",
+            "k8s_replicaset_uid": "32517699-17f8-4ada-9b35-24b3f2398629",
+            "observed_timestamp": "1789666634921038853",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "9c25b2ee-402a-4700-8208-1b67d150e105",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "span_id": "41dead986cbbe5f6",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0",
+            "trace_id": "3fede2a0bde71bdf8f4c8c064c850b9b",
+            "user_currency": "USD",
+            "user_id": "4386ad5e-bbec-489f-8233-cc164feda268"
+          }
+        },
+        {
+          "ts": "1789666618054956963",
+          "line": "[PlaceOrder]",
+          "stream": {
+            "detected_level": "INFO",
+            "flags": "1",
+            "host_name": "otel-collector-78cd45cc87-5zxnj",
+            "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3",
+            "k8s_deployment_name": "checkout",
+            "k8s_namespace_name": "otel-demo",
+            "k8s_node_name": "pool-3y39ax",
+            "k8s_pod_name": "checkout-77f464555c-f67td",
+            "k8s_pod_start_time": "2026-09-17T17:11:11Z",
+            "k8s_pod_uid": "9c25b2ee-402a-4700-8208-1b67d150e105",
+            "k8s_replicaset_name": "checkout-77f464555c",
+            "k8s_replicaset_uid": "32517699-17f8-4ada-9b35-24b3f2398629",
+            "observed_timestamp": "1789666618054976032",
+            "os_type": "linux",
+            "scope_name": "checkout",
+            "service_criticality": "critical",
+            "service_instance_id": "9c25b2ee-402a-4700-8208-1b67d150e105",
+            "service_name": "checkout",
+            "service_namespace": "opentelemetry-demo",
+            "service_version": "3.0.0",
+            "severity_number": "9",
+            "severity_text": "INFO",
+            "span_id": "6226de62af2d1451",
+            "telemetry_sdk_language": "go",
+            "telemetry_sdk_name": "opentelemetry",
+            "telemetry_sdk_version": "1.44.0",
+            "trace_id": "eec66ae47cefc7e859efe68632a5644c",
+            "user_currency": "USD",
+            "user_id": "757198db-c1e2-40ec-b809-2a771d863e78"
+          }
+        }
+      ]
+    },
+    "checkout logs mentioning the failure": {
+      "query": "{service_name=\"checkout\"} |~ \"(?i)charge|payment|unavailable|rpc error\"",
+      "lines": 0,
+      "sample": []
+    },
+    "payment logs at all": {
+      "query": "{service_name=\"payment\"}",
+      "lines": 0,
+      "sample": []
+    }
+  },
+  "kubectl": {
+    "checkout": [
+      {
+        "pod": "checkout-77f464555c-f67td",
+        "container": "checkout",
+        "restarts": 0,
+        "ready": true,
+        "lastState_terminated": null
+      }
+    ]
+  },
+  "k8s_events": {
+    "checkout": [
+      {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "message": "Successfully assigned otel-demo/checkout-77f464555c-f67td to pool-3y39ax",
+        "count": null,
+        "lastTimestamp": null
+      },
+      {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "message": "Created pod: checkout-77f464555c-f67td",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:11Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "ScalingReplicaSet",
+        "message": "Scaled up replica set checkout-77f464555c from 0 to 1",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:11Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulling",
+        "message": "Pulling image \"busybox:latest\"",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:13Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Successfully pulled image \"busybox:latest\" in 3.857s (3.857s including waiting). Image size: 2236931 bytes.",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:17Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:18Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:11:18Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulling",
+        "message": "Pulling image \"ghcr.io/open-telemetry/demo:3.0.0-checkout\"",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:12:06Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Started",
+        "message": "Container started",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:12:09Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Pulled",
+        "message": "Successfully pulled image \"ghcr.io/open-telemetry/demo:3.0.0-checkout\" in 3.071s (3.071s including waiting). Image size: 14427744 bytes.",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:12:09Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Created",
+        "message": "Container created",
+        "count": 1,
+        "lastTimestamp": "2026-09-17T17:12:09Z"
+      }
+    ]
+  },
+  "_meta": {
+    "fault": "paymentUnreachable",
+    "label": "end",
+    "span_metric": "traces_span_metrics_calls_total",
+    "utc": "2026-09-17T17:37:27Z"
+  }
+}

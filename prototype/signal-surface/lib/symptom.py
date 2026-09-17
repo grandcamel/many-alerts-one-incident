@@ -32,10 +32,17 @@ def prom_sum(q):
     return sum(v for _, v in rows if v is not None) if rows else 0.0
 
 
-def span_rate(svc, error=False, window="1m"):
+def span_rate(svc, error=False, window="5m"):
     sel = 'service_name="%s"' % svc
     if error:
         sel += ',status_code="STATUS_CODE_ERROR"'
+    # MEASURED, not assumed: the collector pushes these metrics every 60 s, so a
+    # rate() over [30s] or [1m] has fewer than two samples and returns NO SERIES.
+    # `or vector(0)` then turns that emptiness into a confident 0 — which is
+    # indistinguishable from the Fault, and is why this harness's own first
+    # "payment traffic to zero" fired 7 s after injection, before the Fault could
+    # possibly have acted. [2m] is the minimum that produces a value; ticket 10
+    # wrote [5m] and [5m] is correct.
     return prom_sum("sum(rate(%s{%s}[%s])) or vector(0)" % (SPAN, sel, window))
 
 

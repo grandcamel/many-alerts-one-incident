@@ -1,0 +1,529 @@
+
+=== FAULT WINDOW: paymentUnreachable -> on for 12 min; watching checkout payment email ===
+utc: 2026-09-17T17:19:04Z
+
+=== pre-flip baseline for checkout payment email (60 s) ===
+# podwatch paymentUnreachable-baseline: checkout,payment,email for 60s every 20s -> capture/podwatch-paymentUnreachable-baseline.jsonl
+   t+s  pod                                container     cpu_m   mem_Mi restarts  lastTerminated
+     0  checkout-77f464555c-f67td          checkout        2.0     17.0        0  
+     0  email-b498b7dc6-xkgsn              email           2.0     51.0        0  
+     0  payment-5d6476fcfd-l7c27           payment        15.0     81.0        0  
+    21  checkout-77f464555c-f67td          checkout        3.0     17.0        0  
+    21  email-b498b7dc6-xkgsn              email           5.0     51.0        0  
+    21  payment-5d6476fcfd-l7c27           payment        17.0     80.0        0  
+    42  checkout-77f464555c-f67td          checkout        3.0     17.0        0  
+    42  email-b498b7dc6-xkgsn              email           2.0     51.0        0  
+    42  payment-5d6476fcfd-l7c27           payment        12.0     80.0        0  
+
+# peak memory observed
+   checkout-77f464555c-f67td                checkout   17 Mi
+   email-b498b7dc6-xkgsn                    email      51 Mi
+   payment-5d6476fcfd-l7c27                 payment    81 Mi
+# artifact: capture/podwatch-paymentUnreachable-baseline.jsonl
+
+=== injecting ===
+configmap=flagd-config key=demo.flagd.json resourceVersion(before)=1939
+Warning: resource configmaps/flagd-config is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+paymentUnreachable: off -> on (value=True)
+resourceVersion: 1939 -> 4990 (changed: yes)
+
+=== rollout restart deploy/flagd (the ConfigMap write alone is inert) ===
+deployment.apps/flagd restarted
+Waiting for deployment "flagd" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "flagd" rollout to finish: 1 old replicas are pending termination...
+deployment "flagd" successfully rolled out
+
+=== flagd's own copy, after the rollout ===
+  paymentUnreachable
+    defaultVariant: on
+    variants: {"off": false, "on": true}
+    state: ENABLED
+in-pod defaultVariant for paymentUnreachable: on  (wanted: on)
+VERIFIED: flagd holds the new variant
+
+injection -> flagd ready: 5s (ConfigMap 1s + rollout 4s)
+timing artifact: capture/timing-paymentUnreachable-on.json
+
+NOTE: flagd holding the variant is NOT the caller holding it. The .NET and Go
+      providers' reconnect after a flagd rollout has never been verified here.
+      Confirm one real symptom (./symptom.sh) before starting any clock.
+
+=== item 13 — confirm one real symptom before trusting any clock ===
+# item 13 — symptom watch for paymentUnreachable
+# t0 = 2026-09-17T17:20:07Z (injection start)
+# polling every 15s for up to 720s, across all four signal classes
+
+   t+s  class        check                                                            value
+     7  metrics      checkout error span-metric                                       0.0000/s
+     7  metrics      payment traffic to zero                                          0.0000/s   <-- FIRST
+     7  traces       errored checkout trace                                           0 traces
+     7  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+    23  metrics      checkout error span-metric                                       0.0000/s
+    23  metrics      payment traffic to zero                                          0.0000/s
+    23  traces       errored checkout trace                                           0 traces
+    23  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+    39  metrics      checkout error span-metric                                       0.0000/s
+    39  metrics      payment traffic to zero                                          0.0000/s
+    39  traces       errored checkout trace                                           1 traces   <-- FIRST
+    39  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+    55  metrics      checkout error span-metric                                       0.0000/s
+    55  metrics      payment traffic to zero                                          0.0000/s
+    55  traces       errored checkout trace                                           2 traces
+    55  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+    70  metrics      checkout error span-metric                                       0.0000/s
+    70  metrics      payment traffic to zero                                          0.0000/s
+    70  traces       errored checkout trace                                           3 traces
+    70  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+    86  metrics      checkout error span-metric                                       0.0000/s
+    86  metrics      payment traffic to zero                                          0.0000/s
+    86  traces       errored checkout trace                                           4 traces
+    86  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   102  metrics      checkout error span-metric                                       0.0000/s
+   102  metrics      payment traffic to zero                                          0.0000/s
+   102  traces       errored checkout trace                                           4 traces
+   102  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   117  metrics      checkout error span-metric                                       0.0000/s
+   117  metrics      payment traffic to zero                                          0.0000/s
+   117  traces       errored checkout trace                                           4 traces
+   117  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   133  metrics      checkout error span-metric                                       0.0000/s
+   133  metrics      payment traffic to zero                                          0.0000/s
+   133  traces       errored checkout trace                                           4 traces
+   133  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   149  metrics      checkout error span-metric                                       0.0000/s
+   149  metrics      payment traffic to zero                                          0.0000/s
+   149  traces       errored checkout trace                                           5 traces
+   149  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   165  metrics      checkout error span-metric                                       0.0000/s
+   165  metrics      payment traffic to zero                                          0.0000/s
+   165  traces       errored checkout trace                                           6 traces
+   165  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   180  metrics      checkout error span-metric                                       0.0000/s
+   180  metrics      payment traffic to zero                                          0.0000/s
+   180  traces       errored checkout trace                                           8 traces
+   180  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   196  metrics      checkout error span-metric                                       0.0000/s
+   196  metrics      payment traffic to zero                                          0.0000/s
+   196  traces       errored checkout trace                                           10 traces
+   196  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   212  metrics      checkout error span-metric                                       0.0000/s
+   212  metrics      payment traffic to zero                                          0.0000/s
+   212  traces       errored checkout trace                                           11 traces
+   212  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   228  metrics      checkout error span-metric                                       0.0000/s
+   228  metrics      payment traffic to zero                                          0.0000/s
+   228  traces       errored checkout trace                                           12 traces
+   228  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   243  metrics      checkout error span-metric                                       0.0000/s
+   243  metrics      payment traffic to zero                                          0.0000/s
+   243  traces       errored checkout trace                                           12 traces
+   243  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   259  metrics      checkout error span-metric                                       0.0000/s
+   259  metrics      payment traffic to zero                                          0.0000/s
+   259  traces       errored checkout trace                                           13 traces
+   259  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   275  metrics      checkout error span-metric                                       0.0000/s
+   275  metrics      payment traffic to zero                                          0.0000/s
+   275  traces       errored checkout trace                                           14 traces
+   275  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   291  metrics      checkout error span-metric                                       0.0000/s
+   291  metrics      payment traffic to zero                                          0.0000/s
+   291  traces       errored checkout trace                                           17 traces
+   291  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   306  metrics      checkout error span-metric                                       0.0000/s
+   306  metrics      payment traffic to zero                                          0.0000/s
+   306  traces       errored checkout trace                                           17 traces
+   306  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   322  metrics      checkout error span-metric                                       0.0000/s
+   322  metrics      payment traffic to zero                                          0.0000/s
+   322  traces       errored checkout trace                                           17 traces
+   322  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   338  metrics      checkout error span-metric                                       0.0000/s
+   338  metrics      payment traffic to zero                                          0.0000/s
+   338  traces       errored checkout trace                                           16 traces
+   338  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   353  metrics      checkout error span-metric                                       0.0000/s
+   353  metrics      payment traffic to zero                                          0.0000/s
+   353  traces       errored checkout trace                                           15 traces
+   353  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   369  metrics      checkout error span-metric                                       0.0000/s
+   369  metrics      payment traffic to zero                                          0.0000/s
+   369  traces       errored checkout trace                                           14 traces
+   369  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   385  metrics      checkout error span-metric                                       0.0000/s
+   385  metrics      payment traffic to zero                                          0.0000/s
+   385  traces       errored checkout trace                                           13 traces
+   385  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   401  metrics      checkout error span-metric                                       0.0000/s
+   401  metrics      payment traffic to zero                                          0.0000/s
+   401  traces       errored checkout trace                                           14 traces
+   401  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   416  metrics      checkout error span-metric                                       0.0000/s
+   416  metrics      payment traffic to zero                                          0.0000/s
+   416  traces       errored checkout trace                                           14 traces
+   416  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   432  metrics      checkout error span-metric                                       0.0000/s
+   432  metrics      payment traffic to zero                                          0.0000/s
+   432  traces       errored checkout trace                                           16 traces
+   432  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   448  metrics      checkout error span-metric                                       0.0000/s
+   448  metrics      payment traffic to zero                                          0.0000/s
+   448  traces       errored checkout trace                                           17 traces
+   448  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   464  metrics      checkout error span-metric                                       0.0000/s
+   464  metrics      payment traffic to zero                                          0.0000/s
+   464  traces       errored checkout trace                                           17 traces
+   464  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   479  metrics      checkout error span-metric                                       0.0000/s
+   479  metrics      payment traffic to zero                                          0.0000/s
+   479  traces       errored checkout trace                                           15 traces
+   479  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   495  metrics      checkout error span-metric                                       0.0000/s
+   495  metrics      payment traffic to zero                                          0.0000/s
+   495  traces       errored checkout trace                                           15 traces
+   495  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   511  metrics      checkout error span-metric                                       0.0000/s
+   511  metrics      payment traffic to zero                                          0.0000/s
+   511  traces       errored checkout trace                                           15 traces
+   511  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   526  metrics      checkout error span-metric                                       0.0000/s
+   526  metrics      payment traffic to zero                                          0.0000/s
+   526  traces       errored checkout trace                                           15 traces
+   526  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   542  metrics      checkout error span-metric                                       0.0000/s
+   542  metrics      payment traffic to zero                                          0.0000/s
+   542  traces       errored checkout trace                                           17 traces
+   542  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   558  metrics      checkout error span-metric                                       0.0000/s
+   558  metrics      payment traffic to zero                                          0.0000/s
+   558  traces       errored checkout trace                                           17 traces
+   558  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   574  metrics      checkout error span-metric                                       0.0000/s
+   574  metrics      payment traffic to zero                                          0.0000/s
+   574  traces       errored checkout trace                                           17 traces
+   574  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   589  metrics      checkout error span-metric                                       0.0000/s
+   589  metrics      payment traffic to zero                                          0.0000/s
+   589  traces       errored checkout trace                                           17 traces
+   589  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   605  metrics      checkout error span-metric                                       0.0000/s
+   605  metrics      payment traffic to zero                                          0.0000/s
+   605  traces       errored checkout trace                                           18 traces
+   605  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   621  metrics      checkout error span-metric                                       0.0000/s
+   621  metrics      payment traffic to zero                                          0.0000/s
+   621  traces       errored checkout trace                                           19 traces
+   621  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   637  metrics      checkout error span-metric                                       0.0000/s
+   637  metrics      payment traffic to zero                                          0.0000/s
+   637  traces       errored checkout trace                                           20 traces
+   637  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   652  metrics      checkout error span-metric                                       0.0000/s
+   652  metrics      payment traffic to zero                                          0.0000/s
+   652  traces       errored checkout trace                                           20 traces
+   652  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   668  metrics      checkout error span-metric                                       0.0000/s
+   668  metrics      payment traffic to zero                                          0.0000/s
+   668  traces       errored checkout trace                                           20 traces
+   668  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   684  metrics      checkout error span-metric                                       0.0000/s
+   684  metrics      payment traffic to zero                                          0.0000/s
+   684  traces       errored checkout trace                                           20 traces
+   684  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   700  metrics      checkout error span-metric                                       0.0000/s
+   700  metrics      payment traffic to zero                                          0.0000/s
+   700  traces       errored checkout trace                                           20 traces
+   700  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+   716  metrics      checkout error span-metric                                       0.0000/s
+   716  metrics      payment traffic to zero                                          0.0000/s
+   716  traces       errored checkout trace                                           20 traces
+   716  logs         checkout log line (expected ZERO: ticket 10 read all 34 logger c 0 lines
+
+
+# first symptom per check:
+   t+7    s  metrics      payment traffic to zero  (0.0000/s)
+   t+39   s  traces       errored checkout trace  (1 traces)
+
+# NEVER FIRED within the window:
+   checkout error span-metric
+   checkout log line (expected ZERO: ticket 10 read all 34 logger calls)
+
+# artifact: capture/symptom-paymentUnreachable.json
+
+=== letting the [5m] rate windows fill before probing ===
+
+=== items 9 to 12 — ticket 10's queries, run against the live Fault ===
+========================================================================
+FAULT PROBE — paymentUnreachable (on)
+utc: 2026-09-17T17:37:19Z   span metric: traces_span_metrics_calls_total
+========================================================================
+
+### alertable condition 1 — checkout error ratio
+
+  checkout error ratio, ticket 10 verbatim (no span_kind)
+    sum(rate(traces_span_metrics_calls_total{service_name="checkout",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="checkout"}[5m]))
+    -> {}                                 0.22727
+
+  checkout error ratio, SERVER spans only (the span_kind fix)
+    sum(rate(traces_span_metrics_calls_total{service_name="checkout",span_kind="SPAN_KIND_SERVER",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="checkout",span_kind="SPAN_KIND_SERVER"}[5m]))
+    -> {}                                 1.00000
+
+  error ratio by service, the instantiation that makes the Cascade
+    sum by (service_name) (rate(traces_span_metrics_calls_total{status_code="STATUS_CODE_ERROR"}[5m])) / sum by (service_name) (rate(traces_span_metrics_calls_total[5m]))
+    -> checkout                           0.22727
+    -> frontend                           0.01594
+    -> frontend-proxy                     0.00705
+    -> cart                               0.00000
+    -> accounting                         nan
+    -> fraud-detection                    nan
+    -> recommendation                     0.00000
+    -> ad                                 0.00000
+    -> payment                            nan
+    -> flagd                              0.00000
+
+### alertable condition 2 — service traffic absent
+
+  payment traffic (ticket 10 says EXACTLY zero)
+    sum by (service_name) (rate(traces_span_metrics_calls_total{service_name=~"payment|email|accounting|fraud-detection|shipping"}[5m]))
+    -> shipping                           0.25000
+    -> fraud-detection                    0.00000
+    -> payment                            0.00000
+    -> email                              0.00000
+    -> accounting                         0.00000
+
+  every service's call rate, to see the blast radius
+    sum by (service_name) (rate(traces_span_metrics_calls_total[5m]))
+    -> frontend-proxy                     16.55000
+    -> frontend                           15.67917
+    -> flagd                              10.80000
+    -> frontend-web                       6.21250
+    -> product-catalog                    6.09167
+    -> cart                               2.36667
+    -> load-generator                     2.28333
+    -> image-provider                     1.90417
+    -> recommendation                     1.28750
+    -> ad                                 0.61250
+    -> checkout                           0.55000
+    -> currency                           0.41250
+
+### diagnostic path
+
+  checkout Charge spans, errored
+    {resource.service.name="checkout" && span.rpc.method="oteldemo.PaymentService/Charge" && status=error}
+    -> HTTP 200  20 trace(s)  393 ms
+       trace 8d89d3ae0d2ed10652917f993422ca58: 34 span event(s) captured
+         [executing api route (pages) /api/checkout] exception  {'exception.type': '13', 'exception.message': '13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses', 'excep
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [POST /oteldemo.CartService/GetCart] Fetch cart  {}
+
+  checkout errored spans, any method
+    {resource.service.name="checkout" && status=error}
+    -> HTTP 200  20 trace(s)  298 ms
+       trace 2770350b1e2ba71a41911b0c94b9d736: 34 span event(s) captured
+         [executing api route (pages) /api/checkout] exception  {'exception.type': '13', 'exception.message': '13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses', 'excep
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [POST /oteldemo.CartService/GetCart] Fetch cart  {}
+
+### the logs column ticket 10 calls a proven zero
+
+  checkout logs at all
+    {service_name="checkout"}
+    -> 3 line(s)
+       [PlaceOrder]
+       [PlaceOrder]
+       [PlaceOrder]
+       stream labels: {"detected_level": "INFO", "flags": "1", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_deployment_name": "checkout", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "checkout-77f464555c-f67td", "k8s_pod_start_time": "2026-09-17T17:11:11Z", "k8s_pod_uid": "9c25b2ee-402a-4700-8208-1b67d150e105", "k8s_replicaset_name": "checkout-77f464555c", "k8s_replicaset_uid": "32517699-17f8-4ada-9b35-24b3f2398629", "observed_timestamp": "1789666634921038853", "os_type": "linux", "scope_name": "checkout", "service_criticality": "critical", "service_instance_id": "9c25b2ee-402a-4700-8208-1b67d150e105", "service_name": "checkout", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_number": "9", "severity_text": "INFO", "span_id": "41dead986cbbe5f6", "telemetry_sdk_language": "go", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.44.0", "trace_id": "3fede2a0bde71bdf8f4c8c064c850b9b", "user_currency": "USD", "user_id": "4386ad5e-bbec-489f-8233-cc164feda268"}
+
+  checkout logs mentioning the failure
+    {service_name="checkout"} |~ "(?i)charge|payment|unavailable|rpc error"
+    -> 0 line(s)   EMPTY
+
+  payment logs at all
+    {service_name="payment"}
+    -> 0 line(s)   EMPTY
+
+### stage hazard — checkout's own memory
+
+  Kubernetes-side evidence for checkout
+    checkout-77f464555c-f67td/checkout restarts=0 ready=True lastState.terminated=(none)
+    11 Kubernetes Event(s) naming checkout*:
+      Normal     SuccessfulCreate       Created pod: checkout-77f464555c-f67td
+      Normal     ScalingReplicaSet      Scaled up replica set checkout-77f464555c from 0 to 1
+      Normal     Pulling                Pulling image "busybox:latest"
+      Normal     Pulled                 Successfully pulled image "busybox:latest" in 3.857s (3.857s including waiting). Image size: 2236931 bytes.
+      Normal     Started                Container started
+      Normal     Created                Container created
+      Normal     Pulling                Pulling image "ghcr.io/open-telemetry/demo:3.0.0-checkout"
+      Normal     Started                Container started
+      Normal     Pulled                 Successfully pulled image "ghcr.io/open-telemetry/demo:3.0.0-checkout" in 3.071s (3.071s including waiting). I
+      Normal     Created                Container created
+
+# artifact: capture/faultprobe-paymentUnreachable-on.json
+
+=== waiting out the rest of the window ===
+
+=== end-of-window state ===
+========================================================================
+FAULT PROBE — paymentUnreachable (end)
+utc: 2026-09-17T17:37:23Z   span metric: traces_span_metrics_calls_total
+========================================================================
+
+### alertable condition 1 — checkout error ratio
+
+  checkout error ratio, ticket 10 verbatim (no span_kind)
+    sum(rate(traces_span_metrics_calls_total{service_name="checkout",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="checkout"}[5m]))
+    -> {}                                 0.22727
+
+  checkout error ratio, SERVER spans only (the span_kind fix)
+    sum(rate(traces_span_metrics_calls_total{service_name="checkout",span_kind="SPAN_KIND_SERVER",status_code="STATUS_CODE_ERROR"}[5m])) / sum(rate(traces_span_metrics_calls_total{service_name="checkout",span_kind="SPAN_KIND_SERVER"}[5m]))
+    -> {}                                 1.00000
+
+  error ratio by service, the instantiation that makes the Cascade
+    sum by (service_name) (rate(traces_span_metrics_calls_total{status_code="STATUS_CODE_ERROR"}[5m])) / sum by (service_name) (rate(traces_span_metrics_calls_total[5m]))
+    -> checkout                           0.22727
+    -> frontend                           0.01594
+    -> frontend-proxy                     0.00705
+    -> cart                               0.00000
+    -> accounting                         nan
+    -> fraud-detection                    nan
+    -> recommendation                     0.00000
+    -> ad                                 0.00000
+    -> payment                            nan
+    -> flagd                              0.00000
+
+### alertable condition 2 — service traffic absent
+
+  payment traffic (ticket 10 says EXACTLY zero)
+    sum by (service_name) (rate(traces_span_metrics_calls_total{service_name=~"payment|email|accounting|fraud-detection|shipping"}[5m]))
+    -> shipping                           0.25000
+    -> fraud-detection                    0.00000
+    -> payment                            0.00000
+    -> email                              0.00000
+    -> accounting                         0.00000
+
+  every service's call rate, to see the blast radius
+    sum by (service_name) (rate(traces_span_metrics_calls_total[5m]))
+    -> frontend-proxy                     16.55000
+    -> frontend                           15.67917
+    -> flagd                              10.80000
+    -> frontend-web                       6.21250
+    -> product-catalog                    6.09167
+    -> cart                               2.36667
+    -> load-generator                     2.28333
+    -> image-provider                     1.90417
+    -> recommendation                     1.28750
+    -> ad                                 0.61250
+    -> checkout                           0.55000
+    -> currency                           0.41250
+
+### diagnostic path
+
+  checkout Charge spans, errored
+    {resource.service.name="checkout" && span.rpc.method="oteldemo.PaymentService/Charge" && status=error}
+    -> HTTP 200  20 trace(s)  266 ms
+       trace 39c8bf5edce6d1a7ff5733f1551fc293: 34 span event(s) captured
+         [executing api route (pages) /api/checkout] exception  {'exception.type': '13', 'exception.message': '13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses', 'excep
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [POST /oteldemo.CartService/GetCart] Fetch cart  {}
+
+  checkout errored spans, any method
+    {resource.service.name="checkout" && status=error}
+    -> HTTP 200  20 trace(s)  331 ms
+       trace c6e0937d18680d62a4df81e005c636e3: 21 span event(s) captured
+         [executing api route (pages) /api/checkout] exception  {'exception.type': '13', 'exception.message': '13 INTERNAL: failed to charge card: could not charge the card: rpc error: code = Unavailable desc = name resolver error: produced zero addresses', 'excep
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+         [oteldemo.ProductCatalogService/GetProduct] Product Found  {}
+         [oteldemo.ProductCatalogService/GetProduct] feature_flag.evaluation  {'feature_flag.key': 'productCatalogFailure', 'feature_flag.provider.name': 'flagd', 'feature_flag.result.value': False, 'feature_flag.result.variant': 'off', 'feature_flag.result.reason': 'targeting_
+
+### the logs column ticket 10 calls a proven zero
+
+  checkout logs at all
+    {service_name="checkout"}
+    -> 3 line(s)
+       [PlaceOrder]
+       [PlaceOrder]
+       [PlaceOrder]
+       stream labels: {"detected_level": "INFO", "flags": "1", "host_name": "otel-collector-78cd45cc87-5zxnj", "k8s_cluster_uid": "a80d9b33-571b-444e-a633-80492ce6d5e3", "k8s_deployment_name": "checkout", "k8s_namespace_name": "otel-demo", "k8s_node_name": "pool-3y39ax", "k8s_pod_name": "checkout-77f464555c-f67td", "k8s_pod_start_time": "2026-09-17T17:11:11Z", "k8s_pod_uid": "9c25b2ee-402a-4700-8208-1b67d150e105", "k8s_replicaset_name": "checkout-77f464555c", "k8s_replicaset_uid": "32517699-17f8-4ada-9b35-24b3f2398629", "observed_timestamp": "1789666642404514068", "os_type": "linux", "scope_name": "checkout", "service_criticality": "critical", "service_instance_id": "9c25b2ee-402a-4700-8208-1b67d150e105", "service_name": "checkout", "service_namespace": "opentelemetry-demo", "service_version": "3.0.0", "severity_number": "9", "severity_text": "INFO", "span_id": "8a6ddd861401aca0", "telemetry_sdk_language": "go", "telemetry_sdk_name": "opentelemetry", "telemetry_sdk_version": "1.44.0", "trace_id": "c6e0937d18680d62a4df81e005c636e3", "user_currency": "USD", "user_id": "3a22a8be-8550-4b1c-a233-819a565c4cc4"}
+
+  checkout logs mentioning the failure
+    {service_name="checkout"} |~ "(?i)charge|payment|unavailable|rpc error"
+    -> 0 line(s)   EMPTY
+
+  payment logs at all
+    {service_name="payment"}
+    -> 0 line(s)   EMPTY
+
+### stage hazard — checkout's own memory
+
+  Kubernetes-side evidence for checkout
+    checkout-77f464555c-f67td/checkout restarts=0 ready=True lastState.terminated=(none)
+    11 Kubernetes Event(s) naming checkout*:
+      Normal     SuccessfulCreate       Created pod: checkout-77f464555c-f67td
+      Normal     ScalingReplicaSet      Scaled up replica set checkout-77f464555c from 0 to 1
+      Normal     Pulling                Pulling image "busybox:latest"
+      Normal     Pulled                 Successfully pulled image "busybox:latest" in 3.857s (3.857s including waiting). Image size: 2236931 bytes.
+      Normal     Started                Container started
+      Normal     Created                Container created
+      Normal     Pulling                Pulling image "ghcr.io/open-telemetry/demo:3.0.0-checkout"
+      Normal     Started                Container started
+      Normal     Pulled                 Successfully pulled image "ghcr.io/open-telemetry/demo:3.0.0-checkout" in 3.071s (3.071s including waiting). I
+      Normal     Created                Container created
+
+# artifact: capture/faultprobe-paymentUnreachable-end.json
+window log: capture/window-paymentUnreachable-on.log

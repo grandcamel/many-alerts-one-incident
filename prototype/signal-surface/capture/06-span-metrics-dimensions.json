@@ -1,0 +1,24 @@
+{
+  "span_kind": [
+    "SPAN_KIND_CLIENT",
+    "SPAN_KIND_CONSUMER",
+    "SPAN_KIND_INTERNAL",
+    "SPAN_KIND_PRODUCER",
+    "SPAN_KIND_SERVER"
+  ],
+  "dims": {
+    "service_name": 18,
+    "status_code": 3,
+    "span_kind": 5,
+    "span_name": 116,
+    "collector_instance_id": 1,
+    "service_namespace": 1,
+    "http_route": 0
+  },
+  "checkout_by_kind": {
+    "SPAN_KIND_SERVER": 13.0,
+    "SPAN_KIND_PRODUCER": 13.0,
+    "SPAN_KIND_INTERNAL": 13.0,
+    "SPAN_KIND_CLIENT": 131.0
+  }
+}

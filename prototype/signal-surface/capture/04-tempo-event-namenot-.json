@@ -1,0 +1,1145 @@
+{
+  "traces": [
+    {
+      "traceID": "7790107ecbf1ce9fe9295535000552a6",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665289720299846",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "80dd43e1f39b43cd",
+            "startTimeUnixNano": "1789665289720299846",
+            "durationNanos": "142490",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "80dd43e1f39b43cd",
+              "startTimeUnixNano": "1789665289720299846",
+              "durationNanos": "142490",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "274b2c576074b3f7ad0cc243ccbee37d",
+      "rootServiceName": "frontend-web",
+      "rootTraceName": "HTTP GET",
+      "startTimeUnixNano": "1789665288030000000",
+      "durationMs": 38,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "85644200b56f81ed",
+            "startTimeUnixNano": "1789665288030000000",
+            "durationNanos": "38000000",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "responseEnd"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "85644200b56f81ed",
+              "startTimeUnixNano": "1789665288030000000",
+              "durationNanos": "38000000",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "responseEnd"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "frontend-web": {
+          "spanCount": 1
+        },
+        "image-provider": {
+          "spanCount": 1
+        }
+      }
+    },
+    {
+      "traceID": "5adec64ad473f9433d844aa2deae34bf",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287988912994",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "9529c364e0206e3d",
+            "startTimeUnixNano": "1789665287988912994",
+            "durationNanos": "134468",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "9529c364e0206e3d",
+              "startTimeUnixNano": "1789665287988912994",
+              "durationNanos": "134468",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "2ad97bad71b7e755d1ef5c291801ecdb",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287986378932",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "b35ac22819fb1889",
+            "startTimeUnixNano": "1789665287986378932",
+            "durationNanos": "316558",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "b35ac22819fb1889",
+              "startTimeUnixNano": "1789665287986378932",
+              "durationNanos": "316558",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "43cf8f70ceaf09e2c88a267ad9d63438",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287985637715",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "ed237601a1e63068",
+            "startTimeUnixNano": "1789665287985637715",
+            "durationNanos": "141993",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "ed237601a1e63068",
+              "startTimeUnixNano": "1789665287985637715",
+              "durationNanos": "141993",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "2bbb756305a4f6a00aa925734f06cb87",
+      "rootServiceName": "frontend-web",
+      "rootTraceName": "HTTP GET",
+      "startTimeUnixNano": "1789665287935000000",
+      "durationMs": 86,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "cb2de5809f18dc41",
+            "startTimeUnixNano": "1789665287973643017",
+            "durationNanos": "6527471",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "feature_flag.evaluation"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "2734bfe56bceb323",
+            "startTimeUnixNano": "1789665287935000000",
+            "durationNanos": "86000000",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "responseEnd"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 2
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "cb2de5809f18dc41",
+              "startTimeUnixNano": "1789665287973643017",
+              "durationNanos": "6527471",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "feature_flag.evaluation"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "2734bfe56bceb323",
+              "startTimeUnixNano": "1789665287935000000",
+              "durationNanos": "86000000",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "responseEnd"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 2
+        }
+      ],
+      "serviceStats": {
+        "frontend-web": {
+          "spanCount": 1
+        },
+        "recommendation": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "6ce448631cf5cc4dada8f194c4d50085",
+      "rootServiceName": "frontend-web",
+      "rootTraceName": "HTTP GET",
+      "startTimeUnixNano": "1789665287926000000",
+      "durationMs": 35,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "394c6c21d348ce82",
+            "startTimeUnixNano": "1789665287926000000",
+            "durationNanos": "35000000",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "responseEnd"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "394c6c21d348ce82",
+              "startTimeUnixNano": "1789665287926000000",
+              "durationNanos": "35000000",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "responseEnd"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "frontend-web": {
+          "spanCount": 1
+        },
+        "image-provider": {
+          "spanCount": 1
+        }
+      }
+    },
+    {
+      "traceID": "7d371cfaf438dde12313582e2c01e937",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287835183430",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "86821ec0e04eabf7",
+            "startTimeUnixNano": "1789665287835183430",
+            "durationNanos": "215465",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "86821ec0e04eabf7",
+              "startTimeUnixNano": "1789665287835183430",
+              "durationNanos": "215465",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "3e722d6ba73b3b39ddb8bfc132faabc9",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287832121700",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "691e9fab32255a0d",
+            "startTimeUnixNano": "1789665287832121700",
+            "durationNanos": "148527",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "691e9fab32255a0d",
+              "startTimeUnixNano": "1789665287832121700",
+              "durationNanos": "148527",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "4bee6f18ee8ca92e370010093db5990c",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287712262768",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "59fed8ac6406de9e",
+            "startTimeUnixNano": "1789665287712262768",
+            "durationNanos": "165238",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "59fed8ac6406de9e",
+              "startTimeUnixNano": "1789665287712262768",
+              "durationNanos": "165238",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "5afceffecf9f10076860f382ee41b278",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287678176684",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "0a2d55a5938a4ddf",
+            "startTimeUnixNano": "1789665287678176684",
+            "durationNanos": "144504",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "0a2d55a5938a4ddf",
+              "startTimeUnixNano": "1789665287678176684",
+              "durationNanos": "144504",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "6a67b469156520d72d6baa8533ba1fe5",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287652557184",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "2fa7cdd20e22a3db",
+            "startTimeUnixNano": "1789665287652557184",
+            "durationNanos": "137177",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "2fa7cdd20e22a3db",
+              "startTimeUnixNano": "1789665287652557184",
+              "durationNanos": "137177",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "d880023ec164e0f27c6dae39c008a4a",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287178951184",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "1fd02d4453ae18cc",
+            "startTimeUnixNano": "1789665287178951184",
+            "durationNanos": "95843",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "1fd02d4453ae18cc",
+              "startTimeUnixNano": "1789665287178951184",
+              "durationNanos": "95843",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "2ffa90aedb75108014473697cb7f62d1",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287178845840",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "9ef902bf931f2eeb",
+            "startTimeUnixNano": "1789665287178845840",
+            "durationNanos": "186976",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "9ef902bf931f2eeb",
+              "startTimeUnixNano": "1789665287178845840",
+              "durationNanos": "186976",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "6a5b81ff8c0bddde39f474cedec19051",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287178836426",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "e2c5a71f3fa7e86b",
+            "startTimeUnixNano": "1789665287178836426",
+            "durationNanos": "140323",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "e2c5a71f3fa7e86b",
+              "startTimeUnixNano": "1789665287178836426",
+              "durationNanos": "140323",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "5117d8c53c09595135753926ea28ede8",
+      "rootServiceName": "flagd",
+      "rootTraceName": "flagd.evaluation.v2.Service/ResolveBoolean",
+      "startTimeUnixNano": "1789665287178836274",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "5cd425234b858587",
+            "startTimeUnixNano": "1789665287178836274",
+            "durationNanos": "147403",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "message"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "5cd425234b858587",
+              "startTimeUnixNano": "1789665287178836274",
+              "durationNanos": "147403",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "message"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "flagd": {
+          "spanCount": 3
+        }
+      }
+    },
+    {
+      "traceID": "1ad5809ae680e28dc1d2988872331f66",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665254752985000",
+      "durationMs": 26,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "315fc3691c581b1f",
+            "startTimeUnixNano": "1789665254763132923",
+            "durationNanos": "5904429",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "shipping.quote.received"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "68542bcf2b304178",
+            "startTimeUnixNano": "1789665254766465436",
+            "durationNanos": "368343",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "Quote processed, response sent back"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "5c9e6df0da0f12dd",
+            "startTimeUnixNano": "1789665254766589614",
+            "durationNanos": "41419",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "Quote calculated, returning its value"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 4
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "315fc3691c581b1f",
+              "startTimeUnixNano": "1789665254763132923",
+              "durationNanos": "5904429",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "shipping.quote.received"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "68542bcf2b304178",
+              "startTimeUnixNano": "1789665254766465436",
+              "durationNanos": "368343",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "Quote processed, response sent back"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "5c9e6df0da0f12dd",
+              "startTimeUnixNano": "1789665254766589614",
+              "durationNanos": "41419",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "Quote calculated, returning its value"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 4
+        }
+      ],
+      "serviceStats": {
+        "currency": {
+          "spanCount": 1
+        },
+        "frontend-proxy": {
+          "spanCount": 1
+        },
+        "quote": {
+          "spanCount": 3
+        },
+        "shipping": {
+          "spanCount": 2
+        }
+      }
+    },
+    {
+      "traceID": "bd06d868d6b593555841ee3e8145c194",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665253492382018",
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "6848fc23ab99cceb",
+            "startTimeUnixNano": "1789665253492382018",
+            "durationNanos": "41807",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "Currencies fetched, response sent back"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "6848fc23ab99cceb",
+              "startTimeUnixNano": "1789665253492382018",
+              "durationNanos": "41807",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "Currencies fetched, response sent back"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "currency": {
+          "spanCount": 1
+        }
+      }
+    },
+    {
+      "traceID": "a58ee19e3a532053f1a42043d01a7e60",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665245156000000",
+      "durationMs": 42,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "f344617e4f7d15bb",
+            "startTimeUnixNano": "1789665245184116279",
+            "durationNanos": "158195",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "Conversion successful, response sent back"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "cb605ca3a458dbc3",
+            "startTimeUnixNano": "1789665245190104106",
+            "durationNanos": "153073",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "Conversion successful, response sent back"
+                }
+              }
+            ]
+          },
+          {
+            "spanID": "d6ceb19847b10cf5",
+            "startTimeUnixNano": "1789665245190266684",
+            "durationNanos": "394959",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "Conversion successful, response sent back"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 4
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "f344617e4f7d15bb",
+              "startTimeUnixNano": "1789665245184116279",
+              "durationNanos": "158195",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "Conversion successful, response sent back"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "cb605ca3a458dbc3",
+              "startTimeUnixNano": "1789665245190104106",
+              "durationNanos": "153073",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "Conversion successful, response sent back"
+                  }
+                }
+              ]
+            },
+            {
+              "spanID": "d6ceb19847b10cf5",
+              "startTimeUnixNano": "1789665245190266684",
+              "durationNanos": "394959",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "Conversion successful, response sent back"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 4
+        }
+      ],
+      "serviceStats": {
+        "currency": {
+          "spanCount": 4
+        },
+        "frontend": {
+          "spanCount": 12
+        }
+      }
+    },
+    {
+      "traceID": "f457a348b1282cfa001755422fde9f5",
+      "rootServiceName": "<root span not yet received>",
+      "startTimeUnixNano": "1789665245041000000",
+      "durationMs": 16,
+      "spanSet": {
+        "spans": [
+          {
+            "spanID": "5f1f0d7aa52a7fa8",
+            "startTimeUnixNano": "1789665245051981857",
+            "durationNanos": "43115",
+            "attributes": [
+              {
+                "key": "event:name",
+                "value": {
+                  "stringValue": "Currencies fetched, response sent back"
+                }
+              }
+            ]
+          }
+        ],
+        "matched": 1
+      },
+      "spanSets": [
+        {
+          "spans": [
+            {
+              "spanID": "5f1f0d7aa52a7fa8",
+              "startTimeUnixNano": "1789665245051981857",
+              "durationNanos": "43115",
+              "attributes": [
+                {
+                  "key": "event:name",
+                  "value": {
+                    "stringValue": "Currencies fetched, response sent back"
+                  }
+                }
+              ]
+            }
+          ],
+          "matched": 1
+        }
+      ],
+      "serviceStats": {
+        "currency": {
+          "spanCount": 1
+        },
+        "frontend": {
+          "spanCount": 4
+        }
+      }
+    }
+  ],
+  "metrics": {
+    "inspectedBytes": "92031",
+    "completedJobs": 3,
+    "totalJobs": 3
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "utc": "2026-09-17T17:18:35Z",
+  "prom_feature_flag_metrics": [
+    "feature_flag_evaluation_active_count",
+    "feature_flag_evaluation_error_total",
+    "feature_flag_evaluation_requests_total",
+    "feature_flag_evaluation_success_total"
+  ],
+  "prom_feature_flag_has_key_label": false,
+  "prom_feature_flag_services": [
+    "cart"
+  ],
+  "tempo_discrimination": {
+    "{event.feature_flag.key=\"paymentUnreachable\"}": 20,
+    "{event.feature_flag.key=\"cartFailure\"}": 20,
+    "{event.feature_flag.key=\"emailMemoryLeak\"}": 0,
+    "{event.feature_flag.key=\"thisFlagDoesNotEx\"}": 0
+  },
+  "flagd_own_logs_in_loki": 0,
+  "verdict": "the flag KEY and resolved VARIANT are retrievable from Tempo span events (feature_flag.evaluation), not from Prometheus (no key label, cart only) and not from Loki (flagd's stdout never arrives)"
+}

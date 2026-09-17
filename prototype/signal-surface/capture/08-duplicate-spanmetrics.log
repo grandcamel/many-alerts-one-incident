@@ -1,0 +1,18 @@
+=== TWO span-metrics families exist. Which is which, and do they agree? ===
+
+  traces_span_metrics_calls_total
+    services: 18  ['accounting', 'ad', 'cart', 'checkout', 'currency', 'email', 'flagd', 'fraud-detection']
+    span_kind: ['SPAN_KIND_CLIENT', 'SPAN_KIND_CONSUMER', 'SPAN_KIND_INTERNAL', 'SPAN_KIND_PRODUCER', 'SPAN_KIND_SERVER']
+    status_code: ['STATUS_CODE_ERROR', 'STATUS_CODE_OK', 'STATUS_CODE_UNSET']
+    job: ['accounting', 'cart', 'opentelemetry-demo/ad']
+    total series by service: 18
+
+  traces_spanmetrics_calls_total
+    services: 0  []
+    span_kind: ['SPAN_KIND_CLIENT', 'SPAN_KIND_CONSUMER', 'SPAN_KIND_INTERNAL', 'SPAN_KIND_PRODUCER', 'SPAN_KIND_SERVER']
+    status_code: ['STATUS_CODE_OK', 'STATUS_CODE_UNSET']
+    job: ABSENT
+    total series by service: 1
+
+  => the collector's span_metrics CONNECTOR vs LGTM's own metrics-generator.
+     A rule written on the wrong one gets different labels and different values.

@@ -1,0 +1,19 @@
+=== why did 'payment traffic to zero' read 0.0000/s BEFORE the fault could act? ===
+
+-- raw counter samples for payment, last 15 min (step 30s) --
+   18 points; first=[1789665164, '0'] last=[1789665674, '70']
+   sample spacing (s): [30, 30, 30, 30, 30, 30]
+
+-- the SCRAPE interval: distinct timestamps in a 5m raw window --
+   series: 6
+
+-- does a [1m] rate window produce a value at all? --
+   [30s ] bare -> EMPTY                    with `or vector(0)` -> [0.0]
+   [1m  ] bare -> EMPTY                    with `or vector(0)` -> [0.0]
+   [2m  ] bare -> 1 series, [0.03333]      with `or vector(0)` -> [0.03333]
+   [5m  ] bare -> 1 series, [0.13333]      with `or vector(0)` -> [0.13333]
+   [10m ] bare -> 1 series, [0.12608]      with `or vector(0)` -> [0.12612]
+
+=> An absence rule written on a SHORT window is empty at steady state, and
+   `or vector(0)` converts that emptiness into a confident 0 — which is
+   indistinguishable from the Fault. The rule fires when nothing is wrong.
