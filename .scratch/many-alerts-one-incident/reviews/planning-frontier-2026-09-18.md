@@ -30,3 +30,7 @@ Full Stage B remains separately gated by model/CLI verification, mediated Anthro
 ## Subsequent authorized local measurement
 
 The user authorized local Stage A after this preparation snapshot. [The verdict](ticket-19/stage-a-verdict.md) now records 31 supported fixture assertions at prototype commit `5f90bfb`; model/container/tenant/venue gates remain NOT RUN. Ticket19 remains claimed and all blocker edges above are unchanged.
+
+## Subsequent Stage B measurements — 2026-09-18
+
+Three bounded model attempts ran under separately recorded authorizations (see ticket 19): attempt 1 (mechanics supported; usability inconclusive from fixture discovery denials), an interrupted launch (infrastructure containment failure, fixed; spend pending daily feed), and attempt 3 against a permissive-read fixture (mechanics supported; Q1/Q2/Q4 supported; Q3 refuted by a named selector gap under stricter-than-real fixture semantics). Combined diagnostics spend ≈ $1.7–1.9 of $30. These samples inform but do not settle ticket 12's Eyes selection: ticket 19 stays claimed, ticket 12 stays blocked, and every blocker edge above remains intact.
