@@ -1,0 +1,159 @@
+Usage of /tmp/maoi-mcp-client/mcp-grafana:
+  -address string
+    	The host and port to start the sse server on (default "localhost:8000")
+  -allowed-hosts string
+    	Comma-separated allowlist of Host header values for the HTTP/SSE transports. Defaults to loopback variants of --address. Use "*" to disable Host validation (only safe behind a trusted reverse proxy that validates Host).
+  -allowed-origins string
+    	Comma-separated allowlist of Origin header values for the HTTP/SSE transports. Empty (the default) rejects any request that carries an Origin header — appropriate for non-browser MCP clients. Use "*" to disable validation.
+  -base-path string
+    	Base path for the sse server
+  -debug
+    	Enable debug mode for the Grafana transport
+  -disable-admin
+    	Disable admin tools
+  -disable-agento11y
+    	Disable Agent Observability tools
+  -disable-alerting
+    	Disable alerting tools
+  -disable-annotations
+    	Disable annotation tools
+  -disable-api
+    	Disable API tools
+  -disable-asserts
+    	Disable asserts tools
+  -disable-assistant
+    	Disable Grafana Assistant tools
+  -disable-athena
+    	Deprecated: use --disable-sql instead
+  -disable-clickhouse
+    	Deprecated: use --disable-sql instead
+  -disable-cloudwatch
+    	Disable CloudWatch tools
+  -disable-config
+    	Disable config-generation tools
+  -disable-dashboard
+    	Disable dashboard tools
+  -disable-datasource
+    	Disable datasource tools
+  -disable-docs
+    	Disable documentation tools
+  -disable-elasticsearch
+    	Disable elasticsearch and opensearch tools
+  -disable-examples
+    	Disable query examples tools
+  -disable-folder
+    	Disable folder tools
+  -disable-graphite
+    	Disable Graphite tools
+  -disable-incident
+    	Disable incident tools
+  -disable-influxdb
+    	Disable InfluxDB tools
+  -disable-loki
+    	Disable loki tools
+  -disable-navigation
+    	Disable navigation tools
+  -disable-oncall
+    	Disable oncall tools
+  -disable-plugin
+    	Disable plugin tools
+  -disable-prometheus
+    	Disable prometheus tools
+  -disable-provisioning
+    	Disable provisioning tools
+  -disable-proxied
+    	Deprecated: use --disable-tempo instead
+  -disable-pyroscope
+    	Disable pyroscope tools
+  -disable-query
+    	Disable query tools (tools that execute a query against a datasource, e.g. query_prometheus, query_loki_logs, run_panel_query). Metadata and discovery tools stay available.
+  -disable-quickwit
+    	Disable quickwit tools
+  -disable-rendering
+    	Disable rendering tools (panel/dashboard image export)
+  -disable-runpanelquery
+    	Disable run panel query tools
+  -disable-search
+    	Disable search tools
+  -disable-sift
+    	Disable sift tools
+  -disable-snapshot
+    	Disable snapshot tools
+  -disable-snowflake
+    	Deprecated: use --disable-sql instead
+  -disable-sql
+    	Disable SQL tools (ClickHouse, Snowflake, Athena, MySQL, PostgreSQL, MSSQL)
+  -disable-tempo
+    	Disable Tempo tracing tools
+  -disable-user
+    	Disable user info tools
+  -disable-write
+    	Disable write tools (create/update operations)
+  -dynamic-multi-org
+    	Allow tool calls to select a Grafana organization per call via an optional orgId argument (org is otherwise fixed at connection startup). Adds an orgId argument to every tool's schema.
+  -enable-query
+    	Keep the raw-SQL query tools (query_sql, query_influxdb) registered even under --disable-write. They pass the query through unfiltered, so they can mutate data if the datasource credentials permit it; use this when those credentials are known to be read-only. Has no effect if --disable-query is also set. Equivalent to --enable-write-tools=query_sql,query_influxdb; kept as a shorthand for that common case.
+  -enable-write-tools string
+    	Comma separated list of individual tool names to keep registered even under --disable-write, for tools whose write behavior is scoped enough to opt back in independently (e.g. find_error_pattern_logs,find_slow_requests, which only create ephemeral Sift investigation records and never touch a Grafana dashboard, alert, or datasource). Has no effect on a tool whose whole category is disabled, e.g. via --disable-sift.
+  -enabled-tools string
+    	A comma separated list of tools enabled for this server. Can be overwritten entirely or by disabling specific components, e.g. --disable-search. (default "search,datasource,incident,prometheus,loki,alerting,dashboard,folder,oncall,asserts,sift,pyroscope,navigation,tempo,annotations,rendering,snapshot,plugin,api,config,provisioning,docs,user")
+  -endpoint-path string
+    	Endpoint path for the streamable-http server (default "/mcp")
+  -grafana-timeout duration
+    	Time limit for requests made by the Grafana client. Accepts Go duration strings, e.g. 10s, 500ms. (default 10s)
+  -healthz-address string
+    	Separate address for /healthz (e.g., :8080). If empty, /healthz is served on the main HTTP server. A side listener is not wrapped by Host/Origin validation, matching --metrics-address.
+  -include-args-in-spans
+    	Include tool call arguments in OpenTelemetry spans. Only enable in non-production environments or when arguments are known not to contain PII.
+  -instructions-append string
+    	Text appended to the server instructions returned to MCP clients on initialize, so every connecting agent sees it.
+  -log-level string
+    	Log level (debug, info, warn, error) (default "info")
+  -loki-enforced-matchers namespace!~"vault|payments"
+    	LogQL label matchers AND-ed into every native-Loki query to restrict readable streams (e.g. namespace!~"vault|payments"). Queries that cannot be parsed are rejected. Requires --disable-api to be effective, otherwise it can be bypassed via the raw datasource proxy.
+  -loki-guardrail-max-bytes int
+    	Maximum bytes a single query_loki_logs call may scan, estimated via Loki's index/stats API before running the query. 0 disables the byte-budget check. Only applies when the guardrail is not 'off'. Falls back to the GRAFANA_LOKI_GUARDRAIL_MAX_BYTES environment variable when the flag is not set. (default 107374182400)
+  -loki-guardrail-max-range duration
+    	Maximum effective time range for a single query_loki_logs call, including range-vector durations like [30d]. Accepts Go duration strings, e.g. 24h. 0 disables the range check. Only applies when the guardrail is not 'off'. Falls back to the GRAFANA_LOKI_GUARDRAIL_MAX_RANGE environment variable when the flag is not set. (default 24h0m0s)
+  -loki-guardrail-mode string
+    	Loki query cost guardrail mode for query_loki_logs: 'off' (default), 'shadow' (evaluate and log queries that would be blocked, but let them run; still pays the index/stats round trip), or 'enforce' (reject blocked queries with rewrite guidance). Falls back to the GRAFANA_LOKI_GUARDRAIL_MODE environment variable when the flag is not set. (default "off")
+  -loki-label-enumeration-fallback string
+    	Behaviour of list_loki_label_names/list_loki_label_values when --loki-enforced-matchers cannot scope them (purely-negative matchers only): 'reject' (fail closed) or 'unfiltered' (allow unscoped enumeration of label metadata; never exposes log lines). (default "reject")
+  -max-loki-log-limit int
+    	Maximum number of log lines returned per query_loki_logs call (default 100)
+  -metrics
+    	Enable Prometheus metrics endpoint
+  -metrics-address string
+    	Separate address for metrics server (e.g., :9090). If empty, metrics are served on the main server at /metrics
+  -server-auth-token string
+    	Bearer token that callers must present in the Authorization header to use the HTTP/SSE transports. Falls back to the MCP_GRAFANA_SERVER_TOKEN environment variable. When set, unauthenticated requests are rejected with 401. Has no effect on the stdio transport.
+  -server-name string
+    	Server name used in the MCP handshake and OTel service.name. Overrides GRAFANA_MCP_SERVER_NAME env var. (default "mcp-grafana")
+  -server.tls-cert-file string
+    	Path to TLS certificate file for server HTTPS (required for TLS)
+  -server.tls-key-file string
+    	Path to TLS private key file for server HTTPS (required for TLS)
+  -session-idle-timeout-minutes int
+    	Session idle timeout in minutes. Sessions with no activity for this duration are automatically reaped. Set to 0 to disable session reaping (default 30)
+  -slow-request-log-level string
+    	Log level for slow-request events. One of "info" or "warn". Default "warn". (default "warn")
+  -slow-request-threshold duration
+    	Log an event when any MCP request (tool invocation, list, resource read, etc.) takes longer than this threshold. Accepts Go duration strings, e.g. 500ms, 5s. Default 0 disables slow-request logging.
+  -standalone
+    	should this run standalone
+  -t string
+    	Transport type (stdio, sse or streamable-http) (default "stdio")
+  -tls-ca-file string
+    	Path to TLS CA certificate file for server verification
+  -tls-cert-file string
+    	Path to TLS certificate file for client authentication
+  -tls-key-file string
+    	Path to TLS private key file for client authentication
+  -tls-skip-verify
+    	Skip TLS certificate verification (insecure)
+  -transport string
+    	Transport type (stdio, sse or streamable-http) (default "stdio")
+  -usage-stats string
+    	Anonymous usage statistics reporting: 'enabled', 'disabled', or 'log' to print the report that would be sent to stderr and send nothing. Overrides the GRAFANA_USAGE_STATS environment variable, which in turn overrides DO_NOT_TRACK; any unrecognised value disables reporting. See https://grafana.com/docs/grafana/latest/developer-resources/mcp/anonymous-usage-statistics/
+  -version
+    	Print the version and exit

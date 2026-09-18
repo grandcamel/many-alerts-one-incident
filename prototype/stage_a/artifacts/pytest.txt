@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/jasonkrueger/projects/maoi-mcp-grafana-prototype
+configfile: pyproject.toml
+testpaths: tests
+plugins: mock-3.15.1, cov-7.1.0
+collected 277 items
+
+tests/test_container.py ............................ssss........ssssssss [ 17%]
+ss...........ssss.......sssssssss                                        [ 29%]
+tests/test_end_to_end.py s                                               [ 29%]
+tests/test_fixtures.py ...............                                   [ 35%]
+tests/test_forwarder.py .............................                    [ 45%]
+tests/test_grafana.py ssssssss                                           [ 48%]
+tests/test_log_formatter.py ............................................ [ 64%]
+........................                                                 [ 72%]
+tests/test_notification_fixtures.py ..........                           [ 76%]
+tests/test_receiver.py ..............                                    [ 81%]
+tests/test_replay.py ....                                                [ 83%]
+tests/test_reset.py ........                                             [ 85%]
+tests/test_run_command.py .........                                      [ 89%]
+tests/test_run_spawner.py .................                              [ 95%]
+tests/test_startup.py .............                                      [100%]
+
+======================= 241 passed, 36 skipped in 9.33s ========================

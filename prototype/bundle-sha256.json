@@ -1,0 +1,21 @@
+{
+  "prototype/provenance/DISCOVERY.md": "a9e07e4bb022fd0f89c5c2583255977abd6efc2ea398b3ad8e86eb9763ddc569",
+  "prototype/provenance/LICENSE": "6ec12926d6478d895ccec681c3739c170a88773d6c54d0a57e46682ae6f0adc0",
+  "prototype/provenance/checksums.txt": "058aab9249a0beeecf861c82a0ce927930fcce17d6b527ce28b052c2a0e19ff5",
+  "prototype/provenance/fetch_client.py": "92d30a242db33b0eed08dea7777f04abc4b9c45f51c47562ea9cf3ba96ba0192",
+  "prototype/provenance/help.txt": "b6c9b3e7d4c189a9d7781fd8cf0b929d27a3fa75222ec39acc66b296f83cb825",
+  "prototype/provenance/manifest.json": "3fb927dd625c23cca433b8d7a8dc128b1e7eaf461c69127a33d9c242f0366d7f",
+  "prototype/provenance/source/cmd/mcp-grafana/main.go": "b99db332c23b263b95fad7842aac2db76a8fa6f1cf7bf2086f73476bad9872c1",
+  "prototype/provenance/source/mcpgrafana.go": "a922ef9ccc001412350fd81ff6089236d4dfee03e4e91755bba3b2dbc25b8408",
+  "prototype/provenance/source/tools/http_redirect.go": "f6bbddba4fa9b2c6bf82844277e9011f387ba5d0bc1e5dc63e391781c277ceda",
+  "prototype/provenance/source/tools/loki.go": "cdfd7b18b7a2acced23d0db5fa0064c6ab43f9097bdd3a01ec5a4858b481ffcb",
+  "prototype/provenance/source/tools/prometheus.go": "4ecd0ce4c772fa161e77f34f625aa2429b22f1a6ae240669deccb485c5a82684",
+  "prototype/provenance/source/tools/response_utils.go": "217740bf6c3d0244b4de8b5a69e47f5b1c53afa3696aeda50c2a68340693d147",
+  "prototype/provenance/source/tools/tempo.go": "9577a9165115b312465026f706e1300294d6825895a833bedfc1b4b6ac6cd489",
+  "prototype/stage_a/README.md": "097e565362d805429ab1b5c80d80570041da9f613506db32c30580d07c394bf4",
+  "prototype/stage_a/artifacts/pytest.txt": "169cadc024fdd27255ae6557b896e7e7ee761a75ca0b9b86de76c42ef05518f9",
+  "prototype/stage_a/artifacts/stage-a.json": "5ff968bcd8bd9b983adc5ee00089af80560fa780bdbf3ece4690e9779b64fc3f",
+  "prototype/stage_a/boundary.py": "98ae040fb080e71a6d282438f868e1820d2fb4c320c902ad54cd1e64c78e7c93",
+  "prototype/stage_a/certificates.py": "34a3551cb7a302624e8cd3a3fbd06bf471fe76f543af1db56428c0464870492c",
+  "prototype/stage_a/run_stage_a.py": "9f405a9deecc9224825d4c1c3b976f4155de436a95601314bb648a0717fc0bc5"
+}

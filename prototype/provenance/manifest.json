@@ -1,0 +1,24 @@
+{
+  "version": "1.5.1",
+  "tag": "v1.5.1",
+  "source_commit": "2a33c72f211560e4ffb39d6b99cad3c3dc2a3f6e",
+  "source_url": "https://github.com/grafana/mcp-grafana",
+  "release_url": "https://github.com/grafana/mcp-grafana/releases/tag/v1.5.1",
+  "release_published_at": "2026-09-17T16:41:24Z",
+  "binary_url": "https://github.com/grafana/mcp-grafana/releases/download/v1.5.1/mcp-grafana_Darwin_x86_64.tar.gz",
+  "archive_sha256": "7cbcf7302c55fff87da53488492d967badeb1587f0ff576bf3da417f9eab8c18",
+  "binary_sha256": "d8cdb94e5e3154e1cf7b3ea850c83fd9309c222d96d99784187a57b76545334c",
+  "publisher_checksum_matches": true,
+  "platform": "Darwin x86_64",
+  "base_repo_commit": "3e17793",
+  "image": "NOT RUN: host binary, no image",
+  "source_capture_sha256": {
+    "mcpgrafana.go": "a922ef9ccc001412350fd81ff6089236d4dfee03e4e91755bba3b2dbc25b8408",
+    "cmd/mcp-grafana/main.go": "b99db332c23b263b95fad7842aac2db76a8fa6f1cf7bf2086f73476bad9872c1",
+    "tools/loki.go": "cdfd7b18b7a2acced23d0db5fa0064c6ab43f9097bdd3a01ec5a4858b481ffcb",
+    "tools/prometheus.go": "4ecd0ce4c772fa161e77f34f625aa2429b22f1a6ae240669deccb485c5a82684",
+    "tools/tempo.go": "9577a9165115b312465026f706e1300294d6825895a833bedfc1b4b6ac6cd489",
+    "tools/http_redirect.go": "f6bbddba4fa9b2c6bf82844277e9011f387ba5d0bc1e5dc63e391781c277ceda",
+    "tools/response_utils.go": "217740bf6c3d0244b4de8b5a69e47f5b1c53afa3696aeda50c2a68340693d147"
+  }
+}
