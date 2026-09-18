@@ -31,3 +31,7 @@ The user subsequently authorized implementation and execution of the model-free 
 ## Local Stage A result
 
 [Stage A verdict](../reviews/ticket-19/stage-a-verdict.md): 31 exercised assertions supported, zero refuted, using real pinned mcp-grafana v1.5.1 against synthetic local TLS/Forwarder/backend fixtures. Frozen prototype commit `5f90bfbb20a5a63edecaa118d9a214c0e08389e4`. Full repository suite: 241 passed, 36 skipped. This is transport-scope evidence only. Model usability/budget, container confinement, real tenant and intended-venue gates remain unexecuted; ticket19 stays claimed and ticket12 blocked.
+
+## Stage B readiness assessment — 2026-09-18
+
+[Stage B readiness/gap assessment](../reviews/ticket-19/stage-b-readiness.md): current `claude` CLI 2.1.272 self-documentation captured; the required `claude-api` skill is confirmed absent and mediated-endpoint compatibility remains unverified from installed help. Open decisions G1/G2 and a proposed local model-free routing probe (P1) are recorded there. Stage B remains NOT RUN and separately unauthorized; no blocker edge changes.
