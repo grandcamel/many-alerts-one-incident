@@ -1,0 +1,12 @@
+Usage: confluence-as page update [OPTIONS] PAGE_ID
+
+  Update an existing Confluence page.
+
+Options:
+  -t, --title TEXT          New page title
+  -b, --body TEXT           New page body content
+  -f, --file PATH           Read body from file
+  -m, --message TEXT        Version change message
+  --status [current|draft]  Change page status
+  -o, --output [text|json]  Output format
+  --help                    Show this message and exit.

@@ -23,3 +23,7 @@ ADR 0015 Change records support only their recorded action/stage. A served value
 ## Accepted venue input from ticket 30
 
 ADR 0016 requires private audit artifacts and digests to be preserved off-cluster with verified read-back before destroying their only source. Export does not extend ADR 0014 retention or recreate expired evidence. Include actual presentation/recovery overrun and venue-contamination references without conflating diagnostic pass with qualification.
+
+## Accepted Confluence input from ticket 33
+
+ADR 0017 reference provenance includes approved page ID/version/body digest, delivered-reference identity and approval/revocation history. Capture affected-output review and revocation cancellation without treating Confluence approval as independent system evidence or retroactively erasing Report defects. Keep manifest authority outside Run-readable scoring data.

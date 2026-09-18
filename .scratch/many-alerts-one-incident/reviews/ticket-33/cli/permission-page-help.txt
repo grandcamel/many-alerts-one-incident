@@ -1,0 +1,11 @@
+Usage: confluence-as permission page [OPTIONS] COMMAND [ARGS]...
+
+  Manage page restrictions.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  add     Add a restriction to a page.
+  get     Get restrictions on a page.
+  remove  Remove a restriction from a page.

@@ -1,0 +1,40 @@
+Usage: confluence-as [OPTIONS] [COMMAND] [ARGS]...
+
+  Confluence Assistant Skills CLI.
+
+  A command-line interface for interacting with Confluence Cloud.
+
+  Use --help on any command for more information.
+
+  Examples:
+
+      confluence-as page get 12345
+
+      confluence-as search "space = DOCS AND type = page"
+
+      confluence-as space list --output json
+
+Options:
+  --version                 Show the version and exit.
+  -o, --output [text|json]  Output format.
+  -v, --verbose             Enable verbose output.
+  -q, --quiet               Suppress non-essential output.
+  --help                    Show this message and exit.
+
+Commands:
+  admin       Confluence administration commands.
+  analytics   View content analytics.
+  attachment  Manage file attachments.
+  bulk        Bulk operations for multiple pages.
+  comment     Manage page comments.
+  hierarchy   Navigate content hierarchy.
+  jira        JIRA integration commands.
+  label       Manage content labels.
+  ops         Operations and diagnostics commands.
+  page        Manage Confluence pages and blog posts.
+  permission  Manage permissions and restrictions.
+  property    Manage content properties (custom metadata).
+  search      Search Confluence content.
+  space       Manage Confluence spaces.
+  template    Manage page templates.
+  watch       Manage content watching and notifications.

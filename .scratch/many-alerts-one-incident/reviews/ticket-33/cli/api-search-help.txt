@@ -1,0 +1,4 @@
+Usage: confluence-as [OPTIONS] [COMMAND] [ARGS]...
+Try 'confluence-as --help' for help.
+
+Error: No such command 'api'.

@@ -1,0 +1,11 @@
+Usage: confluence-as permission space [OPTIONS] COMMAND [ARGS]...
+
+  Manage space permissions.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  add     Add a permission to a space.
+  get     Get permissions for a space.
+  remove  Remove a permission from a space.

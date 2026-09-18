@@ -21,3 +21,7 @@ ADR 0013 adds Anthropic API-key custody outside Runs, a fixed fifth endpoint and
 ## Accepted Change input from ticket 25
 
 ADR 0015 adds dedicated current-rehearsal Loki Change queries to the read-only Eyes policy. The operator coordinator and its mutation/control credentials stay outside Runs and their Kubernetes Forwarder route. Verify source distinction and prevent a Run from forging authoritative coordinator Change records or invoking action control. Optional annotations require no new Run write authority.
+
+## Accepted Confluence input from ticket 33
+
+ADR 0017 requires registered current-rehearsal draft IDs/Incidents and exact approved reference versions/digests, enforced status/operation and expected-version body binding. Deny other Confluence operations and cross-scope metadata leaks. The installed CLI read-then-increment is insufficient stale-body protection; ticket 43 supplies the narrow contract. Keep curator/manifest authority outside Runs and disable affected routes when enforcement is unverified.

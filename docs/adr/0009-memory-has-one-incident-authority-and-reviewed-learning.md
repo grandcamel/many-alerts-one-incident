@@ -35,3 +35,5 @@ Follow-on tickets 32–34 specify Memory storage and acceptance, Confluence scop
 ## Fresh-rehearsal preflight
 
 A prior-rehearsal open OPS Incident can still satisfy ticket 14's thirty-minute candidate rules. Excluding it silently would change that accepted lookup contract. Fresh-rehearsal admission checks for prior-rehearsal Incidents still eligible under those rules and waits until they age out or a human explicitly disposes of them. Never automatically close or filter them. This is an operator preflight requirement, not a change to Match.
+
+[ADR 0017](0017-confluence-references-and-drafts-have-separate-authority.md) specifies separate reference/draft namespaces, operator-owned approval and identity records, expected-version body binding and revocation recovery. Installed CLI draft support alone is not tenant acceptance or protection against a stale composed body.

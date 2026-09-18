@@ -11,3 +11,7 @@ What should the audience see as Memory grows across Runs within the slot? Show e
 ## Accepted scoring input from ticket 24
 
 ADR 0014 adds a sanitized human-review status for the audience: pending until reviewed, with corrections/disputes visible. Keep the operator scoring inputs and private audit bundle outside Run-readable telemetry and Memory; do not present Memory-assisted and cold-start samples as a controlled comparison.
+
+## Accepted Confluence input from ticket 33
+
+ADR 0017 distinguishes Run drafts from separately published human-curated references, with reviewer/source revision/version/digest provenance. Show unavailable/revoked reference context and incomplete/uncertain draft work; an approved label is not approval. Revocation-driven cancellation and review cannot be presented as rolled-back OPS work.

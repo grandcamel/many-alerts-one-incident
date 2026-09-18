@@ -1,0 +1,13 @@
+Usage: confluence-as permission page add [OPTIONS] PAGE_ID
+
+  Add a restriction to a page.
+
+  When adding restrictions, only specified users/groups will be able to
+  perform the restricted operation.
+
+Options:
+  --user TEXT                User to restrict (account ID or username)
+  --group TEXT               Group to restrict
+  --operation [read|update]  Operation to restrict  [required]
+  -o, --output [text|json]   Output format
+  --help                     Show this message and exit.

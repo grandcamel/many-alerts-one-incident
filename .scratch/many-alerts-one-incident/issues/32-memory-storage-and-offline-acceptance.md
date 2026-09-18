@@ -17,3 +17,7 @@ Specify offline acceptance through real caller boundaries for source verificatio
 ## Accepted venue input from ticket 30
 
 ADR 0016 uses a fresh venue for each presentation/full rehearsal and requires protected state handoff before destruction. Keep Memory reset distinct from unresolved work, weekly spend and private audit retention. No cluster deletion may silently alter external OPS/Confluence history or evade fresh-rehearsal candidate eligibility.
+
+## Accepted Confluence input from ticket 33
+
+ADR 0017 adds operator-owned exact reference version/digest manifests and durable tenant/Incident-to-draft mappings. Preserve mapping/approval history across handoff without exposing prior-rehearsal drafts to new Runs. Reference freeze never overrides immediate revocation; changed bodies and unresolved draft conflicts disclose degraded Memory. Ticket 43 specifies the concrete interface.

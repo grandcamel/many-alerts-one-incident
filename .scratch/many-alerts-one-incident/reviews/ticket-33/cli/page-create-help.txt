@@ -1,0 +1,13 @@
+Usage: confluence-as page create [OPTIONS]
+
+  Create a new Confluence page.
+
+Options:
+  -s, --space TEXT          Space key  [required]
+  -t, --title TEXT          Page title  [required]
+  -b, --body TEXT           Page body content (Markdown or XHTML)
+  -f, --file PATH           Read body from file
+  -p, --parent TEXT         Parent page ID
+  --status [current|draft]  Page status
+  -o, --output [text|json]  Output format
+  --help                    Show this message and exit.

@@ -1,0 +1,10 @@
+Usage: confluence-as page get [OPTIONS] PAGE_ID
+
+  Get a Confluence page by ID.
+
+Options:
+  --body                          Include body content in output
+  --format [storage|view|markdown]
+                                  Body format (default: storage)
+  -o, --output [text|json]        Output format
+  --help                          Show this message and exit.

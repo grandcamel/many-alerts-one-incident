@@ -19,3 +19,7 @@ ADR 0013 adds budget admission holds and durable spend reservations. Integrate t
 ## Accepted venue input from ticket 30
 
 ADR 0016 holds new dispatch on venue-readiness failure and forbids Run launch at or after cluster age 85 minutes. Retain bounded Notification admission/pending work while active Runs keep their existing deadlines; age 90 holds admissions rather than deleting resources. Specify verified off-cluster handoff of unresolved effects and explicit operator ownership before source destruction; handoff is not effect confirmation.
+
+## Accepted Confluence input from ticket 33
+
+ADR 0017 adds reference-revocation cancellation: track delivered page/version identity, cancel exposed active Runs under the existing bounded deadline and hold new dispatch for operator review. Unknown exposure conservatively includes active Runs admitted to that manifest. Reconcile confirmed/uncertain effects and mark affected outputs for review; retry remains explicit and budgeted with fresh context. Cancellation does not undo OPS writes or erase read context.
