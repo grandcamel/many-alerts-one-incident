@@ -1,0 +1,269 @@
+$ jira-as --version
+jira-as, version 2.0.0 (build sha256-e93783151feab4e23dcb4e2c1d7b33751d01fcc3006999c5ff937ffdfc32cf25)
+
+exit=0
+
+$ jira-as help
+# Jira Assistant Skills CLI
+
+Discover and call Jira Cloud platform, Software and Service Management operations.
+
+Usage: jira-as COMMAND. Use `--help` for command options.
+
+API: `api search WORDS`, `api describe OPERATION [--full|--examples]`,
+`api call OPERATION`, `api topics`.
+
+Survivor groups: bulk, lifecycle, fields, ops, relationships, search, time,
+dev, agile and jsm. Compatibility groups: issue and collaborate.
+Migration hints: `help migration`, or invoke an old group or verb. 159 wrappers
+are dropped; 14 compatibility verbs remain.
+
+Topics: adf, paging, search, agile, fields, project-types, permissions, rate-limits,
+representations, sandbox, auth, scope, risk, errors, migration.
+
+Learn: `help GROUP` or `help TOPIC`; `--format json`; `--examples`;
+`--tier platform|software|servicedesk`; `--offset` for long lists.
+
+Auth: `JIRA_SITE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN` and existing settings.
+Discovery needs no credentials.
+
+Fields: `fields list`, `fields get`, and `fields cache warm` use cached instance
+metadata. `api call --adf-field customfield_ID` explicitly converts Markdown to ADF;
+a warm textarea cache enables automatic conversion. Sandbox:
+`JIRA_AS_TRANSPORT=http|responder|cassette|simulation`; simulation is stateful for
+survivor workflows. Cassette uses `JIRA_AS_CASSETTE`.
+
+Risk-tagged calls preview by default; `--confirm` sends. Attachment transport and
+generic risk enrichment remain pending JAS-65.
+
+exit=0
+
+$ jira-as api search editIssue
+operationId       method    path                                       summary
+----------------  --------  -----------------------------------------  -----------------------
+editIssue         PUT       /rest/api/3/issue/{issueIdOrKey}           Edit issue
+getEditIssueMeta  GET       /rest/api/3/issue/{issueIdOrKey}/editmeta  Get edit issue metadata
+
+exit=0
+
+$ jira-as api describe editIssue --full
+# editIssue
+
+PUT `/rest/api/3/issue/{issueIdOrKey}`
+
+Edit issue
+
+Edits an issue. Issue properties may be updated as part of the edit. Please note that issue transition is not supported and is ignored here. To transition an issue, please use [Transition issue](#api-rest-api-3-issue-issueIdOrKey-transitions-post).
+
+The edits to the issue's fields are defined using `update` and `fields`. The fields that can be edited are determined using [ Get edit issue metadata](#api-rest-api-3-issue-issueIdOrKey-editmeta-get).
+
+**Note:** This endpoint doesn't check screen configurations to determine if a field is editable. For more context, see the [Deprecation of override screen security](https://community.developer.atlassian.com/t/deprecation-of-override-screen-security/97153) announcement.
+
+The parent field may be set by key or ID. For standard issue types, the parent may be removed by setting `update.parent.set.none` to *true*. Note that the `description`, `environment`, and any `textarea` type custom fields (multi-line text fields) take Atlassian Document Format content. Single line custom fields (`textfield`) accept a string and don't handle Atlassian Document Format content.
+
+Connect apps having an app user with *Administer Jira* [global permission](https://confluence.atlassian.com/x/x4dKLg), and Forge apps acting on behalf of users with *Administer Jira* [global permission](https://confluence.atlassian.com/x/x4dKLg), can override the screen security configuration using `overrideScreenSecurity` and `overrideEditableFlag`.
+
+This operation can be accessed anonymously.
+
+**[Permissions](#permissions) required:**
+
+ *  *Browse projects* and *Edit issues* [project permission](https://confluence.atlassian.com/x/yodKLg) for the project that the issue is in.
+ *  If [issue-level security](https://confluence.atlassian.com/x/J4lKLg) is configured, issue-level security permission to view the issue.
+
+## Parameters
+
+- `--issue-id-or-key` (path, string) (required)
+- `--notify-users` (query, boolean)
+- `--override-screen-security` (query, boolean)
+- `--override-editable-flag` (query, boolean)
+- `--return-issue` (query, boolean)
+- `--expand` (query, string)
+
+## Body (required)
+
+- `fields`: object
+- `historyMetadata`: unknown
+- `historyMetadata.activityDescription`: string
+- `historyMetadata.activityDescriptionKey`: string
+- `historyMetadata.actor`: unknown
+- `historyMetadata.cause`: unknown
+- `historyMetadata.description`: string
+- `historyMetadata.descriptionKey`: string
+- `historyMetadata.emailDescription`: string
+- `historyMetadata.emailDescriptionKey`: string
+- `historyMetadata.extraData`: object
+- `historyMetadata.generator`: unknown
+- `historyMetadata.type`: string
+- `properties`: array
+- `transition`: unknown
+- `transition.expand`: string
+- `transition.fields`: object
+- `transition.hasScreen`: boolean
+- `transition.id`: string
+- `transition.isAvailable`: boolean
+- `transition.isConditional`: boolean
+- `transition.isGlobal`: boolean
+- `transition.isInitial`: boolean
+- `transition.looped`: boolean
+- `transition.name`: string
+- `transition.to`: unknown
+- `update`: object
+
+## Behavior
+
+- Risk: safe.
+- note: Static description/environment paths accept Markdown or @file and send ADF. Textarea custom fields require ADF, but their values pass through unchanged; automatic instance resolution and a per-call override arrive with JAS-49. Supply already encoded ADF for custom fields now. Fields must also be editable on the issue screen. Disabling notifyUsers requires Administer Jira; this generic call does not retry without the requested suppression. Instance fields: use fields list; fields cache warm refreshes metadata. Cache is cold when metadata is missing, stale, or invalid; fields list reports the current cache state. With a cold cache, automatic textarea conversion is inactive. A warm cache converts textarea fields from Markdown to ADF. --adf-field customfield_ID explicitly selects a textarea field per call.
+- scope: {'checks': [{'in': 'body', 'optional': True, 'paths': ['/fields/project/key', '/fields/project/id']}], 'in': 'key', 'name': 'issueIdOrKey', 'separator': '-'}
+- x-atlassian-connect-scope: "WRITE"
+- x-atlassian-oauth2-scopes: [{"scheme": "OAuth2", "scopes": ["write:jira-work"], "state": "Current"}, {"scheme": "OAuth2", "scopes": ["write:issue:jira"], "state": "Beta"}]
+- Use --full for the complete description; --examples for examples.
+
+exit=0
+
+$ jira-as api call editIssue --help
+# editIssue
+
+PUT `/rest/api/3/issue/{issueIdOrKey}`
+
+Edit issue
+
+Edits an issue. Issue properties may be updated as part of the edit. Please note that issue transition is not supported and is ignored here. To transition an issue, please use [Transition issue](#api-rest-api-3-issue-issueIdOrKey-transitions-post).
+
+## Parameters
+
+- `--issue-id-or-key` (path, string) (required)
+- `--notify-users` (query, boolean)
+- `--override-screen-security` (query, boolean)
+- `--override-editable-flag` (query, boolean)
+- `--return-issue` (query, boolean)
+- `--expand` (query, string)
+
+## Body (required)
+
+- `fields`: object
+- `historyMetadata`: unknown
+- `historyMetadata.activityDescription`: string
+- `historyMetadata.activityDescriptionKey`: string
+- `historyMetadata.actor`: unknown
+- `historyMetadata.cause`: unknown
+- `historyMetadata.description`: string
+- `historyMetadata.descriptionKey`: string
+- `historyMetadata.emailDescription`: string
+- `historyMetadata.emailDescriptionKey`: string
+- `historyMetadata.extraData`: object
+- `historyMetadata.generator`: unknown
+- `historyMetadata.type`: string
+- `properties`: array
+- `transition`: unknown
+- `transition.expand`: string
+- `transition.fields`: object
+- `transition.hasScreen`: boolean
+- `transition.id`: string
+- `transition.isAvailable`: boolean
+- `transition.isConditional`: boolean
+- `transition.isGlobal`: boolean
+- `transition.isInitial`: boolean
+- `transition.looped`: boolean
+- `transition.name`: string
+- `transition.to`: unknown
+- `update`: object
+
+## Behavior
+
+- Risk: safe.
+- note: Static description/environment paths accept Markdown or @file and send ADF. Textarea custom fields require ADF, but their values pass through unchanged; automatic instance resolution and a per-call override arrive with JAS-49. Supply already encoded ADF for custom fields now. Fields must also be editable on the issue screen. Disabling notifyUsers requires Administer Jira; this generic call does not retry without the requested suppression. Instance fields: use fields list; fields cache warm refreshes metadata. Cache is cold when metadata is missing, stale, or invalid; fields list reports the current cache state. With a cold cache, automatic textarea conversion is inactive. A warm cache converts textarea fields from Markdown to ADF. --adf-field customfield_ID explicitly selects a textarea field per call.
+- scope: {'checks': [{'in': 'body', 'optional': True, 'paths': ['/fields/project/key', '/fields/project/id']}], 'in': 'key', 'name': 'issueIdOrKey', 'separator': '-'}
+- x-atlassian-connect-scope: "WRITE"
+- x-atlassian-oauth2-scopes: [{"scheme": "OAuth2", "scopes": ["write:jira-work"], "state": "Current"}, {"scheme": "OAuth2", "scopes": ["write:issue:jira"], "state": "Beta"}]
+- Use --full for the complete description; --examples for examples.
+
+Call options: --body @file|-; --field path=value (repeatable); --project KEY; --adf-field customfield_ID (repeatable); --validate-body; --format json|table|markdown.
+Arrays: repeat the flag or use a JSON array; booleans: true|false.
+Rich text: tagged --field path=value accepts Markdown or @file (UTF-8); --raw keeps stored response bodies. --representation selects adf; default adf.
+
+exit=0
+
+$ jira-as issue update --help
+# issue update
+
+Update a JIRA issue.
+
+## Parameters
+
+- `--format`: Description input format (default: auto-detect).
+- `issue_key`: argument (required)
+- `--summary, -s`: New summary (title)
+- `--description, -d`: New description (supports markdown)
+- `--priority`: New priority (Highest, High, Medium, Low, Lowest)
+- `--assignee, -a`: New assignee (account ID, email, "self", or "none")
+- `--labels, -l`: Comma-separated labels (replaces existing)
+- `--components, -c`: Comma-separated component names (replaces existing)
+- `--custom-fields`: Custom fields as JSON string
+- `--parent`: New parent issue key (e.g., PROJ-100), or "none" to remove
+- `--no-notify`: Do not send notifications to watchers
+
+Use --help --full for the complete description; --examples for examples.
+
+exit=0
+
+$ jira-as issue create --help
+# issue create
+
+Create a new JIRA issue.
+
+## Parameters
+
+- `--project, -p`: Project key (e.g., PROJ, DEV) (required)
+- `--type, -t`: Issue type (Bug, Task, Story, etc.) (required)
+- `--summary, -s`: Issue summary (title) (required)
+- `--description, -d`: Issue description (supports markdown)
+- `--priority`: Priority (Highest, High, Medium, Low, Lowest)
+- `--assignee, -a`: Assignee (account ID, email, or "self")
+- `--labels, -l`: Comma-separated labels
+- `--components, -c`: Comma-separated component names
+- `--template`: Use a predefined template
+- `--custom-fields`: Custom fields as JSON string
+- `--epic, -e`: Epic key to link this issue to (e.g., PROJ-100)
+- `--sprint`: Sprint ID to add this issue to
+- `--story-points`: Story point estimate
+- `--blocks`: Comma-separated issue keys this issue blocks
+- `--relates-to`: Comma-separated issue keys this issue relates to
+- `--estimate`: Original time estimate (e.g., 2d, 4h, 1w)
+- `--parent`: Parent issue key (epic or parent task, e.g., PROJ-100)
+- `--parent-via-update`: Create without the parent, then set it in a follow-up update (for workflows that reject a parent at create time)
+- `--dry-run`: Show the payload that would be sent without creating the issue
+- `--no-defaults`: Disable project context defaults
+- `--output, -o`: Output format (text, json)
+
+Use --help --full for the complete description; --examples for examples.
+
+exit=0
+
+$ jira-as api describe getEditIssueMeta
+# getEditIssueMeta
+
+GET `/rest/api/3/issue/{issueIdOrKey}/editmeta`
+
+Get edit issue metadata
+
+Returns the edit screen fields for an issue that are visible to and editable by the user. Use the information to populate the requests in [Edit issue](#api-rest-api-3-issue-issueIdOrKey-put).
+
+## Parameters
+
+- `--issue-id-or-key` (path, string) (required)
+- `--override-screen-security` (query, boolean)
+- `--override-editable-flag` (query, boolean)
+
+## Body
+
+No top-level body properties.
+
+## Behavior
+
+- Risk: safe.
+- scope: {'in': 'key', 'name': 'issueIdOrKey', 'separator': '-'}
+- x-atlassian-connect-scope: "READ"
+- x-atlassian-oauth2-scopes: [{"scheme": "OAuth2", "scopes": ["read:jira-work"], "state": "Current"}, {"scheme": "OAuth2", "scopes": ["read:issue-meta:jira", "read:field-configuration:jira"], "state": "Beta"}]
+- Use --full for the complete description; --examples for examples.
+
+exit=0

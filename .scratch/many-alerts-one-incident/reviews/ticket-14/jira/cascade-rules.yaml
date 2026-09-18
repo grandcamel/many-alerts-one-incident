@@ -1,0 +1,527 @@
+# The standing rule set: six rules describing system health, in one folder.
+#
+# NOT written per Fault. Any Fault lights up whichever services it touches, so
+# the designated fallback Fault gets a Cascade without a fourth rule set, and
+# nobody can say the alerting was built to recognise the failure being demoed.
+# Breadth comes from INSTANTIATION -- `by (service_name)` gives one Alert per
+# series -- not from rule count (ticket 28, ticket 10's standing rule).
+#
+# Every threshold below is measured. The artifacts are on branch
+# `prototype/signal-surface` under `prototype/signal-surface/capture/`, cited
+# per rule. Nothing here has ever been evaluated by a Grafana alert rule at the
+# venue: ticket 29 measures the fire edge and re-baselines first.
+#
+# INVARIANTS, each one bought with a refutation:
+#
+#   * `[5m]` is the floor on every span-metrics rate. The collector pushes every
+#     60 s, so `[30s]` and `[1m]` return NO SERIES (10-absence-rule-trap.log).
+#   * NEVER `or vector(0)` on a `by (...)` rule. `vector(0)` returns an
+#     UNLABELLED series, so its Fingerprint differs from the firing Alert's and
+#     the Resolved can never Match the Incident (ADR 0004). It is also fatal on
+#     an absence rule for a second reason: it turns an empty window into a
+#     confident 0 and fires when nothing is wrong.
+#   * Name the metric literally, never a `__name__` regex. A regex over
+#     `container_memory.*` once matched two families and `max` returned the
+#     LIMIT instead of the usage (faultprobe-emailMemoryLeak-on.json).
+#   * Aggregate container rules by `k8s_container_name`, never `k8s_pod_name`.
+#     A pod-keyed query returns the DELETED pod at 75.26 Mi beside the new one
+#     (faultprobe-emailMemoryLeak-recovered.json), so every undo mints a new
+#     Fingerprint and a new Incident.
+#   * The right span-metrics family is `traces_span_metrics_*` (the collector's
+#     connector). The decoy `traces_spanmetrics_*` (LGTM's own generator) has
+#     zero `service_name` values and NEVER emits STATUS_CODE_ERROR
+#     (08-duplicate-spanmetrics.log).
+#   * Severity is `critical` or `warning` and NOTHING ELSE. The Skill maps only
+#     those two; any other value lands silently on Sev-3/Medium.
+#   * Label keys are frozen at {severity, service, cascade} plus Grafana's own
+#     `alertname` and `grafana_folder` and the one varying query label. Adding a
+#     key later re-Fingerprints every Alert of that rule and ORPHANS every open
+#     Incident carrying the old `fp-` label, with nothing reporting an error.
+#   * Annotations are static, never templated, and never name a Fault or a flag.
+#     A Run copies them verbatim into an OPS Incident, and ADR 0008 keeps the
+#     Ground truth -- Mechanism and Trigger -- out of the Run's world.
+apiVersion: 1
+
+groups:
+  # ---------------------------------------------------------------- span metrics
+  - orgId: 1
+    name: cascade-spanmetrics
+    folder: demo
+    interval: 10s
+    rules:
+      # C1 -- the blast radius of any Fault that makes requests fail.
+      #
+      # An ABSOLUTE RATE, not a ratio. The ratio was refuted twice over:
+      # it INVERTS on frontend-proxy (0.00705 under the Fault against 0.00808
+      # with every flag off, faultprobe-paymentUnreachable-on.json vs
+      # 05-baseline-span-metrics.json), and it returns NaN for the three
+      # services whose denominators collapse -- which the absence rule already
+      # owns. It yields 1 Alert where this yields 3.
+      #
+      # No `span_kind` filter, deliberately: with no denominator there is no
+      # denominator trap. (SERVER-only would also saturate the ratio at 1.0000,
+      # freezing every trend comment at "unchanged".)
+      - uid: cascade-service-error-rate
+        title: Service error rate is elevated
+        condition: B
+        data:
+          # A: errored calls per second per service. `label_replace` supplies
+          # the `service` label the Skill reads as the Jira Component -- a
+          # span-metrics series aggregated by service_name carries no `service`
+          # and no `instance` dimension at all (06-span-metrics-dimensions.json).
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              refId: A
+              datasource:
+                type: prometheus
+                uid: prometheus
+              expr: label_replace(sum by (service_name) (rate(traces_span_metrics_calls_total{status_code="STATUS_CODE_ERROR"}[5m])), "service", "$1", "service_name", "(.*)")
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+          # B: above 0.1 errors per second.
+          #
+          # Measured separation: three services clear it (0.35000, 0.18333,
+          # 0.17500 /s -- 11-checkout-error-verify.log) and the next service
+          # down is flagd at 0.01131/s, an 8.8x gap, with four more at the
+          # one-error-per-[5m] quantum of 0.00417/s, 24x below.
+          #
+          # The margin to WRITE DOWN rather than round away: the worst
+          # fault-side reading is frontend-proxy at 0.1167/s in a second,
+          # timestamped capture -- only 1.17x over. And the threshold clears
+          # the worst no-fault reading ever recorded (frontend-proxy 0.06937/s
+          # at 17:15:24Z, 05-baseline-span-metrics.json) by just 1.44x. Which
+          # of the two flags-off baselines is true steady state is UNMEASURED
+          # and is ticket 29's blocking re-baseline.
+          #
+          # This threshold is traffic-dependent. It is only valid because
+          # `make up` pins loadGeneratorVUs once and the map treats traffic
+          # level as venue, not Fault. Unpin that and this number dies with it.
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: threshold
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.1
+        for: 1m
+        # The error series DOES NOT EXIST at steady state -- every service reads
+        # no error series at all until a Fault fires (05-baseline-authoritative
+        # .json lists only four services under `error`, and checkout is not one
+        # of them). Grafana puts an empty vector in NoData, not Normal, so
+        # NoData must be OK or the Cascade fires before injection.
+        #
+        # execErrState is OK for chapter one's stated reason: a Notification
+        # about a broken rule would start a Run, and that is not an Incident.
+        # The hole this leaves -- a rule broken from the start is silent -- is
+        # closed in the PRE-FLIGHT, which asserts every rule is Normal and not
+        # Error before the clock starts. See README.md.
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: critical
+          cascade: otel-demo
+        annotations:
+          summary: A service is returning errors above the alerting threshold
+          description: The service's errored-call rate has been above 0.1 per second for one minute, measured over a five-minute window. At steady state this service emits no error series at all.
+        isPaused: false
+
+      # C2 -- a service that has stopped being called.
+      #
+      # NAMED LIMIT, documented rather than patched: this detects a service
+      # NOBODY CALLS, not a service that EMITS NOTHING. A service that stops
+      # producing spans entirely leaves the result set -- a retired dimension,
+      # not a firing Alert. No noDataState setting patches that, because NoData
+      # needs the WHOLE query empty, not one series gone. None of the three
+      # Faults reaches that state. The `absent()` fix would require naming
+      # services, hand-coding the blast radius the demo exists to discover.
+      - uid: cascade-service-traffic-stopped
+        title: Service request rate has dropped to zero
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              refId: A
+              datasource:
+                type: prometheus
+                uid: prometheus
+              expr: label_replace(sum by (service_name) (rate(traces_span_metrics_calls_total[5m])), "service", "$1", "service_name", "(.*)")
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+          # B: below 0.01 calls per second.
+          #
+          # Fires on exactly four services under the live Fault -- email,
+          # accounting, fraud-detection, payment, all reading 0.0
+          # (12-blast-radius.json `absent`, faultprobe-paymentUnreachable-on
+          # .json). Payment is 0.0042/s, not the "exactly zero" ticket 10
+          # claimed, so the threshold matters and the word does not.
+          #
+          # Stays Normal on the other fourteen: the LOWEST flags-off rate of
+          # any service is payment at 0.11667/s -- 11.7x the threshold
+          # (05-baseline-authoritative.json). flagd, which restarts at every
+          # injection and every undo, moves only 9.975 -> 9.574/s, 957x over.
+          #
+          # shipping and cart are excluded BY MEASUREMENT, correcting ticket
+          # 10's six: shipping runs 0.2792 -> 0.2667/s because the quote is
+          # fetched before the charge, and cart stays 2.6583 -> 2.8000/s
+          # because GetCart/AddItem dominate its total. A service-level
+          # absence rule never fires on either.
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: threshold
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 0.01
+        # Longer than C1's: this is the slower edge. A [5m] rate drains as
+        # baseline * (300-d)/300, so payment crosses 0.01 about 274 s after its
+        # traffic stops and email about 288 s. Projected first Alert is roughly
+        # t+7.5 min including this `for`. That projection is ARITHMETIC ON
+        # MEASURED ENDPOINTS and has never been observed -- ticket 29 item 1.
+        for: 2m
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: warning
+          cascade: otel-demo
+        annotations:
+          summary: A service has stopped receiving requests
+          description: The service's request rate has been below 0.01 per second for two minutes, measured over a five-minute window. The service may still be healthy and simply unreachable from its callers.
+        isPaused: false
+
+  # ------------------------------------------------------------------ kubernetes
+  - orgId: 1
+    name: cascade-kubernetes
+    folder: demo
+    interval: 30s
+    rules:
+      # C3 -- a container climbing toward its memory limit.
+      #
+      # THREE NODES, because the Fault resets its own signal. An instantaneous
+      # `> 70Mi` rule goes Firing->Resolved->Firing FIVE times in 1181 s: the
+      # container drops to 47 Mi after each kill and stays below 70 Mi for 67,
+      # 119, 118 and 243 s across the four measured cycles
+      # (podwatch-emailMemoryLeak-window.jsonl). Under ADR 0004 a
+      # resolved-then-refired Alert deliberately gets a NEW Incident -- so the
+      # naive rule yields FIVE OPS Incidents from one Fault, in a demo titled
+      # "many alerts, one incident".
+      #
+      # refId B latches with max_over_time([5m]), clearing the worst measured
+      # dip (243 s) by 57 s. refId A stays the LIVE working set so `values.A`
+      # carries the real sawtooth into the Skill's trend comments -- which is
+      # the Ground truth Mechanism: the container is killed and the climb
+      # repeats. A [10m] latch was recomputed from the same 58 samples and goes
+      # FLAT at 98.0 Mi for 11.7 minutes across two kills, freezing every trend
+      # comment at "unchanged".
+      #
+      # `keepFiringFor` would express this intent directly and is NOT AVAILABLE:
+      # Grafana 12.0.1's file-provisioning input struct (AlertRuleV1) has no
+      # such field. It exists in the model and the HTTP API only.
+      #
+      # Service-scoped for a MEASURED reason, not laziness. The generic form --
+      # working_set / k8s_container_memory_limit_bytes > 0.7 -- is refuted:
+      # checkout runs at 18 Mi of a 20 Mi limit, 90% of its limit AT STEADY
+      # STATE, above any threshold that would catch this climb with margin.
+      - uid: cascade-container-memory
+        title: Container memory is approaching its limit
+        condition: C
+        data:
+          # A: the live working set. Reported as values.A; not the condition.
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              refId: A
+              datasource:
+                type: prometheus
+                uid: prometheus
+              expr: max by (k8s_container_name) (container_memory_working_set_bytes{k8s_container_name="email"})
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+          # B: the five-minute high-water mark. The latch.
+          - refId: B
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              refId: B
+              datasource:
+                type: prometheus
+                uid: prometheus
+              expr: max by (k8s_container_name) (max_over_time(container_memory_working_set_bytes{k8s_container_name="email"}[5m]))
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+          # C: 70 MiB = 73400320 bytes. Sits 18.3 Mi above the flags-off
+          # working set (54251520 B = 51.74 Mi) and 30 Mi below the limit
+          # (104857600 B), both in 05-baseline-authoritative.json.
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 73400320
+        for: 1m
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: warning
+          service: email
+          cascade: otel-demo
+        annotations:
+          summary: A container is approaching its memory limit
+          description: The container's five-minute peak working set has been above 70 MiB for one minute, against a 100 MiB limit. Exhausting the limit is the only thing that ends this pod, as it carries no liveness or readiness probe.
+        isPaused: false
+
+      # C4 -- any container restarting. GENERIC: no service selector.
+      #
+      # This is the one Kubernetes rule that IS expressible system-wide.
+      # Nothing restarts at steady state (ticket 26 and 27 both observed
+      # restarts=0 with nothing OOMKilled or evicted), and a `rollout restart`
+      # creates a NEW pod rather than incrementing this counter -- so the flagd
+      # rollout that every injection and every undo performs does not fire it.
+      #
+      # `changes()`, NEVER `increase()`: k8s_container_restarts is a GAUGE.
+      # Measured both ways after exactly one restart -- bare gauge 1.0 and
+      # changes(...[10m]) 1.0 (13-oomkill-evidence.json).
+      #
+      # [10m] with no flap: the measured kill-to-kill gaps are 114, 229, 352
+      # and 283 s, every one under 600, so the window never empties mid-Fault
+      # and the Alert stays Firing instead of minting an Incident per cycle.
+      # This is also why `keepFiringFor`'s absence costs nothing here.
+      - uid: cascade-container-restarting
+        title: Container is restarting
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 900
+              to: 0
+            model:
+              refId: A
+              datasource:
+                type: prometheus
+                uid: prometheus
+              expr: label_replace(max by (k8s_container_name) (changes(k8s_container_restarts[10m])), "service", "$1", "k8s_container_name", "(.*)")
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: threshold
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+        # No `for`: a restart is a discrete fact, not a trend, and the [10m]
+        # window already supplies the persistence. This is also the only rule
+        # of the six with a genuine Normal before injection -- a fresh pod's
+        # series reads 0.0 (faultprobe-emailMemoryLeak-recovered.json).
+        for: 0s
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: critical
+          cascade: otel-demo
+        annotations:
+          summary: A container has restarted
+          description: The container's restart count has increased within the last ten minutes. The restart reason is not carried by this metric and is read from pod status.
+        isPaused: false
+
+  # ------------------------------------------------------------------------ logs
+  #
+  # Both log rules are service-scoped BY NECESSITY, not by choice. A generic
+  # severity-based log rule is impossible here: `severity_text` and
+  # `detected_level` are structured metadata, NOT stream labels, and the
+  # authoritative eight are k8s_container_name, k8s_deployment_name,
+  # k8s_namespace_name, k8s_pod_name, k8s_replicaset_name, service_instance_id,
+  # service_name, service_namespace (01-loki-stream-labels.json).
+  #
+  # NEVER add a `service_namespace` matcher. Applications carry
+  # `opentelemetry-demo`, not `otel-demo`; and cart, quote and accounting carry
+  # NO such label at all, so for cart even the correct value returns zero
+  # streams. Use a bare `{service_name="..."}`.
+  #
+  # `service` is a STATIC rule label on both: the service is known at authoring
+  # time, so no label_replace is needed and no LogQL feature is assumed.
+  #
+  # UNVERIFIED AND BLOCKING: no Loki-datasource alert rule has ever been
+  # provisioned at this venue. If either refId-A model below is wrong, the
+  # threshold node errors and `execErrState: OK` makes it Normal -- these two
+  # rules vanish with nothing reporting it. The pre-flight rule-health check
+  # exists for exactly this. Ticket 29 item 3.
+  - orgId: 1
+    name: cascade-logs
+    folder: demo
+    interval: 30s
+    rules:
+      # C5 -- the caller's WARN. The order completes; the confirmation does not.
+      #
+      # [10m], and the window is LOAD-BEARING. At [5m] the count reads 0 at
+      # t+767 s and t+783 s MID-FAULT (window-emailMemoryLeak-1000x.log),
+      # because the 352 s gap between two kills leaves a five-minute window
+      # containing none. The rule would resolve and re-fire there, and under
+      # ADR 0004 that is a second Incident.
+      #
+      # The line exists in two forms -- ending `dial tcp ...: connect:
+      # connection refused` and ending `: EOF`, where the EOF IS the kill
+      # landing mid-request. The shared prefix catches both. First WARN
+      # measured at t+119 s, the same instant as the first OOMKill.
+      - uid: cascade-confirmation-delivery
+        title: Checkout cannot deliver order confirmations
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: loki
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              refId: A
+              datasource:
+                type: loki
+                uid: loki
+              expr: sum by (service_name) (count_over_time({service_name="checkout"} |= "failed to send order confirmation" [10m]))
+              queryType: instant
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: threshold
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+        for: 1m
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: warning
+          service: checkout
+          cascade: otel-demo
+        annotations:
+          summary: Order confirmations are failing to send
+          description: Checkout has logged failures posting order confirmations within the last ten minutes. Checkout treats the confirmation as fire-and-forget, so the order still completes and no customer sees an error.
+        isPaused: false
+
+      # C6 -- cart cannot reach its data store.
+      #
+      # The line filter is PROVEN, and every alternative is proven not to work:
+      # `|= "Wasn't able to connect to redis"` -> 5 lines, while
+      # `|= "ApplicationException"` -> 0, `|= "EnsureRedisConnected"` -> 0 and
+      # `|= "badhost"` -> 0, because .NET log bodies arrive as message
+      # TEMPLATES with the values in structured metadata
+      # (15-cart-log-templates.log). The full stack frame is there, in `Detail`.
+      #
+      # Correcting ticket 27's trap 4 in passing: THIS line carries
+      # severity_text "Error" / severity_number 17. Only the separate
+      # Grpc.AspNetCore.Server.ServerCallHandler template line carries
+      # "Information". The conclusion -- do not write a severity-based rule --
+      # survives for a different reason: severity_text is not selectable at all.
+      #
+      # [5m] is safe here where it was not for C5: the baseline is a measured
+      # zero over a five-minute window at t+5, t+21 and t+37
+      # (window-cartFailure-100%.log) and the first line lands at t+53 s, with
+      # the Fault pinned at the 100% variant so the rate does not thin out.
+      #
+      # `sum by (service_name)` is not decoration: the undo does
+      # `rollout restart deploy/cart`, and service_instance_id and container_id
+      # both change with it (16-recovery-edge.log).
+      - uid: cascade-cart-datastore
+        title: Cart cannot reach its data store
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: loki
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              refId: A
+              datasource:
+                type: loki
+                uid: loki
+              expr: sum by (service_name) (count_over_time({service_name="cart"} |= "Wasn't able to connect to redis" [5m]))
+              queryType: instant
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: threshold
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+        for: 1m
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: warning
+          service: cart
+          cascade: otel-demo
+        annotations:
+          summary: Cart cannot reach its data store
+          description: The cart service has logged data-store connection failures within the last five minutes. Callers discard this error, so orders still complete and the failure is not visible to a shopper.
+        isPaused: false

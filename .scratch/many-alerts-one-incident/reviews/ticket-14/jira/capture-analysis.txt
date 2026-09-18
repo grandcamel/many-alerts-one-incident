@@ -1,0 +1,39 @@
+paymentUnreachable: 26 deliveries; t0=first POST=1789682195.0884478; times below are POST arrivals minus t0, not injection or endsAt.
+  line 21 t+662.603: wholly resolved group=Service request rate has dropped to zero; still firing in last-delivered state=['5e8d72dc87b1ff35', '6cd7e206a0716d2d', '8e2d9556f6c757b5']
+  line 26 t+900.084: wholly resolved group=Service error rate is elevated; still firing in last-delivered state=[]
+  fp 4396dcd5ddc23476 email warning: first line 4 t+182.568; last line 21 t+662.603 resolved
+  fp 4bde20aac01f95a2 fraud-detection warning: first line 4 t+182.568; last line 21 t+662.603 resolved
+  fp 5e8d72dc87b1ff35 frontend critical: first line 1 t+0.000; last line 26 t+900.084 resolved
+  fp 6cd7e206a0716d2d checkout critical: first line 3 t+120.016; last line 26 t+900.084 resolved
+  fp 8e2d9556f6c757b5 frontend-proxy critical: first line 3 t+120.016; last line 26 t+900.084 resolved
+  fp b3587dd72657d226 payment warning: first line 4 t+182.568; last line 21 t+662.603 resolved
+  fp f09facf2b8f5b694 accounting warning: first line 4 t+182.568; last line 21 t+662.603 resolved
+
+emailMemoryLeak: 63 deliveries; t0=first POST=1789683650.0480611; times below are POST arrivals minus t0, not injection or endsAt.
+  line 57 t+1250.106: wholly resolved group=Container memory is approaching its limit; still firing in last-delivered state=['3253da2ba16cb0cb', '90ec22b91f46a6ce']
+  line 62 t+1352.606: wholly resolved group=Checkout cannot deliver order confirmations; still firing in last-delivered state=['3253da2ba16cb0cb']
+  line 63 t+1352.993: wholly resolved group=Container is restarting; still firing in last-delivered state=[]
+  fp 3253da2ba16cb0cb email critical: first line 2 t+32.853; last line 63 t+1352.993 resolved
+  fp 391dc40ca1dfd1a3 email warning: first line 1 t+0.000; last line 57 t+1250.106 resolved
+  fp 90ec22b91f46a6ce checkout warning: first line 4 t+72.481; last line 62 t+1352.606 resolved
+
+cartFailure: 23 deliveries; t0=first POST=1789685730.0383744; times below are POST arrivals minus t0, not injection or endsAt.
+  line 20 t+710.065: wholly resolved group=Cart cannot reach its data store; still firing in last-delivered state=['5de6002ca2547b11']
+  line 23 t+823.013: wholly resolved group=Container is restarting; still firing in last-delivered state=[]
+  fp 5de6002ca2547b11 load-generator critical: first line 6 t+262.969; last line 23 t+823.013 resolved
+  fp bddc72414d172719 cart warning: first line 1 t+0.000; last line 20 t+710.065 resolved
+
+adFailure: 3 deliveries; t0=first POST=1789687595.102749; times below are POST arrivals minus t0, not injection or endsAt.
+  line 3 t+120.009: wholly resolved group=Service error rate is elevated; still firing in last-delivered state=[]
+  fp 5e8d72dc87b1ff35 frontend critical: first line 1 t+0.000; last line 3 t+120.009 resolved
+
+Alert occurrences across all four capture files: 168
+Empty dashboardURL and panelURL: 168
+Label keys: ['alertname', 'cascade', 'grafana_folder', 'k8s_container_name', 'service', 'service_name', 'severity']
+cascade values: ['otel-demo']
+Cart cannot reach its data store: 1 distinct annotation pairs
+Checkout cannot deliver order confirmations: 1 distinct annotation pairs
+Container is restarting: 1 distinct annotation pairs
+Container memory is approaching its limit: 1 distinct annotation pairs
+Service error rate is elevated: 1 distinct annotation pairs
+Service request rate has dropped to zero: 1 distinct annotation pairs

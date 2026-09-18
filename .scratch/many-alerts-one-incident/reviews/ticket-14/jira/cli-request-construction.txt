@@ -1,0 +1,7 @@
+Offline full CLI parse; Surface.call intercepted BEFORE any transport. This proves request construction only, not OPS editability.
+$ jira-as api call editIssue --issue-id-or-key OPS-EXAMPLE --field 'update.labels[0].add=fp-example'
+{"body": {"update": {"labels[0]": {"add": "fp-example"}}}, "operation": "editIssue", "parameters": {"issueIdOrKey": "OPS-EXAMPLE"}}
+Stopped before transport as intended.
+$ jira-as api call editIssue --issue-id-or-key OPS-EXAMPLE --field 'update.labels=[{"add":"fp-example"}]' --field fields.customfield_10085.value=Sev-1 --field fields.customfield_10079.value=Critical
+{"body": {"fields": {"customfield_10079": {"value": "Critical"}, "customfield_10085": {"value": "Sev-1"}}, "update": {"labels": [{"add": "fp-example"}]}}, "operation": "editIssue", "parameters": {"issueIdOrKey": "OPS-EXAMPLE"}}
+Stopped before transport as intended.

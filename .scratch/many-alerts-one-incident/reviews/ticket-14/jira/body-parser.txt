@@ -1,0 +1,9 @@
+Offline check of installed jira-as v2 body builder used at cli/commands/api_cmds.py:290. No transport, no Jira request.
+fields=["update.labels[0].add=fp-example"]
+body={"update": {"labels[0]": {"add": "fp-example"}}}
+fields=["update.labels=[{\"add\":\"fp-example\"}]", "fields.customfield_10085.value=Sev-1", "fields.customfield_10079.value=Critical"]
+body={"fields": {"customfield_10079": {"value": "Critical"}, "customfield_10085": {"value": "Sev-1"}}, "update": {"labels": [{"add": "fp-example"}]}}
+fields=["update.labels=[{\"add\":\"done-example\"}]"]
+body={"update": {"labels": [{"add": "done-example"}]}}
+fields=["update.labels=[{\"remove\":\"done-example\"}]"]
+body={"update": {"labels": [{"remove": "done-example"}]}}

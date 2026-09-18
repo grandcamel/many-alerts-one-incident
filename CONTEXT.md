@@ -59,11 +59,11 @@ _Avoid_: cleared, ok, recovered
 ### Sync side
 
 **Receiver**:
-The HTTP endpoint inside the container that accepts Notifications and starts Runs, one at a time.
+The HTTP endpoint inside the container that accepts Notifications, suppresses exact repeats and coalesces pending Alerts while starting Runs one at a time.
 _Avoid_: harness, server, listener, webhook handler
 
 **Run**:
-One headless Claude invocation, started by the Receiver for exactly one Notification.
+One headless Claude invocation, started by the Receiver to handle Alerts from one or more Notifications, possibly coalesced.
 _Avoid_: harness, agent, session, job
 
 **Skill**:

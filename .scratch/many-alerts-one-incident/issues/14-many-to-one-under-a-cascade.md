@@ -1,7 +1,7 @@
 # Many-to-one under a Cascade
 
 Type: grilling
-Status: claimed
+Status: resolved
 Blocked by: 10, 11
 
 ## Question
@@ -172,3 +172,111 @@ they are not lost, each still to be checked:
 4. **Then round 2 of the grilling**, which was never put to the human: the cost of a wrong
    judgment and whether it is correctable; append-versus-rewrite (shared with ticket 16);
    and the exact `group_wait`/`group_interval` values.
+
+
+## Verification follow-up — NOT an Answer
+
+The ticket remains **claimed and unresolved**. D1–D6 remain human-agreed inputs;
+round 2 is pending. Sequential cheaper-model verification, followed by boss review,
+covered the six Grafana and six stage objections; the six Jira objections were
+verified in the preceding session. [Evidence index](../reviews/ticket-14/README.md).
+
+- **The 8-versus-10 discrepancy is explained.** The named captured-delivery subset
+  filter retains payment **8** and email **12** at 600 seconds; at 300 seconds it
+  retains **10** and **16**. A recovered full-status-set inequality predicate retains
+  payment **10** at 600 seconds because it also sends on shrinkage (source lines 18
+  and 24). The two pure repeats removed when the subset filter goes 300→600 seconds
+  are lines 13 and 14. [Predicate, provenance and results](../reviews/ticket-14/replay/report.md).
+  These are historical selections from a one-minute POST trace, **not** verified
+  predictions for a changed Grafana policy or the planned 0.03/s threshold.
+- **The CLI supports the edits; the current Skill lacks their procedure.** In the
+  installed v2 CLI, use an inline JSON array for additive labels; the panel's
+  `update.labels[0].add` suggestion builds a literal `labels[0]` key. Cascade-label
+  storage, additive Fingerprint membership, persistent current member state and
+  paired Severity/Urgency updates need to be specified. Live OPS editability remains
+  unverified. [Jira verification](../reviews/ticket-14/jira/report.md).
+- **Surviving decision gaps:** exact-repeat equality; coalescing conflict order and
+  source-group identity; stale/multiple-candidate Match handling; correction of wrong
+  Matches and duplicate Incidents; later Report mutation; and the boundary of D6's
+  exceptional completion. A candidate is not yet an accepted Match, and a raw
+  resolved-group POST is not proof of the future Run's premature completion.
+- **No new timing acceptance:** the 29-minute lifecycle, changed-grouping counts and
+  future Run savings remain unverified counterfactuals. Matched-Run speed was not
+  measured. Timeout handling stays with ticket 21 and Report form with ticket 16.
+  [Grafana](../reviews/ticket-14/grafana.md), [stage](../reviews/ticket-14/stage.md).
+
+The [completeness check](../reviews/ticket-14/completeness.md) covers every clause of
+this ticket's Question. [Round 2](../reviews/ticket-14/round-2.md) contains seven
+specific recommendations awaiting the human; none is adopted by this note. No Skill
+or runtime code was changed, and no live system, demo or cluster was run.
+
+
+## Answer
+
+Both grilling rounds are accepted: the human agreed D1–D6 and then explicitly agreed all seven [round-2 recommendations](../reviews/ticket-14/round-2.md). This Answer supersedes the provisional WIP sections above. It resolves planning mechanics, not implementation or live acceptance.
+
+Ticket 14 keeps Grafana’s global grouping as `[grafana_folder, alertname]`.  The
+policy is `group_wait: 10s`, `group_interval: 10s`, and `repeat_interval: 10m`.
+The first two values are the committed policy values; D2 leaves reduction of the
+many Alerts to the Match, rather than changing router grouping
+([committed policy extract](../reviews/ticket-14/jira/notification-policy.yaml), lines 16–21; D1–D3 above).
+`service` and `service_name` remain excluded from `group_by`, because they vary
+across a Cascade (this ticket:51-60).
+
+The Receiver admits one Run at a time.  While it is in flight it retains one
+pending aggregate input.  For each Fingerprint, that input retains the latest
+accepted delivery by arrival order, preserves its source Grafana group identity,
+and treats absence from a later delivery as no state at all—not as Resolved.  It
+compares exact repeats per source group using sorted `(fingerprint, status,
+values)` records; a changed `values` object therefore remains eligible.  After
+duplicate Fingerprints have been reduced, normal processing handles Firing before
+Resolved.  This is an arrival-order contract, not a claim to correct an
+out-of-order upstream delivery.
+
+The Match is evaluated against open Incidents created within the preceding 30
+minutes, using Jira’s clock for both lookup paths.  First, an exact Fingerprint
+is eligible only within that window.  Otherwise, eligible Incidents carrying the
+same cascade label are candidates.  For one candidate, and for several candidates,
+the Run reads the candidate Report, member set, and relevant times and accepts a
+Match only where the evidence uniquely supports it; it records its confidence.
+For a Firing Alert, if no eligible candidate exists, create a new Incident. If multiple candidates remain ambiguous or evidence is insufficient, create a separate Incident with an ambiguity note rather than silently combining Faults.  A stale Incident is left
+for human disposition; this ticket defines no automatic stale closure or exact
+confidence threshold.  A Resolved Alert with no Match remains skipped.
+
+On creation, and after every accepted membership decision, preserve the
+`cascade-<value>` label and `fp-<fingerprint>` membership labels. Automatic lifecycle handling preserves membership even after resolution; human-owned correction may reassign it as described below.  Add
+labels additively, never by replacing the label set.  On the installed CLI, the
+update body must use a JSON array, for example
+`--field 'update.labels=[{"add":"fp-<fingerprint>"}]'`; the indexed-path form
+`update.labels[0].add` is not valid request construction
+([verified CLI request construction](../reviews/ticket-14/jira/cli-request-construction.txt), lines 1–7).
+
+The implementation must maintain durable current state for every accepted
+Fingerprint, including a later Firing replacing an earlier Resolved state.
+Membership alone is insufficient; this Answer deliberately does not prescribe a
+state-store representation.  Severity is the maximum ever accepted severity and
+only ratchets upward.  Its mapped Urgency is updated with it.  Candidate selection
+has no membership or Severity side effect; only an accepted Match participates in
+these updates.
+
+The Run appends new evidence and explicit correction entries to the Report.  It
+does not silently rewrite earlier claims.  Ticket 16 owns the ADF/storage form and
+how a current view is presented.  A Run may flag a suspected wrong Match or
+duplicate and propose a correction with linked evidence, but a human owns moving
+membership, merging duplicates, and any Severity correction.  While such a
+correction is pending, automatic completion of the affected Incident is blocked.
+
+Normal completion requires every accepted Fingerprint to be currently Resolved.
+The former group-resolution escape hatch is narrowed: only an explicit
+human-authorized forced completion may close an Incident with unresolved members,
+and its closing entry must name those Fingerprints.  A wholly resolved Grafana
+group never overrides a known-Firing accepted member automatically.
+
+The historical capture filter reconciles earlier numerical claims; it is not a counterfactual Grafana scheduler: with its named subset predicate it selects
+paymentUnreachable 26→8 and emailMemoryLeak 63→12 at 600 seconds; at 300 seconds
+it selects 26→10 and 63→16 ([predicate and provenance](../reviews/ticket-14/replay/report.md); [retained source lines](../reviews/ticket-14/replay/results.txt)).
+Because the accepted exact comparison includes `values`, it makes no promised
+future Run count.  No live OPS edit/read-back, matched-Run timing, cluster, or demo
+acceptance was run.  Ticket 21 owns timeout/refusal behavior; ticket 16 owns
+Report form.  These are implementation and acceptance dependencies, not reasons
+to reopen the decisions above.
