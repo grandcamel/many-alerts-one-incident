@@ -1,6 +1,6 @@
 # Ticket 19 — Stage B experiment card (draft for authorization, NOT RUN)
 
-Status: **draft, unexecuted.** One approval of this card authorizes exactly one bounded model attempt as specified here. Nothing on this page has run; no reservation has been made. Grounding: [experiment-plan](experiment-plan.md) §Stage B, ADRs 0011–0015, [stage-b-readiness](stage-b-readiness.md) F1–F3, Stage A frozen evidence at prototype `5f90bfb`, P1 routing evidence at prototype `184f163`.
+Status: **draft, unexecuted.** One approval of this card authorizes exactly one bounded model attempt as specified here. Nothing on this page has run; no reservation has been made. Grounding: [experiment-plan](experiment-plan.md) §Stage B, ADRs 0011–0015, [stage-b-readiness](stage-b-readiness.md) F1–F3, Stage A frozen evidence at prototype `5f90bfb`, P1 routing evidence at prototype `1973f90`.
 
 ## Question
 

@@ -32,7 +32,7 @@ Documented in current help:
 
 ### F3 — P1 routing probe: measured 2026-09-18 (local, model-free-in-billing)
 
-Prototype commit **`184f163`** on `prototype/mcp-grafana-eyes` (`prototype/routing_probe/`, evidence `artifacts/routing-probe.json`). The installed client, run as `claude --bare -p` from a throwaway HOME with `ANTHROPIC_BASE_URL` at a loopback mock and a random synthetic sentinel key:
+Prototype commit **`1973f90`** on `prototype/mcp-grafana-eyes` (`prototype/routing_probe/`, evidence `artifacts/routing-probe.json`). The installed client, run as `claude --bare -p` from a throwaway HOME with `ANTHROPIC_BASE_URL` at a loopback mock and a random synthetic sentinel key:
 
 - Routed all Messages traffic to the mock: `POST /v1/messages?beta=true` with the sentinel presented as `x-api-key`; no direct route to the real API occurred. Verdict `supported-routing`.
 - Sent `stream: true` and accepted the mock's SSE event sequence, completing the turn (`terminal_reason: completed`, `is_error: false`). Streaming support is therefore a hard requirement for the fifth Forwarder endpoint.
