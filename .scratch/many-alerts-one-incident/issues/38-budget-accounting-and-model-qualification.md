@@ -1,0 +1,17 @@
+# Budget accounting and model qualification
+
+Type: task
+Status: open
+Blocked by: 22, 36, 37
+
+## Question
+
+Produce an implementation-ready specification for [ADR 0013](../../../docs/adr/0013-demo-spend-is-metered-reserved-and-qualified.md), not runtime changes or paid measurements.
+
+Define the durable Receiver-only budget ledger, atomic reservation-before-launch, lifecycle/diagnostic/weekly attribution, every-attempt counting, actual/estimate/reservation reconciliation without double-counting, billing lag and unknown-exposure holds. Preserve weekly accounting across rehearsal resets, Receiver/pod restarts and calendar boundaries; after lost storage, hold admission until authoritative reconstruction. Specify retention, capacity, time-zone boundaries, operator reallocation and audit controls. Ensure retries consume diagnostic allocation and remain in their lifecycle ceiling, with each actual charge counted once in the weekly sum. Map budget hold to ticket 37's pending-work and uncertain-effect recovery without dropping Notifications or replaying confirmed writes.
+
+Specify offline acceptance through real Receiver/Forwarder seams for simultaneous reservation attempts, crash windows, duplicate/delayed receipts, unknown and above-reservation costs, billing reconciliation, exhausted allocations, restart/reset/rollover and unavailable billing evidence. A mocked bill does not establish provider enforcement. Keep secrets, raw prompts and Ground truth out of the ledger and sanitize cost reporting consistently with ADR 0010.
+
+Define the separately authorized live preflight for current rates, account limits/lag, client budget behavior and the mediated Anthropic path. Do not invent supported flags or prices: inspect current self-documentation and the required Claude API skill before model/CLI claims. Where unavailable, record the evidence gate as blocked. Do not perform a model probe, change auth, create keys, purchase credits or provision infrastructure to write this specification.
+
+Specify a comparable candidate qualification matrix covering initial Report, match/update, resolution, the intended presentation Fault and separately labelled fallback coverage; three complete representative lifecycle samples per candidate, citation review, all failures/retries, per-Run 300s bound, per-lifecycle ceilings and provider actual/unknown accounting. Allocate samples to the accepted rehearsal envelope, guard checks/retries to diagnostics, and avoid hidden extra spend or declaring an unmeasured candidate cheapest. Separate offline fixture, model-quality, provider-billing, tenant and intended-venue acceptance. Preserve labelled replay until all required live gates pass.

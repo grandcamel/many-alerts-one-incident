@@ -32,3 +32,7 @@ This ticket does work; it decides nothing and produces no ADR. It is here so the
 carries it rather than a reviewer's memory. The answer records the Fable numbers, its
 grade against the Ground truth, and the threshold, and appends all three to
 `prototype/run-timing/results/measurements-2026-09.md`.
+
+## Current execution boundary after ticket 22
+
+The commands and model availability above are historical, not runnable-now evidence or authorization. Ticket 22 refutes independent per-model balances as an established fact; a top-up is not an accepted remedy. ADR 0013 requires metered API billing, mediated credentials, budget preflight and separately authorized execution. Redesign these probes against that contract and ADR 0012's 300-second total bound before any future run; the historical 900-second command is not an approved current Run budget. No paid probe or credential change is authorized.

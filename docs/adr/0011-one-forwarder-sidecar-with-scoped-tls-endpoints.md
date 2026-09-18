@@ -12,7 +12,7 @@ Use deployment-local TLS rather than patching Confluence to allow HTTP. Operator
 
 ## Credentials and authority
 
-Give each Run separate per-service sentinels, valid only for declared service scopes and the Run lifetime. The Forwarder holds independently scoped upstream credentials, including a narrowly scoped Kubernetes service-account credential. Never mount that token or other managed upstream credentials in the Run container. ADR 0002's explicit Anthropic credential exception remains; it is not a general service-credential exemption.
+Give each Run separate per-service sentinels, valid only for declared service scopes and the Run lifetime. The Forwarder holds independently scoped upstream credentials, including a narrowly scoped Kubernetes service-account credential. Never mount that token or other managed upstream credentials in the Run container. ADR 0013 supersedes ADR 0002's Anthropic credential exception: add a fifth fixed Anthropic endpoint, retain its API key outside Runs, and require per-Run sentinels and verified client compatibility.
 
 Receiver registration/revocation uses an authenticated control channel inaccessible to Runs, backed by an enforced OS/credential boundary rather than just an omitted environment variable. Register scopes before launch, revoke on all exit/timeout paths, and invalidate previous admissions after Receiver or Forwarder restart. Bound orphaned authority through leases tied to ticket 21's Run budget. A Forwarder restart begins with no valid sentinels; do not restore them from a persisted token list. Revocation cannot roll back an upstream request already dispatched, whose outcome may be unknown.
 
@@ -20,7 +20,7 @@ Kubernetes access is mediated read access, including required pod status; ticket
 
 ## Bypass, responses and readiness
 
-Disable anonymous Grafana access, block direct Run access to unauthenticated telemetry backends, isolate service credential mounts and scope upstream roles/RBAC. Ordinary pod-level network policy is not proof of separation between sibling containers; the specification must prove actual routing, authentication and OS boundaries, including permitted Anthropic and telemetry-export exceptions. A service route without enforceable scope remains unavailable.
+Disable anonymous Grafana access, block direct Run access to unauthenticated telemetry backends, isolate service credential mounts and scope upstream roles/RBAC. Ordinary pod-level network policy is not proof of separation between sibling containers; the specification must prove actual routing, authentication and OS boundaries, including the mediated Anthropic path required by ADR 0013 and the telemetry-export exception. A service route without enforceable scope remains unavailable.
 
 Reject upstream redirects instead of relaying Location to clients; configure canonical upstream addresses. Strip caller Authorization, Host and proxy/hop credentials before adding the service credential. Bound request/body/response sizes and timeouts. Never transparently retry a mutation after timeout, disconnect or uncertain delivery; report it for reconciliation under ticket 21 and the relevant Jira/Confluence contract. Truncation and timeout must not be presented as success.
 
@@ -31,3 +31,5 @@ Require the Forwarder, control channel, TLS boundary and mandatory Jira, Grafana
 [Offline source facts](../../.scratch/many-alerts-one-incident/reviews/ticket-17/facts.md) show that current code is an in-process, loopback HTTP Forwarder with one Jira Basic credential and one active sentinel. It fixes the upstream origin and does not itself follow redirects, but returns redirects to the client. The installed Confluence client requires HTTPS. No current sidecar, TLS listener, multi-service credential support, Kubernetes mediation or control-channel isolation is implied by this ADR.
 
 [Ticket 36](../../.scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md) specifies endpoints, trust/lease/size/time bounds, process identities, control transport, secret mounts, query-aware enforcement and rejection/read-back tests. Ticket 12 chooses Eyes tools/operations, ticket 19 must prototype against this accepted boundary, ticket 33 defines Confluence grants, and ticket 21 owns Run outcome/retry behavior. Client trust, actual upstream roles, scope enforcement and bypass resistance require acceptance evidence. No runtime/Skill changes, live credentials, cluster or demo were used to accept this planning decision.
+
+ADR 0013 adds the fifth Anthropic listener and makes its readiness mandatory for model Run admission; the four-service layout above records this ADR's original scope. No mediated Anthropic implementation is implied.

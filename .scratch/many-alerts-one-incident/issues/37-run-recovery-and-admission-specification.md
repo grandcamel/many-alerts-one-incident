@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 16, 21, 36
+Blocked by: 16, 21, 22, 36
 
 ## Question
 
@@ -13,3 +13,5 @@ Specify the Receiver-owned durable journal's schema, storage/mount/access bounda
 Specify 270s work + 20s interrupt/flush + 10s kill/reap within the 300s total, early cancellation, sentinel lease/revocation timing, and containment failure without falsely declaring cleanup complete. Extend ticket 31's offline fixture contract with false-success terminal records, nonzero exits, missing/malformed/duplicate results, confirmed and uncertain writes, pre-dispatch denial and one compact retry, optional secondary failure, silent work, parent exit with descendants holding pipes, journal failures/full capacity, failed A plus newer B/A, repeated dedupe during recovery, restart and operator retry/resume.
 
 Require real Receiver/spawner/Forwarder boundaries for offline acceptance; do not present stubbed Match or model outcomes as real diagnosis/CLI behavior. Record separate model-signal, host containment, intended-venue storage and live OPS acceptance requirements. No model, cluster, demo, live write or runtime implementation is authorized by this planning task.
+
+ADR 0013 adds budget admission holds and durable spend reservations. Integrate ticket 38's accounting interface without making ticket 38 a prerequisite for this specification: reserve before model launch, retain pending work on budget hold, count every retry, and never reset weekly spend or unknown charges with a rehearsal reset. Keep effect reconciliation required even when no paid Run may start.

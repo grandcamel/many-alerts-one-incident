@@ -4,5 +4,5 @@ A Run must call Jira without ever holding the API token. Claude Code's native `s
 
 ## Consequences
 
-- The Anthropic OAuth token remains the one real credential in a Run's environment. This is stated in the demo, not hidden.
+- Superseded by ADR 0013: the Anthropic API key stays outside Runs behind a fifth mediated endpoint. The original OAuth credential exception no longer applies to the accepted target design.
 - Native masking is a stretch goal to show as the built-in equivalent, not a day-one dependency.

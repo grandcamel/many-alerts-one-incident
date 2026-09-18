@@ -1,7 +1,7 @@
 # What a demo costs against an allowance
 
 Type: grilling
-Status: open
+Status: resolved
 Blocked by: none
 
 ## Question
@@ -29,3 +29,21 @@ the cheap option bought its speed against the citation rule?
 Also decide the guard: `--max-budget-usd` is accepted by the CLI but no arm reached its
 cap, so whether it terminates a Run on this auth is untested ("Which model, at what
 effort, on a headless Run" left the same gap).
+
+## Work in progress
+
+Claimed after ticket 21 was committed. Offline historical-evidence review and billing/budget policy decisions only; no account probe, paid Run, API-key change, top-up or model availability assumption. Current Codex account limits are not Claude demo allowance evidence.
+
+## Evidence correction before decisions
+
+[Historical fact check](../reviews/ticket-22/facts.md): $4.7447 is the subtotal of three reported estimates, with killed-Run spend unknown, not the billed cost of all five attempts. Differential model availability does not prove independent per-model credit balances. CLI dollar-cap termination was not tested. [Official billing documentation](../reviews/ticket-22/billing-sources.md) was checked separately without inspecting or changing this account.
+
+The human accepted all four recommendations in the first [decision round](../reviews/ticket-22/round-1.md): dedicated metered API billing, explicit cost-evidence categories, a bounded rehearsal envelope and evidence-qualified model selection. No paid execution or credential change is authorized. The second [decision round](../reviews/ticket-22/round-2.md) records numeric budgets, enforcement, credential custody and qualification evidence; the human accepted all four recommendations with “Agree.”
+
+## Answer
+
+Both decision rounds are accepted in [ADR 0013](../../../docs/adr/0013-demo-spend-is-metered-reserved-and-qualified.md). Dedicated metered API billing; $150 weekly planning envelope split into three $30 rehearsals, one $30 presentation and $30 diagnostics/retries; $3 reserved per attempt and ten-attempt allocation limits. Durable reservations and attributed provider billing gate admission, with unknown exposure held and no automatic top-up. These are not proven hard provider charge caps.
+
+The Anthropic credential exception is superseded by a fifth mediated endpoint. Three representative complete Fault lifecycle samples, cited evidence and the 300-second Run bound qualify a candidate; historical cheaper/fabricated or incomplete arms do not. Until qualification and enforcement pass, use labelled replay. Cloud spend is separate.
+
+The opening question's $4.74 total-bill and per-model-balance claims are refuted by the linked facts; no current price, account balance, available model or CLI enforcement was established. Tickets 36/37 consume the new boundaries and [ticket 38](38-budget-accounting-and-model-qualification.md) specifies accounting/qualification acceptance. Planning is resolved; implementation, paid execution and live acceptance remain unperformed and unauthorized.
