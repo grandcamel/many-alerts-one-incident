@@ -10,7 +10,7 @@ upstream; key ONLY from DEMO_UPSTREAM_KEY in the operator's environment, never
 persisted. Frozen card prompt, 270/20/10 budget, dual sentinel revocation,
 operator-private evidence OUTSIDE git, sanitizer refusal on any credential.
 
-Evidence: ~/maoi-stage-b-evidence/attempt-1/ (not a repository path).
+Evidence: ~/maoi-stage-b-evidence/attempt-N/ (not a repository path).
 """
 
 import argparse
@@ -37,11 +37,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "anthropic_endpo
 import certificates
 import endpoint
 import run_routing_probe as p1
-from boundary import FixtureBoundary
+from open_fixture import OpenFixture
 
 BIN = Path("/tmp/maoi-mcp-client/mcp-grafana")
 PIN = "d8cdb94e5e3154e1cf7b3ea850c83fd9309c222d96d99784187a57b76545334c"
-EVIDENCE_DIR = Path.home() / "maoi-stage-b-evidence" / "attempt-1"
+EVIDENCE_BASE = Path.home() / "maoi-stage-b-evidence"
 
 TOOLS = ["analyze_loki_labels", "check_datasources_health", "diff_tempo_traces",
          "get_datasource", "get_tempo_trace", "get_tempo_traceql_docs",
@@ -224,6 +224,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--rehearse", action="store_true")
     ap.add_argument("--execute", action="store_true")
+    ap.add_argument("--attempt", type=int, default=2)
     args = ap.parse_args()
     if args.rehearse == args.execute:
         raise SystemExit("choose exactly one of --rehearse / --execute")
@@ -248,7 +249,7 @@ def main():
     tls_ctx.load_cert_chain(server_pem, server_key)
 
     upstream = None
-    fixture = FixtureBoundary()
+    fixture = OpenFixture()
     fixture.__enter__()
     try:
         if args.rehearse:
@@ -286,6 +287,25 @@ def main():
         home = tempfile.mkdtemp(prefix="sb-exec-home-")
         cwd = tempfile.mkdtemp(prefix="sb-exec-cwd-")
         mcp_config = write_mcp_config(cwd, fixture)
+        discovery_probes = {}
+        if args.rehearse:
+            # The attempt-1 gap: discovery endpoints must now answer so a
+            # discovery-driven client can learn the real selectors.
+            gctx = ssl.create_default_context(cafile=str(fixture.ca))
+            gport = int(fixture.url.rsplit(":", 1)[1])
+            for label, path in (
+                    ("loki_labels", "/api/datasources/proxy/uid/loki/loki/api/v1/labels"),
+                    ("loki_labels_resources", "/api/datasources/uid/loki/resources/loki/api/v1/labels"),
+                    ("loki_health", "/api/datasources/uid/loki/health"),
+                    ("prom_label_values", "/api/datasources/proxy/uid/prom/api/v1/label/__name__/values")):
+                c = http.client.HTTPSConnection("localhost", gport, context=gctx, timeout=5)
+                c.request("GET", path,
+                          headers={"Authorization": "Bearer " + fixture.token})
+                r = c.getresponse()
+                discovery_probes[label] = {"status": r.status,
+                                           "body": r.read().decode()[:120]}
+                c.close()
+
         prompt = "Call the offered Grafana tool once, then answer." if args.rehearse else FROZEN_PROMPT
         t0 = time.monotonic()
         proc = launch_client(prompt=prompt,
@@ -412,14 +432,17 @@ def main():
                 for r in fixture.backend_receipts),
             "backend_tokens_matched": all(
                 r.get("token_matched") for r in fixture.backend_receipts),
+            "discovery_probes_200": all(p["status"] == 200
+                                        for p in discovery_probes.values()),
+            "discovery_probes": discovery_probes,
         }
     else:
         evidence["scoring"] = score(text, result_json, proxy.receipts)
         evidence["reservation"] = {
-            "reservation_id": "stage-b-attempt-1",
+            "reservation_id": f"stage-b-attempt-{args.attempt}",
             "amount_usd": 3.00,
             "envelope": "diagnostics $30 / weekly $150 (America/New_York)",
-            "attempt_number_in_envelope": 1,
+            "attempt_number_in_envelope": args.attempt,
             "reserved_at": t0_wall,
             "key_fingerprint": "…" + real_key[-4:],
             "released_or_reconciled_at": "pending daily feed",
@@ -430,8 +453,8 @@ def main():
         }
 
     secrets_to_scan = [s for s in
-                       [real_key, sentinel, operator_token]
-                       + list(FixtureBoundary.all_secrets) if s]
+                       [real_key, sentinel, operator_token, fixture.token,
+                        fixture.control_token, fixture._upstream] if s]
     serialized = json.dumps(evidence, indent=1)
     leaks = [i for i, s in enumerate(secrets_to_scan) if s in serialized]
     evidence["sanitizer"] = {"credential_values_checked": len(secrets_to_scan),
@@ -440,12 +463,11 @@ def main():
         print("SANITIZER REFUSED: credential value in evidence", leaks,
               file=sys.stderr)
         sys.exit(2)
-    FixtureBoundary.all_secrets.clear()
 
-    out_dir = EVIDENCE_DIR if args.execute else (
+    out_dir = (EVIDENCE_BASE / f"attempt-{args.attempt}") if args.execute else (
         Path(__file__).resolve().parent / "artifacts")
     out_dir.mkdir(parents=True, exist_ok=True)
-    out = out_dir / ("attempt-1.json" if args.execute else "rehearsal.json")
+    out = out_dir / (f"attempt-{args.attempt}.json" if args.execute else "rehearsal.json")
     out.write_text(json.dumps(evidence, indent=1) + "\n")
     print(f"mode={evidence['mode']} containment={evidence['containment']} "
           f"exit={evidence['exit_code']} -> {out}")

@@ -1,11 +1,11 @@
 {
  "mode": "rehearse",
  "card_commit": "2026710",
- "started_wall": 1789756974.560643,
- "elapsed_seconds": 4.705,
+ "started_wall": 1789765950.168728,
+ "elapsed_seconds": 4.181,
  "timeline": [
   {
-   "t": 4.036,
+   "t": 3.274,
    "event": "exit-0"
   }
  ],
@@ -20,9 +20,9 @@
  },
  "prompt_sha256": "199b3843481f5793adcddad36f27922c8aed61ba4dbbbe46b12f7466c73045fb",
  "client_result": {
-  "duration_api_ms": 281,
+  "duration_api_ms": 199,
   "stop_reason": "end_turn",
-  "session_id": "8cb37835-8952-4a5e-9af1-712930c4e180",
+  "session_id": "98e1df93-681b-40f2-a470-d0e6e4654071",
   "total_cost_usd": 8.999999999999999e-05,
   "usage": {
    "input_tokens": 2,
@@ -94,26 +94,26 @@
   "subtype": "success",
   "api_error_status": null,
   "result": "rehearsal complete: tool output received",
-  "ttft_ms": 125,
+  "ttft_ms": 95,
   "type": "result",
-  "duration_ms": 318,
-  "uuid": "49929abf-62b9-4526-abe7-d438033e318c",
-  "ttft_stream_ms": 123,
-  "time_to_request_ms": 113,
-  "first_content_frame_ms": 123,
+  "duration_ms": 212,
+  "uuid": "e1376187-8c93-4a9d-8662-daaad6e0d0bc",
+  "ttft_stream_ms": 93,
+  "time_to_request_ms": 83,
+  "first_content_frame_ms": 93,
   "queued_turn_count": 0,
   "result_index": 0
  },
  "client_stderr_tail": "",
  "endpoint_receipts": [
   {
-   "ts": 1789756978.155927,
+   "ts": 1789765953.4689238,
    "path": "/v1/messages",
    "outcome": "proxied",
    "request_bytes": 4104,
    "response_bytes": 1453,
    "upstream_status": 200,
-   "duration_s": 0.007,
+   "duration_s": 0.003,
    "model": "claude-opus-5",
    "usage": {
     "input_tokens": 1,
@@ -121,7 +121,7 @@
    }
   },
   {
-   "ts": 1789756978.4117901,
+   "ts": 1789765953.6375191,
    "path": "/v1/messages",
    "outcome": "proxied",
    "request_bytes": 32856,
@@ -135,7 +135,7 @@
    }
   },
   {
-   "ts": 1789756978.475838,
+   "ts": 1789765953.684007,
    "path": "/v1/messages/count_tokens",
    "outcome": "proxied",
    "request_bytes": 62647,
@@ -149,13 +149,13 @@
    }
   },
   {
-   "ts": 1789756978.548343,
+   "ts": 1789765953.710901,
    "path": "/v1/messages",
    "outcome": "proxied",
    "request_bytes": 35621,
    "response_bytes": 820,
    "upstream_status": 200,
-   "duration_s": 0.004,
+   "duration_s": 0.003,
    "model": "claude-opus-5",
    "usage": {
     "input_tokens": 1,
@@ -163,12 +163,44 @@
    }
   },
   {
-   "ts": 1789756979.1859999,
+   "ts": 1789765954.252347,
    "path": "/v1/messages",
    "outcome": "denied-sentinel-revoked"
   }
  ],
  "grafana_boundary_receipts": [
+  {
+   "method": "GET",
+   "path": "/api/datasources/proxy/uid/loki/loki/api/v1/labels",
+   "query": "",
+   "body": "",
+   "status": 200,
+   "reason": "forwarded"
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/uid/loki/resources/loki/api/v1/labels",
+   "query": "",
+   "body": "",
+   "status": 200,
+   "reason": "forwarded"
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/uid/loki/health",
+   "query": "",
+   "body": "",
+   "status": 200,
+   "reason": "forwarded"
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/proxy/uid/prom/api/v1/label/__name__/values",
+   "query": "",
+   "body": "",
+   "status": 200,
+   "reason": "forwarded"
+  },
   {
    "method": "GET",
    "path": "/api/frontend/settings",
@@ -205,6 +237,34 @@
  "grafana_backend_receipts": [
   {
    "method": "GET",
+   "path": "/api/datasources/proxy/uid/loki/loki/api/v1/labels",
+   "query": "",
+   "body": "",
+   "token_matched": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/uid/loki/resources/loki/api/v1/labels",
+   "query": "",
+   "body": "",
+   "token_matched": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/uid/loki/health",
+   "query": "",
+   "body": "",
+   "token_matched": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/proxy/uid/prom/api/v1/label/__name__/values",
+   "query": "",
+   "body": "",
+   "token_matched": true
+  },
+  {
+   "method": "GET",
    "path": "/api/frontend/settings",
    "query": "",
    "body": "",
@@ -232,7 +292,7 @@
    "body_bytes": 4104,
    "has_tool_result": false,
    "tools_offered": [],
-   "ts": 1789756978.154222
+   "ts": 1789765953.46785
   },
   {
    "method": "POST",
@@ -269,7 +329,7 @@
     "mcp__grafana__query_tempo_metrics",
     "mcp__grafana__search_tempo_traces"
    ],
-   "ts": 1789756978.410559
+   "ts": 1789765953.6365068
   },
   {
    "method": "POST",
@@ -277,7 +337,7 @@
    "body_bytes": 62647,
    "has_tool_result": false,
    "tools_offered": [],
-   "ts": 1789756978.4742122
+   "ts": 1789765953.68314
   },
   {
    "method": "POST",
@@ -314,14 +374,33 @@
     "mcp__grafana__query_tempo_metrics",
     "mcp__grafana__search_tempo_traces"
    ],
-   "ts": 1789756978.547219
+   "ts": 1789765953.709874
   }
  ],
  "rehearsal_checks": {
   "client_completed": true,
   "mock_saw_tool_result": true,
   "loki_query_reached_backend": true,
-  "backend_tokens_matched": true
+  "backend_tokens_matched": true,
+  "discovery_probes_200": true,
+  "discovery_probes": {
+   "loki_labels": {
+    "status": 200,
+    "body": "{\"status\":\"success\",\"data\":[\"rehearsal\",\"stream\"]}"
+   },
+   "loki_labels_resources": {
+    "status": 200,
+    "body": "{\"status\":\"success\",\"data\":[\"rehearsal\",\"stream\"]}"
+   },
+   "loki_health": {
+    "status": 200,
+    "body": "{\"status\":\"OK\",\"message\":\"synthetic datasource healthy\"}"
+   },
+   "prom_label_values": {
+    "status": 200,
+    "body": "{\"status\":\"success\",\"data\":[\"stage_a_current\",\"stage_a_empty\",\"stage_a_system\"]}"
+   }
+  }
  },
  "sanitizer": {
   "credential_values_checked": 5,
