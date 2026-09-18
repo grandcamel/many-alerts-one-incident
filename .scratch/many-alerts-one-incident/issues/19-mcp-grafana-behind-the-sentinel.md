@@ -39,3 +39,7 @@ The user subsequently authorized implementation and execution of the model-free 
 ## Stage B attempt 1 — 2026-09-18
 
 The user authorized exactly one bounded attempt; it executed against the synthetic fixtures with a real model through the mediated endpoint. [Outcome](../reviews/ticket-19/stage-b-attempt-1-outcome.md): boundary/budget/containment/sentinel/denial contracts **supported** ($0.286 client estimate vs $3 reservation, 82 s of 270 s, post-run sentinels 401); fixture-question usability **inconclusive due to fixture under-specification** — the exact-query allowlist denies the discovery endpoints a real client needs. Options 1–3 for any second attempt are recorded in the outcome; each needs new authorization and respects the P3 reconciliation hold. Ticket 19 stays claimed; ticket 12 stays blocked.
+
+## Stage B attempts 2–3 — 2026-09-18
+
+User directed unrestricted reads (no SI/PII in synthetic fixtures); fixture amended to permissive-read with discovery endpoints. Attempt 2 was interrupted by an infrastructure containment failure (fixed; no evidence; spend unknown pending daily feed). Attempt 3 completed: [outcome](../reviews/ticket-19/stage-b-attempt-2-3-outcome.md) — mechanics supported (198 s of 270 s, $1.1392 estimate matching token accounting exactly), Q1/Q2/Q4 supported with the model demonstrating discovery-driven probing, Q3 refuted by a named selector gap (fixture exact-match stricter than real Loki). Options for any attempt 4 recorded there; ticket 19 stays claimed, ticket 12 stays blocked.
