@@ -1,0 +1,330 @@
+{
+ "mode": "rehearse",
+ "card_commit": "2026710",
+ "started_wall": 1789756974.560643,
+ "elapsed_seconds": 4.705,
+ "timeline": [
+  {
+   "t": 4.036,
+   "event": "exit-0"
+  }
+ ],
+ "final_stage": "work",
+ "exit_code": 0,
+ "reaped": true,
+ "containment": "completed",
+ "sentinels_revoked_at_deadline": false,
+ "post_run_sentinel_probes": {
+  "anthropic_sentinel_after_run": 401,
+  "grafana_sentinel_after_run": 401
+ },
+ "prompt_sha256": "199b3843481f5793adcddad36f27922c8aed61ba4dbbbe46b12f7466c73045fb",
+ "client_result": {
+  "duration_api_ms": 281,
+  "stop_reason": "end_turn",
+  "session_id": "8cb37835-8952-4a5e-9af1-712930c4e180",
+  "total_cost_usd": 8.999999999999999e-05,
+  "usage": {
+   "input_tokens": 2,
+   "cache_creation_input_tokens": 0,
+   "cache_read_input_tokens": 0,
+   "output_tokens": 2,
+   "output_tokens_details": {
+    "thinking_tokens": 0
+   },
+   "server_tool_use": {
+    "web_search_requests": 0,
+    "web_fetch_requests": 0
+   },
+   "service_tier": "standard",
+   "cache_creation": {
+    "ephemeral_1h_input_tokens": 0,
+    "ephemeral_5m_input_tokens": 0
+   },
+   "inference_geo": "",
+   "iterations": [],
+   "speed": "standard"
+  },
+  "modelUsage": {
+   "claude-opus-5": {
+    "inputTokens": 3,
+    "outputTokens": 3,
+    "cacheReadInputTokens": 0,
+    "cacheCreationInputTokens": 0,
+    "webSearchRequests": 0,
+    "costUSD": 8.999999999999999e-05,
+    "contextWindow": 200000,
+    "maxOutputTokens": 64000,
+    "thinkingTokens": 0,
+    "canonicalModel": "claude-opus-5",
+    "provider": "firstParty",
+    "costBasis": "list"
+   }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+   "spawned": 0,
+   "requested": {
+    "background": 0,
+    "foreground": 0,
+    "unset": 0
+   },
+   "started_in_background": 0,
+   "max_depth": 0,
+   "spawned_by_subagents": 0,
+   "completed": 0,
+   "failed": 0,
+   "killed": {
+    "parent": 0,
+    "user": 0,
+    "system": 0
+   },
+   "refused": {
+    "depth_limit": 0,
+    "concurrency_limit": 0,
+    "budget": 0
+   },
+   "by_type": {}
+  },
+  "is_error": false,
+  "num_turns": 2,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "rehearsal complete: tool output received",
+  "ttft_ms": 125,
+  "type": "result",
+  "duration_ms": 318,
+  "uuid": "49929abf-62b9-4526-abe7-d438033e318c",
+  "ttft_stream_ms": 123,
+  "time_to_request_ms": 113,
+  "first_content_frame_ms": 123,
+  "queued_turn_count": 0,
+  "result_index": 0
+ },
+ "client_stderr_tail": "",
+ "endpoint_receipts": [
+  {
+   "ts": 1789756978.155927,
+   "path": "/v1/messages",
+   "outcome": "proxied",
+   "request_bytes": 4104,
+   "response_bytes": 1453,
+   "upstream_status": 200,
+   "duration_s": 0.007,
+   "model": "claude-opus-5",
+   "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+   }
+  },
+  {
+   "ts": 1789756978.4117901,
+   "path": "/v1/messages",
+   "outcome": "proxied",
+   "request_bytes": 32856,
+   "response_bytes": 1453,
+   "upstream_status": 200,
+   "duration_s": 0.004,
+   "model": "claude-opus-5",
+   "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+   }
+  },
+  {
+   "ts": 1789756978.475838,
+   "path": "/v1/messages/count_tokens",
+   "outcome": "proxied",
+   "request_bytes": 62647,
+   "response_bytes": 466,
+   "upstream_status": 200,
+   "duration_s": 0.003,
+   "model": "claude-opus-5",
+   "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+   }
+  },
+  {
+   "ts": 1789756978.548343,
+   "path": "/v1/messages",
+   "outcome": "proxied",
+   "request_bytes": 35621,
+   "response_bytes": 820,
+   "upstream_status": 200,
+   "duration_s": 0.004,
+   "model": "claude-opus-5",
+   "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+   }
+  },
+  {
+   "ts": 1789756979.1859999,
+   "path": "/v1/messages",
+   "outcome": "denied-sentinel-revoked"
+  }
+ ],
+ "grafana_boundary_receipts": [
+  {
+   "method": "GET",
+   "path": "/api/frontend/settings",
+   "query": "",
+   "body": "",
+   "status": 200,
+   "reason": "forwarded"
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/uid/loki",
+   "query": "",
+   "body": "",
+   "status": 200,
+   "reason": "forwarded"
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/proxy/uid/loki/loki/api/v1/query_range",
+   "query": "direction=backward&end=1767225660000000000&limit=101&query=%7Bstream%3D%22application%22%7D&start=1767225600000000000",
+   "body": "",
+   "status": 200,
+   "reason": "forwarded"
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources",
+   "query": "",
+   "body": "",
+   "status": 401,
+   "reason": "authority denied"
+  }
+ ],
+ "grafana_backend_receipts": [
+  {
+   "method": "GET",
+   "path": "/api/frontend/settings",
+   "query": "",
+   "body": "",
+   "token_matched": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/uid/loki",
+   "query": "",
+   "body": "",
+   "token_matched": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/datasources/proxy/uid/loki/loki/api/v1/query_range",
+   "query": "direction=backward&end=1767225660000000000&limit=101&query=%7Bstream%3D%22application%22%7D&start=1767225600000000000",
+   "body": "",
+   "token_matched": true
+  }
+ ],
+ "mock_model_receipts": [
+  {
+   "method": "POST",
+   "path": "/v1/messages?beta=true",
+   "body_bytes": 4104,
+   "has_tool_result": false,
+   "tools_offered": [],
+   "ts": 1789756978.154222
+  },
+  {
+   "method": "POST",
+   "path": "/v1/messages?beta=true",
+   "body_bytes": 32856,
+   "has_tool_result": false,
+   "tools_offered": [
+    "Bash",
+    "Edit",
+    "ListMcpResourcesTool",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "mcp__grafana__analyze_loki_labels",
+    "mcp__grafana__check_datasources_health",
+    "mcp__grafana__diff_tempo_traces",
+    "mcp__grafana__get_datasource",
+    "mcp__grafana__get_tempo_trace",
+    "mcp__grafana__get_tempo_traceql_docs",
+    "mcp__grafana__list_datasources",
+    "mcp__grafana__list_loki_label_names",
+    "mcp__grafana__list_loki_label_values",
+    "mcp__grafana__list_prometheus_label_names",
+    "mcp__grafana__list_prometheus_label_values",
+    "mcp__grafana__list_prometheus_metric_metadata",
+    "mcp__grafana__list_prometheus_metric_names",
+    "mcp__grafana__list_tempo_attribute_names",
+    "mcp__grafana__list_tempo_attribute_values",
+    "mcp__grafana__query_loki_logs",
+    "mcp__grafana__query_loki_patterns",
+    "mcp__grafana__query_loki_stats",
+    "mcp__grafana__query_prometheus",
+    "mcp__grafana__query_prometheus_histogram",
+    "mcp__grafana__query_tempo_metrics",
+    "mcp__grafana__search_tempo_traces"
+   ],
+   "ts": 1789756978.410559
+  },
+  {
+   "method": "POST",
+   "path": "/v1/messages/count_tokens?beta=true",
+   "body_bytes": 62647,
+   "has_tool_result": false,
+   "tools_offered": [],
+   "ts": 1789756978.4742122
+  },
+  {
+   "method": "POST",
+   "path": "/v1/messages?beta=true",
+   "body_bytes": 35621,
+   "has_tool_result": true,
+   "tools_offered": [
+    "Bash",
+    "Edit",
+    "ListMcpResourcesTool",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "mcp__grafana__analyze_loki_labels",
+    "mcp__grafana__check_datasources_health",
+    "mcp__grafana__diff_tempo_traces",
+    "mcp__grafana__get_datasource",
+    "mcp__grafana__get_tempo_trace",
+    "mcp__grafana__get_tempo_traceql_docs",
+    "mcp__grafana__list_datasources",
+    "mcp__grafana__list_loki_label_names",
+    "mcp__grafana__list_loki_label_values",
+    "mcp__grafana__list_prometheus_label_names",
+    "mcp__grafana__list_prometheus_label_values",
+    "mcp__grafana__list_prometheus_metric_metadata",
+    "mcp__grafana__list_prometheus_metric_names",
+    "mcp__grafana__list_tempo_attribute_names",
+    "mcp__grafana__list_tempo_attribute_values",
+    "mcp__grafana__query_loki_logs",
+    "mcp__grafana__query_loki_patterns",
+    "mcp__grafana__query_loki_stats",
+    "mcp__grafana__query_prometheus",
+    "mcp__grafana__query_prometheus_histogram",
+    "mcp__grafana__query_tempo_metrics",
+    "mcp__grafana__search_tempo_traces"
+   ],
+   "ts": 1789756978.547219
+  }
+ ],
+ "rehearsal_checks": {
+  "client_completed": true,
+  "mock_saw_tool_result": true,
+  "loki_query_reached_backend": true,
+  "backend_tokens_matched": true
+ },
+ "sanitizer": {
+  "credential_values_checked": 5,
+  "matches": 0
+ }
+}
