@@ -1,0 +1,120 @@
+{
+ "probe": "mediated endpoint self-test (mock upstream, fixture keys)",
+ "elapsed_seconds": 2.84,
+ "verdict": "supported",
+ "cases": {
+  "proxied-substitution": {
+   "client_status": 200,
+   "upstream_requests": 1,
+   "upstream_got_fixture_key": true,
+   "sentinel_reached_upstream": false,
+   "response_is_message": true
+  },
+  "sse-passthrough": {
+   "client_status": 200,
+   "has_all_events": true,
+   "has_pong": true
+  },
+  "absent-and-wrong-sentinel": {
+   "absent_status": 401,
+   "wrong_status": 401,
+   "upstream_untouched": true
+  },
+  "unlisted-path": {
+   "status": 404
+  },
+  "revocation": {
+   "before_status": 200,
+   "after_status": 401,
+   "upstream_after_revoke": 0
+  },
+  "cli-end-to-end": {
+   "exit_code": 0,
+   "terminal_reason": "completed",
+   "is_error": false,
+   "result": "pong",
+   "stderr_tail": ""
+  }
+ },
+ "endpoint_receipts": [
+  {
+   "ts": 1789753431.061746,
+   "path": "/v1/messages?beta=true",
+   "outcome": "proxied",
+   "request_bytes": 95,
+   "response_bytes": 246,
+   "upstream_status": 200,
+   "duration_s": 0.002
+  },
+  {
+   "ts": 1789753431.070477,
+   "path": "/v1/messages?beta=true",
+   "outcome": "proxied",
+   "request_bytes": 111,
+   "response_bytes": 812,
+   "upstream_status": 200,
+   "duration_s": 0.002
+  },
+  {
+   "ts": 1789753431.075692,
+   "path": "/v1/messages",
+   "outcome": "denied-sentinel-absent"
+  },
+  {
+   "ts": 1789753431.08209,
+   "path": "/v1/messages",
+   "outcome": "denied-sentinel-absent"
+  },
+  {
+   "ts": 1789753431.087992,
+   "path": "/v1/models",
+   "outcome": "denied-path"
+  },
+  {
+   "ts": 1789753431.0970721,
+   "path": "/v1/messages",
+   "outcome": "proxied",
+   "request_bytes": 95,
+   "response_bytes": 246,
+   "upstream_status": 200,
+   "duration_s": 0.002
+  },
+  {
+   "ts": 1789753431.102815,
+   "path": "/v1/messages",
+   "outcome": "denied-sentinel-revoked"
+  },
+  {
+   "ts": 1789753433.1606662,
+   "path": "/v1/messages?beta=true",
+   "outcome": "proxied",
+   "request_bytes": 4763,
+   "response_bytes": 812,
+   "upstream_status": 200,
+   "duration_s": 0.003
+  },
+  {
+   "ts": 1789753433.165249,
+   "path": "/v1/messages?beta=true",
+   "outcome": "proxied",
+   "request_bytes": 4088,
+   "response_bytes": 812,
+   "upstream_status": 200,
+   "duration_s": 0.002
+  }
+ ],
+ "not_run": [
+  "real api.anthropic.com upstream with a valid key",
+  "expiry (TTL) case",
+  "concurrent Runs",
+  "billing visibility"
+ ],
+ "sanitizer": {
+  "inherited_anthropic_claude_vars_present": [
+   "CLAUDE_CODE_ENABLE_TELEMETRY"
+  ],
+  "leaked_into_report": [],
+  "min_scanned_value_length": 8,
+  "note": "All keys synthetic fixtures; ephemeral CA deleted; receipts hold no credential values by design."
+ }
+}
