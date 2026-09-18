@@ -17,7 +17,9 @@ Can the selected client/model, behind the mediated Anthropic endpoint and the AD
 
 A throwaway fifth-endpoint subset on the prototype branch: loopback **TLS** listener under the Stage A deployment-local CA pattern (`prototype/stage_a/certificates.py`), per-attempt sentinel admission with revocation, substitution of the real upstream key outside the Run, SSE-passthrough proxying to `api.anthropic.com`, request/size logging without credential capture. The real key is supplied by the user at execution time, is never written to artifacts, and is revoked/rotated at the user's discretion afterward.
 
-**Prerequisite probe P4 (local, model-free, not yet run):** P1 measured plain-HTTP routing. Client trust of a deployment-local CA is unmeasured and not documented in `--help`. P4 repeats P1 against the TLS mock using the documented Node-style CA mechanism the client actually honors (candidate env observed from the client's runtime, verified at implementation time — no invented flags), sentinel key, no upstream contact. P4 must pass before this card can launch.
+**Prerequisite probe P4: PASSED 2026-09-18** (prototype `319dea4`, verdict `supported-tls-trust`). The client trusts a deployment-local CA via `NODE_EXTRA_CA_CERTS` and rejects the untrusted endpoint without dispatching any request. The card's original P4 text is retained below for provenance.
+
+~~Prerequisite probe P4 (local, model-free, not yet run):~~ P1 measured plain-HTTP routing. Client trust of a deployment-local CA was unmeasured and not documented in `--help`. P4 repeated P1 against the TLS mock using the binary-evidenced `NODE_EXTRA_CA_CERTS` mechanism, sentinel key, no upstream contact.
 
 ## The single controlled prompt (frozen text)
 
@@ -38,7 +40,7 @@ No tenant, container, Kubernetes, venue or publication. No direct-key/OAuth shor
 
 ## Launch checklist (all must be true)
 
-1. P4 passed and recorded on the prototype branch.
+1. ~~P4 passed and recorded on the prototype branch.~~ **Done** — `319dea4`, `supported-tls-trust`.
 2. Mediated endpoint implemented, hash-pinned, reviewed; revocation drill run locally.
 3. P3 billing/rates preflight done with the user's account context; reservation recorded.
 4. User authorization referencing this card's commit.

@@ -41,6 +41,10 @@ Prototype commit **`1973f90`** on `prototype/mcp-grafana-eyes` (`prototype/routi
 
 **Limit:** this settles routing and request-shape compatibility only. TLS trust of a deployment-local CA, endpoint policy enforcement, billing visibility/rates and the ADR 0012/0013 admission contract remain unverified.
 
+### F4 — P4 CA-trust probe: measured 2026-09-18 (local, model-free-in-billing)
+
+Prototype commit **`319dea4`** (`prototype/routing_probe/run_tls_probe.py`, evidence `artifacts/tls-probe.json`). The trust mechanism `NODE_EXTRA_CA_CERTS` was evidenced by strings inside the installed 2.1.272 binary (`process.env.NODE_EXTRA_CA_CERTS` check), not assumed. Against a TLS mock under an ephemeral Stage A CA: the **trusted** case delivered the sentinel over TLS and completed the turn; the **untrusted** case dispatched zero HTTP requests, exiting with an "SSL certificate verification" API error (three connection resets recorded mock-side). Verdict `supported-tls-trust`. Client trust of a deployment-local CA — the last client-side unknown for the fifth endpoint — is now measured.
+
 ## Gap assessment against Stage B prerequisites
 
 From [experiment-plan.md](experiment-plan.md) §Stage B and ADRs 0012/0013/0014:
