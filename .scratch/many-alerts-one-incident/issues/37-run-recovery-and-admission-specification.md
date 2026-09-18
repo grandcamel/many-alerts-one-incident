@@ -15,3 +15,7 @@ Specify 270s work + 20s interrupt/flush + 10s kill/reap within the 300s total, e
 Require real Receiver/spawner/Forwarder boundaries for offline acceptance; do not present stubbed Match or model outcomes as real diagnosis/CLI behavior. Record separate model-signal, host containment, intended-venue storage and live OPS acceptance requirements. No model, cluster, demo, live write or runtime implementation is authorized by this planning task.
 
 ADR 0013 adds budget admission holds and durable spend reservations. Integrate ticket 38's accounting interface without making ticket 38 a prerequisite for this specification: reserve before model launch, retain pending work on budget hold, count every retry, and never reset weekly spend or unknown charges with a rehearsal reset. Keep effect reconciliation required even when no paid Run may start.
+
+## Accepted venue input from ticket 30
+
+ADR 0016 holds new dispatch on venue-readiness failure and forbids Run launch at or after cluster age 85 minutes. Retain bounded Notification admission/pending work while active Runs keep their existing deadlines; age 90 holds admissions rather than deleting resources. Specify verified off-cluster handoff of unresolved effects and explicit operator ownership before source destruction; handoff is not effect confirmation.

@@ -25,3 +25,7 @@ Ticket 40 supplies the missing reviewed fallback Ground truth. A corrected Repor
 ## Accepted Change input from ticket 25
 
 ADR 0015 additionally excludes lifecycles with unresolved Change stages, untracked interventions or material Change-record gaps from clean qualification. Include verified actuation/retrieval and emergency-recovery behavior in future venue preflight; repaired records cannot erase original sample failures. Ticket 41 specifies that contract, not paid acceptance.
+
+## Accepted venue input from ticket 30
+
+ADR 0016 adds a separate $10 weekly venue envelope, $2 reserved per creation attempt and authoritative weekly state preserved off-cluster, with failed setup, replacement and residual/late charges accounted. Keep cloud and model envelopes distinct. Its future no-Fault 90-minute baseline requires no model Runs but consumes venue allocation. Qualification also requires the age/readiness gates and protected cleanup evidence; no provisioning is authorized.

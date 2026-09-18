@@ -72,3 +72,7 @@ write changes nothing a service can see. The flip only takes effect with
 `kubectl rollout restart deploy/flagd`. Ticket 25's lead survives in that
 modified form — the write is a real API write and the rollout emits its own
 Events — but the restart has to be part of the presenter's one action.
+
+## Accepted venue lifetime extension
+
+[ADR 0016](0016-venue-lifetime-is-bounded-with-protected-teardown.md) adds fresh venues per presentation/full rehearsal, age/readiness admission gates, a separate cloud budget and verified off-cluster recovery handoff before teardown. Its thresholds are policy limits requiring acceptance; historical prices, capacity and memory observations above are not current billing or safe-duration guarantees.

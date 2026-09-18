@@ -19,3 +19,7 @@ Define the reviewer checklist, source access, disagreement resolution and append
 ## Accepted Change input from ticket 25
 
 ADR 0015 Change records support only their recorded action/stage. A served value or rollout cannot by itself establish application evaluation, recovery or Incident causation. Preserve query/retrieval provenance and Change-record gaps in the audit; unresolved stages, untracked interventions or material gaps exclude clean qualification even when emergency undo succeeds.
+
+## Accepted venue input from ticket 30
+
+ADR 0016 requires private audit artifacts and digests to be preserved off-cluster with verified read-back before destroying their only source. Export does not extend ADR 0014 retention or recreate expired evidence. Include actual presentation/recovery overrun and venue-contamination references without conflating diagnostic pass with qualification.

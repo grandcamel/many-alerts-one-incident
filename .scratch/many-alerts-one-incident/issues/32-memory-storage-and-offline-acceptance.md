@@ -13,3 +13,7 @@ Specify offline acceptance through real caller boundaries for source verificatio
 ## Inputs
 
 [Ticket 13](13-memory.md#answer), [ADR 0009](../../../docs/adr/0009-memory-has-one-incident-authority-and-reviewed-learning.md), and [offline facts](../reviews/ticket-13/facts.md). No cluster, live write or implementation is authorized by this planning ticket.
+
+## Accepted venue input from ticket 30
+
+ADR 0016 uses a fresh venue for each presentation/full rehearsal and requires protected state handoff before destruction. Keep Memory reset distinct from unresolved work, weekly spend and private audit retention. No cluster deletion may silently alter external OPS/Confluence history or evade fresh-rehearsal candidate eligibility.
