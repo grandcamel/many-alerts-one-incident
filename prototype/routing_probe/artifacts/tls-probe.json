@@ -1,0 +1,79 @@
+{
+ "probe": "P4 claude CLI deployment-local CA trust",
+ "elapsed_seconds": 3.67,
+ "client_version": "2.1.272 (Claude Code)",
+ "trust_mechanism": "NODE_EXTRA_CA_CERTS (binary strings evidence: process.env.NODE_EXTRA_CA_CERTS check present in 2.1.272)",
+ "mock_base_url": "https://localhost:54284",
+ "sentinel_shape": "p4-probe-sentinel-<32 hex>",
+ "server_cert": "ephemeral RSA-2048, CN=localhost, SAN DNS:localhost, Stage A certificates.py; keys deleted after run",
+ "cases": {
+  "untrusted": {
+   "child": {
+    "exit_code": 1,
+    "stdout": "{\"duration_api_ms\":0,\"stop_reason\":\"stop_sequence\",\"session_id\":\"3b43d290-a452-4cbf-b951-4a2002712c96\",\"total_cost_usd\":0,\"usage\":{\"output_tokens_details\":{\"thinking_tokens\":0},\"input_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":0,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{},\"permission_denials\":[],\"terminal_reason\":\"api_error\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"subagent_stats\":{\"spawned\":0,\"requested\":{\"background\":0,\"foreground\":0,\"unset\":0},\"started_in_background\":0,\"max_depth\":0,\"spawned_by_subagents\":0,\"completed\":0,\"failed\":0,\"killed\":{\"parent\":0,\"user\":0,\"system\":0},\"refused\":{\"depth_limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"is_error\":true,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"API Error: Unable to connect to API: SSL certificate verification failed. Check your proxy or corporate SSL certificates\",\"type\":\"result\",\"duration_ms\":110,\"uuid\":\"56d27bd8-212f-4a8c-9c45-2b164f4d124b\",\"queued_turn_count\":0,\"result_index\":0}\n",
+    "stderr": "",
+    "timed_out": false,
+    "env_extra": [
+     "ANTHROPIC_API_KEY",
+     "ANTHROPIC_BASE_URL"
+    ]
+   },
+   "http_requests": 0,
+   "sentinel_arrivals": [],
+   "tls_events_seen_by_mock": [
+    {
+     "event": "connection_reset",
+     "reason": "[Errno 54] Connection reset by peer",
+     "ts": 1789753100.261238
+    },
+    {
+     "event": "connection_reset",
+     "reason": "[Errno 54] Connection reset by peer",
+     "ts": 1789753101.047918
+    },
+    {
+     "event": "connection_reset",
+     "reason": "[Errno 54] Connection reset by peer",
+     "ts": 1789753101.0513978
+    }
+   ],
+   "tls_markers_in_client_output": [
+    "certificate"
+   ]
+  },
+  "trusted": {
+   "child": {
+    "exit_code": 0,
+    "stdout": "{\"duration_api_ms\":71,\"stop_reason\":\"end_turn\",\"session_id\":\"0a9bc50e-a611-4993-af2d-5b6e3a56f629\",\"total_cost_usd\":0.000029999999999999997,\"usage\":{\"input_tokens\":1,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":1,\"output_tokens_details\":{\"thinking_tokens\":0},\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{\"claude-opus-5[1m]\":{\"inputTokens\":1,\"outputTokens\":1,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.000029999999999999997,\"contextWindow\":1000000,\"maxOutputTokens\":64000,\"thinkingTokens\":0,\"canonicalModel\":\"claude-opus-5\",\"provider\":\"firstParty\",\"costBasis\":\"list\"}},\"permission_denials\":[],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"subagent_stats\":{\"spawned\":0,\"requested\":{\"background\":0,\"foreground\":0,\"unset\":0},\"started_in_background\":0,\"max_depth\":0,\"spawned_by_subagents\":0,\"completed\":0,\"failed\":0,\"killed\":{\"parent\":0,\"user\":0,\"system\":0},\"refused\":{\"depth_limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"is_error\":false,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"pong\",\"ttft_ms\":85,\"type\":\"result\",\"duration_ms\":138,\"uuid\":\"f7e225bf-a46d-417f-ab7b-0a6b92044171\",\"ttft_stream_ms\":84,\"time_to_request_ms\":67,\"first_content_frame_ms\":84,\"queued_turn_count\":0,\"result_index\":0}\n",
+    "stderr": "",
+    "timed_out": false,
+    "env_extra": [
+     "ANTHROPIC_API_KEY",
+     "ANTHROPIC_BASE_URL",
+     "NODE_EXTRA_CA_CERTS"
+    ]
+   },
+   "http_requests": 2,
+   "sentinel_arrivals": [
+    "/v1/messages?beta=true",
+    "/v1/messages?beta=true"
+   ],
+   "tls_events_seen_by_mock": [],
+   "tls_markers_in_client_output": []
+  }
+ },
+ "verdict": "supported-tls-trust",
+ "not_run": [
+  "real upstream passthrough with a valid key",
+  "endpoint policy enforcement, revocation drill",
+  "billing preflight, model usability"
+ ],
+ "sanitizer": {
+  "inherited_anthropic_claude_vars_present": [
+   "CLAUDE_CODE_ENABLE_TELEMETRY"
+  ],
+  "leaked_into_report": [],
+  "min_scanned_value_length": 8,
+  "note": "Sentinels synthetic; ephemeral CA and keys deleted; throwaway HOMEs deleted."
+ }
+}

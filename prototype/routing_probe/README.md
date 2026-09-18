@@ -47,8 +47,23 @@ loopback mock when `ANTHROPIC_BASE_URL` points there.
 ## Reproduce
 
 ```sh
-python3 prototype/routing_probe/run_routing_probe.py
+python3 prototype/routing_probe/run_routing_probe.py   # P1: HTTP routing
+python3 prototype/routing_probe/run_tls_probe.py       # P4: deployment-local CA trust
 ```
+
+## P4 addition (2026-09-18)
+
+`run_tls_probe.py` reuses the mock over HTTPS with an ephemeral Stage A CA
+certificate (SAN `DNS:localhost`). Two cases run in sequence: `untrusted` (no
+trust configuration) and `trusted` (`NODE_EXTRA_CA_CERTS` pointing at the
+ephemeral CA — a mechanism evidenced by strings inside the installed 2.1.272
+binary, not assumed). Verdict `supported-tls-trust` requires the trusted case
+to deliver the sentinel over TLS **and** the untrusted case to produce zero
+HTTP requests (client-side rejection). Measured: untrusted exit 1 with
+"SSL certificate verification" error and three connection resets, no request
+dispatched; trusted completed the turn. Ephemeral keys are deleted after the
+run. This settles client CA trust for the fifth-endpoint design; it is not
+endpoint-policy, revocation or billing acceptance.
 
 Requires the installed `claude` CLI on PATH. No download, no public network
 intended; if the client ignores the override its request carries an invalid
