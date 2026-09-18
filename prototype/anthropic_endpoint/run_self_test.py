@@ -296,6 +296,18 @@ def main():
         "sentinel_shaped_values_absent": "ep-test-sentinel-" not in serialized_receipts,
     }
 
+    # 9b. usage capture (ADR 0013 usage visibility): receipts carry model/usage
+    usage_receipts = [r for r in proxy.receipts if r["outcome"] == "proxied"]
+    cases["usage-capture"] = {
+        "proxied_receipts_with_usage": sum(1 for r in usage_receipts if r.get("usage")),
+        "proxied_receipts": len(usage_receipts),
+        "nonstream_usage": next((r.get("usage") for r in usage_receipts
+                                 if r.get("request_bytes") == 95), None),
+        "sse_usage": next((r.get("usage") for r in usage_receipts
+                           if r.get("request_bytes") == 111), None),
+        "model_captured": all(r.get("model") for r in usage_receipts),
+    }
+
     # 10. malformed and negative Content-Length over a raw TLS socket
     def raw_length_request(value):
         import socket as _socket
@@ -354,6 +366,10 @@ def main():
         and cases["mid-stream-revocation"]["truncated"]
         and cases["mid-stream-revocation"]["endpoint_recorded_revoked_mid_stream"]
         and all(cases["receipts-hygiene"].values())
+        and cases["usage-capture"]["proxied_receipts_with_usage"] == cases["usage-capture"]["proxied_receipts"]
+        and cases["usage-capture"]["nonstream_usage"] == {"input_tokens": 1, "output_tokens": 1}
+        and cases["usage-capture"]["sse_usage"] == {"input_tokens": 1, "output_tokens": 1}
+        and cases["usage-capture"]["model_captured"]
         and cases["content-length-abuse"]["negative_status"] == 413
         and cases["content-length-abuse"]["malformed_status"] == 400
         and cases["cli-end-to-end"].get("is_error") is False

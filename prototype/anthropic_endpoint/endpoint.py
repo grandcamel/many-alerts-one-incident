@@ -37,6 +37,54 @@ class _UpstreamError(Exception):
     pass
 
 
+class UsageExtractor:
+    """Incrementally extract model/usage from a forwarded response body.
+
+    SSE: parse completed `data:` lines for message_start/message_delta.
+    JSON: accumulate (bounded) and parse at end. Never logs content.
+    """
+
+    def __init__(self, is_event_stream):
+        self._sse = is_event_stream
+        self._buf = ""
+        self._json_parts = []
+        self._json_bytes = 0
+        self.model = None
+        self.usage = {}
+
+    def feed(self, chunk):
+        if self._sse:
+            self._buf += chunk.decode("utf-8", "replace")
+            while "\n" in self._buf:
+                line, self._buf = self._buf.split("\n", 1)
+                line = line.strip()
+                if not line.startswith("data: "):
+                    continue
+                try:
+                    event = json.loads(line[6:])
+                except json.JSONDecodeError:
+                    continue
+                if event.get("type") == "message_start":
+                    msg = event.get("message") or {}
+                    self.model = msg.get("model") or self.model
+                    self.usage.update(msg.get("usage") or {})
+                elif event.get("type") == "message_delta":
+                    self.usage.update(event.get("usage") or {})
+        elif self._json_bytes < 262144:
+            self._json_parts.append(chunk)
+            self._json_bytes += len(chunk)
+
+    def finish(self):
+        if not self._sse and self._json_parts:
+            try:
+                msg = json.loads(b"".join(self._json_parts))
+                self.model = msg.get("model") or self.model
+                self.usage.update(msg.get("usage") or {})
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+        return self.model, self.usage
+
+
 class Admission:
     def __init__(self):
         self._lock = threading.Lock()
@@ -124,6 +172,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         outcome = "proxied"
         error = None
         upstream_status = None
+        extractor = None
         forwarded = 0
         try:
             try:
@@ -136,6 +185,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 raise _UpstreamError
 
             upstream_status = resp.status
+            resp_headers = {k.lower(): v for k, v in resp.getheaders()}
+            extractor = UsageExtractor(
+                "text/event-stream" in resp_headers.get("content-type", ""))
             self.send_response(resp.status)
             for k, v in resp.getheaders():
                 if k.lower() in RESP_HEADER_ALLOW:
@@ -155,6 +207,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 chunk = resp.read1(65536)
                 if not chunk:
                     break
+                extractor.feed(chunk)
                 self.wfile.write(f"{len(chunk):x}\r\n".encode() + chunk + b"\r\n")
                 self.wfile.flush()
                 forwarded += len(chunk)
@@ -182,6 +235,12 @@ class ProxyHandler(BaseHTTPRequestHandler):
                        "response_bytes": forwarded,
                        "upstream_status": upstream_status,
                        "duration_s": round(time.monotonic() - started, 3)}
+            if extractor is not None:
+                model, usage = extractor.finish()
+                if model:
+                    receipt["model"] = model
+                if usage:
+                    receipt["usage"] = usage
             if error:
                 receipt["error"] = error
             receipts.append(receipt)
