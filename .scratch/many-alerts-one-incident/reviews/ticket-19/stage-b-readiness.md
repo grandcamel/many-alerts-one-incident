@@ -57,7 +57,7 @@ From [experiment-plan.md](experiment-plan.md) §Stage B and ADRs 0012/0013/0014:
 ## Proposed concrete next experiments (require explicit authorization; none launched)
 
 - **P1 — Mediated-path routing probe: COMPLETE 2026-09-18.** User authorized via "proceed"; result in F3. No paid API contact occurred.
-- **P2 — Stage B experiment card (document only):** single controlled read-only prompt, pinned Stage A fixtures with source-grounded expected results, declared model/effort (candidate default per F1/F3: `claude-opus-5`, adaptive thinking, streaming), 270/20/10 enforcement, reservation record, private capture manifest, and ticket-21 outcome fields — drafted for approval so one decision authorizes a fully specified attempt. P2 should also specify the TLS fifth-endpoint subset (ADR 0011 pattern, SSE-capable) that P1 showed is required.
+- **P2 — Stage B experiment card: DRAFTED 2026-09-18** at [stage-b-experiment-card.md](stage-b-experiment-card.md). Frozen prompt, declared client/model config, TLS fifth-endpoint subset design, time/spend/evidence contracts and a four-item launch checklist. Drafting surfaced one new prerequisite probe: **P4** (client trust of a deployment-local CA — unmeasured, not documented in `--help`; same local/model-free class as P1).
 - **P3 — Billing/rates preflight (read-only account checks):** verify current account rates, billing visibility and lag before any paid attempt, per ADR 0013. Requires the user's mediated-account context; no purchase or key creation.
 
 ## Missing decisions to request
