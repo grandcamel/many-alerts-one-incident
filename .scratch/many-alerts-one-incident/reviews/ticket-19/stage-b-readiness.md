@@ -10,13 +10,13 @@ Prepared by the Kimi K3 orchestrator under the 2026-09-18 handoff. **Stage B rem
 
 ## Delegation record
 
-One bounded Flash task (`claude-api` skill search + client help capture) was dispatched via `headless antigravity --model gemini-3.8-flash-medium --role worker --allow read-only`. Terminal classification: **execution failure** — the harness auto-denied the `command` permission in headless mode and produced no final message. A retry would require editing permission settings or a prohibited bypass mode, so per the headless reference the task was completed locally from canonical evidence instead. No panel was dispatched: the remaining gaps are factual/protocol requirements, not ambiguous reasoning that a review could change.
+One bounded Flash task (`claude-api` skill search + client help capture) was dispatched via `headless antigravity --model gemini-3.8-flash-medium --role worker --allow read-only` from an isolated temp work dir. First attempt: **execution failure** — the harness auto-denied the `command` permission in headless mode (`permissions.allow` covered only `command(cp)`). After the user approved adding `command(*)` to `~/.gemini/antigravity-cli/settings.json`, one fresh retry (same prompt, same boundaries, new process) returned **usable**: a structured verdict with searched locations and quoted help extracts. Orchestrator independently gathered the same facts locally before the retry; worker and local evidence agree with no contradictions. No panel was dispatched: the remaining gaps are factual/protocol requirements, not ambiguous reasoning that a review could change.
 
 ## Fact findings
 
 ### F1 — `claude-api` skill: NOT FOUND (current, not historical)
 
-Searched this session: `~/.claude/skills/`, `~/.agents/skills/`, `~/projects/.agents/skills/`, `~/.claude/plugins/` (marketplaces, cache, pearpass-plugin, wiredove-plugin), `~/.config/`, and the project checkouts. No exact or near-miss match. The previous session's observation is confirmed as current. A `find-skills` installer skill exists but installing a new skill is a system change outside this preparation scope.
+Searched this session (orchestrator and, independently, the Flash worker): `~/.claude/skills/`, `~/.agents/skills/`, `~/projects/.agents/skills/`, `~/.claude/plugins/` (marketplaces, cache, installed plugins), `~/.config/`, the project checkouts, and top-level skill directories across all repos under `~/projects/`. No exact match. Near-misses (e.g. an `agent-sdk-dev` plugin, a Grafana dashboard JSON, a codeintel skill) are confirmed not to be a `claude-api` skill. The previous session's observation is confirmed as current. A `find-skills` installer skill exists but installing a new skill is a system change outside this preparation scope.
 
 ### F2 — `claude` CLI 2.1.272 self-documentation (captured `claude --help`, `claude mcp --help`, `claude auth --help`)
 
