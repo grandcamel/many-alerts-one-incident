@@ -1,0 +1,164 @@
+Usage: confluence-as [OPTIONS] [COMMAND] [ARGS]...
+
+  Confluence Assistant Skills CLI.
+
+  A command-line interface for interacting with Confluence Cloud.
+
+  Use --help on any command for more information.
+
+  Examples:
+
+      confluence-as page get 12345
+
+      confluence-as search "space = DOCS AND type = page"
+
+      confluence-as space list --output json
+
+Options:
+  --version                 Show the version and exit.
+  -o, --output [text|json]  Output format.
+  -v, --verbose             Enable verbose output.
+  -q, --quiet               Suppress non-essential output.
+  --help                    Show this message and exit.
+
+Commands:
+  admin       Confluence administration commands.
+  analytics   View content analytics.
+  attachment  Manage file attachments.
+  bulk        Bulk operations for multiple pages.
+  comment     Manage page comments.
+  hierarchy   Navigate content hierarchy.
+  jira        JIRA integration commands.
+  label       Manage content labels.
+  ops         Operations and diagnostics commands.
+  page        Manage Confluence pages and blog posts.
+  permission  Manage permissions and restrictions.
+  property    Manage content properties (custom metadata).
+  search      Search Confluence content.
+  space       Manage Confluence spaces.
+  template    Manage page templates.
+  watch       Manage content watching and notifications.
+Usage: confluence-as page [OPTIONS] COMMAND [ARGS]...
+
+  Manage Confluence pages and blog posts.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  blog      Manage blog posts.
+  copy      Copy a Confluence page.
+  create    Create a new Confluence page.
+  delete    Delete a Confluence page.
+  get       Get a Confluence page by ID.
+  move      Move a Confluence page.
+  restore   Restore a page to a previous version.
+  update    Update an existing Confluence page.
+  versions  Get version history for a page.
+Usage: confluence-as search [OPTIONS] COMMAND [ARGS]...
+
+  Search Confluence content.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  content        Search content by text.
+  cql            Execute CQL queries against Confluence.
+  export         Export search results to file.
+  history        Manage CQL query history.
+  interactive    Start interactive CQL query builder.
+  stream-export  Stream export large result sets.
+  suggest        Get CQL field and value suggestions.
+  validate       Validate a CQL query syntax.
+Usage: confluence-as comment [OPTIONS] COMMAND [ARGS]...
+
+  Manage page comments.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  add         Add a comment to a page.
+  add-inline  Add an inline comment to specific text in a page.
+  delete      Delete a comment.
+  list        List comments on a page.
+  resolve     Resolve or reopen a comment.
+  update      Update an existing comment.
+Usage: confluence-as [OPTIONS] [COMMAND] [ARGS]...
+Try 'confluence-as --help' for help.
+
+Error: No such command 'api'.
+Usage: confluence-as page get [OPTIONS] PAGE_ID
+
+  Get a Confluence page by ID.
+
+Options:
+  --body                          Include body content in output
+  --format [storage|view|markdown]
+                                  Body format (default: storage)
+  -o, --output [text|json]        Output format
+  --help                          Show this message and exit.
+Usage: confluence-as page create [OPTIONS]
+
+  Create a new Confluence page.
+
+Options:
+  -s, --space TEXT          Space key  [required]
+  -t, --title TEXT          Page title  [required]
+  -b, --body TEXT           Page body content (Markdown or XHTML)
+  -f, --file PATH           Read body from file
+  -p, --parent TEXT         Parent page ID
+  --status [current|draft]  Page status
+  -o, --output [text|json]  Output format
+  --help                    Show this message and exit.
+Usage: confluence-as page update [OPTIONS] PAGE_ID
+
+  Update an existing Confluence page.
+
+Options:
+  -t, --title TEXT          New page title
+  -b, --body TEXT           New page body content
+  -f, --file PATH           Read body from file
+  -m, --message TEXT        Version change message
+  --status [current|draft]  Change page status
+  -o, --output [text|json]  Output format
+  --help                    Show this message and exit.
+Usage: confluence-as search cql [OPTIONS] CQL
+
+  Execute CQL queries against Confluence.
+
+Options:
+  -l, --limit INTEGER       Maximum results (default: 25)
+  --show-excerpts           Show content excerpts
+  --show-labels             Show content labels
+  --show-ancestors          Show ancestor pages
+  -o, --output [text|json]  Output format
+  --help                    Show this message and exit.
+Usage: confluence-as search content [OPTIONS] QUERY
+
+  Search content by text.
+
+Options:
+  -s, --space TEXT          Limit to specific space
+  --type TEXT               Content type (page, blogpost)
+  -l, --limit INTEGER       Maximum results
+  -o, --output [text|json]  Output format
+  --help                    Show this message and exit.
+Usage: confluence-as comment add [OPTIONS] PAGE_ID [BODY]
+
+  Add a comment to a page.
+
+Options:
+  -f, --file PATH           Read comment body from file
+  -o, --output [text|json]  Output format
+  --help                    Show this message and exit.
+
+$ confluence-as --version
+confluence-as, version 1.1.1
+
+$ confluence-as help
+Usage: confluence-as [OPTIONS] [COMMAND] [ARGS]...
+Try 'confluence-as --help' for help.
+
+Error: No such command 'help'.

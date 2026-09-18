@@ -1,0 +1,15 @@
+# Memory storage and offline acceptance
+
+Type: task
+Status: open
+Blocked by: 13, 16, 17, 21, 33
+
+## Question
+
+Produce an implementation-ready specification, not runtime code, for ADR 0009. Define the OPS representation of current member state; narrow structured append/read interface, provenance and correction schema, atomicity and bounded retrieval; dedicated persistent path and restart/reset wiring; rehearsal isolation that preserves ticket 14's membership labels and eligibility; and draft identity/version/reconciliation across partial failures. Specify fresh-rehearsal preflight that waits for prior eligible OPS Incidents to age out or receive explicit human disposition, with no silent filtering or automatic closure. Carry Confluence scope from ticket 33 and refusal/retry mechanics from ticket 21.
+
+Specify offline acceptance through real caller boundaries for source verification, stale/superseded learning, missing stores, confirmed OPS plus failed secondary writes, uncertain draft creation, directory loss, restart persistence, fresh-rehearsal isolation and Ground-truth exclusion. Keep CLI/source, offline fixture, model/Skill and live tenant/volume acceptance distinct. Ticket 31's Cascade fixtures remain valid and must be extended or referenced, not replaced by stubs presented as model proof.
+
+## Inputs
+
+[Ticket 13](13-memory.md#answer), [ADR 0009](../../../docs/adr/0009-memory-has-one-incident-authority-and-reviewed-learning.md), and [offline facts](../reviews/ticket-13/facts.md). No cluster, live write or implementation is authorized by this planning ticket.

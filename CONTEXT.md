@@ -96,11 +96,11 @@ The tools a Run may execute that change something outside itself: the Jira and C
 _Avoid_: write tools, actions, actuators, effectors
 
 **Memory**:
-What a Run can consult that an earlier Run left behind: the Incidents in OPS, the pages in the Confluence space, and the Memory directory.
+What a Run can consult across Runs: authoritative Incidents in OPS, reviewed reference knowledge in Confluence, and cited observations and retrieval hints in the Memory directory.
 _Avoid_: state, history, cache, context, knowledge base
 
 **Memory directory**:
-The one directory that persists across Runs, where a Run writes what it learned about the system for the next Run to read.
+The directory that retains a Run’s cited observations and retrieval hints for later Runs within a rehearsal. It records learning, not authoritative Incident state.
 _Avoid_: notes, scratch, memory file, cache
 
 ### Jira side
