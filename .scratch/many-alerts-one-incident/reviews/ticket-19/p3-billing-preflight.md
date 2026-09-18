@@ -1,5 +1,14 @@
 # P3 — billing/rates preflight checklist (guided, user-executed)
 
+**Status: COMPLETE 2026-09-18.** User verification outcomes:
+
+1. **API-billed account access**: confirmed — user holds an Anthropic API-billed account distinct from the OAuth subscription and can mint an execution-time key.
+2. **Current account rates**: confirmed on the console, consistent with the documented `claude-opus-5` $5/$25 per MTok list rates (card estimate unchanged).
+3. **Billing visibility and lag**: console shows **daily** usage/cost. Lag is therefore up to ~24 h. For a single $3-reservation attempt against the $30 diagnostics / $150 weekly envelopes, exposure pending reconciliation is small and the ADR 0013 hold rule does not trigger; **no subsequent attempt is admitted until provider actuals for the first reconcile** (daily feed) or are explicitly marked unknown with the hold applied.
+4. **Provider limits**: $3 reservation fits within existing account limits; nothing raised, purchased or changed.
+
+The reservation record format below remains the execution-time artifact.
+
 ADR 0013 requires verifying current account rates, billing visibility and lag, provider limits and the mediated client path **before** any paid Run. Items 1–4 need your account context; the orchestrator cannot do them. Estimated effort: ~10 minutes. Evidence category for every number must be identified (ADR 0013): provider billing page = actual-spend authority; list prices = documentation; client `total_cost_usd` = estimate.
 
 ## Known state (already established, no action)
