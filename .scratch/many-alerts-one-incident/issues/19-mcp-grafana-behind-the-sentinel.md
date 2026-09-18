@@ -35,3 +35,7 @@ The user subsequently authorized implementation and execution of the model-free 
 ## Stage B readiness assessment — 2026-09-18
 
 [Stage B readiness/gap assessment](../reviews/ticket-19/stage-b-readiness.md): current `claude` CLI 2.1.272 self-documentation captured; the official `claude-api` skill is now installed; and the P1 local routing probe (prototype commit `1973f90`) measured that the client honors a base-URL override with a per-Run sentinel over streaming SSE. Remaining pre-Stage-B work: the TLS fifth-endpoint subset, billing/rates preflight, and the experiment card. Stage B remains NOT RUN and separately unauthorized; no blocker edge changes.
+
+## Stage B attempt 1 — 2026-09-18
+
+The user authorized exactly one bounded attempt; it executed against the synthetic fixtures with a real model through the mediated endpoint. [Outcome](../reviews/ticket-19/stage-b-attempt-1-outcome.md): boundary/budget/containment/sentinel/denial contracts **supported** ($0.286 client estimate vs $3 reservation, 82 s of 270 s, post-run sentinels 401); fixture-question usability **inconclusive due to fixture under-specification** — the exact-query allowlist denies the discovery endpoints a real client needs. Options 1–3 for any second attempt are recorded in the outcome; each needs new authorization and respects the P3 reconciliation hold. Ticket 19 stays claimed; ticket 12 stays blocked.

@@ -1,4 +1,6 @@
-# Ticket 19 — Stage B experiment card (draft for authorization, NOT RUN)
+# Ticket 19 — Stage B experiment card (attempt 1 executed 2026-09-18)
+
+Status: **attempt 1 complete.** Outcome: [stage-b-attempt-1-outcome.md](stage-b-attempt-1-outcome.md) — mechanics supported, fixture-question usability inconclusive due to fixture under-specification. Any further attempt requires new authorization and respects the P3 reconciliation hold. The original card follows for provenance.
 
 Status: **draft, unexecuted.** One approval of this card authorizes exactly one bounded model attempt as specified here. Nothing on this page has run; no reservation has been made. Grounding: [experiment-plan](experiment-plan.md) §Stage B, ADRs 0011–0015, [stage-b-readiness](stage-b-readiness.md) F1–F3, Stage A frozen evidence at prototype `5f90bfb`, P1 routing evidence at prototype `1973f90`.
 
