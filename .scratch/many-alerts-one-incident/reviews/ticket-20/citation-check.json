@@ -1,0 +1,35 @@
+[
+  {
+    "path": "docs/research/harness-sandbox-containers-2026-09.md",
+    "original_source_labels": 22,
+    "removed_private_labels": []
+  },
+  {
+    "path": "docs/research/claude-code-run-telemetry-2026-09.md",
+    "original_source_labels": 21,
+    "removed_private_labels": []
+  },
+  {
+    "path": "docs/research/where-a-real-kubernetes-could-run-2026-09.md",
+    "original_source_labels": 58,
+    "removed_private_labels": []
+  },
+  {
+    "path": "docs/research/otel-demo-as-the-system-2026-09.md",
+    "original_source_labels": 67,
+    "removed_private_labels": []
+  },
+  {
+    "path": "docs/research/eyes-into-grafana-2026-09.md",
+    "original_source_labels": 53,
+    "removed_private_labels": []
+  },
+  {
+    "path": "docs/research/model-and-effort-on-a-headless-run-2026-09.md",
+    "original_source_labels": 24,
+    "removed_private_labels": [
+      "skill",
+      "skill-migration"
+    ]
+  }
+]

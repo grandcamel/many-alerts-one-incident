@@ -1,7 +1,7 @@
 # Quotations in the research documents
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: none
 
 ## Question
@@ -22,3 +22,15 @@ The heaviest first, all on their own `research/*` branches:
 The rule to apply: keep the shortest quote that carries the load, paraphrase the rest in the document's own voice, and keep every citation. Where the finding is the exact wording, such as a precedence rule, quoting is right and stays. Two things travel with it: a licence line above any pasted third-party code, and a note in the Eyes comparison that copying a binary into a distributed image adds it to NOTICE.
 
 The answer records which passages were rewritten, which were judged load-bearing and kept, and whether NOTICE changed.
+
+## Work in progress
+
+Claimed for editorial cleanup only. Preserve historical findings, citations and exact wording where it is itself evidence. No fresh model/CLI behavior claims, runtime changes or publication. After offering a placement preference, the stated default was used: edited reading copies on main, preserving historical refs.
+
+## Answer
+
+All six named research documents now have edited reading copies under docs/research. Long quoted descriptions, tables, benchmark/effort passages, trace-context guidance, Kubernetes instructions and collector warnings were paraphrased with public citations retained. Short wording that carries a finding, such as array replacement/precedence behavior, remains. The private migration quotation was removed; the existing public sources support the retained historical findings.
+
+The copied Grafana shell block and harness deployment command were replaced with cited prose, so neither needs a new pasted-code license header. The Eyes comparison now names the four tagged upstream repository licenses, distinguishes those from a complete binary/dependency inventory, and requires NOTICE/license review before actual bundling. NOTICE did not change because this task introduces no binary or copied third-party code.
+
+[Report](../reviews/ticket-20/report.md), [source commits](../reviews/ticket-20/source-manifest.json), and [citation checks](../reviews/ticket-20/citation-check.json) record the scope. Historical refs and frozen line-cited evidence copies are unchanged; these are edited reading copies, not rewritten Git history. No runtime changes, model/cluster/demo execution or publication occurred.

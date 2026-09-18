@@ -1,5 +1,7 @@
 # Sandbox containers for a headless, tool-restricted Claude Code Run (September 2026)
 
+Editorial cleanup, 2026-09-18: quotations shortened; historical findings and source citations retained. This is not a fresh capability or version verification. Source commit: `c789840ede31d73748738c8ffe69ee9375b7b6cc`.
+
 Written 2026-09-15. Question: what are engineers using, as of now, to run a headless Claude Code
 harness as an untrusted, tool-restricted worker inside a container, and should this repo's demo
 image stop extending `grandcamel/claude-devcontainer`?
@@ -18,10 +20,9 @@ fetched 2026-09-15. Anything the sources did not say is marked as such rather th
    and no sensitive host directories mounted ([secure-deployment]). None of that depends on the
    base image, but a 4.1 GB image carrying `sudo`, the `docker` CLI and `docker`-group membership
    is the opposite of what the guide describes.
-2. **The Forwarder is the pattern Anthropic recommends, not a workaround.** "Rather than giving an
-   agent direct access to an API key, you could run a proxy outside the agent's environment that
-   injects the key into requests. The agent can make API calls, but it never sees the credential
-   itself" ([secure-deployment]). Claude Code's built-in `mask`/`injectHosts`, Docker Sandboxes,
+2. **The Forwarder follows Anthropic's recommended credential boundary.** An external proxy
+   attaches the API key, letting the agent make requests without possessing it
+   ([secure-deployment]). Claude Code's built-in `mask`/`injectHosts`, Docker Sandboxes,
    E2B and Daytona all implement the same sentinel-plus-proxy design.
 3. **Do not rely on the built-in Bash sandbox inside the container.** In an unprivileged
    container bubblewrap cannot mount `/proc`; the documented fix, `enableWeakerNestedSandbox`,
@@ -64,9 +65,8 @@ one sudoers line: `node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh`. I
 `iptables`, `ipset`, `gh`, `zsh`, `fzf`, `vim` and the rest of a developer's kit ([devcontainer-Dockerfile]).
 The firewall sets default DROP on all three chains and allows DNS, SSH, loopback, the host subnet
 and an `allowed-domains` ipset; it needs `--cap-add=NET_ADMIN --cap-add=NET_RAW`, which "are not
-required for Claude Code itself" ([devcontainer]). Anthropic's own warning on the page: "dev
-containers do not prevent a malicious project from exfiltrating anything accessible inside the
-container, including the Claude Code credentials stored in `~/.claude`" ([devcontainer]).
+required for Claude Code itself" ([devcontainer]). The page warns that a malicious project can exfiltrate material available inside the
+container, including credentials in `~/.claude` ([devcontainer]).
 
 *For this repo:* it is a developer environment with an egress firewall, the same category as the
 home-grown image, only smaller. Its firewall script is the one reusable part: a default-deny
@@ -75,26 +75,21 @@ egress allowlist is the control that would stop the OAuth token leaving.
 ### 2. Claude Code's built-in sandboxed Bash tool
 
 Seatbelt on macOS, bubblewrap on Linux and WSL2; on Linux it needs `bubblewrap` and `socat`, with
-`ripgrep` bundled and a seccomp filter optional ([sandboxing]). It constrains Bash commands and
-their children only: "Built-in file tools, MCP servers, and hooks still run directly on your host"
-and "The sandboxed Bash tool on its own constrains only Bash, so it is not sufficient for fully
-unattended runs" ([sandbox-environments]).
+`ripgrep` bundled and a seccomp filter optional ([sandboxing]). Its boundary covers Bash and its children, leaving built-in file tools, MCP servers and hooks
+outside it. That limited coverage does not suffice for unattended execution
+([sandbox-environments]).
 
-Credential masking exists and is first-party. With `"mode": "mask"` (v2.1.199+) "the sandboxed
-command sees a per-session sentinel value instead of the real one. Each `mask` entry can list
-`injectHosts`, the hosts the real value is allowed to reach. When a request leaves the sandbox for
-one of them, the sandbox proxy replaces the sentinel with the real value." It requires
+Credential masking exists and is first-party. With `"mode": "mask"` (v2.1.199+), a per-session sentinel replaces the credential inside the
+sandbox. The proxy substitutes the real value only on requests to the entry's `injectHosts`. It requires
 `network.tlsTerminate` so the proxy can see request contents, substitutes in headers and bodies,
 and is "honored only from settings you or your administrator control: user settings, managed
 settings, and the `--settings` CLI flag" ([sandboxing]). Masked files (v2.1.221+) work the same
 way on Linux and are blocked outright on macOS.
 
-Inside a container: "in an unprivileged container, bubblewrap can't mount a fresh `/proc`
-filesystem, so sandboxed commands fail with a `bwrap` error such as `Can't mount proc on
-/newroot/proc: Operation not permitted`. Set `enableWeakerNestedSandbox` to `true`" which "exposes
-process information to sandboxed commands that a fresh `/proc` mount would hide" and, in the
-security section, "considerably weakens security and should only be used when additional
-isolation is otherwise enforced" ([sandboxing]). `docker` commands are "incompatible with the
+Inside an unprivileged container, bubblewrap's fresh `/proc` mount can fail. The documented
+`enableWeakerNestedSandbox` workaround exposes process information normally hidden by that
+mount; the security guidance requires another isolation boundary because this weakens the
+sandbox ([sandboxing]). `docker` commands are "incompatible with the
 sandbox" ([sandboxing]).
 
 Print mode: neither the sandboxing page nor the headless page says in words whether `sandbox`
@@ -112,13 +107,11 @@ stands.
 ### 3. `@anthropic-ai/sandbox-runtime`
 
 Version 0.0.76, published 2026-09-10 ([npm]); "a beta research preview, and its configuration
-format may change" ([sandbox-environments]). It "wraps an entire process in the same Seatbelt or
-bubblewrap isolation that the built-in Bash sandbox uses. Running Claude Code through the runtime
-constrains every tool, hook, and MCP server in the session, not only Bash." Launch is `npx
+format may change" ([sandbox-environments]). It applies Seatbelt or bubblewrap to the whole process, covering tools, hooks and MCP servers
+as well as Bash. Launch is `npx
 @anthropic-ai/sandbox-runtime claude` (or `srt <command>`) with `~/.srt-settings.json` or
 `--settings`; it needs the same `bubblewrap` and `socat` on Linux, denies network by default, and
-on Linux "removes the network namespace entirely, so all network traffic must go through the
-proxies", which listen on Unix domain sockets ([sandbox-environments], [sandbox-runtime]). Its
+on Linux requires network access through its Unix-domain-socket proxies ([sandbox-environments], [sandbox-runtime]). Its
 README carries the same `enableWeakerNestedSandbox` option "for Docker environments without
 privileged namespaces" ([sandbox-runtime]). Anthropic's table rates it "Good (secure defaults),
 very low overhead, low complexity" and notes "Same-host kernel" and "No TLS inspection... domain
@@ -132,35 +125,19 @@ with no container), not for the container.
 
 ### 4. A hardened custom container, per Anthropic's guide
 
-This is the documented target for "organizations with existing container infrastructure or CI
-runners" ([sandbox-environments]). The guide's reference invocation, verbatim in shape:
+The guidance targets teams already using containers or CI runners ([sandbox-environments]).
+Its example combines dropped capabilities, privilege-escalation prevention and seccomp with a
+read-only root, bounded temporary filesystems, CPU/memory/process limits, a non-root identity,
+a read-only workspace and a mounted proxy socket. Networking is disabled in that example
+([secure-deployment]); consult the source for the complete invocation rather than treating these
+notes as a runnable deployment recipe.
 
-```bash
-docker run \
-  --cap-drop ALL \
-  --security-opt no-new-privileges \
-  --security-opt seccomp=/path/to/seccomp-profile.json \
-  --read-only \
-  --tmpfs /tmp:rw,noexec,nosuid,size=100m \
-  --tmpfs /home/agent:rw,noexec,nosuid,size=500m \
-  --network none \
-  --memory 2g --cpus 2 --pids-limit 100 \
-  --user 1000:1000 \
-  -v /path/to/code:/workspace:ro \
-  -v /var/run/proxy.sock:/var/run/proxy.sock:ro \
-  agent-image
-```
-
-"With `--network none`, the container has no network interfaces at all. The only way for the agent
-to reach the outside world is through the mounted Unix socket, which connects to a proxy running
-on the host. This proxy can enforce domain allowlists, inject credentials, and log all traffic.
-This is the same architecture used by sandbox-runtime" ([secure-deployment]). Credential guidance
-on the same page: the proxy pattern is "the recommended approach"; for the Claude API,
-`ANTHROPIC_BASE_URL` "tells Claude Code and the Agent SDK to send sampling requests to your proxy
-instead of the Claude API directly. Your proxy receives plaintext HTTP requests, can inspect and
-modify them (including injecting credentials)"; for other HTTPS services either a custom tool that
-calls out through a proxy, or a TLS-terminating proxy with its CA installed in the agent's trust
-store ([secure-deployment]). Every option runs unprivileged; nothing in it needs bubblewrap.
+The guide routes external access through a mounted Unix socket when container networking is
+disabled. Its host proxy can restrict destinations, attach credentials and record requests;
+sandbox-runtime uses the same general boundary ([secure-deployment]). For the Claude API,
+`ANTHROPIC_BASE_URL` redirects sampling to a proxy that can inspect and modify the HTTP request.
+For other HTTPS services, the guide describes either a custom proxy-aware tool or TLS termination
+with an agent-trusted CA ([secure-deployment]). Every option runs unprivileged; nothing in it needs bubblewrap.
 
 *For this repo:* this is the design the demo already approximates (non-root, no socket, secrets by
 env file, Forwarder on loopback) and the checklist for what it lacks: `cap_drop`,
@@ -209,13 +186,12 @@ documented way to be spawned per webhook. Watch it; do not build on it yet.
 
 ### 8. E2B
 
-"Every sandbox is a Firecracker microVM, not a container. Each one boots its own kernel and is
-isolated from every other sandbox and from the host by the hypervisor"; SOC 2 Type II; BYOC into
-the customer's own cloud account ([e2b-security]). Commands run via `sandbox.commands.run(...)`,
+E2B describes separate Firecracker microVMs, each with its own kernel and hypervisor isolation
+from the host and other sandboxes; it reports SOC 2 Type II and supports BYOC
+([e2b-security]). Commands run via `sandbox.commands.run(...)`,
 custom templates install packages ([e2b-docs]). Secrets are not environment variables: a
-`Secret.fill('name')` reference "is stored in the sandbox's network configuration" and "each time
-the egress proxy forwards a matching HTTPS request, it resolves the secret's current value and
-injects it", to trusted hosts only ([e2b-secrets]).
+`Secret.fill('name')` reference belongs to network configuration; the egress proxy resolves and
+injects the current secret only for matching HTTPS requests to trusted hosts ([e2b-secrets]).
 
 ### 9. Daytona
 
@@ -250,12 +226,12 @@ asserted here. No secret masking or egress policy detail was on those pages eith
 - `--permission-prompts none` (v2.1.259+) additionally "tells Claude not to retry" denied requests;
   denials "appear as `permission_denied` system messages, and the final result message lists them
   in `permission_denials`" in stream-json ([headless]). The log formatter already renders both.
-- `--bare` skips hooks, skills, plugins, MCP servers, auto memory and CLAUDE.md, is "the
-  recommended mode for scripted and SDK calls, and will become the default for `-p` in a future
-  release", and "never reads OAuth credentials or the system keychain. For the Anthropic API, set
-  `ANTHROPIC_API_KEY`... or supply an `apiKeyHelper` in the `--settings` JSON" ([headless]).
-  Without it, "a `-p` session runs the hooks in a project's `.claude/settings.json` and connects
-  the servers in its `.mcp.json`, even in a folder you've never trusted" ([headless]).
+- The fetched headless documentation recommends `--bare` for scripted/SDK calls and describes
+  a future change to make it the print-mode default. It skips hooks, skills, plugins, MCP servers,
+  auto memory and CLAUDE.md; it avoids OAuth/keychain credentials and instead uses
+  `ANTHROPIC_API_KEY` or an `apiKeyHelper` in settings ([headless]). Without it, print mode may
+  execute project hooks and connect configured MCP servers even without prior folder trust
+  ([headless]).
 - `--dangerously-skip-permissions` is refused as root, and "the check is skipped automatically
   inside a recognized sandbox" ([sandboxing]). This repo does not use the flag; the note matters
   only if someone reaches for it.

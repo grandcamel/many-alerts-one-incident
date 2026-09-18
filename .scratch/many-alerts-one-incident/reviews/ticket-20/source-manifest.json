@@ -1,0 +1,32 @@
+[
+  {
+    "path": "docs/research/harness-sandbox-containers-2026-09.md",
+    "source_ref": "HEAD",
+    "source_commit": "c789840ede31d73748738c8ffe69ee9375b7b6cc"
+  },
+  {
+    "path": "docs/research/claude-code-run-telemetry-2026-09.md",
+    "source_ref": "origin/research/claude-code-run-telemetry",
+    "source_commit": "baef501a56891257757989e02b1fe3edf639796f"
+  },
+  {
+    "path": "docs/research/where-a-real-kubernetes-could-run-2026-09.md",
+    "source_ref": "origin/research/where-a-real-kubernetes-could-run",
+    "source_commit": "a34e932ecdbcf3b5417854febcff38f2b4238e26"
+  },
+  {
+    "path": "docs/research/otel-demo-as-the-system-2026-09.md",
+    "source_ref": "origin/research/otel-demo-as-the-system",
+    "source_commit": "86913f9f1a0f5f1d4b0fc3d44afe5ac1d03cec48"
+  },
+  {
+    "path": "docs/research/eyes-into-grafana-2026-09.md",
+    "source_ref": "origin/research/eyes-into-grafana",
+    "source_commit": "9dc705f753b02a0dcc337a93299e1f7ff38a9939"
+  },
+  {
+    "path": "docs/research/model-and-effort-on-a-headless-run-2026-09.md",
+    "source_ref": "origin/research/model-and-effort",
+    "source_commit": "2f640aa4a14593fe6841058818a1659baab78006"
+  }
+]

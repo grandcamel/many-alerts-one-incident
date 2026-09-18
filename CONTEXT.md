@@ -72,11 +72,11 @@ act on an Alert. A Run reads it and nothing else instructs it.
 _Avoid_: prompt, playbook, instructions, runbook
 
 **Forwarder**:
-The localhost process, owned by the Receiver, that holds the real Jira credential and forwards a Run's Jira requests with that credential attached. A Run only ever holds a sentinel.
+The Receiver-controlled service that holds the managed service credentials and mediates a Run’s authorized Jira, Confluence, Grafana and Kubernetes requests. A Run presents a service-scoped Sentinel, not the corresponding real credential.
 _Avoid_: proxy, sidecar, hand, vault
 
 **Sentinel**:
-The random token generated for one Run and registered with the Forwarder for that Run's lifetime. It stands where the Jira API token would be in a Run's environment, and is worth nothing anywhere else or once the Run has ended.
+The random token registered with the Forwarder for one Run and one service. It grants only that Run’s declared service scope during its authorized lifetime, and is invalid for another service or after revocation or expiry.
 _Avoid_: fake token, dummy credential, placeholder, api key
 
 **Transcript**:
