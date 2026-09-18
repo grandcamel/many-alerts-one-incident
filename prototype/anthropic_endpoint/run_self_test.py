@@ -29,12 +29,58 @@ import endpoint
 import run_routing_probe as p1
 from http.server import ThreadingHTTPServer
 
+
+class SlowOrFastUpstream(p1.MockAnthropic):
+    """P1 mock, plus ?slow=true dribbles SSE events for revocation tests."""
+
+    def _handle(self):
+        if "slow=true" in self.path:
+            length = int(self.headers.get("Content-Length") or 0)
+            if length:
+                self.rfile.read(length)
+            events = [
+                ("message_start", {"type": "message_start", "message": p1._message_payload("claude-opus-5", "")}),
+                ("content_block_start", {"type": "content_block_start", "index": 0, "content_block": {"type": "text", "text": ""}}),
+                ("content_block_delta", {"type": "content_block_delta", "index": 0, "delta": {"type": "text_delta", "text": "po"}}),
+                ("content_block_delta", {"type": "content_block_delta", "index": 0, "delta": {"type": "text_delta", "text": "ng"}}),
+                ("content_block_stop", {"type": "content_block_stop", "index": 0}),
+                ("message_delta", {"type": "message_delta", "delta": {"stop_reason": "end_turn"}, "usage": {"output_tokens": 1}}),
+                ("message_stop", {"type": "message_stop"}),
+            ]
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Transfer-Encoding", "chunked")
+            self.end_headers()
+            for name, data in events:
+                payload = (f"event: {name}\ndata: {json.dumps(data)}\n\n").encode()
+                try:
+                    self.wfile.write(f"{len(payload):x}\r\n".encode() + payload + b"\r\n")
+                    self.wfile.flush()
+                except OSError:
+                    break
+                time.sleep(0.4)
+            try:
+                self.wfile.write(b"0\r\n\r\n")
+            except OSError:
+                pass
+            self.close_connection = True
+        else:
+            super()._handle()
+
+    # Rebind verb dispatch to THIS class's _handle: the parent's do_* class
+    # attributes alias the parent's function object and would bypass the
+    # override above.
+    do_GET = _handle
+    do_POST = _handle
+    do_PUT = _handle
+    do_DELETE = _handle
+
 ARTIFACTS = Path(__file__).resolve().parent / "artifacts"
 FIXTURE_UPSTREAM_KEY = "fixture-upstream-key-" + secrets.token_hex(16)
 
 
 def start_mock_upstream():
-    server = ThreadingHTTPServer(("127.0.0.1", 0), p1.MockAnthropic)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), SlowOrFastUpstream)
     server.daemon_threads = False
     t = threading.Thread(target=server.serve_forever,
                          kwargs={"poll_interval": 0.02})
@@ -201,6 +247,88 @@ def main():
     shutil.rmtree(home, ignore_errors=True)
     shutil.rmtree(cwd, ignore_errors=True)
 
+    # 8. mid-stream revocation: dribbling upstream, revoke after first events
+    s8 = fresh_sentinel()
+    control(control_port, operator_token, "/admit",
+            {"sentinel": s8, "ttl_s": 120})
+    stream_result = {}
+
+    def slow_stream():
+        ctx = ssl.create_default_context(cafile=str(ca_pem))
+        conn = http.client.HTTPSConnection("localhost", proxy_port,
+                                           context=ctx, timeout=30)
+        conn.request("POST", "/v1/messages?slow=true",
+                     body=json.dumps({**msg, "stream": True}),
+                     headers={"Content-Type": "application/json",
+                              "x-api-key": s8,
+                              "anthropic-version": "2023-06-01"})
+        resp = conn.getresponse()
+        data = b""
+        while True:
+            chunk = resp.read(4096)
+            if not chunk:
+                break
+            data += chunk
+        stream_result["body"] = data
+        stream_result["status"] = resp.status
+        conn.close()
+
+    st_thread = threading.Thread(target=slow_stream)
+    st_thread.start()
+    time.sleep(1.0)  # ~2 events dribbled; stream in flight
+    control(control_port, operator_token, "/revoke", {"sentinel": s8})
+    st_thread.join(timeout=30)
+    got = stream_result.get("body", b"")
+    mid_receipts = [r for r in proxy.receipts
+                    if r["outcome"] == "revoked-mid-stream"]
+    cases["mid-stream-revocation"] = {
+        "events_received": got.count(b"event:"),
+        "full_event_count": 7,
+        "truncated": 0 < got.count(b"event:") < 7,
+        "endpoint_recorded_revoked_mid_stream": len(mid_receipts) >= 1,
+    }
+
+    # 9. receipts hygiene: no sentinel or upstream key material in receipts
+    serialized_receipts = json.dumps(proxy.receipts)
+    cases["receipts-hygiene"] = {
+        "fixture_upstream_key_absent": FIXTURE_UPSTREAM_KEY not in serialized_receipts,
+        "operator_token_absent": operator_token not in serialized_receipts,
+        "sentinel_shaped_values_absent": "ep-test-sentinel-" not in serialized_receipts,
+    }
+
+    # 10. malformed and negative Content-Length over a raw TLS socket
+    def raw_length_request(value):
+        import socket as _socket
+        ctx = ssl.create_default_context(cafile=str(ca_pem))
+        sock = ctx.wrap_socket(_socket.create_connection(
+            ("localhost", proxy_port), timeout=15), server_hostname="localhost")
+        s10 = fresh_sentinel()
+        control(control_port, operator_token, "/admit",
+                {"sentinel": s10, "ttl_s": 60})
+        req = (f"POST /v1/messages HTTP/1.1\r\nHost: localhost:{proxy_port}\r\n"
+               f"Content-Type: application/json\r\nx-api-key: {s10}\r\n"
+               f"anthropic-version: 2023-06-01\r\n"
+               f"Content-Length: {value}\r\nConnection: close\r\n\r\n").encode()
+        sock.sendall(req)
+        sock.settimeout(15)
+        data = b""
+        try:
+            while True:
+                chunk = sock.recv(4096)
+                if not chunk:
+                    break
+                data += chunk
+        except OSError:
+            pass
+        sock.close()
+        status_line = data.split(b"\r\n", 1)[0].decode("ascii", "replace")
+        return int(status_line.split(" ")[1]) if " " in status_line else None
+
+    cases["content-length-abuse"] = {
+        "negative_status": raw_length_request("-1"),
+        "malformed_status": raw_length_request("abc"),
+    }
+
     for s in (proxy, control_srv, upstream):
         s.shutdown()
     for t in threads + [upstream_t]:
@@ -223,6 +351,11 @@ def main():
         and cases["revocation"]["before_status"] == 200
         and cases["revocation"]["after_status"] == 401
         and cases["revocation"]["upstream_after_revoke"] == 0
+        and cases["mid-stream-revocation"]["truncated"]
+        and cases["mid-stream-revocation"]["endpoint_recorded_revoked_mid_stream"]
+        and all(cases["receipts-hygiene"].values())
+        and cases["content-length-abuse"]["negative_status"] == 413
+        and cases["content-length-abuse"]["malformed_status"] == 400
         and cases["cli-end-to-end"].get("is_error") is False
     )
     report = {

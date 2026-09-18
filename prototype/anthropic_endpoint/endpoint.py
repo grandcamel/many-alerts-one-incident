@@ -18,6 +18,7 @@ import ssl
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlsplit
 
 BODY_CAP = 10 * 1024 * 1024
 ALLOWED_PATH_PREFIX = "/v1/messages"
@@ -30,6 +31,10 @@ REQ_HEADER_ALLOW = {"content-type", "accept", "anthropic-version",
                     "anthropic-beta", "anthropic-dangerous-direct-browser-access",
                     "user-agent", "x-app", "x-claude-code-session-id"}
 REQ_HEADER_ALLOW_PREFIX = ("x-stainless-",)
+
+
+class _UpstreamError(Exception):
+    pass
 
 
 class Admission:
@@ -64,16 +69,23 @@ class Admission:
 class ProxyHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
+    def setup(self):
+        super().setup()
+        # Bound every client read/write so a stalled client cannot hold a
+        # handler thread past the Run budget. Upstream-side read timeouts are
+        # set by the connection factory.
+        self.request.settimeout(30)
+
     def log_message(self, *args):
         pass
 
     def do_POST(self):
         started = time.monotonic()
         receipts = self.server.receipts
-        path = self.path
-        if not path.startswith(ALLOWED_PATH_PREFIX):
+        clean_path = urlsplit(self.path).path  # never log the query string
+        if not clean_path.startswith(ALLOWED_PATH_PREFIX):
             self._deny(404, "not_found_error", "endpoint: unlisted path")
-            receipts.append({"ts": time.time(), "path": path,
+            receipts.append({"ts": time.time(), "path": clean_path,
                              "outcome": "denied-path"})
             return
         sentinel = self.headers.get("x-api-key", "")
@@ -81,14 +93,21 @@ class ProxyHandler(BaseHTTPRequestHandler):
         if state != "ok":
             self._deny(401, "authentication_error",
                        f"endpoint: sentinel {state}")
-            receipts.append({"ts": time.time(), "path": path,
+            receipts.append({"ts": time.time(), "path": clean_path,
                              "outcome": f"denied-sentinel-{state}"})
             return
 
-        length = int(self.headers.get("Content-Length") or 0)
-        if length > BODY_CAP:
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            self._deny(400, "invalid_request_error",
+                       "endpoint: malformed Content-Length")
+            receipts.append({"ts": time.time(), "path": clean_path,
+                             "outcome": "denied-malformed-length"})
+            return
+        if length < 0 or length > BODY_CAP:
             self._deny(413, "request_too_large", "endpoint: body cap")
-            receipts.append({"ts": time.time(), "path": path,
+            receipts.append({"ts": time.time(), "path": clean_path,
                              "outcome": "denied-body-cap"})
             return
         body = self.rfile.read(length) if length else b""
@@ -102,36 +121,70 @@ class ProxyHandler(BaseHTTPRequestHandler):
         headers["host"] = self.server.upstream_host
 
         conn = self.server.upstream_conn_factory()
-        try:
-            conn.request("POST", path, body=body, headers=headers)
-            resp = conn.getresponse()
-        except OSError as exc:
-            self._deny(502, "api_error", f"endpoint: upstream unreachable")
-            receipts.append({"ts": time.time(), "path": path,
-                             "outcome": "upstream-error", "error": str(exc)[:200]})
-            return
-
-        self.send_response(resp.status)
-        for k, v in resp.getheaders():
-            if k.lower() in RESP_HEADER_ALLOW:
-                self.send_header(k, v)
-        self.send_header("Transfer-Encoding", "chunked")
-        self.end_headers()
+        outcome = "proxied"
+        error = None
+        upstream_status = None
         forwarded = 0
-        while True:
-            chunk = resp.read(65536)
-            if not chunk:
-                break
-            self.wfile.write(f"{len(chunk):x}\r\n".encode() + chunk + b"\r\n")
-            self.wfile.flush()
-            forwarded += len(chunk)
-        self.wfile.write(b"0\r\n\r\n")
-        conn.close()
-        receipts.append({"ts": time.time(), "path": path,
-                         "outcome": "proxied", "request_bytes": length,
-                         "response_bytes": forwarded,
-                         "upstream_status": resp.status,
-                         "duration_s": round(time.monotonic() - started, 3)})
+        try:
+            try:
+                conn.request("POST", self.path, body=body, headers=headers)
+                resp = conn.getresponse()
+            except OSError as exc:
+                self._deny(502, "api_error", "endpoint: upstream unreachable")
+                outcome = "upstream-error"
+                error = str(exc)[:200]
+                raise _UpstreamError
+
+            upstream_status = resp.status
+            self.send_response(resp.status)
+            for k, v in resp.getheaders():
+                if k.lower() in RESP_HEADER_ALLOW:
+                    self.send_header(k, v)
+            self.send_header("Transfer-Encoding", "chunked")
+            self.end_headers()
+            while True:
+                # Mid-stream revocation: stop serving; an already-dispatched
+                # upstream request may finish, but the endpoint stops
+                # forwarding for a revoked sentinel (ADR 0012 precedence).
+                if self.server.admission.check(sentinel) != "ok":
+                    outcome = "revoked-mid-stream"
+                    break
+                # read1 (not read): read(amt) on a chunked response blocks
+                # until amt bytes or end-of-stream, which would defeat the
+                # per-chunk revocation check above.
+                chunk = resp.read1(65536)
+                if not chunk:
+                    break
+                self.wfile.write(f"{len(chunk):x}\r\n".encode() + chunk + b"\r\n")
+                self.wfile.flush()
+                forwarded += len(chunk)
+            if outcome == "revoked-mid-stream":
+                # Terminate the chunked body so the client sees a well-formed
+                # (if truncated) end rather than a hung socket.
+                try:
+                    self.wfile.write(b"0\r\n\r\n")
+                except OSError:
+                    pass
+            else:
+                self.wfile.write(b"0\r\n\r\n")
+        except _UpstreamError:
+            pass
+        except (BrokenPipeError, ConnectionResetError, ssl.SSLError, OSError) as exc:
+            # Client vanished mid-stream; the receipt must still record the
+            # proxied upstream work (billable-attempt evidence).
+            outcome = "client-disconnect"
+            error = str(exc)[:200]
+        finally:
+            conn.close()
+            receipt = {"ts": time.time(), "path": clean_path,
+                       "outcome": outcome,
+                       "request_bytes": length,
+                       "response_bytes": forwarded,
+                       "upstream_status": upstream_status,
+                       "duration_s": round(time.monotonic() - started, 3)}
+            if error:
+                receipt["error"] = error
+            receipts.append(receipt)
 
     def _deny(self, status, kind, message):
         payload = json.dumps({"type": "error",

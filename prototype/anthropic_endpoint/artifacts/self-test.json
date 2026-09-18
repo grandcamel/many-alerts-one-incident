@@ -1,6 +1,6 @@
 {
  "probe": "mediated endpoint self-test (mock upstream, fixture keys)",
- "elapsed_seconds": 2.84,
+ "elapsed_seconds": 3.996,
  "verdict": "supported",
  "cases": {
   "proxied-substitution": {
@@ -34,12 +34,27 @@
    "is_error": false,
    "result": "pong",
    "stderr_tail": ""
+  },
+  "mid-stream-revocation": {
+   "events_received": 4,
+   "full_event_count": 7,
+   "truncated": true,
+   "endpoint_recorded_revoked_mid_stream": true
+  },
+  "receipts-hygiene": {
+   "fixture_upstream_key_absent": true,
+   "operator_token_absent": true,
+   "sentinel_shaped_values_absent": true
+  },
+  "content-length-abuse": {
+   "negative_status": 413,
+   "malformed_status": 400
   }
  },
  "endpoint_receipts": [
   {
-   "ts": 1789753431.061746,
-   "path": "/v1/messages?beta=true",
+   "ts": 1789754201.599277,
+   "path": "/v1/messages",
    "outcome": "proxied",
    "request_bytes": 95,
    "response_bytes": 246,
@@ -47,8 +62,8 @@
    "duration_s": 0.002
   },
   {
-   "ts": 1789753431.070477,
-   "path": "/v1/messages?beta=true",
+   "ts": 1789754201.609431,
+   "path": "/v1/messages",
    "outcome": "proxied",
    "request_bytes": 111,
    "response_bytes": 812,
@@ -56,22 +71,22 @@
    "duration_s": 0.002
   },
   {
-   "ts": 1789753431.075692,
+   "ts": 1789754201.614689,
    "path": "/v1/messages",
    "outcome": "denied-sentinel-absent"
   },
   {
-   "ts": 1789753431.08209,
+   "ts": 1789754201.621042,
    "path": "/v1/messages",
    "outcome": "denied-sentinel-absent"
   },
   {
-   "ts": 1789753431.087992,
+   "ts": 1789754201.625738,
    "path": "/v1/models",
    "outcome": "denied-path"
   },
   {
-   "ts": 1789753431.0970721,
+   "ts": 1789754201.633205,
    "path": "/v1/messages",
    "outcome": "proxied",
    "request_bytes": 95,
@@ -80,27 +95,46 @@
    "duration_s": 0.002
   },
   {
-   "ts": 1789753431.102815,
+   "ts": 1789754201.6405911,
    "path": "/v1/messages",
    "outcome": "denied-sentinel-revoked"
   },
   {
-   "ts": 1789753433.1606662,
-   "path": "/v1/messages?beta=true",
+   "ts": 1789754202.869605,
+   "path": "/v1/messages",
    "outcome": "proxied",
    "request_bytes": 4763,
    "response_bytes": 812,
    "upstream_status": 200,
-   "duration_s": 0.003
+   "duration_s": 0.005
   },
   {
-   "ts": 1789753433.165249,
-   "path": "/v1/messages?beta=true",
+   "ts": 1789754202.872942,
+   "path": "/v1/messages",
    "outcome": "proxied",
    "request_bytes": 4088,
    "response_bytes": 812,
    "upstream_status": 200,
    "duration_s": 0.002
+  },
+  {
+   "ts": 1789754204.538659,
+   "path": "/v1/messages",
+   "outcome": "revoked-mid-stream",
+   "request_bytes": 111,
+   "response_bytes": 684,
+   "upstream_status": 200,
+   "duration_s": 1.21
+  },
+  {
+   "ts": 1789754204.5454888,
+   "path": "/v1/messages",
+   "outcome": "denied-body-cap"
+  },
+  {
+   "ts": 1789754204.550442,
+   "path": "/v1/messages",
+   "outcome": "denied-malformed-length"
   }
  ],
  "not_run": [
