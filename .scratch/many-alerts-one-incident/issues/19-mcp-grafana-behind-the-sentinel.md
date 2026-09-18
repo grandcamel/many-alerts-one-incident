@@ -19,3 +19,15 @@ Claimed for offline experiment preparation after ticket 17 was resolved. The cur
 An [experiment protocol](../reviews/ticket-19/experiment-plan.md) now separates real-client transport checks from a later bounded model experiment and defines evidence/decision rules. All execution remains NOT RUN. It requires only an isolated ADR 0011 Grafana subset, not completion of ticket 36, avoiding a dependency cycle through Eyes.
 
 The [offline fact sheet](../reviews/ticket-19/facts.md) resolves historical token-variable naming as a configuration bridge and confirms that the referenced research did not execute mcp-grafana. It therefore provides no measured startup, tool-output or TLS/sentinel compatibility verdict. Ticket 19 stays claimed and unresolved; ticket 12 stays blocked on the actual prototype.
+
+## Protocol refresh after the planning frontier
+
+The accepted decisions through ticket 40 now leave Eyes/Report as the unresolved dependency path for the remaining specifications. The [frontier audit](../reviews/planning-frontier-2026-09-18.md) records the actual edges. The existing experiment protocol has been reconciled with the five-service target, model-free local Stage A subset, mediated Anthropic requirement for Stage B, 300-second Run policy, diagnostic budget and private evidence capture. No stage is executed and no blocker is removed. The next concrete step is explicit authorization to implement/run the bounded local Stage A prototype; model/tenant/cloud gates remain separate.
+
+## Local Stage A authorized — 2026-09-18
+
+The user subsequently authorized implementation and execution of the model-free local subset. Earlier NOT RUN statements above describe preparation history. The isolated prototype starts from `3e17793` on `prototype/mcp-grafana-eyes`; model/container/tenant/cloud gates remain NOT RUN. Local results do not resolve this ticket or unblock Eyes.
+
+## Local Stage A result
+
+[Stage A verdict](../reviews/ticket-19/stage-a-verdict.md): 31 exercised assertions supported, zero refuted, using real pinned mcp-grafana v1.5.1 against synthetic local TLS/Forwarder/backend fixtures. Frozen prototype commit `5f90bfbb20a5a63edecaa118d9a214c0e08389e4`. Full repository suite: 241 passed, 36 skipped. This is transport-scope evidence only. Model usability/budget, container confinement, real tenant and intended-venue gates remain unexecuted; ticket19 stays claimed and ticket12 blocked.
