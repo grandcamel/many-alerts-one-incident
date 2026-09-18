@@ -46,3 +46,7 @@ Decide:
 
 This is a decision, not a measurement: both numbers exist. What is missing is
 the rule the spec states.
+
+## Accepted Change input from ticket 25
+
+ADR 0015 requires reconciliation or private operator handoff of unresolved Changes before journal expiry, rehearsal reset or cluster destruction. Teardown cannot silently erase uncertain actuation. Emergency recovery must remain available during telemetry/storage failure. Seven-day retention does not authorize keeping a degraded venue running for seven days.

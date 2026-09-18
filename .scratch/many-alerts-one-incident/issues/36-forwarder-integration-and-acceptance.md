@@ -17,3 +17,7 @@ Offline acceptance must cover real client request construction and local TLS/tra
 Readiness must not discard pending Notifications or decide overall Run outcomes; ticket 21 owns recovery/classification. No live credential, cluster, demo or runtime implementation is authorized by this planning ticket.
 
 ADR 0013 adds Anthropic API-key custody outside Runs, a fixed fifth endpoint and per-Run sentinels. Specify and verify streaming, supported client endpoint/trust configuration, credential replacement, safe usage visibility, revocation, direct-route prevention and mandatory Anthropic readiness. Do not assume client compatibility or restore the old direct-key exception. Coordinate billing exposure with ticket 38; revocation cannot stop billing for an already-dispatched request.
+
+## Accepted Change input from ticket 25
+
+ADR 0015 adds dedicated current-rehearsal Loki Change queries to the read-only Eyes policy. The operator coordinator and its mutation/control credentials stay outside Runs and their Kubernetes Forwarder route. Verify source distinction and prevent a Run from forging authoritative coordinator Change records or invoking action control. Optional annotations require no new Run write authority.

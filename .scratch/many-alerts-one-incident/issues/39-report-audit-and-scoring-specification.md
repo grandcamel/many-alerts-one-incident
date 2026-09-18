@@ -15,3 +15,7 @@ Specify deterministic checks and fixtures through real capture/parser/report int
 Define the reviewer checklist, source access, disagreement resolution and append-only verdict history. Integrate ticket 38's two primary plus one fallback qualification matrix and cold/Memory conditions with current Ground truths. No sample can qualify before its Fault definition exists and is reviewed. Preserve all failures and do not silently migrate historical flag-name grades. Integrate ticket 34's audience summary without exposing scoring inputs, and ticket 35's gap/correlation interfaces without introducing a shared raw Transcript feed. Separate offline, human-review, model, billing and intended-venue acceptance; none is run under this planning task.
 
 [Ticket 40](40-fallback-fault-ground-truth.md) supplies the fallback definition prerequisite for future samples; drafting this specification need not wait for it.
+
+## Accepted Change input from ticket 25
+
+ADR 0015 Change records support only their recorded action/stage. A served value or rollout cannot by itself establish application evaluation, recovery or Incident causation. Preserve query/retrieval provenance and Change-record gaps in the audit; unresolved stages, untracked interventions or material gaps exclude clean qualification even when emergency undo succeeds.

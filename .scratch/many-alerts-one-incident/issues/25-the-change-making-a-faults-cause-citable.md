@@ -1,7 +1,7 @@
 # The Change: making a Fault's cause citable
 
 Type: grilling
-Status: open
+Status: resolved
 Blocked by: 09
 
 ## Question
@@ -165,3 +165,17 @@ rule, since a Run can now name the Trigger cheaply and must not be credited for 
 
 Also relevant: **`badhost` appears in no log line anywhere**. The bad hostname —
 the literal cause — exists only in the flag config and the evaluation span event.
+
+## Work in progress
+
+Claimed after ticket 24 was committed. Offline evidence review and planning only; no cluster, model or demo runs. ADRs 0008/0014 permit supported causal inference and score the Mechanism, so absence of a directly retrieved Trigger does not itself violate the Citation rule. The Change design must record operational facts without importing adjudication Ground truth.
+
+[Offline facts](../reviews/ticket-25/facts.md) separate the Compose implementation, historical intended-venue observations and the missing Change recorder. The earlier phrase “all of it” about Ground truth is restricted to Trigger facts: repository Mechanism/scoring material remains excluded under ADRs 0008/0014. [Round 1](../reviews/ticket-25/round-1.md) records accepted producer/coverage, truthful stages, retrieval and partial-failure policy. The human accepted all four recommendations. [Round 2](../reviews/ticket-25/round-2.md) records accepted ordering, durability, deadlines, authority and recovery details; all five second-round recommendations were accepted.
+
+## Answer
+
+Both rounds are accepted in [ADR 0015](../../../docs/adr/0015-changes-record-operator-actions-and-observed-stages.md). An operator-controlled in-cluster coordinator records injection and undo as stable, staged Changes; config acceptance, rollout, served value, application evaluation and symptom recovery remain distinct claims. Runs retain read-only access through a dedicated Loki Change stream and Eyes/Forwarder. Optional annotations are audience views, never another authority.
+
+Actions are globally serialized with durable intent and reconciliation before uncertain retries. The journal is 100 MiB with 10 MiB for recovery; journal and Change stream retention is seven days, with unresolved-state handoff before expiry/reset/destruction. Actuation has a 180-second bound and stage queryability a 30-second bound; failed delivery allows three sends per authorized attempt, not mutation replay. Separate operator grants, safe identity, restricted alternative editing and emergency undo preserve control without giving Runs mutation authority. Gaps/uncertain actions exclude clean qualification, and Incident completion still follows Alert/member rules.
+
+[Ticket 41](41-change-coordinator-and-retrieval-specification.md) specifies the implementation and offline/live acceptance boundaries. No coordinator, Skill, collector, cluster or model work was executed. Historical traced Trigger evidence remains useful; absent direct Trigger evidence does not prohibit an explicitly supported causal inference under ADR 0014.

@@ -91,3 +91,7 @@ logs). Rewrite point 2 against those.
 `OOMKilled` emits **no Kubernetes Event** — it is a
 `containerStatuses[].lastState.terminated.reason`, carried by neither Loki nor
 Prometheus. Pod status via `kubectl` is the *only* carrier for it.
+
+## Accepted Change input from ticket 25
+
+ADR 0015 requires read-only retrieval of the dedicated structured Loki Change stream through Eyes/Forwarder. Verify source identity, rehearsal scope, stage references and readiness diagnostic queryability. Grafana annotation APIs are optional audience presentation, not required Run access. No mutation authority or adjudication Ground truth is exposed.

@@ -21,3 +21,7 @@ Specify a comparable candidate qualification matrix covering initial Report, mat
 ADR 0014 fixes three samples as two primary-Fault and one designated-fallback lifecycle, including cold-start and Memory-assisted conditions. Each needs reviewed Ground truth and human adjudication under a frozen rubric. Failed/unverifiable samples cannot qualify; replacement samples consume existing allocations or later weeks. Ticket 39 supplies evidence completeness and grade/rollup contracts; missing/expired evidence and corrected revisions must not become new clean samples.
 
 Ticket 40 supplies the missing reviewed fallback Ground truth. A corrected Report revision does not erase an earlier arithmetic, unsupported-claim or fabrication defect from its qualification lifecycle. Require ticket 39's private audit completeness and review record; sanitized shared telemetry cannot supply that gate. Expired evidence retains a labelled historical verdict but cannot support a new independent re-adjudication.
+
+## Accepted Change input from ticket 25
+
+ADR 0015 additionally excludes lifecycles with unresolved Change stages, untracked interventions or material Change-record gaps from clean qualification. Include verified actuation/retrieval and emergency-recovery behavior in future venue preflight; repaired records cannot erase original sample failures. Ticket 41 specifies that contract, not paid acceptance.
