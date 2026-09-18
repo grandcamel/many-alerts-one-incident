@@ -42,5 +42,5 @@ No tenant, container, Kubernetes, venue or publication. No direct-key/OAuth shor
 
 1. ~~P4 passed and recorded on the prototype branch.~~ **Done** — `319dea4`, `supported-tls-trust`.
 2. ~~Mediated endpoint implemented, hash-pinned, reviewed; revocation drill run locally.~~ **Done** — prototype `affc93b` (`prototype/anthropic_endpoint/`). Self-test verdict `supported` over 10 cases including mid-stream revocation, receipts hygiene and Content-Length abuse; independent Pro review's six defects verified and fixed; full suite 241 passed, 36 skipped. Production-wiring notes (real upstream factory, per-read timeout compatible with the 300 s budget) recorded in its README.
-3. P3 billing/rates preflight done with the user's account context; reservation recorded.
+3. P3 billing/rates preflight done with the user's account context; reservation recorded. **Guided checklist prepared** at [p3-billing-preflight.md](p3-billing-preflight.md): documented list rates captured (`claude-opus-5` $5/$25 per MTok, `claude-api` skill `shared/models.md:76`), endpoint usage capture implemented (prototype `ade42e7`), reservation record format fixed. Awaiting the user's four verification outcomes.
 4. User authorization referencing this card's commit.
