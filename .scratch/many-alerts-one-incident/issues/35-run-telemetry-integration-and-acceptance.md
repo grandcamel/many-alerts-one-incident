@@ -17,3 +17,7 @@ Specify offline tests at actual Receiver/projection/transport/query boundaries f
 ## Inputs
 
 [Ticket 15](15-run-telemetry-as-a-signal.md#answer), [accepted rounds and facts](../reviews/ticket-15/facts.md), and tickets 12, 17, 21 and 24. No model Run, cluster, demo or live export is authorized by this specification ticket.
+
+## Accepted scoring input from ticket 24
+
+ADR 0014 and ticket 39 own the separate private citation-audit bundle (100 MiB/Run, 2 GiB total, 30 days). Keep this distinct from the shared 24-hour sanitized feed; provide correlation/gap references without exporting raw audit bodies or adjudication material.

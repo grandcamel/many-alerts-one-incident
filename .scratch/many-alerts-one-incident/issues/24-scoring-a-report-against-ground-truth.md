@@ -1,7 +1,7 @@
 # Scoring a Report against Ground truth
 
 Type: grilling
-Status: open
+Status: resolved
 Blocked by: none
 
 ## Question
@@ -70,3 +70,19 @@ Two consequences this ticket inherits:
 
 Sample size: three Faults are written in full and nine are named without Ground truths.
 If scoring wants more samples, it graduates its own ticket to write them.
+
+## Work in progress
+
+Claimed after ticket 22 was committed as d9b3e6f. Ticket 23 remains unexecuted because paid measurements are not authorized. Offline scoring-evidence review and human policy decisions only; no model or demo run.
+
+[Offline facts](../reviews/ticket-24/facts.md) verify the source's earlier mention/attribution error was already corrected into a pre-check, and distinguish historical audit findings from a fresh response-level citation audit: raw Transcripts are not committed. The old flag-name pass mark is superseded by ADR 0008. [Round 1](../reviews/ticket-24/round-1.md) records accepted adjudicator, rubric, audit evidence, record granularity and arithmetic policy. The human accepted all five recommendations. [Round 2](../reviews/ticket-24/round-2.md) records the accepted review, rollup, retention and qualification details. All five second-round recommendations were accepted.
+
+## Answer
+
+Both rounds are accepted in [ADR 0014](../../../docs/adr/0014-report-scoring-requires-supported-claims-and-human-review.md). Deterministic prechecks support named human adjudication; Mechanism correctness and evidence support are separate, and missing audit evidence is unverifiable rather than proof of fabrication. A supported inference may pass, while a lucky cause with invented controls cannot. Per-Report revision records roll into a lifecycle verdict without hiding earlier failures or arithmetic defects behind a corrected final Report.
+
+Private operator audit evidence stays outside Runs, Memory, shared telemetry and Git, bounded to 100 MiB per Run, 2 GiB total and 30 days. Capture failure cannot block required OPS work, but prevents an auditable qualifying pass where evidence is missing. Human disputes require a second review; records preserve both rationales and rubric history. Three qualification samples cover two primary and one fallback lifecycle, including cold-start and Memory-assisted conditions, within existing budgets and only after the relevant reviewed Ground truths exist.
+
+[Ticket 39](39-report-audit-and-scoring-specification.md) owns capture/schema/checker and offline acceptance specification. No scorer or Skill implementation, live audit or model qualification is claimed. The historical regex precheck and flag-name grades remain historical evidence.
+
+[Ticket 40](40-fallback-fault-ground-truth.md) supplies the missing reviewed fallback Mechanism/Trigger definition before qualification. Ticket 29 already measured adFailure at the intended venue; that historical measurement does not substitute for a Ground-truth definition or model qualification.

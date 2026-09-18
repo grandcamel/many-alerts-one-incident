@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 22, 36, 37
+Blocked by: 22, 24, 36, 37
 
 ## Question
 
@@ -15,3 +15,9 @@ Specify offline acceptance through real Receiver/Forwarder seams for simultaneou
 Define the separately authorized live preflight for current rates, account limits/lag, client budget behavior and the mediated Anthropic path. Do not invent supported flags or prices: inspect current self-documentation and the required Claude API skill before model/CLI claims. Where unavailable, record the evidence gate as blocked. Do not perform a model probe, change auth, create keys, purchase credits or provision infrastructure to write this specification.
 
 Specify a comparable candidate qualification matrix covering initial Report, match/update, resolution, the intended presentation Fault and separately labelled fallback coverage; three complete representative lifecycle samples per candidate, citation review, all failures/retries, per-Run 300s bound, per-lifecycle ceilings and provider actual/unknown accounting. Allocate samples to the accepted rehearsal envelope, guard checks/retries to diagnostics, and avoid hidden extra spend or declaring an unmeasured candidate cheapest. Separate offline fixture, model-quality, provider-billing, tenant and intended-venue acceptance. Preserve labelled replay until all required live gates pass.
+
+## Accepted scoring input from ticket 24
+
+ADR 0014 fixes three samples as two primary-Fault and one designated-fallback lifecycle, including cold-start and Memory-assisted conditions. Each needs reviewed Ground truth and human adjudication under a frozen rubric. Failed/unverifiable samples cannot qualify; replacement samples consume existing allocations or later weeks. Ticket 39 supplies evidence completeness and grade/rollup contracts; missing/expired evidence and corrected revisions must not become new clean samples.
+
+Ticket 40 supplies the missing reviewed fallback Ground truth. A corrected Report revision does not erase an earlier arithmetic, unsupported-claim or fabrication defect from its qualification lifecycle. Require ticket 39's private audit completeness and review record; sanitized shared telemetry cannot supply that gate. Expired evidence retains a labelled historical verdict but cannot support a new independent re-adjudication.

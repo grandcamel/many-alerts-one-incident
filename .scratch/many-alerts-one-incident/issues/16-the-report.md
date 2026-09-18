@@ -38,3 +38,7 @@ bullets cost far more per word than a few long paragraphs.
 This also collides with a second limit. Both arms that stalled in the timing prototype blew
 the 64,000-token per-message output cap while serializing their ADF, and neither the cap nor
 this ceiling is negotiable at Run time. Report size is the one lever over both.
+
+## Accepted scoring input from ticket 24
+
+ADR 0014 requires claim-to-retrieval linkage and clear observed/inferred language, explicit uncertainty and auditable revisions. A supported inference can score correctly without a retrieved Trigger. Preserve corrections and earlier defects; a citation link or tool name alone does not prove returned evidence supported the claim.
