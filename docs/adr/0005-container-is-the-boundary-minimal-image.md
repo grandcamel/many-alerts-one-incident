@@ -12,3 +12,7 @@ Bubblewrap-based sandboxing — Claude Code's built-in Bash sandbox, `enableWeak
 - The base tag is pinned and overridable through `BASE_IMAGE`, so a build on another laptop produces the image that was rehearsed, and a mirror on a restricted network can be named without editing the file.
 - The image is a fraction of the old one (539 MB against 4.35 GB), so a rebuild an hour before the demo is minutes.
 - A future need for a developer tool in a Run is a decision to revisit here, not a package to add.
+
+## Chapter-two persistence extensions
+
+[ADR 0009](0009-memory-has-one-incident-authority-and-reviewed-learning.md) adds rehearsal-scoped Run learning through the Memory directory. [ADR 0012](0012-run-outcomes-and-recovery-are-explicit.md) separately adds a Receiver-owned durable recovery journal for admitted work and operation reconciliation. Both are explicit planned exceptions to tmpfs-only persistence; neither changes the current runtime implementation by itself.

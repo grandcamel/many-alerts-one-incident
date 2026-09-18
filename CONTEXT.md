@@ -124,3 +124,7 @@ _Avoid_: root cause, diagnosis, finding, conclusion
 **Problem**:
 An OPS issue of type Problem that groups Incidents that recur. Reserved; not built in this effort.
 _Avoid_: parent, root cause ticket
+
+**Recovery journal**:
+The Receiver’s record of admitted work, its processing outcomes and evidence needed to reconcile uncertain external effects. It preserves unfinished work for an explicit recovery decision; it is not authoritative Incident state or Run-written Memory.
+_Avoid_: Transcript, Memory directory, Incident database

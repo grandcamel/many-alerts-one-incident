@@ -1,7 +1,7 @@
 # When a Run is refused or never runs
 
 Type: grilling
-Status: open
+Status: resolved
 Blocked by: none
 
 ## Question
@@ -38,3 +38,23 @@ apart from success, and none of them is the Run reasoning badly.
 Produces an ADR or extends ADR 0003, and hands the Skill a "what to do when refused"
 section. This is the decision the prototype's worst outcome argues for: a Run that
 investigates perfectly and produces nothing is worse on a stage than a thin Report.
+
+## Work history
+
+Claimed after ticket 20 was committed. Offline fact checking and human decisions only; no runtime/Skill changes, model Run, live mutation, container or cluster. Historical failure evidence is not treated as current model/CLI behavior.
+
+The human accepted the first [decision round](../reviews/ticket-21/round-1.md), covering separate execution/effect outcomes, bounded refusal recovery, a total deadline with reserved cleanup time, honest silence/progress reporting, and explicit recovery before new dispatch. These are accepted planning decisions, not implemented behavior.
+
+[Offline facts](../reviews/ticket-21/facts.md) confirm current exit-only handling and identify the committed historical false-success measurement; its raw Transcript was not committed. SIGINT result flushing remains documentation-derived, not a measured guarantee. The current timeout guard also needs acceptance for a parent that exits while descendants retain stdout.
+
+The human accepted the second [decision round](../reviews/ticket-21/round-2.md), covering the total time budget, an explicit Receiver recovery-journal persistence exception, failed/pending merge, terminal-evidence rules and operator controls. Both rounds are accepted.
+
+## Answer
+
+[ADR 0012](../../../docs/adr/0012-run-outcomes-and-recovery-are-explicit.md) records the ten accepted decisions. Execution and external effects are separate; result errors and Receiver timeout/cancel/containment observations override apparent success. Missing/conflicting terminal evidence is incomplete, missing usage unknown, and required effects need trusted evidence or justified no-ops. One shorter Report attempt is permitted only after proven pre-dispatch denial; never probe live permissions or blindly retry uncertain writes.
+
+The five-minute total is 270s startup/work, 20s interruption/local flush and 10s kill/reap. Silence is not a stall verdict and output cannot extend the deadline. Revoke authority at cancellation/work deadline; interruption does not guarantee a result. Unconfirmed containment holds dispatch.
+
+A Receiver-owned durable Recovery journal explicitly extends ADR 0005, separately from Run-written Memory. Durable admission precedes acknowledgement; mutation intent precedes dispatch. Preserve pending/failed work, latest-admitted dedupe state and effect evidence across rehearsal restarts, with dispatch held and sentinels invalid. Reconcile before a fresh operator-authorized retry, merging newest admitted Alert state without replaying confirmed operations. Unknown external effects cannot be erased by abandonment/reset. Optional Memory/export failures alone do not justify repeating OPS work.
+
+Operator controls are cancel, inspect/reconcile, retry and resume. [Future Skill guidance](../reviews/ticket-21/refusal-recovery-contract.md) remains a planning artifact; [ticket 37](37-run-recovery-and-admission-specification.md) owns concrete recovery/admission specifications and fixture extensions. No Skill/runtime implementation, model/signal experiment, live mutation, cluster or demo acceptance was performed.

@@ -1,0 +1,15 @@
+# Run recovery and admission specification
+
+Type: task
+Status: open
+Blocked by: 16, 21, 36
+
+## Question
+
+Produce an implementation-ready specification for [ADR 0012](../../../docs/adr/0012-run-outcomes-and-recovery-are-explicit.md), not runtime code. Define the execution/effect state model, terminal schema validation and precedence, trusted operation receipts, justified no-ops, visible unknown usage and operator controls. Integrate the planning-only [refusal contract](../reviews/ticket-21/refusal-recovery-contract.md) with ticket 16's compact Report and ADR 0011's Forwarder enforcement; the model's prose is not a receipt.
+
+Specify the Receiver-owned durable journal's schema, storage/mount/access boundary, admission-before-ack ordering, mutation-intent-before-dispatch ordering, dedupe baseline and failed/pending merge. Cover crash windows between dispatch, upstream effect and local confirmation, restart-held dispatch, reconciliation after an Incident ages out, explicit reset disposition and bounded queue/journal capacity. Keep OPS authoritative; no raw prompt/tool bodies, credentials or Ground truth in the journal. Integrate tickets 32/35/36 without making their implementation a prerequisite for writing this specification.
+
+Specify 270s work + 20s interrupt/flush + 10s kill/reap within the 300s total, early cancellation, sentinel lease/revocation timing, and containment failure without falsely declaring cleanup complete. Extend ticket 31's offline fixture contract with false-success terminal records, nonzero exits, missing/malformed/duplicate results, confirmed and uncertain writes, pre-dispatch denial and one compact retry, optional secondary failure, silent work, parent exit with descendants holding pipes, journal failures/full capacity, failed A plus newer B/A, repeated dedupe during recovery, restart and operator retry/resume.
+
+Require real Receiver/spawner/Forwarder boundaries for offline acceptance; do not present stubbed Match or model outcomes as real diagnosis/CLI behavior. Record separate model-signal, host containment, intended-venue storage and live OPS acceptance requirements. No model, cluster, demo, live write or runtime implementation is authorized by this planning task.
