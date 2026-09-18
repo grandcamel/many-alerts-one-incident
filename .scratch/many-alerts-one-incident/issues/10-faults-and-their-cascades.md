@@ -419,3 +419,7 @@ Also: **this ticket's own trap list is half right about cart's log severity.**
 separate `Grpc.AspNetCore.Server.ServerCallHandler` template line carries
 `"Information"`. The conclusion holds for a different reason — `severity_text` is
 structured metadata and is **not selectable as a stream label at all**.
+
+## Approved fallback definition, 2026-09-18
+
+[Ticket 40](40-fallback-fault-ground-truth.md#answer) now supplies the human-approved [adFailure Ground truth](../reviews/ticket-40/definition.md) and immutable upstream source receipts. It adds the designated fallback's definition without changing the three primary Faults. The nominal one-in-ten ad RPC failure propagates to the frontend ad-data handler; source emits a warning despite the historical venue query's zero matches. This supersedes any implication that fallback Ground truth is absent or that zero matching logs prove no logging code. Live corrected-rule and model qualification remain unverified.

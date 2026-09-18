@@ -1,3 +1,5 @@
+> Historical gap record, superseded by the [source-verified approved definition](definition.md). The human approved it on 2026-09-18.
+
 # Fallback Fault definition — incomplete, not approved
 
 ## Confirmed selection and Trigger

@@ -1,0 +1,70 @@
+{
+  "repository": "https://github.com/open-telemetry/opentelemetry-demo.git",
+  "tag_observed": "3.0.0",
+  "commit": "1755859a9de82c2e5e225be68abc401a5ebf2b4f",
+  "retrieved": "2026-09-18",
+  "method": "read-only bare shallow clone; no source executed",
+  "boundary": "Tag mapping verified at fetch time; not proof historical deployed image digest matches this source",
+  "files": [
+    {
+      "upstream_path": "src/ad/src/main/java/oteldemo/AdService.java",
+      "local_file": "AdService.java.txt",
+      "git_blob": "67924e423fa49e53e702b61ba8f99117d0fb06c8",
+      "sha256": "cbfd11041cc9f3f14d32f54eda3499fced380b33d80c8efdd2dedcff16f4b11b"
+    },
+    {
+      "upstream_path": "src/flagd/demo.flagd.json",
+      "local_file": "demo.flagd.json.txt",
+      "git_blob": "80a4fbc173be9bbec9be96ca9dbc9e524c888142",
+      "sha256": "bef4fa5da0ad8b1f64cc0d66fc66afaf7b9877c85895b78bf47d9a97577f9983"
+    },
+    {
+      "upstream_path": "LICENSE",
+      "local_file": "LICENSE.txt",
+      "git_blob": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "upstream_path": "src/frontend/gateways/rpc/Ad.gateway.ts",
+      "local_file": "src__frontend__gateways__rpc__Ad.gateway.ts.txt",
+      "git_blob": "1fd72442c6d5c123ad87a285eb2ec994be209fa9",
+      "sha256": "8c78f189313fb9b6a3c1292b0d7bc2a1fe4141c0d9f06c4b51dca9e22fa17282"
+    },
+    {
+      "upstream_path": "src/frontend/pages/api/data.ts",
+      "local_file": "src__frontend__pages__api__data.ts.txt",
+      "git_blob": "7e6ac8f0ca6751a3475e9e249b371518ba06080c",
+      "sha256": "a40106be0ee89f55970ea56cf2be2f7fe0aa91303833317f0f5960f2d53ef902"
+    },
+    {
+      "upstream_path": "src/frontend/utils/telemetry/InstrumentationMiddleware.ts",
+      "local_file": "src__frontend__utils__telemetry__InstrumentationMiddleware.ts.txt",
+      "git_blob": "955d22846d581031d18f3c1da2de52e2f718d722",
+      "sha256": "54ce34936dddfe60503c35bbdb0fa1b09cc97ca3b949a571c713a6a3c19c27ef"
+    },
+    {
+      "upstream_path": "src/frontend/gateways/Api.gateway.ts",
+      "local_file": "src__frontend__gateways__Api.gateway.ts.txt",
+      "git_blob": "5cb8ee89aea623d9f096f660a62d3ba4ee00f4fd",
+      "sha256": "70871abdd9f2aac61f6e0fd2cb4e20794d05899874c1e076c56da0b9898f37ec"
+    },
+    {
+      "upstream_path": "src/frontend/utils/Request.ts",
+      "local_file": "src__frontend__utils__Request.ts.txt",
+      "git_blob": "b0ff20e90773d4f22aa6d0713c6feeefaea4ba66",
+      "sha256": "d6d2bd0d04988fcc785e50c86c713cfdec4438d658f75ea638f6283abf92b7bb"
+    },
+    {
+      "upstream_path": "src/frontend/providers/Ad.provider.tsx",
+      "local_file": "src__frontend__providers__Ad.provider.tsx.txt",
+      "git_blob": "0b03f4371f096e11d72739dae25ee5998270e92f",
+      "sha256": "0f2402585c508cd88b418319081dce52dd99cc7e258d1f469bb12204de360034"
+    },
+    {
+      "upstream_path": "src/frontend/components/Ad/Ad.tsx",
+      "local_file": "src__frontend__components__Ad__Ad.tsx.txt",
+      "git_blob": "6a5ae1435b53440400b7ced9b7ee87cf355f7fa1",
+      "sha256": "26559ac24056e0757293d4756924108b00ad94383da0bc339d679e886d8d96a8"
+    }
+  ]
+}

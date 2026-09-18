@@ -29,3 +29,7 @@ ADR 0015 additionally excludes lifecycles with unresolved Change stages, untrack
 ## Accepted venue input from ticket 30
 
 ADR 0016 adds a separate $10 weekly venue envelope, $2 reserved per creation attempt and authoritative weekly state preserved off-cluster, with failed setup, replacement and residual/late charges accounted. Keep cloud and model envelopes distinct. Its future no-Fault 90-minute baseline requires no model Runs but consumes venue allocation. Qualification also requires the age/readiness gates and protected cleanup evidence; no provisioning is authorized.
+
+## Approved fallback definition from ticket 40
+
+The human approved [adFailure's Mechanism/Trigger definition](../reviews/ticket-40/definition.md), pinned to upstream commit `1755859a9de82c2e5e225be68abc401a5ebf2b4f`. The missing-definition prerequisite is satisfied. Keep it operator/repository-only, not reference material for Runs. It describes nominal one-in-ten ad RPC rejection with frontend error propagation, not total outage; an exact observed 10-percent ratio is not required for a correct diagnosis. Source/image correspondence, retrieved claim support and corrected-rule live acceptance remain qualification gates. Historical zero matching logs do not refute the warning emitted by source.

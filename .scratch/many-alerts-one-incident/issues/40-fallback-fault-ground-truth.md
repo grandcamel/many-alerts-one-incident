@@ -1,7 +1,7 @@
 # Fallback Fault Ground truth
 
 Type: task
-Status: claimed
+Status: resolved
 Blocked by: 24
 
 ## Question
@@ -12,12 +12,26 @@ Verify the mechanism against committed pinned source/artifacts; identify Trigger
 
 Supply the reviewed definition and evidence references to tickets 38/39's qualification matrix. If committed evidence cannot establish it, record the exact missing evidence and retain the qualification gate; do not invent a Mechanism or silently drop fallback coverage.
 
-## Work in progress
+## Work history
 
 Claimed after ticket 34 was committed. Offline committed-source/artifact verification only; the definition remains pending human review. No cluster, model, demo or upstream runtime changes.
 
-## Offline review outcome — Mechanism gate remains open
+## Initial offline review — historical evidence gap
 
 [Venue evidence](../reviews/ticket-40/venue-evidence.md) confirms the historical Trigger/configuration sequence, observed signals, original-rule failure to fire before undo and the limited offline threshold comparison. [Source review](../reviews/ticket-40/source-facts.md) did not locate pinned service/caller source in the bounded inspected refs/local candidate inventory. Metric and trace counts cannot establish the exact failure branch, RPC code or caller fallback.
 
 The [incomplete definition](../reviews/ticket-40/definition-pending.md) records the confirmed Trigger and exact missing causal evidence. Obtain pinned implementation or an adequate reviewed source artifact before drafting the Mechanism for human approval. This ticket remains unresolved and the fallback qualification gate remains closed; no implementation or live acceptance occurred.
+
+## Source gap addressed — submitted for human review
+
+After gap commit `35f2b14`, a read-only upstream 3.0.0 fetch supplied immutable commit `1755859a9de82c2e5e225be68abc401a5ebf2b4f`. [Verification and retained receipts](../reviews/ticket-40/source-verification.md) establish a nominal one-in-ten server-side UNAVAILABLE failure branch and frontend ad-data error propagation. Source emits a WARN log, so historical zero matching log results are not proof the implementation is silent. Historical image/source correspondence remains unverified.
+
+The [proposed Mechanism/Trigger definition](../reviews/ticket-40/definition.md) is ready for the required human review. Ticket remains claimed until approval; corrected-rule and model/venue qualification are separate gates. No source was executed and no cluster/model/demo run occurred.
+
+## Answer
+
+The human approved the [repository-only fallback definition](../reviews/ticket-40/definition.md) with “Approved” on 2026-09-18. Trigger: `adFailure` → `on`. Mechanism: intermittent server-side ad-retrieval rejection with gRPC UNAVAILABLE at nominal one-in-ten probability, propagated by the frontend ad-data handler instead of a successful replacement ad response, with server error instrumentation. This is not a total ad outage or proof of checkout failure.
+
+The source is pinned to upstream commit `1755859a9de82c2e5e225be68abc401a5ebf2b4f`; retained text snapshots, original notices/license and hashes support the definition. Source WARN logging corrects any inference that historical zero matching log lines prove code silence. Original-threshold measurements and corrected-threshold sample comparisons remain separate from live corrected-rule acceptance.
+
+Ticket 40's definition/review gate is complete. Tickets 38/39 may use this approved Ground truth in operator-only qualification/scoring, never as Run-readable context. Source/image correspondence, actual diagnostic retrieval, live corrected-rule behavior and the existing model/venue/permission/budget gates remain outstanding. No source, model, cluster or demo was executed.

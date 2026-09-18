@@ -31,3 +31,7 @@ ADR 0017 reference provenance includes approved page ID/version/body digest, del
 ## Accepted audience input from ticket 34
 
 ADR 0018 consumes a sanitized operator-side human-review summary (pending/reviewed/disputed with qualified rationale), not raw audit or Ground truth. Keep diagnostic review distinct from execution and curated-reference approval; no review/scoring projection enters Run-readable telemetry. Ticket 44 specifies presentation.
+
+## Approved fallback definition from ticket 40
+
+The human approved [adFailure's Mechanism/Trigger definition](../reviews/ticket-40/definition.md), pinned to upstream commit `1755859a9de82c2e5e225be68abc401a5ebf2b4f`. The missing-definition prerequisite is satisfied. Keep it operator/repository-only, not reference material for Runs. It describes nominal one-in-ten ad RPC rejection with frontend error propagation, not total outage; an exact observed 10-percent ratio is not required for a correct diagnosis. Source/image correspondence, retrieved claim support and corrected-rule live acceptance remain qualification gates. Historical zero matching logs do not refute the warning emitted by source.
