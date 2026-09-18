@@ -21,3 +21,7 @@ Specify offline tests at actual Receiver/projection/transport/query boundaries f
 ## Accepted scoring input from ticket 24
 
 ADR 0014 and ticket 39 own the separate private citation-audit bundle (100 MiB/Run, 2 GiB total, 30 days). Keep this distinct from the shared 24-hour sanitized feed; provide correlation/gap references without exporting raw audit bodies or adjudication material.
+
+## Accepted audience input from ticket 34
+
+ADR 0018 adds an operator-only Memory presentation linking this sanitized activity/timeline. Human scoring summaries are sourced separately outside Run-readable feeds. Five-second refresh and 30-second stale display do not replace source timestamps, backend retention or gap handling. Ticket 44 owns that presentation specification.

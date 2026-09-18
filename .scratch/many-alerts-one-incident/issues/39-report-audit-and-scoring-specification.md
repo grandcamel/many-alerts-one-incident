@@ -27,3 +27,7 @@ ADR 0016 requires private audit artifacts and digests to be preserved off-cluste
 ## Accepted Confluence input from ticket 33
 
 ADR 0017 reference provenance includes approved page ID/version/body digest, delivered-reference identity and approval/revocation history. Capture affected-output review and revocation cancellation without treating Confluence approval as independent system evidence or retroactively erasing Report defects. Keep manifest authority outside Run-readable scoring data.
+
+## Accepted audience input from ticket 34
+
+ADR 0018 consumes a sanitized operator-side human-review summary (pending/reviewed/disputed with qualified rationale), not raw audit or Ground truth. Keep diagnostic review distinct from execution and curated-reference approval; no review/scoring projection enters Run-readable telemetry. Ticket 44 specifies presentation.

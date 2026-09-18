@@ -21,3 +21,7 @@ ADR 0016 uses a fresh venue for each presentation/full rehearsal and requires pr
 ## Accepted Confluence input from ticket 33
 
 ADR 0017 adds operator-owned exact reference version/digest manifests and durable tenant/Incident-to-draft mappings. Preserve mapping/approval history across handoff without exposing prior-rehearsal drafts to new Runs. Reference freeze never overrides immediate revocation; changed bodies and unresolved draft conflicts disclose degraded Memory. Ticket 43 specifies the concrete interface.
+
+## Accepted audience input from ticket 34
+
+ADR 0018 needs sanitized confirmed-record projections with provenance, source time/version and incomplete/corrected states, scoped to selected rehearsal/Run/Incident. Availability and actual retrieval are distinct. Ticket 44 consumes these read-only interfaces; no raw Memory payload, prior-rehearsal context or scoring material may leak through presentation.

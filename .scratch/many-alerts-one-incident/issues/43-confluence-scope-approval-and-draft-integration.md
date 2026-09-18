@@ -19,3 +19,7 @@ Define rehearsal manifest freeze and immediate revocation, exact delivered-refer
 Offline acceptance must exercise actual client/Forwarder request and state boundaries: wrong/missing/forged IDs, cross-space/rehearsal read/update, metadata/pagination leaks, unapproved versions/digests, stale composed bodies, duplicate/uncertain creates, status/publication bypass, revoked material already delivered, cancellation with confirmed/uncertain OPS effects, and inaccessible manifest/credentials. Keep these tests distinct from future tenant proof of effective grants, native draft create/read/versioned update, human publication and direct-route prevention using explicitly authorized disposable artifacts. If gates fail, disable only affected Confluence capabilities and disclose degraded Memory. No tenant call, provisioning, credential change, publication or model Run is authorized by this task.
 
 Coordinate interfaces with tickets 32/36/37/39 without circular specification dependencies. Their work can consume this accepted ADR before the concrete interface specification is complete; final integration requires mutually consistent contracts and evidence.
+
+## Accepted audience input from ticket 34
+
+ADR 0018 renders distinct draft/reference identities with approval/version provenance, incomplete writes and immediate revocation state. Its pinned historical snapshots never restore current approval or serve withdrawn references. Expose only safe read-only projection fields to the operator view; mutation/curator controls remain separate.
