@@ -1,0 +1,3 @@
+# bounded source inventory
+matching-path-count=       0
+# candidate local clone roots with .git
