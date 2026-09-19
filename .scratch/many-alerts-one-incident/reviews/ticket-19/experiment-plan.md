@@ -4,6 +4,8 @@
 
 **Subsequent preparation:** [C1 source/pins](c1-preparation-outcome.md) are prepared at prototype `3a16de9`, with 363 passed / 36 skipped. The [first C1 execution card](c1-execution-card.md) defines the next bounded build/start/measurement step and its unmeasured rows. Read-only Docker inspection/rendering and host synthetic tests do not change the unexecuted C1/C2 status above.
 
+**Latest execution:** [C1 attempt 1](c1-attempt-1-outcome.md) was subsequently authorized. Builds and service creation succeeded; Forwarder provisioning failed before admission, so native measurements and runtime boundary probes remain NOT RUN. The attempt stopped without retry and exact-resource cleanup is verified. Earlier unexecuted-C1 statements above describe history. C2, ticket/blocker status and paid-dispatch holds remain unchanged.
+
 ## Question and boundary
 
 Determine whether mcp-grafana is a usable Eyes tool through ADR 0011's Grafana HTTPS endpoint and service-scoped sentinel, and whether its actual tool output/startup behavior fits the selected Run budget. An eyes CLI is the fallback, not a presumed winner. The user authorized the local, model-free Stage A implementation and execution on 2026-09-18. This authorization excludes Stage B, real tenants, containers and cloud venues; results are recorded separately. Ticket 19 remains unresolved and cannot unblock ticket 12.

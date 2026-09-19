@@ -46,3 +46,7 @@ Three bounded model attempts ran under separately recorded authorizations (see t
 ## C1 preparation result — 2026-09-19
 
 The user subsequently authorized the remaining preparation. [Source/pin outcome](ticket-19/c1-preparation-outcome.md): Unix adapters/probes, correlation/native mapping and Linux/base-image inputs are now prepared at prototype `3a16de9`; 363 passed / 36 skipped. The [first C1 execution card](ticket-19/c1-execution-card.md) is ready for review, with exact resource/build/start/cleanup scope and explicit unmeasured acceptance rows. No containers or native Linux client have run. C1/C2 execution gates, ticket 19/12 status, downstream edges and the paid-dispatch hold remain unchanged.
+
+## C1 attempt 1 — 2026-09-19
+
+The user then authorized C1 execution. [Attempt 1](ticket-19/c1-attempt-1-outcome.md) built both local derivatives and started four services, then stopped at Forwarder provisioning before admission or native MCP measurements. A certificate text/PEM-prefix mismatch is the probable source-level cause; runtime detail was redacted. Exact resources and transient secrets were removed and independently checked. The next bounded work is a PEM-only integration correction and its tests, followed by an explicitly authorized new attempt. No automatic retry, ticket resolution, blocker removal, C2/model run or reservation change follows.

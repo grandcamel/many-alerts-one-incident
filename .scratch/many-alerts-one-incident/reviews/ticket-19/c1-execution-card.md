@@ -1,6 +1,8 @@
 # Ticket 19 — C1 first container measurement card, 2026-09-19
 
-Status: **prepared for execution review; NOT RUN**. The user's latest "proceed" authorized the source adapters/probes and pin preparation proposed after C0. This card makes the next build/start concrete. The [accepted plan](local-container-acceptance-plan.md) requires separate C1 approval of the exact inputs, topology, limits and resource inventory. No model, paid API, real Grafana, tenant or cloud operation is included. No push or publication is included.
+Current status: **authorized and consumed by C1 attempt 1**. The user's subsequent "proceed" authorized this bounded build/start. [Attempt 1](c1-attempt-1-outcome.md) built the images and started the services, then stopped at Forwarder provisioning before admission; exact-resource cleanup is verified. No retry is authorized by that consumed instruction. The commands below are the historical execution card, not permission to rerun it.
+
+Original preparation status: the earlier "proceed" authorized source adapters/probes and pin preparation after C0. The [accepted plan](local-container-acceptance-plan.md) required separate C1 approval of the exact inputs, topology, limits and resource inventory. No model, paid API, real Grafana, tenant or cloud operation is included. No push or publication is included.
 
 This first C1 measurement covers Linux native compatibility, complete positive response capture, byte-cap/error behavior, scoped Unix transport, direct Run boundary probes and cleanup. It does not automatically complete every C1 acceptance row. Native-client negative certificate variants, in-container mid-query interruption/revocation, and restart-persistence drills remain explicitly unmeasured unless separately added to this card before execution. Host tests for related behavior are preparation evidence only. Ticket 19 stays claimed and ticket 12 blocked.
 

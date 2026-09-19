@@ -1,5 +1,7 @@
 # Ticket 19 — C1 source/pin preparation outcome, 2026-09-19
 
+This is the historical preparation record. The later [authorized C1 attempt 1](c1-attempt-1-outcome.md) stopped at Forwarder provisioning after builds/service creation; cleanup is verified and no native measurement ran.
+
 Status: **preparation complete for the first C1 execution card; container execution NOT RUN**. The user's "proceed" accepted the proposed next step after C0: implement Unix adapters/probes, resolve Linux/image inputs and prepare a concrete card. Source is committed locally at prototype `3a16de9d4195edd480a914d5211a08f2c3f9cab3`, branch `prototype/mcp-grafana-eyes`. The [C1 execution card](c1-execution-card.md) now records the bounded first measurement, exact inputs/resources, commands, evidence checks and teardown. Its build/start remains separately gated by the [accepted local plan](local-container-acceptance-plan.md).
 
 ## Source and exercised behavior
