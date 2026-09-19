@@ -34,3 +34,7 @@ The user authorized local Stage A after this preparation snapshot. [The verdict]
 ## Subsequent Stage B measurements — 2026-09-18
 
 Three bounded model attempts ran under separately recorded authorizations (see ticket 19): attempt 1 (mechanics supported; usability inconclusive from fixture discovery denials), an interrupted launch (infrastructure containment failure, fixed; spend pending daily feed), and attempt 3 against a permissive-read fixture (mechanics supported; Q1/Q2/Q4 supported; Q3 refuted by a named selector gap under stricter-than-real fixture semantics). Combined diagnostics spend ≈ $1.7–1.9 of $30. These samples inform but do not settle ticket 12's Eyes selection: ticket 19 stays claimed, ticket 12 stays blocked, and every blocker edge above remains intact.
+
+## Subsequent attempt 4 — 2026-09-19
+
+[Attempt 4](ticket-19/stage-b-attempt-4-outcome.md) completed after the selector correction: Q3 now answers the single-label Change query correctly; Q1 retains a named inference limit, and full response-level audit remains incomplete. The user corrected the daily-feed premise: only session telemetry is available. Known recorded estimates for attempts 1/3/4 total approximately $2.6304; attempt 2 and provider actuals remain unknown. Retain $12 of reservations and the further-dispatch hold after the one-attempt exception. Four attempts do not establish qualification or Eyes selection; all blocker edges above remain unchanged.

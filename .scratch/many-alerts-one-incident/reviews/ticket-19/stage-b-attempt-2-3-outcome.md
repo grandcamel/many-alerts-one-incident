@@ -49,3 +49,7 @@ The user selected **Prepare the fixture correction**. Local prototype commit `55
 Validation: `tests/test_stage_b_open_fixture.py` — **54 passed**, exercising both datasource URL families, the Q3 Change read-back, Q1 count/suffix, multi-stream limits, nonmatches, malformed/unsupported queries, invalid limits, credential denial, mutation denial and revocation over local HTTPS. Full suite: `env -u DEMO_END_TO_END -u DEMO_CONTAINER python3 -m pytest` — **295 passed, 36 skipped**. `git diff --check` passed; Stage A source/evidence has no diff against prototype `e8744f3`.
 
 **NOT RUN:** attempt 4, model-driven Q3 closure on the corrected fixture, real tenant, container/end-to-end and intended-venue acceptance. The historical attempt-3 verdict remains unchanged. Commits are local only; no push or private-evidence publication occurred.
+
+### Subsequent authorized execution
+
+Attempt 4 subsequently ran under a one-attempt telemetry-only accounting exception: see [its outcome](stage-b-attempt-4-outcome.md). Q3's single-label query succeeded in that sample. The preparation-only NOT RUN statement above is historical; real tenant/container/venue and qualification boundaries remain unestablished. All four reservations remain retained ($12), and no further attempt is authorized.

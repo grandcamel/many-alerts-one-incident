@@ -9,6 +9,8 @@
 
 The reservation record format below remains the execution-time artifact.
 
+**Subsequent exception, 2026-09-19:** the user authorized exactly one attempt 4 using telemetry-only estimates. [Attempt 4 completed](stage-b-attempt-4-outcome.md); provider actuals remain unknown and all four reservations ($12) remain retained. The exception is consumed; the further-dispatch hold remains applied.
+
 ADR 0013 requires verifying current account rates, billing visibility and lag, provider limits and the mediated client path **before** any paid Run. Items 1–4 need your account context; the orchestrator cannot do them. Estimated effort: ~10 minutes. Evidence category for every number must be identified (ADR 0013): provider billing page = actual-spend authority; list prices = documentation; client `total_cost_usd` = estimate.
 
 ## Known state (already established, no action)

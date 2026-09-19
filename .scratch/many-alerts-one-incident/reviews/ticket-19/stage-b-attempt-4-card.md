@@ -1,6 +1,6 @@
 # Stage B attempt 4 — continuation card, 2026-09-19
 
-Status: **local preflight passed; paid attempt NOT RUN.** The user directed continuation after the selector correction. Execution still needs a fresh execution-time key and a one-attempt accounting exception to the recorded P3 hold. No attempt-4 reservation has been made and no provider contact occurred during this preflight.
+Status: **attempt 4 complete 2026-09-19** — [outcome](stage-b-attempt-4-outcome.md). After the concrete request for a fresh key and one $3 attempt using telemetry-only accounting, the user replied "key provisioned. proceed". This authorized the one-attempt accounting exception below, now consumed. A durable $3 reservation was written at `2026-09-19T21:18:41.674714+00:00`, before the detached supervisor launched the client. Private reservation: `~/maoi-stage-b-evidence/attempt-4/reservation.json`. No subsequent attempt is authorized.
 
 ## Concrete attempt
 
@@ -13,11 +13,11 @@ Run the unchanged frozen prompt from the [original experiment card](stage-b-expe
 - Supply a fresh key only from `~/.sb-exec-key`, regular file with mode 600, into the supervisor's launch environment without echoing it. Delete that file after the attempt and report deletion. Existing OAuth auth is not an alternative under this card.
 - Keep evidence outside git at `~/maoi-stage-b-evidence/attempt-4/`, mode 700 directory and mode 600 files. Refuse an existing attempt-4 destination. Apply ADR 0014's sanitizer, 100 MiB/run and 2 GiB/30-day retention limits. The destination was absent and existing evidence occupied 104,771 bytes before this preflight was saved.
 
-## Accounting decision required before launch
+## Accounting exception authorized for this attempt
 
 The [accounting disposition](stage-b-attempt-2-3-outcome.md#accounting-disposition--2026-09-19) records provider actuals as unknown for attempts 1–3, $9 of retained reservations and a P3 paid-dispatch hold. Available session estimates for attempts 1 and 3 total $1.4249; attempt 2 remains unknown.
 
-The concrete exception requested is **one attempt 4 using session telemetry and endpoint token accounting as estimates, retaining the previous reservations and adding a new $3 reservation**. That makes $12 allocated in the $30 diagnostics envelope, not $12 of measured or maximum actual spend. No estimate becomes provider actuals, no old reservation is released, and the exception admits no subsequent attempt. The reservation is an admission allocation, not a hard provider billing ceiling. Write the reservation durably before launch; the launcher's embedded after-run record alone is insufficient for that ordering requirement.
+The authorized exception is **one attempt 4 using session telemetry and endpoint token accounting as estimates, retaining the previous reservations and adding a new $3 reservation**. That makes $12 allocated in the $30 diagnostics envelope, not $12 of measured or maximum actual spend. No estimate becomes provider actuals, no old reservation is released, and the exception admits no subsequent attempt. The reservation is an admission allocation, not a hard provider billing ceiling. The separate reservation was written and fsynced before launch; the launcher's embedded after-run record alone is insufficient for that ordering requirement.
 
 ## Local preflight evidence
 
