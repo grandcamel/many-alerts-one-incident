@@ -54,3 +54,7 @@ The user then authorized C1 execution. [Attempt 1](ticket-19/c1-attempt-1-outcom
 ## C1 attempt 2 — 2026-09-19
 
 The user explicitly authorized a retry. [Attempt 2](ticket-19/c1-attempt-2-outcome.md) applied/tested the PEM correction (prototype `79b8ee6`, 365 passed / 36 skipped), passed live provisioning/baseline/identity/filesystem checks, then stopped at the interface inventory guard before admission. Nine additional tunnel-interface names were present with no IPv4 route rows; reachability was not measured and no bypass is established. Cleanup is independently verified. Next preparation is interface-state evidence and a reviewed network-admission predicate; another container attempt is not automatic. All ticket/blocker and paid-dispatch boundaries remain unchanged.
+
+## C1 network guard prepared — 2026-09-19
+
+[One bounded interface inspection](ticket-19/c1-network-guard-outcome.md) confirmed inactive tunnel links with no non-loopback addresses/routes; cleanup was verified. The state-based guard is prepared at prototype `7741d20` (409 passed / 36 skipped, 44 new tests), with operator integration specified in the next-run card. Full C1 measurement remains pending; direct-connect/native/correlation/containment claims and downstream blocker edges remain unchanged. No new model spend or reservation release followed.

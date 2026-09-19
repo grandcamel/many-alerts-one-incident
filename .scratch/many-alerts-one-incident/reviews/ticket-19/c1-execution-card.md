@@ -1,5 +1,29 @@
 # Ticket 19 — C1 first container measurement card, 2026-09-19
 
+## Prepared network guard amendment — not yet executed
+
+The user's next "proceed" authorized the bounded interface inspection and resulting source preparation. [The outcome](c1-network-guard-outcome.md) establishes nine inactive, unaddressed, unrouted tunnel links in a fresh pinned network-none base container. The diagnostic container was removed. This amendment prepares one fresh full C1 attempt; its build/start/admission has not been authorized by the diagnostic step or executed.
+
+Updated prototype source: `7741d2060aceb9bb475a42c2f9f3adc5f3c1db7e`; `run_probe.py` SHA-256 `03801ad63e9de783697d0c7a11344e977c7cd4496d0c0d6b546ceee527317c3c`. Full suite: **409 passed, 36 skipped**; 44 new kernel-replay/rejection tests. Verification: `/Users/jasonkrueger/maoi-stage-b-evidence/c1-prep/network-guard-20260919/verification.json`, SHA-256 `1217126183210ae59ef3a4cccf3c1cb8b25998891ef67135ee8826f0e097e230`. The PEM helper at attempt 2 remains in this source. No frozen base/binary input, Dockerfile, Compose resource, capability, authority, sample count, budget or cleanup rule changes.
+
+For the next full attempt, use a fresh private evidence directory and rebuild the Run derivative from this exact probe; record its new content ID instead of requiring attempt 2's derived Run ID. Preserve old evidence and consumed authorizations. Freeze the new operator harness/hash and input/source manifest before launch; do not execute either archived attempt harness unchanged.
+
+Replace the historical `interfaces == ['lo']` and empty-proc-route assertion with both the probe's boolean and an operator-side call to the committed `network_state_allowed` on its full inventory. Require exact agreement between the legacy interface index/name list and the new link list. A false predicate, missing/incomplete inventory or disagreement stops before admission. Repeat the same inventory validation on the final Run snapshot; the old harness merely saved that final snapshot and must not be reused without this change.
+
+```python
+from prototype.local_acceptance.run_probe import network_state_allowed
+
+def require_network_state(snap):
+    inventory = snap["network_inventory"]
+    assert snap["network_state_allowed"] is True
+    assert network_state_allowed(inventory)
+    assert sorted(tuple(row) for row in snap["interfaces"]) == sorted(
+        (row["index"], row["name"]) for row in inventory["links"]
+    )
+```
+
+The predicate allows only the measured loopback state and optional exact named inactive tunnel profiles, requires solely the measured loopback addresses and four local-table routes, and rejects unknown/active links and additional paths. It does not replace mandatory network-none/no-capability/identity checks or the exact gateway/backend IP and private-socket connection probes. Run those probes and require all denials before sentinel admission. No automatic retry or widening follows a different observed profile. Native certificate variants and interruption/restart drills remain outside this first measurement, as below. A user instruction to proceed with this prepared full attempt supplies the remaining execution authorization; no additional paid/model authority is requested or implied.
+
 ## Attempt 2 amendment — authorized before launch
 
 **Execution result:** [attempt 2](c1-attempt-2-outcome.md) is now complete and its authorization consumed. Provisioning, baseline parity and exercised identity/filesystem checks passed; the declared interface-only-`lo` guard failed before admission. Cleanup is independently verified. No third container run is authorized by this amendment.
