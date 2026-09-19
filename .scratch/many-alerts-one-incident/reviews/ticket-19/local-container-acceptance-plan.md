@@ -1,6 +1,8 @@
 # Ticket 19 — remaining local acceptance plan, 2026-09-19
 
-Status: **PLAN ONLY.** The user's "proceed" accepted drafting the bounded, local, model-free plan proposed after attempt 4. This document authorizes no implementation, Docker build/pull/start, service-account creation, model call, shared-tenant operation or cloud work. Every experiment below is **NOT RUN**. Ticket 19 remains claimed; ticket 12 remains blocked.
+Current status: **C0 implemented and validated offline** following the user's subsequent "proceed"; see the [C0 outcome](c0-capture-outcome.md). C1/C2 remain **NOT RUN** and separately gated. Ticket 19 remains claimed; ticket 12 remains blocked.
+
+Original planning authorization: the earlier "proceed" accepted drafting this bounded, local, model-free plan only. The plan itself authorized no implementation, Docker build/pull/start, service-account creation, model call, shared-tenant operation or cloud work. The planning validation at the end records that historical step.
 
 ## Decision this work should inform
 
@@ -27,7 +29,7 @@ Grounding: main `9a60396ffe99c1db5e7e2544072d374bb203a7e8`; prototype `3375fdbac
 
 | Unit | Bounded deliverable | Execution boundary |
 | --- | --- | --- |
-| **C0 — source and capture preparation** | A new recorder/replay driver and offline tests under `prototype/local_acceptance/`; proposed container files, fixture manifest and redacted command plan. | Next recommended authorization: local source changes and offline/model-free synthetic tests only. No Docker calls, artifact downloads, local Grafana account creation or model clients. |
+| **C0 — source and capture preparation** | A new recorder/replay driver and offline tests under `prototype/local_acceptance/`; proposed container files, fixture manifest and redacted command plan. | Subsequently authorized and completed: [outcome](c0-capture-outcome.md), 334 passed / 36 skipped and seven synthetic replay cases. No Docker calls, artifact downloads, local Grafana account creation or model clients. |
 | **C1 — Linux container with synthetic backend** | One isolated container session exercising the pinned Linux client, full capture, timing, authority negatives, file/mount checks and cleanup. | Separately approve exact image/binary pins, resource limits, topology and create/remove manifest. May build/pull only the listed artifacts and create only experiment-owned resources. No real Grafana account yet. |
 | **C2 — disposable local Grafana** | The same client/recorder and accepted boundary against a fresh, pinned local Grafana/LGTM instance containing synthetic telemetry only. | Separately approve local instance provisioning, seeding and creation/revocation of local-only administrative and Viewer service-account credentials. No user's existing Grafana, cluster or shared tenant. |
 | **Review — ticket 19 to ticket 12** | Compact result matrix, exact artifact pointers, remaining failures and a proposed tool/allowlist decision for human review. | Neither execution success nor this plan resolves 19 or unblocks 12 automatically. Preserve actual blockers until an explicit ticket decision. |

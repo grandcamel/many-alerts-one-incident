@@ -1,6 +1,6 @@
 # Ticket 19 — prototype protocol (local Stage A measured)
 
-**Current status, 2026-09-19:** the original preparation and authorization statements below are historical. Local Stage A and four subsequently authorized Stage B attempts are recorded, most recently [attempt 4](stage-b-attempt-4-outcome.md). The [remaining local acceptance plan](local-container-acceptance-plan.md) now proposes source/capture preparation followed by separately gated Linux-container and disposable-Grafana checks. That plan is unexecuted; ticket 19 remains claimed and ticket 12 blocked. No further paid attempt is authorized.
+**Current status, 2026-09-19:** the original preparation and authorization statements below are historical. Local Stage A and four subsequently authorized Stage B attempts are recorded, most recently [attempt 4](stage-b-attempt-4-outcome.md). C0 of the [remaining local acceptance plan](local-container-acceptance-plan.md) is now implemented: [offline capture outcome](c0-capture-outcome.md), seven synthetic cases supported and 334 tests passed / 36 skipped. Linux-container C1 and disposable-Grafana C2 remain unexecuted and separately gated; ticket 19 remains claimed and ticket 12 blocked. No further paid attempt is authorized.
 
 ## Question and boundary
 

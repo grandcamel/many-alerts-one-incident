@@ -51,3 +51,7 @@ The user corrected billing visibility to session telemetry only and authorized o
 ## Remaining local acceptance plan — 2026-09-19
 
 The user authorized drafting the [bounded model-free plan](../reviews/ticket-19/local-container-acceptance-plan.md): C0 source/capture preparation, C1 synthetic Linux-container checks, C2 disposable local Grafana, then a criterion-level review for Eyes. No implementation or container execution is authorized by that planning instruction. The plan identifies the Darwin-only binary pin, unsuitable existing Compose configuration, incomplete MCP capture and unresolved loopback/control/bypass enforcement as concrete preparation gates. Ticket status and blocker edges remain unchanged.
+
+## C0 source and offline capture completed — 2026-09-19
+
+The subsequent "proceed" authorized C0. [Outcome](../reviews/ticket-19/c0-capture-outcome.md): bounded recorder/driver, fixtures, container proposal and tests committed locally at prototype `69c3999`; full suite **334 passed, 36 skipped**, including 39 C0 tests. Seven synthetic replay cases matched with verified complete, unredacted payload evidence and process cleanup. No Docker, download, credential, model or cloud operation ran. Unix adapters/probes, correlation/native-tool mapping and Linux/image pins remain preparation work before C1. C1/C2 are NOT RUN; attempt 4's model-response audit remains incomplete, $12 reservations remain retained, and ticket/blocker status is unchanged.
