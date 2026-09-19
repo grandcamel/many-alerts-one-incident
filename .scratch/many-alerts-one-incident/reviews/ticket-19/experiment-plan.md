@@ -1,5 +1,7 @@
 # Ticket 19 — prototype protocol (local Stage A measured)
 
+**Current status, 2026-09-19:** the original preparation and authorization statements below are historical. Local Stage A and four subsequently authorized Stage B attempts are recorded, most recently [attempt 4](stage-b-attempt-4-outcome.md). The [remaining local acceptance plan](local-container-acceptance-plan.md) now proposes source/capture preparation followed by separately gated Linux-container and disposable-Grafana checks. That plan is unexecuted; ticket 19 remains claimed and ticket 12 blocked. No further paid attempt is authorized.
+
 ## Question and boundary
 
 Determine whether mcp-grafana is a usable Eyes tool through ADR 0011's Grafana HTTPS endpoint and service-scoped sentinel, and whether its actual tool output/startup behavior fits the selected Run budget. An eyes CLI is the fallback, not a presumed winner. The user authorized the local, model-free Stage A implementation and execution on 2026-09-18. This authorization excludes Stage B, real tenants, containers and cloud venues; results are recorded separately. Ticket 19 remains unresolved and cannot unblock ticket 12.

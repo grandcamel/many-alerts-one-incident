@@ -38,3 +38,7 @@ Three bounded model attempts ran under separately recorded authorizations (see t
 ## Subsequent attempt 4 — 2026-09-19
 
 [Attempt 4](ticket-19/stage-b-attempt-4-outcome.md) completed after the selector correction: Q3 now answers the single-label Change query correctly; Q1 retains a named inference limit, and full response-level audit remains incomplete. The user corrected the daily-feed premise: only session telemetry is available. Known recorded estimates for attempts 1/3/4 total approximately $2.6304; attempt 2 and provider actuals remain unknown. Retain $12 of reservations and the further-dispatch hold after the one-attempt exception. Four attempts do not establish qualification or Eyes selection; all blocker edges above remain unchanged.
+
+## Next bounded preparation — 2026-09-19
+
+[The local acceptance plan](ticket-19/local-container-acceptance-plan.md) is drafted, planning-only. The next proposed authorization is C0: source/capture implementation and offline tests, without Docker, downloads, credentials or model calls. C1 container execution and C2 disposable local Grafana each require a separate concrete execution card. Local tests cannot establish intended-cluster isolation or retroactively complete the model audit. Ticket 19 remains claimed, ticket 12 blocked, all downstream edges unchanged.
