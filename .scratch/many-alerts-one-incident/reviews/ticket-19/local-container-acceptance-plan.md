@@ -2,6 +2,8 @@
 
 Current status: **C0 implemented and validated offline** following the user's subsequent "proceed"; see the [C0 outcome](c0-capture-outcome.md). C1/C2 remain **NOT RUN** and separately gated. Ticket 19 remains claimed; ticket 12 remains blocked.
 
+Subsequent C1 preparation is now complete for the [first container measurement card](c1-execution-card.md): [source/pin outcome](c1-preparation-outcome.md), prototype `3a16de9`, 363 passed / 36 skipped. Unix adapters, receipt correlation, native-case mapping, probes and Linux/base-image pins are prepared. The first card covers a bounded subset of the complete C1 matrix below and names its unmeasured rows; no container execution or acceptance is implied.
+
 Original planning authorization: the earlier "proceed" accepted drafting this bounded, local, model-free plan only. The plan itself authorized no implementation, Docker build/pull/start, service-account creation, model call, shared-tenant operation or cloud work. The planning validation at the end records that historical step.
 
 ## Decision this work should inform

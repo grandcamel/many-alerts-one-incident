@@ -42,3 +42,7 @@ Three bounded model attempts ran under separately recorded authorizations (see t
 ## Next bounded preparation — 2026-09-19
 
 [The local acceptance plan](ticket-19/local-container-acceptance-plan.md) was drafted planning-only, then the user authorized C0. [C0 is implemented](ticket-19/c0-capture-outcome.md): seven synthetic replay cases supported; full suite 334 passed / 36 skipped; bounded capture and proposed container source committed locally. Unix adapters/probes, receipt correlation/native-tool mapping and Linux/image pins remain preparation work before a concrete C1 card. C1 container execution and C2 disposable local Grafana remain NOT RUN and each require separate authorization. Local tests cannot establish intended-cluster isolation or retroactively complete the model audit. Ticket 19 remains claimed, ticket 12 blocked, all downstream edges unchanged.
+
+## C1 preparation result — 2026-09-19
+
+The user subsequently authorized the remaining preparation. [Source/pin outcome](ticket-19/c1-preparation-outcome.md): Unix adapters/probes, correlation/native mapping and Linux/base-image inputs are now prepared at prototype `3a16de9`; 363 passed / 36 skipped. The [first C1 execution card](ticket-19/c1-execution-card.md) is ready for review, with exact resource/build/start/cleanup scope and explicit unmeasured acceptance rows. No containers or native Linux client have run. C1/C2 execution gates, ticket 19/12 status, downstream edges and the paid-dispatch hold remain unchanged.

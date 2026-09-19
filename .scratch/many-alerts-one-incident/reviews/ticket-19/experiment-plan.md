@@ -2,6 +2,8 @@
 
 **Current status, 2026-09-19:** the original preparation and authorization statements below are historical. Local Stage A and four subsequently authorized Stage B attempts are recorded, most recently [attempt 4](stage-b-attempt-4-outcome.md). C0 of the [remaining local acceptance plan](local-container-acceptance-plan.md) is now implemented: [offline capture outcome](c0-capture-outcome.md), seven synthetic cases supported and 334 tests passed / 36 skipped. Linux-container C1 and disposable-Grafana C2 remain unexecuted and separately gated; ticket 19 remains claimed and ticket 12 blocked. No further paid attempt is authorized.
 
+**Subsequent preparation:** [C1 source/pins](c1-preparation-outcome.md) are prepared at prototype `3a16de9`, with 363 passed / 36 skipped. The [first C1 execution card](c1-execution-card.md) defines the next bounded build/start/measurement step and its unmeasured rows. Read-only Docker inspection/rendering and host synthetic tests do not change the unexecuted C1/C2 status above.
+
 ## Question and boundary
 
 Determine whether mcp-grafana is a usable Eyes tool through ADR 0011's Grafana HTTPS endpoint and service-scoped sentinel, and whether its actual tool output/startup behavior fits the selected Run budget. An eyes CLI is the fallback, not a presumed winner. The user authorized the local, model-free Stage A implementation and execution on 2026-09-18. This authorization excludes Stage B, real tenants, containers and cloud venues; results are recorded separately. Ticket 19 remains unresolved and cannot unblock ticket 12.
