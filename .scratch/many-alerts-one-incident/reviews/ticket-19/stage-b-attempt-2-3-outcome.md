@@ -41,3 +41,11 @@ The user reports that daily Claude usage/cost is unavailable; session telemetry 
 Known telemetry estimates total $1.4249 for attempts 1 and 3 only; total actual spend remains unknown. The earlier approximately $1.7–1.9 total and attempt-2 approximately $0.50 expectation are not measured costs. The $3 per-attempt reservation is an admission allocation, not a hard provider billing ceiling; the earlier claim that interrupted spend was bounded by the reservation must not be used as such a guarantee (ADR 0013).
 
 Keep these three attempts counted and the $9 of reservations outstanding without adding the estimates again. The P3 paid-dispatch hold remains applied; unavailable billing does not block local preparation or review. No further attempt or release of reservations is recorded here. Ticket 19 stays claimed, ticket 12 stays blocked, and downstream dependencies remain unchanged.
+
+## Selector correction prepared — 2026-09-19
+
+The user selected **Prepare the fixture correction**. Local prototype commit `55677327b021d1445ac85d9b0ef42b9e1fdbc073` changes `prototype/stage_b/open_fixture.py` from exact query-string lookup to equality-label subset matching. Both `{stream="change"}` and the full two-label selector now retrieve the synthetic Change record through the TLS Forwarder. Label order/whitespace are accepted; multiple matching streams share one total result limit. Unsupported LogQL expressions return explicit HTTP 400 errors. This is a bounded equality-selector fixture, not a full Loki implementation; see `prototype/stage_b/README.md` for the supported syntax and remaining limitations.
+
+Validation: `tests/test_stage_b_open_fixture.py` — **54 passed**, exercising both datasource URL families, the Q3 Change read-back, Q1 count/suffix, multi-stream limits, nonmatches, malformed/unsupported queries, invalid limits, credential denial, mutation denial and revocation over local HTTPS. Full suite: `env -u DEMO_END_TO_END -u DEMO_CONTAINER python3 -m pytest` — **295 passed, 36 skipped**. `git diff --check` passed; Stage A source/evidence has no diff against prototype `e8744f3`.
+
+**NOT RUN:** attempt 4, model-driven Q3 closure on the corrected fixture, real tenant, container/end-to-end and intended-venue acceptance. The historical attempt-3 verdict remains unchanged. Commits are local only; no push or private-evidence publication occurred.
