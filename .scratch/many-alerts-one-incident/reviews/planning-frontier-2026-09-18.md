@@ -50,3 +50,7 @@ The user subsequently authorized the remaining preparation. [Source/pin outcome]
 ## C1 attempt 1 — 2026-09-19
 
 The user then authorized C1 execution. [Attempt 1](ticket-19/c1-attempt-1-outcome.md) built both local derivatives and started four services, then stopped at Forwarder provisioning before admission or native MCP measurements. A certificate text/PEM-prefix mismatch is the probable source-level cause; runtime detail was redacted. Exact resources and transient secrets were removed and independently checked. The next bounded work is a PEM-only integration correction and its tests, followed by an explicitly authorized new attempt. No automatic retry, ticket resolution, blocker removal, C2/model run or reservation change follows.
+
+## C1 attempt 2 — 2026-09-19
+
+The user explicitly authorized a retry. [Attempt 2](ticket-19/c1-attempt-2-outcome.md) applied/tested the PEM correction (prototype `79b8ee6`, 365 passed / 36 skipped), passed live provisioning/baseline/identity/filesystem checks, then stopped at the interface inventory guard before admission. Nine additional tunnel-interface names were present with no IPv4 route rows; reachability was not measured and no bypass is established. Cleanup is independently verified. Next preparation is interface-state evidence and a reviewed network-admission predicate; another container attempt is not automatic. All ticket/blocker and paid-dispatch boundaries remain unchanged.

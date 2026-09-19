@@ -6,6 +6,8 @@
 
 **Latest execution:** [C1 attempt 1](c1-attempt-1-outcome.md) was subsequently authorized. Builds and service creation succeeded; Forwarder provisioning failed before admission, so native measurements and runtime boundary probes remain NOT RUN. The attempt stopped without retry and exact-resource cleanup is verified. Earlier unexecuted-C1 statements above describe history. C2, ticket/blocker status and paid-dispatch holds remain unchanged.
 
+**Subsequent explicit retry:** [C1 attempt 2](c1-attempt-2-outcome.md) fixed/tested PEM provisioning, then passed service readiness, baseline parity and exercised identity/filesystem checks. It stopped on unexpected interface inventory before admission/direct-connect/native probes; usable network isolation remains inconclusive. Exact-resource cleanup is verified and no third container run is authorized. Other acceptance and ticket/budget boundaries remain unchanged.
+
 ## Question and boundary
 
 Determine whether mcp-grafana is a usable Eyes tool through ADR 0011's Grafana HTTPS endpoint and service-scoped sentinel, and whether its actual tool output/startup behavior fits the selected Run budget. An eyes CLI is the fallback, not a presumed winner. The user authorized the local, model-free Stage A implementation and execution on 2026-09-18. This authorization excludes Stage B, real tenants, containers and cloud venues; results are recorded separately. Ticket 19 remains unresolved and cannot unblock ticket 12.
