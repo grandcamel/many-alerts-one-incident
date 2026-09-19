@@ -26,4 +26,18 @@ TLS/auth/budget/containment/sentinel lifecycle/evidence/denial honesty: **suppor
 2. **Realistic selector matching** (fixture returns series for label-subset selectors, as a real Loki would) + attempt 4 — isolates whether the Q3 gap closes under realistic semantics.
 3. **Stop fixture iteration here** and take the evidence to ticket 12's eventual Eyes review as-is.
 
-Any further attempt continues the diagnostics accounting (next would be attempt 4/10) and the daily-feed reconciliation of the interrupted launch.
+Any further attempt continues the diagnostics accounting (next would be attempt 4/10). The daily-feed expectation is superseded by the accounting disposition below.
+
+## Accounting disposition — 2026-09-19
+
+The user reports that daily Claude usage/cost is unavailable; session telemetry is the only available cost evidence, and directs continuation to the next work. This closes the daily-feed follow-up as unavailable, not as reconciled provider billing.
+
+| Attempt | Available cost evidence | Provider actual | Disposition |
+| --- | --- | --- | --- |
+| 1 | $0.2857, session estimate corroborated by endpoint token accounting in the handoff | unknown | Retain $3 reservation pending authoritative reconciliation |
+| 2 (interrupted) | unknown; no usable session evidence retained | unknown | Retain $3 reservation; failed diagnostics attempt |
+| 3 | $1.1392, session estimate corroborated by endpoint token accounting | unknown | Retain $3 reservation pending authoritative reconciliation |
+
+Known telemetry estimates total $1.4249 for attempts 1 and 3 only; total actual spend remains unknown. The earlier approximately $1.7–1.9 total and attempt-2 approximately $0.50 expectation are not measured costs. The $3 per-attempt reservation is an admission allocation, not a hard provider billing ceiling; the earlier claim that interrupted spend was bounded by the reservation must not be used as such a guarantee (ADR 0013).
+
+Keep these three attempts counted and the $9 of reservations outstanding without adding the estimates again. The P3 paid-dispatch hold remains applied; unavailable billing does not block local preparation or review. No further attempt or release of reservations is recorded here. Ticket 19 stays claimed, ticket 12 stays blocked, and downstream dependencies remain unchanged.

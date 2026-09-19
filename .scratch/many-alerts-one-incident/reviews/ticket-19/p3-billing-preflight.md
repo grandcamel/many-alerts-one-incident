@@ -1,10 +1,10 @@
 # P3 — billing/rates preflight checklist (guided, user-executed)
 
-**Status: COMPLETE 2026-09-18.** User verification outcomes:
+**Status: corrected 2026-09-19 — provider actuals unavailable; session telemetry only.** The user corrected the earlier daily-feed assumption: daily usage/cost is not available for this account; session telemetry is the only available cost evidence. No daily-feed follow-up remains. Telemetry estimates are not provider billing actuals under ADR 0013. See the [accounting disposition](stage-b-attempt-2-3-outcome.md#accounting-disposition--2026-09-19); unknown charges remain reserved and the P3 paid-dispatch hold remains applied. The original 2026-09-18 verification outcomes follow, with item 3 superseded.
 
 1. **API-billed account access**: confirmed — user holds an Anthropic API-billed account distinct from the OAuth subscription and can mint an execution-time key.
 2. **Current account rates**: confirmed on the console, consistent with the documented `claude-opus-5` $5/$25 per MTok list rates (card estimate unchanged).
-3. **Billing visibility and lag**: console shows **daily** usage/cost. Lag is therefore up to ~24 h. For a single $3-reservation attempt against the $30 diagnostics / $150 weekly envelopes, exposure pending reconciliation is small and the ADR 0013 hold rule does not trigger; **no subsequent attempt is admitted until provider actuals for the first reconcile** (daily feed) or are explicitly marked unknown with the hold applied.
+3. **Billing visibility and lag (superseded 2026-09-19)**: the earlier report of daily console usage/cost was incorrect. Only session telemetry is available; provider actuals and reporting lag cannot be established from a daily feed. Further local work can proceed; paid dispatch remains subject to the accounting hold and separate attempt authorization.
 4. **Provider limits**: $3 reservation fits within existing account limits; nothing raised, purchased or changed.
 
 The reservation record format below remains the execution-time artifact.
