@@ -2,7 +2,9 @@
 
 ## Attempt 3 authorization — 2026-09-20
 
-The user explicitly approved the proposed three parallel preparations (Sonnet harness, Opus guard review, Gemini Flash C2 draft), followed by **one C1 retry after review and validation pass**. This authorizes the existing bounded C1 resource inventory, builds/start/admission, five positive sessions, one negative session, direct probes and exact cleanup. It does not authorize C2 provisioning or paid model qualification. The prior amendments below remain historical. Final harness/source/verification hashes and review adjudication will be frozen here before launch; an unresolved blocking finding prevents launch. No automatic fourth attempt follows a runtime stop.
+**Executed; authorization consumed.** [Attempt 3 outcome](c1-attempt-3-outcome.md): five positive sessions passed (35/35 cases); the negative session stopped when a 10 MiB + 1 byte Prometheus body succeeded against an expected rejection. Exact cleanup is independently verified. Remaining negative/direct/final-snapshot checks are NOT RUN; no automatic fourth attempt is authorized.
+
+The user explicitly approved the proposed three parallel preparations (Sonnet harness, Opus guard review, Gemini Flash C2 draft), followed by **one C1 retry after review and validation pass**. This authorizes the existing bounded C1 resource inventory, builds/start/admission, five positive sessions, one negative session, direct probes and exact cleanup. It does not authorize C2 provisioning or paid model qualification. The prior amendments below remain historical. Final harness/source/verification hashes and review adjudication were frozen below before launch; no blocking finding remained. No automatic fourth attempt follows a runtime stop.
 
 ### Attempt 3 prelaunch freeze
 
@@ -12,7 +14,7 @@ Prototype remains `7741d2060aceb9bb475a42c2f9f3adc5f3c1db7e`, clean. Full suite 
 
 The harness enforces pre/post network recomputation and interface agreement, preserves exact-IP/socket denials, verifies native-child/wrapper absence after each session and at the end, and checks unredacted complete captures plus host transport cleanup. Command timeouts are capped to absolute phase deadlines; measurement also stops before the held namespace's600-second lifetime. The existing per-RPC, per-native-session, fixture service and cleanup ceilings are not increased. Complete receipt joins and frame/hash/timing analysis remain operator-owned post-capture validation, not inferred from driver exit. No C2 runtime or additional model qualification is included.
 
-## Prepared network guard amendment — not yet executed
+## Historical network guard preparation — subsequently exercised by attempt 3
 
 The user's next "proceed" authorized the bounded interface inspection and resulting source preparation. [The outcome](c1-network-guard-outcome.md) establishes nine inactive, unaddressed, unrouted tunnel links in a fresh pinned network-none base container. The diagnostic container was removed. This amendment prepares one fresh full C1 attempt; its build/start/admission has not been authorized by the diagnostic step or executed.
 

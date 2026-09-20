@@ -2,6 +2,8 @@
 
 **Draft; no C2 execution authorized or performed.** The user approved parallel preparation alongside the C1 harness and guard review. Gemini Flash supplied a bounded draft; Codex adjudicated it against the existing plan and primary source. The proposed local Grafana experiment remains dependent on C1 results, completed source/config preparation and a final exact-resource execution card.
 
+[C1 attempt 3](c1-attempt-3-outcome.md) now supplies five passing positive sessions, but its Prometheus byte-limit counterexample leaves C1 incomplete. Carry that per-tool limit audit into C2 preparation; do not inherit a universal 10 MiB cap assumption or treat the unrun negative/direct checks as passed.
+
 ## Candidate inputs verified without pulling or running images
 
 The [v0.33.1 release](https://github.com/grafana/docker-otel-lgtm/releases/tag/v0.33.1), published 2026-09-18, is the candidate bundled LGTM input. Registry metadata returned:
