@@ -1,5 +1,17 @@
 # Ticket 19 — C1 first container measurement card, 2026-09-19
 
+## Attempt 3 authorization — 2026-09-20
+
+The user explicitly approved the proposed three parallel preparations (Sonnet harness, Opus guard review, Gemini Flash C2 draft), followed by **one C1 retry after review and validation pass**. This authorizes the existing bounded C1 resource inventory, builds/start/admission, five positive sessions, one negative session, direct probes and exact cleanup. It does not authorize C2 provisioning or paid model qualification. The prior amendments below remain historical. Final harness/source/verification hashes and review adjudication will be frozen here before launch; an unresolved blocking finding prevents launch. No automatic fourth attempt follows a runtime stop.
+
+### Attempt 3 prelaunch freeze
+
+Independent source review: GPT-5.6 Sol **PASS_WITH_FINDINGS**, with no blocker under the mandatory C1 checks. The requested Sonnet and Opus headless invocations each timed out at480seconds with no result; these are not passing opinions. Codex prepared the harness locally and obtained a fresh independent native review. The review's low-severity typed-attribute validation gap and moment-in-time limitation are retained; no profile expansion is made.
+
+Prototype remains `7741d2060aceb9bb475a42c2f9f3adc5f3c1db7e`, clean. Full suite **409 passed /36 skipped**,445collected,21.06seconds. Four focused harness tests passed. Verification manifest `/Users/jasonkrueger/maoi-stage-b-evidence/c1-prep/attempt-3-verification.json`, SHA-256 `b8e9ced2eaf781b46955dff3c07e50ca2bb0425db1583a8d043095c1a7d1e010`; frozen harness `/Users/jasonkrueger/maoi-stage-b-evidence/c1-prep/attempt-3-execution.py`, SHA-256 `559dda076ce05058e0805fa881f4cf9819441106b778454c5c9036684fbd450d`. Fresh runtime root: `/Users/jasonkrueger/maoi-stage-b-evidence/c1/attempt-3-20260920`.
+
+The harness enforces pre/post network recomputation and interface agreement, preserves exact-IP/socket denials, verifies native-child/wrapper absence after each session and at the end, and checks unredacted complete captures plus host transport cleanup. Command timeouts are capped to absolute phase deadlines; measurement also stops before the held namespace's600-second lifetime. The existing per-RPC, per-native-session, fixture service and cleanup ceilings are not increased. Complete receipt joins and frame/hash/timing analysis remain operator-owned post-capture validation, not inferred from driver exit. No C2 runtime or additional model qualification is included.
+
 ## Prepared network guard amendment — not yet executed
 
 The user's next "proceed" authorized the bounded interface inspection and resulting source preparation. [The outcome](c1-network-guard-outcome.md) establishes nine inactive, unaddressed, unrouted tunnel links in a fresh pinned network-none base container. The diagnostic container was removed. This amendment prepares one fresh full C1 attempt; its build/start/admission has not been authorized by the diagnostic step or executed.
