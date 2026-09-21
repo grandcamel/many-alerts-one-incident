@@ -4,6 +4,10 @@
 
 [C1 attempt 3](c1-attempt-3-outcome.md) now supplies five passing positive sessions, but its Prometheus byte-limit counterexample leaves C1 incomplete. Carry that per-tool limit audit into C2 preparation; do not inherit a universal 10 MiB cap assumption or treat the unrun negative/direct checks as passed.
 
+## Subsequent source preparation
+
+The user approved the next parallel preparation after attempt 3. The [startup design](c2-startup-design.md) proposes four direct-binary containers from the existing pinned image and records why the bundled launcher is unsuitable for the required credential and privilege boundaries. Deterministic seed source is implemented and validated offline; see the [combined preparation outcome](c1-c2-preparation-outcome.md) for final adversarial status. The response oracle/comparator is incomplete: exact normalized log rows/labels/multiline content, metric labels and trace parent/timing/link attributes must be frozen before an execution card. This remains preparation only.
+
 ## Candidate inputs verified without pulling or running images
 
 The [v0.33.1 release](https://github.com/grafana/docker-otel-lgtm/releases/tag/v0.33.1), published 2026-09-18, is the candidate bundled LGTM input. Registry metadata returned:

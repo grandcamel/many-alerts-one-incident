@@ -1,5 +1,7 @@
 # Ticket 19 — C1 first container measurement card, 2026-09-19
 
+Prepared successor: [attempt-4 card](c1-attempt-4-card.md), source-only and blocked on the required Fable review. It does not reuse any authorization below.
+
 ## Attempt 3 authorization — 2026-09-20
 
 **Executed; authorization consumed.** [Attempt 3 outcome](c1-attempt-3-outcome.md): five positive sessions passed (35/35 cases); the negative session stopped when a 10 MiB + 1 byte Prometheus body succeeded against an expected rejection. Exact cleanup is independently verified. Remaining negative/direct/final-snapshot checks are NOT RUN; no automatic fourth attempt is authorized.

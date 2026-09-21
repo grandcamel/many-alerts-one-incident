@@ -2,6 +2,8 @@
 
 Current status: **C0 validated offline; C1 partially supported and incomplete.** [C1 attempt 3](c1-attempt-3-outcome.md) passed five positive native sessions (35/35 cases), the revised pre-admission network predicate and 12 direct-connect denials. It stopped at a counterexample: the Prometheus path accepted a padded backend body of 10 MiB + 1 byte despite the fixture's expected rejection. Cleanup is independently verified. Remaining negative/direct/final-snapshot checks are NOT RUN. This one retry is consumed; no fourth attempt follows automatically. [C2 preparation](c2-preparation-card.md) is drafted but C2 execution remains NOT RUN and separately gated. Ticket 19 remains claimed; ticket 12 remains blocked.
 
+Subsequent [parallel source preparation](c1-c2-preparation-outcome.md) passed 429 tests / 36 skipped and prepared the corrected cap fixtures, C2 seeds and remaining-check harness. Required Fable review timed out without a result; the prepared harness has a closed execution gate. C2 also requires a complete response oracle before an execution card.
+
 Historical preparation and acceptance targets follow; the measured per-tool exception above supersedes any universal interpretation of the 10 MiB helper constant.
 
 Subsequent C1 preparation is now complete for the [first container measurement card](c1-execution-card.md): [source/pin outcome](c1-preparation-outcome.md), prototype `3a16de9`, 363 passed / 36 skipped. Unix adapters, receipt correlation, native-case mapping, probes and Linux/base-image pins are prepared. The first card covers a bounded subset of the complete C1 matrix below and names its unmeasured rows; no container execution or acceptance is implied.
