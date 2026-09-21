@@ -2,6 +2,8 @@
 
 **Source changes saved as work in progress; required Fable review is incomplete. No container experiment executed.** This is the user's approved parallel preparation after [C1 attempt 3](c1-attempt-3-outcome.md). It preserves the Prometheus counterexample, corrects the sampled per-tool fixture contract, prepares deterministic C2 seeds and a constrained startup design, and hardens the next C1 operator harness. Ticket 19 remains claimed; ticket 12 remains blocked.
 
+Current continuation: [2026-09-21 review follow-up](c1-c2-review-followup-2026-09-21.md) supersedes the pending-review and incomplete-oracle status below; this document preserves the earlier preparation record.
+
 ## Changes and evidence
 
 Two GPT-5.6 Terra workers implemented disjoint source tasks in `/Users/jasonkrueger/projects/maoi-mcp-grafana-prototype`. Source is saved locally at `f08f3886fe7ba7c5866c0cf84628b764fde69379` as work in progress pending Fable review. The prototype checkout is clean. Source validation covers local preparation only. The shared final suite passed **429 tests / 36 skipped**, 465 collected, in 23.47 seconds; the hardened operator harness passed **9 offline tests**, then **10** after adding and independently reviewing the closed Fable gate. No Docker/container, native MCP, real-backend ingestion or qualification-model experiment ran. Primary-source downloads and the separately authorized reviewer session are distinct from experiment execution.

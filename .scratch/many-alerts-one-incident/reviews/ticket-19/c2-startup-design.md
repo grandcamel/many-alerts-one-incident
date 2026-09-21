@@ -38,3 +38,5 @@ The backend evidence design remains distinct from C1's synthetic receipt emitter
 ## Source provenance
 
 Read-only upstream captures and hashes are at `/Users/jasonkrueger/maoi-stage-b-evidence/c2-prep/20260920-source/source-index.json`. Earlier Dockerfile/component wrapper/image metadata captures remain at `/Users/jasonkrueger/maoi-stage-b-evidence/dispatch/20260920-c1-batch/`. Registry index and amd64 manifest pins remain those in the C2 preparation card. Source and metadata inspection do not establish executable versions or startup compatibility.
+
+Current source preparation: the [2026-09-21 review follow-up](c1-c2-review-followup-2026-09-21.md) records the complete bounded log/trace oracle and explicitly blocked public Prometheus acceptance. Effective Loki discovery and Prometheus job/instance translation must be read back before a future execution contract; native Tempo LLM formatting remains unsupported. No startup configuration or runtime approval is implied.
