@@ -78,3 +78,7 @@ The user explicitly authorized a retry. [Attempt 2](ticket-19/c1-attempt-2-outco
 ## C2 operator source integration — 2026-09-21 UTC
 
 [Preparation outcome](ticket-19/c2-operator-integration-outcome.md): the resolved four-service configuration compiler and injected seed/read-back driver are connected through actual compiler output and offline failure tests. Runtime configuration compatibility, real bounded transport, durable ingestion intent, account lifecycle and native policy remain unimplemented or unverified. The requested Fable invocation was rejected by the provider safeguard without a review; that requirement remains incomplete. No C2 runtime ran or was authorized. Ticket 19 remains claimed, ticket 12 blocked, with qualification and reservation boundaries unchanged.
+
+## C2 transport and journal preparation — 2026-09-21 UTC
+
+[Source outcome](ticket-19/c2-transport-journal-outcome.md): direct numeric HTTP transport and a one-shot durable ingestion journal are integrated through the real compiler and driver, using in-memory wire peers and private temporary files. The full suite passes 560 tests with 36 skipped; Ruff passes. Sol passed the bounded source review; the corrected `moonshotai/kimi-k3` review is recorded in the outcome. Fixed-length HTTP framing is the supported subset; actual backend compatibility, operator materialization/ownership, account lifecycle and native policy remain unverified or unimplemented. No C2 runtime, ticket resolution, blocker removal or spend-reservation release follows.
