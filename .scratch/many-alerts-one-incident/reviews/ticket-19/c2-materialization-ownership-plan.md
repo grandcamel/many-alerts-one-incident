@@ -1,0 +1,11 @@
+# C2 materialization and ownership source plan — 2026-09-21
+
+Source preparation only. No C2 runtime, backend traffic, credentials, cleanup execution, publication or C1 retry.
+
+1. Terra materialization lane: validate and snapshot the complete compiled configuration, create a fresh private staging root once, stage the five exact rendered artifacts in per-service trees with preserved mount-relative paths, produce a hash-bound private manifest plus empty journal/evidence directories. Refuse preexisting roots, symlinks, partial reuse, changed config and unsafe paths. No secret material or implicit endpoint defaults. Retain partial failures for inspection; never recursive-delete on failure.
+2. Terra ownership lane: pure immutable resource plan and receipt-based cleanup candidates for exactly four containers and one internal network. Bind run identifier and full configuration digest. Distinguish planned names, caller-supplied creation receipts and fresh inspection observations; require exact IDs, names and labels before selecting cleanup. No image/volume deletion, Docker calls, resource adoption by name/label alone, or cleanup success claim.
+3. Parent: inspect both APIs and contracts, add integration/adversarial tests where necessary, resolve cross-lane mismatches. Materialized paths are host preparation only; UID 2000 readability and actual Docker bind behavior remain runtime gates.
+4. Independent Sol adversarial review and bounded new-source Kimi review via headless with moonshotai/kimi-k3. Preserve earlier provider failures/rejections; no retry of old packets. Fable's rejected cybersecurity packet is not rerouted or retried.
+5. Run full prototype suite and focused Ruff/diff checks, freeze source hashes, commit locally, and record outcome and remaining gates in main repo and handoff.
+
+Worker ownership: materializer edits only c2_materialize.py, C2_MATERIALIZE_CONTRACT.md and test_c2_materialize.py. Ownership lane edits only c2_ownership.py, C2_OWNERSHIP_CONTRACT.md and test_c2_ownership.py. Parent owns integration tests and documentation. Existing compiler, driver, journal, HTTP and C1 source remain unchanged unless a separately justified integration correction is reviewed.
