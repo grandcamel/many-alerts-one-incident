@@ -90,3 +90,7 @@ The user explicitly authorized a retry. [Attempt 2](ticket-19/c1-attempt-2-outco
 ## Approved C2 compatibility attempt 1 — 2026-09-21 UTC
 
 [Outcome](ticket-19/c2-attempt-1-outcome.md): the approved first runtime attempt stopped at Grafana's post-create inspection before any backend started. Cleanup and preservation are independently confirmed; two unretained inspection fields prevent an exact failure diagnosis. A separate pinned-reference inspection corrected the verifier's image-list false warning. No seed, native or model qualification occurred. Next: retain all guard inputs and correct image verification before preparing a fresh compatibility card. The one attempt is consumed, with no automatic retry; ticket, blocker and reservation boundaries remain unchanged.
+
+## C2 inspection correction preparation — 2026-09-21 UTC
+
+[Source outcome](ticket-19/c2-inspection-correction-outcome.md): the candidate retains named inspection predicates before admission and independently verifies pinned-image identity. Sol's two diagnostic findings were corrected; private suite70passed, full prototype592passed/36skipped and main241passed/36skipped. Requested Fable returned an Opus fallback PASS; native telemetry proves Fable output0, so genuine Fable review remains incomplete. Attempt2 has a fresh run ID/root and closed execution gate; no runtime occurred. Prior preparation/runtime artifacts read back unchanged. Ticket19 stays claimed, ticket12 blocked, qualification and reservation boundaries unchanged.

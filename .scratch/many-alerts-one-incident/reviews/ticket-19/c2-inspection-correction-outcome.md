@@ -1,0 +1,27 @@
+# C2 inspection correction — source preparation, 2026-09-21
+
+The next compatibility candidate records every identity/command input before the guard can reject it and names the failed predicates. Its independent verifier uses bounded exact pinned-reference image inspection for base preservation. This is source preparation only: the fresh attempt-2 runtime root remains absent and execution is explicitly closed. Attempt 1 remains inconclusive; its missing Config.Image and Config.Healthcheck cannot be reconstructed.
+
+## Correction and evidence
+
+Ten named predicates retain observed/expected/presence/pass information for container ID, configuration image ID, name, labels, operator image reference, UID:GID, binary path, arguments, healthcheck and environment hash. Environment values are omitted. A diagnostic-write failure stops progression before guard admission. Created and running inspections use this ordering. Existing containment, resource, mounts, network, receipt durability and cleanup checks are unchanged.
+
+The disabled-healthcheck rule now requires Test exactly ["NONE"], while retaining timing fields as observations. Docker CLI v29.8.0 creates that Test-only override; Docker/Moby docker-v29.8.0 defines timing inheritance and disables the monitor for NONE. This supports the corrected predicate, not a claim about attempt 1's lost fields. Config.Image still must equal the exact supplied image argument. See [pinned source research](/Users/jasonkrueger/maoi-stage-b-evidence/dispatch/20260921-c2-inspection-correction/docker-inspection-semantics.md).
+
+The verifier no longer infers base absence from image-list membership. It separately captures only Id and RepoDigests from the exact pinned reference, verifies command status, capture bounds, payload hashes, JSON uniqueness/schema and both expected identities. Listed-resource inventories still check preservation independently. Missing images, transport errors, mismatched IDs/digests and malformed results remain unverified failures.
+
+## Validation and review
+
+Private suite: **70 passed**. Full prototype suite: **592 passed, 36 skipped**. Main repository suite: **241 passed, 36 skipped**. Focused private and C2 source/test lint passes. A broader prototype repository lint scan reports 38 existing findings in unchanged files outside this correction; the full report is retained separately. These checks are synthetic/source evidence, not backend acceptance.
+
+Sol found two P2 diagnostic issues: malformed environment entries could be retained as keys, and admission recomputed the saved predicates. Both are corrected with six additional counterexample/parity checks; final Sol verification **PASS** closes both findings and binds the final harness/test hashes. A fresh requested Fable invocation returned a usable PASS from an **Opus fallback**, not Fable. Native transcript iterations show Fable output0 and `claude-opus-4-8` output17827; the actual assistant model is Opus. The requested Fable review remains incomplete. Both original independent reviewers received identical bounded prompt SHA256 `283923e215dad9a7611d884d14885078b35855aed6f6f33aae136fef6efbf99f`. The old provider-rejected configuration packet was not retried or rerouted. This new invocation was not retried either. Session `8025493a-c0e8-488c-bd49-bc8231a0bfb5` has one unique assistant message and no tool calls; native API-equivalent session cost was $1.75224, not daily usage or billing. The Opus opinion missed Sol's demonstrated counterexamples; accepted fixes follow evidence, not reviewer vote. See [adjudication](/Users/jasonkrueger/maoi-stage-b-evidence/dispatch/20260921-c2-inspection-correction/review-adjudication.md).
+
+## Frozen candidate and next step
+
+[Attempt-2 card](c2-attempt-2-card.md): proposed run ID `597603121ff14b578f396ea7c826ba41`, unused root `/Users/jasonkrueger/maoi-stage-b-evidence/c2/attempt-2-20260921`. The candidate retains the same pinned image, exact four backends, internal bridge, limits, UID, read-only configuration and cleanup scope. No seed, account/token, native MCP or qualification-model work is included. The public Prometheus acceptance gate remains closed.
+
+Private preparation: `/Users/jasonkrueger/maoi-stage-b-evidence/dispatch/20260921-c2-inspection-correction`. Prototype HEAD remains `8797b164b73f7d83eb4183e3d58f00399a10282b`; no prototype library source changed. Harness SHA256 `32b08adb0a668a6eeb8dbae7822ff36e68a397f6585ca9735e986b00fd404cbd`; verifier SHA256 `bdea03ad68d0fb7275212437d4d0e2079c23f038c2131cee8918d4838c25e462`; source manifest SHA256 `9a90908745d40e3b9c02342d91d5d1cd2e070641e8f9736d46289ba176b295e7`. The manifest binds six unchanged prototype sources, three new candidate inputs, rendered configuration and these harness bytes. Approval and the module execution gate are both closed.
+
+Read-back verifies all 62 old preparation index entries and all 48 attempt-1 runtime index entries unchanged. Original indexes and reports remain immutable. No new runtime resource, backend request, user-key access or credential refresh occurred during this preparation; external reviewers are source-review calls only. Ticket 19 remains claimed, ticket 12 blocked, and C1 gaps, qualification and reservation boundaries remain unchanged. All work stays local.
+
+Next: obtain a genuine Fable review of the corrected source, then bind the final reviewed card and fresh execution approval before any attempt-2 runtime. The source-only candidate and all current evidence are ready for that review; no backend compatibility is claimed.
