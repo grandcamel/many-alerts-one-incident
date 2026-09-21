@@ -2,7 +2,7 @@
 
 **Draft; no C2 execution authorized or performed.** The user approved parallel preparation alongside the C1 harness and guard review. Gemini Flash supplied a bounded draft; Codex adjudicated it against the existing plan and primary source. The proposed local Grafana experiment remains dependent on C1 results, completed source/config preparation and a final exact-resource execution card.
 
-[C1 attempt 3](c1-attempt-3-outcome.md) now supplies five passing positive sessions, but its Prometheus byte-limit counterexample leaves C1 incomplete. Carry that per-tool limit audit into C2 preparation; do not inherit a universal 10 MiB cap assumption or treat the unrun negative/direct checks as passed.
+[C1 attempt 4](c1-attempt-4-outcome.md) subsequently passed its bounded seven-positive/thirteen-negative card, direct authority/revocation checks and final snapshots. The broader C1 matrix remains incomplete, including denied-request identity and native/lifecycle gaps. Preserve the per-tool output-limit distinction; no universal Prometheus body-cap claim follows. The [C2 operator integration plan](c2-operator-integration-plan.md) advances source preparation without authorizing runtime.
 
 ## Subsequent source preparation
 

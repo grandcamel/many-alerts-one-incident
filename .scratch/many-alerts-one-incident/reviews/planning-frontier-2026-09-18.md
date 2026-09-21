@@ -74,3 +74,7 @@ The user explicitly authorized a retry. [Attempt 2](ticket-19/c1-attempt-2-outco
 ## C1 attempt 4 — 2026-09-21 UTC
 
 [Outcome](ticket-19/c1-attempt-4-outcome.md): the explicitly approved bounded run completed 7/7 positive and 13/13 negative cases, direct authority/revocation checks and final snapshots. Retained native MCP payloads and all 42 dispatched request chains were verified (40 exact responses, 2 expected transformations); independent Docker read-back confirms cleanup and base-image preservation. Large Tempo text was retained exactly; denied-request identity remains a named receipt gap. Full C1 matrix, real-backend/model/venue qualification and C2 remain incomplete. The single execution approval is consumed, with no fifth attempt authorized. Ticket 19 remains claimed, ticket 12 blocked, reservations unchanged.
+
+## C2 operator source integration — 2026-09-21 UTC
+
+[Preparation outcome](ticket-19/c2-operator-integration-outcome.md): the resolved four-service configuration compiler and injected seed/read-back driver are connected through actual compiler output and offline failure tests. Runtime configuration compatibility, real bounded transport, durable ingestion intent, account lifecycle and native policy remain unimplemented or unverified. The requested Fable invocation was rejected by the provider safeguard without a review; that requirement remains incomplete. No C2 runtime ran or was authorized. Ticket 19 remains claimed, ticket 12 blocked, with qualification and reservation boundaries unchanged.

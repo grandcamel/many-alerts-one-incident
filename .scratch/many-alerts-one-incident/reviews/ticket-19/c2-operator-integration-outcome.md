@@ -1,0 +1,29 @@
+# Ticket 19 — C2 operator source integration, 2026-09-21
+
+**Source preparation only; C2 runtime NOT RUN.** The user directed the next preparation batch after the completed C1 attempt-4 card. Terra implemented independent configuration and driver slices in parallel; Codex joined them through the real compiler output and checked failure boundaries. The [integration plan](c2-operator-integration-plan.md) records scope and future account lifecycle requirements. No image pull/build/startup, backend ingestion, account/token operation, native experiment, test API-key inspection/refresh or publication occurred.
+
+## Prepared behavior
+
+The pure configuration compiler accepts exactly four distinct canonical RFC1918 addresses within one explicit canonical subnet. It returns five fully resolved configuration files with hashes, four pinned direct-binary container candidates, fixed ports, exact read-only rendered-file mount destinations, writable/listener/resource inventories and explicit runtime inspection gates. There are no unresolved template files or fallback addresses. Image environment inheritance remains an inspection requirement. Grafana uses a private file-provider bootstrap reference; no credential is rendered.
+
+The driver accepts only a compiled configuration and validates the complete bundle by regeneration, snapshots the canonical seed, and binds exact requests to the compiled addresses and fixed ports. Tempo ingestion uses 4418; trace queries use 3200. Ingestion intent is recorded before each of the three possible POSTs; a failed or indeterminate side effect stops the attempt without retry. The object refuses a second ingestion run. Responses and readiness requests carry byte, attempt and deadline bounds; preflight rejects settings whose worst-case retained raw responses exceed 64 MiB. Transient read-back mismatches may retry within those bounds even while permanent compatibility gates remain; exhausted mismatches stay PARTIAL. Strict JSON and public response comparators retain exact evidence outcomes.
+
+Direct backend read-back never sends the prior-run query whose expected result is Forwarder denial. The public Prometheus comparator remains blocked, and no result can become READY or C2 acceptance. Readiness evidence can report matching Loki/Tempo data while retaining independent compatibility blocks.
+
+This is an injected synchronous transport library. It neither opens a connection nor implements a hard timeout or durable cross-process journal. Native policy, effective pinned-image behavior and account lifecycle remain future work. Returned raw bodies belong in private operator evidence only; the compact evidence records hashes, byte counts, HTTP status and comparison outcomes.
+
+## Validation and review
+
+[Sol's final review](/Users/jasonkrueger/maoi-stage-b-evidence/dispatch/20260921-c2-integration/final-sol-review.md) returned **PASS for source preparation**, with no remaining concrete source blocker after corrections (SHA-256 `1f72855dc92a8474c77620128a70773cde8bdf2026ff13adda6511aacb496d8b`). The review fixed Grafana's missing provisioning mount destination, mutable nested provenance, an unsupported config key, direct-origin construction that bypassed compiler binding, incomplete bundle parity, early exit that prevented readiness retries, excessive aggregate response retention and a mislabeled pre-request hash. Frozen prototype commit: `99d12269a4d491690c71a74f7adb41ad93f2a44b` on `prototype/mcp-grafana-eyes`. Parent full suite: **523 passed, 36 skipped** in 23.02 seconds; Ruff passed for all five new Python files; staged diff whitespace checks passed. All seven source/contract/test hashes were unchanged across final validation. The focused C2 suite supplied 96 passing tests; seven integration cases join actual compiler output to the driver. Targeted integration checks exercise the real compiler output, exact seed bytes and Tempo destinations, immutable caller-input snapshots, tampered port/map rejection, bounded retry recovery/exhaustion, shared phase deadlines, uncertain transport failure and repeat-attempt refusal.
+
+The requested Fable configuration review did not produce an opinion. The fresh one-shot headless invocation exited 1 after 9.117 seconds with a provider cybersecurity safeguard rejection. Its actual Claude transcript records a Fable request followed by an internal Opus fallback, zero output tokens, then the API error. Codex made no manual retry and did not launch the second review packet. This is an execution failure, not a passing review or a model finding against the code. **The requested Fable review remains incomplete.**
+
+Session telemetry reports an API-equivalent cost of $0.96932 for that rejected invocation; it is not a daily usage total or verified provider billing. The wrapper's requested-model field alone does not describe the internal fallback. Private review artifacts, the transcript summary, source manifests and final validation receipts are under `/Users/jasonkrueger/maoi-stage-b-evidence/dispatch/20260921-c2-integration/`.
+
+The source commit is local only. Existing C1 modules and prior runtime evidence were unchanged.
+
+## Remaining boundary
+
+Next source work is the real bounded transport and durable intent/persistence interface, runtime materialization and ownership enforcement, account lifecycle integration, and C2 Forwarder/native-case policy. Then prepare a separately reviewable exact-resource compatibility card for the pinned image and effective Loki/Prometheus/Tempo behavior. No C2 runtime card is open. C1's remaining native/lifecycle checks and denial identity gap remain named in its [outcome](c1-attempt-4-outcome.md).
+
+Ticket 19 remains claimed; ticket 12 remains blocked. No model/tenant/venue qualification, spend-reservation release or new C1 attempt is implied.
