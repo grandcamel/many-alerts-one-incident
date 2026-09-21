@@ -1,5 +1,7 @@
 # Ticket 19 — C1/C2 review follow-up, 2026-09-21 UTC
 
+Subsequent execution: the user approved C1 attempt 4 after this preparation. Its [outcome](c1-attempt-4-outcome.md) supersedes the pending-execution status below; this document preserves the source-preparation record.
+
 **This source-preparation batch and adversarial review are complete; container execution remains closed. No new container experiment has run.** This continues the approved [parallel preparation](c1-c2-preparation-outcome.md). Ticket 19 remains claimed and ticket 12 blocked. Runtime, real-backend ingestion, native MCP acceptance for this revision, and qualification remain NOT RUN.
 
 ## Claude review diagnosis

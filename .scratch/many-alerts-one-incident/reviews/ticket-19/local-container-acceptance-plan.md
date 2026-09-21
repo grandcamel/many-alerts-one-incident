@@ -1,5 +1,7 @@
 # Ticket 19 — remaining local acceptance plan, 2026-09-19
 
+Current runtime result: [C1 attempt 4](c1-attempt-4-outcome.md) completed the bounded positive/negative/direct/final-snapshot card. Full C1 matrix and C2 remain incomplete; the one-attempt approval is consumed.
+
 Current continuation: [September 21 review follow-up](c1-c2-review-followup-2026-09-21.md) records completed Fable/Sol source reviews, corrected C1 evidence checks and the bounded C2 oracle. The full suite passed 476 tests / 36 skipped. Attempt 4 remains closed pending fresh execution approval; C2 configuration, integration and runtime contracts remain preparation gates.
 
 Current status: **C0 validated offline; C1 partially supported and incomplete.** [C1 attempt 3](c1-attempt-3-outcome.md) passed five positive native sessions (35/35 cases), the revised pre-admission network predicate and 12 direct-connect denials. It stopped at a counterexample: the Prometheus path accepted a padded backend body of 10 MiB + 1 byte despite the fixture's expected rejection. Cleanup is independently verified. Remaining negative/direct/final-snapshot checks are NOT RUN. This one retry is consumed; no fourth attempt follows automatically. [C2 preparation](c2-preparation-card.md) is drafted but C2 execution remains NOT RUN and separately gated. Ticket 19 remains claimed; ticket 12 remains blocked.

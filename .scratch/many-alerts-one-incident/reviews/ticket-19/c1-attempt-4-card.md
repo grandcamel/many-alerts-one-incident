@@ -1,5 +1,7 @@
 # Ticket 19 — prepared C1 remaining-check card, revised 2026-09-21 UTC
 
+**Execution update:** the user subsequently approved this card and the single attempt ran on September 21. See the [attempt-4 outcome](c1-attempt-4-outcome.md). That execution authorization is consumed; the preparation-only text below is the frozen pre-approval record.
+
 **Preparation only; execution is not yet authorized.** The user's latest “proceed” authorizes the fixture correction and parallel C2 source preparation after the [attempt 3 outcome](c1-attempt-3-outcome.md). It does not reuse attempt 3's consumed runtime approval. No fourth experiment has run.
 
 ## Purpose and sample count

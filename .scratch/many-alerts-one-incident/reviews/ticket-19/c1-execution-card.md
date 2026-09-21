@@ -1,5 +1,7 @@
 # Ticket 19 — C1 first container measurement card, 2026-09-19
 
+Current runtime result: [C1 attempt 4](c1-attempt-4-outcome.md) completed the bounded positive/negative/direct/final-snapshot card. Full C1 matrix and C2 remain incomplete; the one-attempt approval is consumed.
+
 Prepared successor: [attempt-4 card](c1-attempt-4-card.md), source-only with completed Fable/Sol preparation reviews; fresh execution approval remains required. It does not reuse any authorization below.
 
 ## Attempt 3 authorization — 2026-09-20
