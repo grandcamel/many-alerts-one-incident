@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "scope": "Static artifact consistency only; no fixture command executed or classifier implemented",
+  "historical_source_hashes_verified": 22,
+  "length_cases_byte_hash_shape_verified": 5,
+  "outcome_cases_structurally_checked": 26,
+  "local_links_resolved": 12,
+  "runtime_acceptance": "NOT_RUN",
+  "paid_model_probes": "NOT_RUN",
+  "credentials_containers_live_writes": "NOT_RUN",
+  "main_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 241,
+    "skipped": 36,
+    "seconds": 9.93,
+    "exit_code": 0,
+    "scope": "Existing main regression suite; does not exercise a new executor or prove planned acceptance cases"
+  },
+  "post_review_fixture_checks": "PASS: 26 unique cases; no ambiguous expected.dispatch fields; distinct live and retrospective fallback outcomes",
+  "independent_review": {
+    "standards_open_findings": 0,
+    "spec_open_findings": 0,
+    "scope": "Source preparation only"
+  }
+}

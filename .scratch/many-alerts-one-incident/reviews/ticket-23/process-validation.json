@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "scope": "Fixed trusted host processes on Darwin only; native model launch CLOSED",
+  "targeted_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_process_fixture.py",
+    "passed": 32,
+    "seconds": 15.17,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 372,
+    "skipped": 36,
+    "seconds": 25.13,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "findings": 0,
+      "remaining": 0,
+      "final_correction_readback": true
+    },
+    "spec": {
+      "findings": 1,
+      "worst": "P2",
+      "remaining": 0,
+      "final_correction_readback": true
+    },
+    "fable": {
+      "classification": "usable",
+      "exit_code": 0,
+      "requested_model": "claude-fable-5-1",
+      "actual_assistant_models": [
+        "claude-fable-5-1"
+      ],
+      "verdict": "CHANGES_REQUIRED",
+      "session_estimate_usd": 1.943272,
+      "provider_actual_usd": null,
+      "corrections_adjudicated_by": "Parent plus independent Codex Standards and Spec read-backs; Fable did not review corrected source",
+      "artifacts": [
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-process-fixtures/fable-review/manifest.json",
+          "bytes": 1030,
+          "sha256": "173fc32ad03db1b1d84c7b576c0e0f10dae6b4a04bf057deca935e6eb358cf8a"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-process-fixtures/fable-review/native-review.jsonl",
+          "bytes": 146470,
+          "sha256": "7c056c13b1b8aeef89849bcd1a075c0058e9df75aff53bae39bd3e0cb93347ff"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-process-fixtures/fable-review/prompt.txt",
+          "bytes": 48909,
+          "sha256": "ee4736f4b7c839e7687945256baeea3e6f7abd0a1b30d9912887630bd54e20c7"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-process-fixtures/fable-review/review-stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-process-fixtures/fable-review/review.md",
+          "bytes": 5060,
+          "sha256": "d3868a5aaf579ae74d712c5018df6f37889f375f4e429c00be0598febe3b4e80"
+        }
+      ]
+    }
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/process_fixture.py",
+      "bytes": 10073,
+      "sha256": "8bdc6328bce032a33f0489c88de5f2a04e97563103106d299d91920a72b49eed"
+    },
+    {
+      "path": "prototype/run_timing/_fixture_worker.py",
+      "bytes": 2081,
+      "sha256": "fd5a9ae2ea0df757f4a06acdc48c5966f73e8230b5c5c6ada9f521712b94d172"
+    },
+    {
+      "path": "prototype/run_timing/PROCESS_FIXTURES.md",
+      "bytes": 3439,
+      "sha256": "fd56e145061c3c5c858ad353db7c856a79fe5f51223ceb07cb405ca848782c9c"
+    },
+    {
+      "path": "tests/test_timing_process_fixture.py",
+      "bytes": 10368,
+      "sha256": "9be54e9db66e5b0844489254e3973acaf3b486fcc307137762eb88d4f0f5b9dd"
+    }
+  ],
+  "host_receipt_index": {
+    "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-process-fixtures/host-receipt-final-index.json",
+    "bytes": 8563,
+    "sha256": "36a6e1e63b84592ad94c6b986ca181d6420e0d2b28cc451dc5e5e5e7488484fe"
+  },
+  "host_receipts_preserved": 20,
+  "not_run": [
+    "full-duration 270/20/10",
+    "launch-to-durable-closeout bound",
+    "Linux/cgroup or adversarial confinement",
+    "native Claude/event/permission compatibility",
+    "Forwarder custody/direct-route prevention",
+    "authoritative durable budget admission",
+    "production private audit retention",
+    "paid timing/length probes",
+    "tenant/venue qualification"
+  ],
+  "prior_phase_archive": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-process-fixtures/prior-phase-snapshot"
+}

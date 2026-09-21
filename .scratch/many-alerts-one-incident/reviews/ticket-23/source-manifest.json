@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "historical_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+  "scope": "Historical source digests only; not executable approval or measured results",
+  "files": [
+    {
+      "path": "prototype/run-timing/.gitignore",
+      "bytes": 6,
+      "sha256": "247681cefffa8448d973f21147c92b38b63f492a98a50aca3b3c490bc97499e1"
+    },
+    {
+      "path": "prototype/run-timing/README.md",
+      "bytes": 2579,
+      "sha256": "03c04f4f997aaa69d9c3b2ddc38ae44b5c8dfeabe9d138a497e20943da11d352"
+    },
+    {
+      "path": "prototype/run-timing/arms.sh",
+      "bytes": 517,
+      "sha256": "ea0b580e766575260b429bedadd1f9c153086765c7c13661f0f117a6bcfaf294"
+    },
+    {
+      "path": "prototype/run-timing/bin/eyes",
+      "bytes": 6642,
+      "sha256": "f926672cbba60de813a42fd46109705600e083286e05ebe7c81a5b3d6bfaf30f"
+    },
+    {
+      "path": "prototype/run-timing/bin/jira-as",
+      "bytes": 7096,
+      "sha256": "362314af19b6c14413028dfb2ed1ece0c194fb6dca190d0da860e7d4c215e309"
+    },
+    {
+      "path": "prototype/run-timing/fixtures/ground-truth.md",
+      "bytes": 3197,
+      "sha256": "eb4a8ba419f4ddfc08bf802302c99d558d042de316de23db474476b71830a7cd"
+    },
+    {
+      "path": "prototype/run-timing/fixtures/notification-cascade.json",
+      "bytes": 8752,
+      "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744"
+    },
+    {
+      "path": "prototype/run-timing/make_fixtures.py",
+      "bytes": 16465,
+      "sha256": "c138fed1a779830b96dff491342784ebd6ad0ca2a3a77424358dce25479c02c3"
+    },
+    {
+      "path": "prototype/run-timing/measure.py",
+      "bytes": 8756,
+      "sha256": "25a74ca2a6554ffb28140a3f870ff057e8d649fb900ad0d163e7a04560285a96"
+    },
+    {
+      "path": "prototype/run-timing/probe/PROBE.md",
+      "bytes": 1039,
+      "sha256": "8391d3f47c7a29955858590df0f07347726ca5f376eac3f443163d6335ef555c"
+    },
+    {
+      "path": "prototype/run-timing/probe/cmd-11000.txt",
+      "bytes": 11001,
+      "sha256": "66f8deb2803fc657e5f236eefff5aa6e7e8e21a66897026bc4a4441f911fc016"
+    },
+    {
+      "path": "prototype/run-timing/probe/cmd-12000.txt",
+      "bytes": 12001,
+      "sha256": "fd92ce75cfd8d641d16a6ab6fd886c00f64f9be26d727bbbc2a307f3066a6f1d"
+    },
+    {
+      "path": "prototype/run-timing/probe/cmd-13000.txt",
+      "bytes": 13001,
+      "sha256": "94db0921462f8d297dd41448099804a1663767268bf4c5d82332a34532af82fe"
+    },
+    {
+      "path": "prototype/run-timing/probe/cmd-14000.txt",
+      "bytes": 14001,
+      "sha256": "0539e10b2f65bd2f9f560d83f7d88e28f4e287dc840ca04b5a0a4514d1c1f26a"
+    },
+    {
+      "path": "prototype/run-timing/probe/cmd-9500.txt",
+      "bytes": 9501,
+      "sha256": "efa159f4b6558a6d163de9e11fffe484e9c6e3cdd83c73ec72183479335ecb5c"
+    },
+    {
+      "path": "prototype/run-timing/results/measurements-2026-09.md",
+      "bytes": 9533,
+      "sha256": "adfe28eca99d71acdf4f2a87f1a2d44c335a039a134f43c8518c4f9744458fae"
+    },
+    {
+      "path": "prototype/run-timing/score.py",
+      "bytes": 4629,
+      "sha256": "21b7811bc780c396250715de51bb53a63b606491cbb189cc14ccd80e1df69411"
+    },
+    {
+      "path": "prototype/run-timing/skill/incident-report/SKILL.md",
+      "bytes": 6818,
+      "sha256": "cff12350acb7e22b4c25a9b57b20845305675b8782fa143b35e47ad3cacb9e0e"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/changes.json",
+      "bytes": 663,
+      "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/logs.jsonl",
+      "bytes": 6524,
+      "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/metrics.json",
+      "bytes": 19153,
+      "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/traces.json",
+      "bytes": 3985,
+      "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c"
+    }
+  ]
+}

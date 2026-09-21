@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "scope": "Offline synthetic core only; native launch CLOSED",
+  "main_head": "027f7c197e6bff2eb34e95217a6924e0aa76da68",
+  "targeted_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_outcomes.py tests/test_timing_executor.py",
+    "passed": 99,
+    "seconds": 0.46,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 340,
+    "skipped": 36,
+    "seconds": 10.38,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "initial_findings": 1,
+      "worst_initial": "P2",
+      "remaining": 0
+    },
+    "spec": {
+      "initial_findings": 3,
+      "worst_initial": "P2",
+      "remaining": 0
+    },
+    "fable": {
+      "classification": "timeout",
+      "exit_code": 124,
+      "timeout_seconds": 300,
+      "requested_model": "claude-fable-5-1",
+      "actual_assistant_model": null,
+      "final_review": null,
+      "estimated_cost_usd": null,
+      "provider_actual_usd": null,
+      "retry": false,
+      "snapshot": "Review prompt contains the initial implementation before the Codex review corrections. No usable final review was returned.",
+      "artifacts": [
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-offline-core/fable-review/manifest.json",
+          "bytes": 865,
+          "sha256": "d36151b39ac29ef34f554303210c42d54cba799400320f2da7ced8f27859c45f"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-offline-core/fable-review/native-review.jsonl",
+          "bytes": 61104,
+          "sha256": "cc798166cfc24750612bdf9852d9ce7ec6b40996c823169aa03a58cbd7ce00e2"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-offline-core/fable-review/prompt.txt",
+          "bytes": 47872,
+          "sha256": "dd17de466a55298b6266832c0d8b4e5f6dab4fefcf49ea6abcfdecbda941fbee"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-offline-core/fable-review/review-stderr.txt",
+          "bytes": 39,
+          "sha256": "d92367cec747aaf750a187283dd9c65abe9c5de349e4e5a5af381a0681227369"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "path": "prototype/run_timing/__init__.py",
+      "bytes": 89,
+      "sha256": "27f379ed14c8a07caa9a619ec8ac851c9ed6837b7f54504b58dfcc2a89030aca"
+    },
+    {
+      "path": "prototype/run_timing/executor.py",
+      "bytes": 14889,
+      "sha256": "25f1a14eecfe3196ceb0b7ebfc321b1a21e23c2cae3d2e924d14935ef8a6180a"
+    },
+    {
+      "path": "prototype/run_timing/outcomes.py",
+      "bytes": 6779,
+      "sha256": "9941362d28554340a076081a2499a9359be9806676d57def6e64f9d82ee29bd3"
+    },
+    {
+      "path": "prototype/run_timing/README.md",
+      "bytes": 4359,
+      "sha256": "5f478309079d8c47b62e11a3e1f98b17a4ea92df66750b8af2c8c8abfe58f3b9"
+    },
+    {
+      "path": "tests/test_timing_outcomes.py",
+      "bytes": 4559,
+      "sha256": "876615066c9ce03cb13a164d285e969fec00b7565f0727486f874d3c04e72ca1"
+    },
+    {
+      "path": "tests/test_timing_executor.py",
+      "bytes": 15630,
+      "sha256": "7d26a35de4758c72e20d00c059c234836b6b7c4e237de081331d90860490586e"
+    }
+  ],
+  "not_run": [
+    "native process/container binding",
+    "physical containment and held-pipe acceptance",
+    "native client/permission schema qualification",
+    "Forwarder mediation and direct-route prevention",
+    "authoritative durable budget and reservation release",
+    "private audit store retention and sanitization",
+    "paid timing/length probes",
+    "tenant and venue qualification"
+  ],
+  "source_preparation_archive": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-offline-core/source-preparation-snapshot"
+}

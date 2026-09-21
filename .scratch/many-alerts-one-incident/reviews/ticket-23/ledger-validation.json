@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "scope": "Synthetic diagnostic fixture ledger; native launch CLOSED",
+  "targeted_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_fixture_ledger.py",
+    "passed": 40,
+    "seconds": 6.65,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 412,
+    "skipped": 36,
+    "seconds": 32.04,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "findings": 1,
+      "worst": "P2",
+      "remaining": 0,
+      "final_correction_readback": true
+    },
+    "spec": {
+      "findings": 0,
+      "remaining": 0,
+      "final_correction_readback": true
+    },
+    "fable": {
+      "classification": "usable",
+      "exit_code": 0,
+      "requested_model": "claude-fable-5-1",
+      "actual_assistant_models": [
+        "claude-fable-5-1"
+      ],
+      "verdict": "PASS",
+      "session_id": "28d1bb14-e2ae-4bc8-ad2f-205ca937b219",
+      "duration_ms": 268843,
+      "session_estimate_usd": 1.816472,
+      "provider_actual_usd": null,
+      "correction_review": "Fable reviewed frozen initial source, not subsequent corrections; final Standards/Spec readbacks both zero outstanding.",
+      "artifacts": [
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-ledger/fable-review/manifest.json",
+          "bytes": 1398,
+          "sha256": "f984cf693c65631727029d4a0d276d213f7f0344a44533d54af5371cfd4013b7"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-ledger/fable-review/native-review.jsonl",
+          "bytes": 134015,
+          "sha256": "a2decc5c0964f06e925e3ede7e4f72c454cd2e7242d4fe9a5a287a3c882a24f6"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-ledger/fable-review/prompt.txt",
+          "bytes": 34402,
+          "sha256": "5933132092d8528fb3f54d275e63e8535039f05f372e1dd2bd14aa98437cb6e0"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-ledger/fable-review/review-stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-ledger/fable-review/review.md",
+          "bytes": 4913,
+          "sha256": "41df6ac161c7d2b757c9c7318ca86f38c7c489720a2002fd1ec18b26bcb59862"
+        }
+      ]
+    }
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/fixture_ledger.py",
+      "bytes": 13378,
+      "sha256": "ac6b5183cff7e6e575a4211f98a04b42984b41e84be948dff008b65fbf14b16d"
+    },
+    {
+      "path": "prototype/run_timing/process_fixture.py",
+      "bytes": 10571,
+      "sha256": "8e9ea055bdf07fd9fa1bd53366292e16789996327aff935a5048e3e7f820d5b3"
+    },
+    {
+      "path": "prototype/run_timing/FIXTURE_LEDGER.md",
+      "bytes": 4306,
+      "sha256": "fd4e4f0dc2a0499813a77ecfab308862dae214de0e508e971529c8499e3e6df9"
+    },
+    {
+      "path": "tests/test_timing_fixture_ledger.py",
+      "bytes": 13744,
+      "sha256": "33db6e80bb031686c20a6c26b124b5f32379c8676ff5808dfe3bf808776ca3ae"
+    }
+  ],
+  "not_run": [
+    "real provider accounting and authenticated receipts",
+    "real budget reservation",
+    "stale-store restore detection",
+    "power-loss durability",
+    "production custody/retention/reconstruction",
+    "ticket 38 lifecycle/retry/Receiver integration",
+    "full-duration 270/20/10 and durable-closeout timing",
+    "adversarial isolation and native stream/permission qualification",
+    "Forwarder credentials and direct-route prevention",
+    "paid timing/length probes",
+    "tenant/venue qualification"
+  ],
+  "prior_phase_archive": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-ledger/prior-phase-snapshot",
+  "archive_provenance": {
+    "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-ledger/archive-provenance.json",
+    "bytes": 206,
+    "sha256": "2c66e65e20ecbad5b5923c966f012c0aca9fba9d8936705d944e44bdf60ac56b"
+  }
+}

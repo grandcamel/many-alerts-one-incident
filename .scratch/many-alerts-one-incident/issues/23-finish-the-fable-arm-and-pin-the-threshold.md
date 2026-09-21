@@ -4,7 +4,7 @@ Type: task
 Status: open
 Blocked by: none
 
-## Question
+## Historical question — execution claims superseded below
 
 Two measurements from the timing prototype are unfinished. They are **not equally
 blocked**, which an earlier version of this ticket got wrong:
@@ -36,3 +36,33 @@ grade against the Ground truth, and the threshold, and appends all three to
 ## Current execution boundary after ticket 22
 
 The commands and model availability above are historical, not runnable-now evidence or authorization. Ticket 22 refutes independent per-model balances as an established fact; a top-up is not an accepted remedy. ADR 0013 requires metered API billing, mediated credentials, budget preflight and separately authorized execution. Redesign these probes against that contract and ADR 0012's 300-second total bound before any future run; the historical 900-second command is not an approved current Run budget. No paid probe or credential change is authorized.
+
+## Source preparation, 2026-09-21
+
+The [redesign packet](../reviews/ticket-23/source-redesign.md) records the pinned historical
+harness gaps, revised timing/length contracts, inert fixtures and implementation
+acceptance gates. The [measurement card](../reviews/ticket-23/execution-card.md) remains
+**CLOSED**. Source preparation can proceed independently of ticket 19's C2 provider
+block; paid execution still requires reviewed implementation, mediated-client and
+budget readiness, then separate one-attempt authorization. No new measurement or
+qualification result is claimed; this ticket remains open.
+
+## Offline implementation continuation
+
+The [offline implementation outcome](../reviews/ticket-23/implementation-outcome.md)
+records the new replay core, adversarial regressions and remaining native integrations.
+No paid timing/length probe ran. The measurement card stays closed and this ticket stays
+open; offline receipts, ledger snapshots and containment observations do not establish
+the corresponding host/provider boundaries.
+
+The next [fixed-process harness outcome](../reviews/ticket-23/process-outcome.md) adds real
+host fixture evidence for scheduling, cancellation, process-group cleanup, pipe EOF,
+bounded output and attempt collisions. It does not admit a native model client or prove
+adversarial isolation. Ticket 23 remains open; paid execution remains closed.
+
+The [synthetic diagnostic ledger outcome](../reviews/ticket-23/ledger-outcome.md) adds
+durable reservation/launch claims, exact receipt reconciliation and concurrent/crash
+tests around fixed local fixtures. Inputs and allocation amounts are synthetic; no real
+accounting ledger or paid probe is admitted. This diagnostic slice does not complete
+ticket 38's lifecycle/Receiver integration. Ticket 23 remains open; native launch remains
+closed.

@@ -1,0 +1,334 @@
+{
+  "schema_version": 1,
+  "status": "SPECIFICATION_ONLY_NO_CLASSIFIER_IMPLEMENTED",
+  "note": "Independent observations per case; omitted fields are unspecified, not default success. Outcomes are expected assertions for future tests, not test results. Execution and dispatch/effect fields are separate. All observed failure reasons must be retained.",
+  "cases": [
+    {
+      "case_id": "clean-terminal",
+      "given": {
+        "terminal": "one_valid_success",
+        "exit": 0,
+        "override": null
+      },
+      "expected": {
+        "execution": "completed",
+        "effects": "separately_assessed"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "result-error",
+      "given": {
+        "terminal": "one_valid_error",
+        "exit": 0
+      },
+      "expected": {
+        "execution": "failed"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "nonzero-exit",
+      "given": {
+        "terminal": "one_valid_success",
+        "exit": 1
+      },
+      "expected": {
+        "execution": "failed"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "no-terminal",
+      "given": {
+        "terminal": "absent",
+        "exit": 0
+      },
+      "expected": {
+        "execution": "incomplete"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "duplicate-terminal",
+      "given": {
+        "terminal": "two_identical_success",
+        "exit": 0
+      },
+      "expected": {
+        "execution": "incomplete"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "conflicting-terminal",
+      "given": {
+        "terminal": "success_then_error",
+        "exit": 0
+      },
+      "expected": {
+        "execution": "incomplete",
+        "retain_reasons": [
+          "duplicate_terminal",
+          "result_error"
+        ]
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "malformed-terminal",
+      "given": {
+        "terminal": "missing_required_fields",
+        "exit": 0
+      },
+      "expected": {
+        "execution": "incomplete"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "malformed-event",
+      "given": {
+        "terminal": "one_valid_success",
+        "required_event_evidence": "malformed",
+        "exit": 0
+      },
+      "expected": {
+        "execution": "incomplete"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "timeout-overrides",
+      "given": {
+        "terminal": "one_valid_success",
+        "exit": 0,
+        "override": "timeout"
+      },
+      "expected": {
+        "execution": "timed_out",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "cancel-overrides",
+      "given": {
+        "terminal": "one_valid_success",
+        "exit": 0,
+        "override": "operator_cancel"
+      },
+      "expected": {
+        "execution": "cancelled",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "spawn-failure",
+      "given": {
+        "terminal": "absent",
+        "override": "spawn_failure"
+      },
+      "expected": {
+        "execution": "spawn_failed",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "held-pipe",
+      "given": {
+        "parent_exited": true,
+        "descendants_reaped_by_300s": false
+      },
+      "expected": {
+        "execution": "containment_failed",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "early-cancel",
+      "given": {
+        "cancel_at_seconds": 40
+      },
+      "expected": {
+        "interrupt_and_revoke_at_seconds": 40,
+        "flush_deadline_seconds": 60,
+        "reap_deadline_seconds": 70,
+        "original_deadline_seconds": 300
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "native-fallback-during-run",
+      "given": {
+        "requested_model": "candidate",
+        "actual_assistant_model": "different",
+        "detected_while_running": true,
+        "observed_override": "supervisor_cancel_after_fallback",
+        "terminal": "one_valid_success",
+        "exit": 0
+      },
+      "expected": {
+        "execution": "cancelled",
+        "interrupt_and_revoke": true,
+        "comparison": "invalid",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "native-fallback-discovered-after-completion",
+      "given": {
+        "requested_model": "candidate",
+        "actual_assistant_model": "different",
+        "detected_while_running": false,
+        "observed_override": null,
+        "terminal": "one_valid_success",
+        "exit": 0
+      },
+      "expected": {
+        "execution": "completed",
+        "comparison": "invalid",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "identity-missing",
+      "given": {
+        "actual_assistant_model": null
+      },
+      "expected": {
+        "comparison": "invalid",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "usage-missing",
+      "given": {
+        "terminal": "one_valid_success",
+        "usage": null,
+        "provider_actual": null
+      },
+      "expected": {
+        "spend": "unknown",
+        "release_reservation": false,
+        "budget_recheck_required": true
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "ordinary-denial",
+      "given": {
+        "command_exact": true,
+        "native_decision": "permission_denied_before_dispatch",
+        "coverage": "complete",
+        "trusted_receipt": false
+      },
+      "expected": {
+        "case": "permission_denied_no_dispatch",
+        "next_fixed_case": "allowed_within_work_deadline"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "stub-error",
+      "given": {
+        "command_exact": true,
+        "trusted_receipt": true,
+        "stub_exit": 1
+      },
+      "expected": {
+        "case": "dispatched",
+        "stub_success": false
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "receipt-absent",
+      "given": {
+        "command_exact": true,
+        "native_decision": null,
+        "trusted_receipt": false
+      },
+      "expected": {
+        "case": "dispatch_unknown",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "receipt-conflict",
+      "given": {
+        "native_decision": "permission_denied_before_dispatch",
+        "trusted_receipt": true
+      },
+      "expected": {
+        "case": "dispatch_unknown",
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "edited-command",
+      "given": {
+        "command_exact": false,
+        "trusted_receipt": true
+      },
+      "expected": {
+        "case": "invalid_case",
+        "include_in_bracket": false
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "provider-refusal",
+      "given": {
+        "native_decision": "provider_safeguard_refusal"
+      },
+      "expected": {
+        "case": "not_length_evidence",
+        "reroute_or_reword": false,
+        "further_dispatch": "hold"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "deadline-before-case",
+      "given": {
+        "work_deadline_reached": true,
+        "case_started": false
+      },
+      "expected": {
+        "case": "not_attempted"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "capture-gap",
+      "given": {
+        "audit_complete": false
+      },
+      "expected": {
+        "affected_claim_evidence": "unverifiable",
+        "qualification": "excluded"
+      },
+      "verification": "NOT_RUN"
+    },
+    {
+      "case_id": "unknown-budget",
+      "given": {
+        "ledger_available": false
+      },
+      "expected": {
+        "launch": "blocked",
+        "assumed_spend_zero": false
+      },
+      "verification": "NOT_RUN"
+    }
+  ]
+}
