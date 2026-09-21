@@ -86,3 +86,7 @@ The user explicitly authorized a retry. [Attempt 2](ticket-19/c1-attempt-2-outco
 ## C2 file materialization and ownership preparation — 2026-09-21 UTC
 
 [Source outcome](ticket-19/c2-materialization-ownership-outcome.md): one-shot private configuration staging and exact receipt-bound cleanup selection are committed locally at prototype `6261ac8`. Full suite **583 passed, 36 skipped**; Ruff and Sol adversarial review pass. The fresh correct-provider Kimi review timed out without an opinion. Missing attachment inspection and FIFO substitution failures were corrected before validation. No engine creation/deletion, backend request or C2 runtime occurred. Durable engine receipts/executor, account lifecycle, native policy and compatibility execution card remain preparation work; runtime gates, ticket status and reservations remain unchanged.
+
+## Approved C2 compatibility attempt 1 — 2026-09-21 UTC
+
+[Outcome](ticket-19/c2-attempt-1-outcome.md): the approved first runtime attempt stopped at Grafana's post-create inspection before any backend started. Cleanup and preservation are independently confirmed; two unretained inspection fields prevent an exact failure diagnosis. A separate pinned-reference inspection corrected the verifier's image-list false warning. No seed, native or model qualification occurred. Next: retain all guard inputs and correct image verification before preparing a fresh compatibility card. The one attempt is consumed, with no automatic retry; ticket, blocker and reservation boundaries remain unchanged.
