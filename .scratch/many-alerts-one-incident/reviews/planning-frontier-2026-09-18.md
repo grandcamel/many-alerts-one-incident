@@ -94,3 +94,7 @@ The user explicitly authorized a retry. [Attempt 2](ticket-19/c1-attempt-2-outco
 ## C2 inspection correction preparation — 2026-09-21 UTC
 
 [Source outcome](ticket-19/c2-inspection-correction-outcome.md): the candidate retains named inspection predicates before admission and independently verifies pinned-image identity. Sol's two diagnostic findings were corrected; private suite70passed, full prototype592passed/36skipped and main241passed/36skipped. Requested Fable returned an Opus fallback PASS; native telemetry proves Fable output0, so genuine Fable review remains incomplete. Attempt2 has a fresh run ID/root and closed execution gate; no runtime occurred. Prior preparation/runtime artifacts read back unchanged. Ticket19 stays claimed, ticket12 blocked, qualification and reservation boundaries unchanged.
+
+## C2 Fable refusal diagnosis — 2026-09-21 UTC
+
+[Native diagnosis](ticket-19/c2-fable-refusal-diagnosis.md): the apparent Fable review fell back after an explicit provider safeguard refusal (`cyber`), not a confirmed capacity/auth failure. Fable output0; Opus produced the PASS. No model retry or C2 runtime occurred. Final corrected source and Sol PASS remain intact; all33 prior artifact entries verified unchanged. Next requires the user's explicit acceptance of Sol in place of Fable for this correction and the exact bounded attempt2 card. Execution stays closed; ticket/blocker/qualification/reservation boundaries unchanged.
