@@ -108,42 +108,38 @@ def test_slow_drip_tls_request_has_a_total_connection_deadline(certificates):
     plain = socket.create_connection((site.hostname, site.port), timeout=1)
     secure = strict_context(certificates).wrap_socket(plain, server_hostname=site.hostname)
     secure.settimeout(2)
-    send_done = threading.Event()
     drip_interval = timeout_seconds * 0.4
     incoming_budget = min(4.2, 2 * timeout_seconds + 0.2)
     assert len(wire) * drip_interval > incoming_budget
-
-    def drip():
-        try:
-            for byte in wire:
-                secure.send(bytes((byte,)))
-                time.sleep(drip_interval)
-        except (BrokenPipeError, ConnectionResetError, OSError, ssl.SSLError):
-            pass
-        finally:
-            send_done.set()
-
-    dripper = threading.Thread(target=drip, daemon=True)
     started = time.monotonic()
-    dripper.start()
-    received = []
+    peer_closed = False
     try:
-        while time.monotonic() - started < 2:
+        # Keep TLS operations on one client thread. Concurrent send/recv on this
+        # SSL object previously produced a record-MAC error in the test client.
+        # Repeated writes still keep arriving below the inactivity timeout, so
+        # only the total connection deadline should terminate this incomplete request.
+        for byte in wire:
+            if time.monotonic() - started >= 2:
+                break
             try:
-                chunk = secure.recv(4096)
-            except (BlockingIOError, TimeoutError):
+                if secure.send(bytes((byte,))) == 0:
+                    peer_closed = True
+                    break
+            except TimeoutError:
                 break
-            if not chunk:
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError,
+                    ssl.SSLEOFError, ssl.SSLZeroReturnError):
+                peer_closed = True
                 break
-            received.append(chunk)
+            time.sleep(drip_interval)
         elapsed = time.monotonic() - started
+        assert peer_closed, "server did not terminate the incomplete slow-drip request"
         assert elapsed < incoming_budget + 0.5, "slow drip extended the connection deadline"
+        assert not harness.upstream_receipts
     finally:
         secure.close()
         plain.close()
-        dripper.join(1)
         stop_bounded(harness)
-    assert send_done.is_set() or received
 
 
 def test_late_body_cannot_extend_accepted_deadline_through_upstream_timeout(certificates):

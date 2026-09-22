@@ -64,3 +64,13 @@ Independent review passes; the full suite reports 1009 passed and 36 skipped.
 Managed accept/worker supervision remains next, followed by service TLS/request
 policy. Deployed identity, ancestor/mount/ACL/group and credential isolation remain
 separate acceptance gates. This planning ticket remains open.
+
+The [fourth local unit](../reviews/forwarder-supervisor/outcome.md) adds bounded
+control-service supervision: one accept loop, at most four handlers and one
+transient accepted socket, tracked startup ownership, and shared shutdown/join
+observation. Unknown endpoint or thread completion cannot become a clean receipt
+without the required observations. Independent review passes; the full suite
+reports 1034 passed and 36 skipped. An existing TLS deadline test was repaired
+to avoid concurrent operations on one client SSL object while retaining its
+deadline and no-upstream assertions. Fixed service TLS/request policies and
+durable Receiver/accounting remain subsequent local work; this ticket stays open.

@@ -109,7 +109,36 @@ does not prove handler completion: the caller must observe or join its workers.
 A held registry requires a fresh controller and registry generation for recovery;
 failed revocation remains `unknown` rather than a successful closeout receipt.
 
-The next integration units are managed accept/worker supervision, fixed TLS listeners and
+## Managed local control service
+
+`ControlService` owns an unopened `PrivateControlListener` and an unused
+`ForwarderControl`. Its constructor starts no work; `start()` opens the endpoint
+and starts one accept loop. The service admits at most four handler threads,
+retaining their records until thread termination is observed. One additional
+transient accepted socket can belong to the accept loop during dispatch or
+capacity rejection; there is no user-space queue of waiting clients.
+
+Use `stop(timeout=2.0)` to hold controller authority, close owned descriptors and
+the listener, and observe the accept loop and handlers against a shared join
+deadline. The finite timeout must be positive and at most ten seconds. A
+`ServiceCloseout` reports `state`, `reason`, `listener_state` and `threads_alive`.
+The reason records the shutdown request or failure; `state` determines whether
+cleanup completed. Thus a requested stop can have reason `stopped` and state
+`unknown` while threads or startup work are still pending.
+`stopped` requires completed cleanup and no live owned threads; `unknown` keeps
+incomplete joins, fatal failures and uncertain endpoint cleanup visible. A later
+stop may observe that threads exited, but cannot convert uncertain endpoint
+cleanup into a successful removal receipt. Python scheduling and OS stalls are
+not hard real-time bounded by this join timeout.
+
+Start and stop are terminal: a stopped service never restarts its held registry
+generation. Authentication failures from ordinary clients do not themselves
+poison the service. Unexpected accept/worker orchestration failures initiate
+shutdown with fixed diagnostics. The owner must keep this service's listener and
+controller exclusive; importing or constructing it does not wire the legacy
+launcher, load a secret or establish deployment isolation.
+
+The next integration units are fixed TLS listeners and
 request-aware service policies, followed by durable admission and the guarded
 launcher. Real provider/tenant operations, native execution and deployment remain
 gated by their own acceptance evidence. Local module tests cannot replace that
@@ -118,5 +147,5 @@ evidence or human Report adjudication.
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py
 ```

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_BOUNDED_CONTROL_SUPERVISOR",
+  "baseline_commit": "b592df84a4360f9759655a8b8bc35edb66891c78",
+  "prior_requested_push": {
+    "completed": true,
+    "remote": "origin",
+    "branch": "main",
+    "commit": "b592df84a4360f9759655a8b8bc35edb66891c78"
+  },
+  "focused_tests": {
+    "passed": 80,
+    "seconds": 11.99,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/focused-tests.txt"
+  },
+  "tls_regression_tests": {
+    "passed": 50,
+    "seconds": 5.85,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/tls-regression-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "exit_code": 0,
+    "passed": 1034,
+    "skipped": 36,
+    "seconds": 151.45,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/full-suite.txt"
+  },
+  "prior_failure": {
+    "failed": 1,
+    "passed": 1033,
+    "skipped": 36,
+    "seconds": 151.55,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/full-suite-before-tls-test-fix.txt",
+    "disposition": "Reviewed single-thread TLS test client; retained deadline and no-upstream assertions, generic TLS record errors still fail"
+  },
+  "independent_review": {
+    "verdict": "PASS",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/review.md"
+  },
+  "ruff": "PASS",
+  "observed_platform": "Darwin same-UID temporary Unix sockets and local synthetic TLS fixtures",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_supervisor.py": "6b8ad99cd7865a283b50736632a24876c17c42d074d9a69f6c55ba5ad9acfab1",
+    "tests/test_forwarder_supervisor.py": "5f0a86b8b9797df892bf6b53e577712c86859939a1e66dc2ebd57b224b43ff9b",
+    "tests/test_forwarder_supervisor_integration.py": "aa430d35ff4e6845ca7b3c7ac4d87480afd65030aebc9c95ee71a9bf7865c54d",
+    "tests/test_mediated_client.py": "830e293ae25bc6abbdd1b49f9f75ab800b2fd8968cc6d9d2970aa23f20dcdbaa",
+    "docs/forwarder-control.md": "e0bc77508793685afa49566d4af55b65dc758435f9a98a588ff39c65cc0c6237",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "1b432d598878f92e51cb952ed06995e4c63ddb3c0bbafb9643effd6588a4a120",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "172fc3a8044efcf03ce5478a92046be87b51acd0d6911dbab29570d0bdf63904",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/focused-tests.txt": "1c8e76147e270545045ec2e1c7e2cf7e7f9de32c8d64ca99c88c6ee33a0d5ed1",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/full-suite-before-tls-test-fix.txt": "1f77f0d5a1f1cfd11f2d0052352b5e6ceaa4a2d942480405e23cab3eb544e303",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/full-suite.txt": "3129bbd283c0dfa6e2a1dd723d3e51efa3218aaed3c44da4c358a37d76077e7d",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/implementation-plan.md": "385300a8a05954c19cdea0f7c1f37a7f73e265237132de33ac75509371c037f5",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/outcome.md": "6995053805bdd89240f09c924870be36ea6f9aac678ce1d7aa1234db7f19672d",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/review.md": "3c5652976f9d86441cadd663854b38ee43c677576bdb16c316ad2a073075e64b",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-supervisor/tls-regression-tests.txt": "a37a3afd129ea968dc3e1e068f0f50efb2a8068ea3839e6516db81ef6e530f7e"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Fixed service TLS and request policies",
+    "Linux peer credentials",
+    "Deployed UID, ancestor, mount, ACL and group isolation",
+    "Mounted control-secret custody",
+    "Durable Receiver/accounting integration",
+    "Native clients, provider/tenant operations and deployment",
+    "Paid accounting admission",
+    "Human Report adjudication"
+  ],
+  "publication": "THIS_UNIT_LOCAL_ONLY",
+  "whitespace": "PASS_CODE_AND_DOCS; original pytest failure log retained verbatim"
+}

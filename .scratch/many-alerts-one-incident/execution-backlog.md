@@ -26,7 +26,7 @@ future Reports is a separate requirement.
 Local specification, implementation within authorized scope, testing and review
 continue without another permission question. Full tests precede commits that
 change code. Work stays local. The explicit 2026-09-22 push was completed through
-`2fd58d2`; it does not make later pushes automatic. The provider-blocked C2 implementation is not
+`b592df8`; it does not make later pushes automatic. The provider-blocked C2 implementation is not
 retried; its unrelated dirty files and the historical planning-frontier edits
 are preserved. No paid probe starts on an assumed balance or an unqualified
 transport. A planning-only ticket does not become runtime/deployment authority
@@ -37,9 +37,10 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **1009 passed, 36 skipped**, including 135 service,
-  lease, authenticated-control and private-listener tests plus existing regressions.
-  The [private-listener outcome](reviews/forwarder-listener/outcome.md),
+- Latest code validation: **1034 passed, 36 skipped**, including 160 service,
+  lease, control, listener and supervisor tests plus existing regressions.
+  The [supervisor outcome](reviews/forwarder-supervisor/outcome.md),
+  [private-listener outcome](reviews/forwarder-listener/outcome.md),
   [control-session outcome](reviews/forwarder-control/outcome.md) and
   [first application outcome](reviews/forwarder-lease-implementation-outcome.md)
   record their distinct local source validation; the existing
@@ -100,9 +101,16 @@ isolation and service request transport remain separate work and evidence gates.
 The [third application unit](reviews/forwarder-listener/outcome.md) adds private
 filesystem socket creation, guarded acceptance, conservative cleanup and permanent
 controller shutdown. Independent review and the full local suite pass. The
-[next supervisor unit](reviews/forwarder-listener/next-supervisor-unit.md) will
-bound accept/handler ownership and observe thread completion during shutdown.
+[supervisor planning input](reviews/forwarder-listener/next-supervisor-unit.md)
+defined bounded accept/handler ownership and observable shutdown completion.
 Actual deployed parent/ancestor/group/mount isolation remains unqualified.
+
+The [fourth application unit](reviews/forwarder-supervisor/outcome.md) joins the
+private listener and authenticated controller under one lifecycle owner. It
+bounds handlers and transient accepted sockets, retains startup/shutdown
+ownership, and reports unknown completion until outstanding work is observed.
+Fixed service TLS/request policies and durable Receiver/accounting integration
+remain subsequent local implementation work.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
@@ -110,7 +118,7 @@ Actual deployed parent/ancestor/group/mount isolation remains unqualified.
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control and private listener/shutdown complete; next add managed accept/worker supervision, fixed TLS/request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener and managed supervision complete; next add fixed TLS/request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets

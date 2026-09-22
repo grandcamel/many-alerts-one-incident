@@ -1,0 +1,91 @@
+............................ssss........ssssssssss...........ssss....... [  6%]
+ssssssssss.............................................................. [ 13%]
+........................................................................ [ 20%]
+......................................................................ss [ 26%]
+ssssss.................................................................. [ 33%]
+...........F............................................................ [ 40%]
+........................................................................ [ 47%]
+........................................................................ [ 53%]
+........................................................................ [ 60%]
+........................................................................ [ 67%]
+........................................................................ [ 74%]
+........................................................................ [ 80%]
+........................................................................ [ 87%]
+........................................................................ [ 94%]
+..............................................................           [100%]
+=================================== FAILURES ===================================
+__________ test_slow_drip_tls_request_has_a_total_connection_deadline __________
+
+certificates = FixtureCertificates(ca_cert=PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger...ar/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-288/mediated-client-certs0/wrong-ca.pem'))
+
+    def test_slow_drip_tls_request_has_a_total_connection_deadline(certificates):
+        timeout_seconds = 0.1
+        harness = MediatedClientHarness(certificates, timeout_seconds=timeout_seconds)
+        harness.start()
+        site = urlsplit(harness.url)
+        grant = active(harness)
+        wire = (
+            b"POST /v1/messages HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+            + f"Authorization: Bearer {grant.token}\r\n".encode()
+            + b"Content-Type: application/json\r\nContent-Length: "
+            + str(len(FIXTURE_REQUEST)).encode()
+            + b"\r\n\r\n"
+            + FIXTURE_REQUEST
+        )
+        plain = socket.create_connection((site.hostname, site.port), timeout=1)
+        secure = strict_context(certificates).wrap_socket(plain, server_hostname=site.hostname)
+        secure.settimeout(2)
+        send_done = threading.Event()
+        drip_interval = timeout_seconds * 0.4
+        incoming_budget = min(4.2, 2 * timeout_seconds + 0.2)
+        assert len(wire) * drip_interval > incoming_budget
+    
+        def drip():
+            try:
+                for byte in wire:
+                    secure.send(bytes((byte,)))
+                    time.sleep(drip_interval)
+            except (BrokenPipeError, ConnectionResetError, OSError, ssl.SSLError):
+                pass
+            finally:
+                send_done.set()
+    
+        dripper = threading.Thread(target=drip, daemon=True)
+        started = time.monotonic()
+        dripper.start()
+        received = []
+        try:
+            while time.monotonic() - started < 2:
+                try:
+>                   chunk = secure.recv(4096)
+                            ^^^^^^^^^^^^^^^^^
+
+tests/test_mediated_client.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/ssl.py:1285: in recv
+    return self.read(buflen)
+           ^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ssl.SSLSocket [closed] fd=-1, family=2, type=1, proto=0>, len = 4096
+buffer = None
+
+    def read(self, len=1024, buffer=None):
+        """Read up to LEN bytes and return them.
+        Return zero-length string on EOF."""
+    
+        self._checkClosed()
+        if self._sslobj is None:
+            raise ValueError("Read on closed or unwrapped SSL socket.")
+        try:
+            if buffer is not None:
+                return self._sslobj.read(len, buffer)
+            else:
+>               return self._sslobj.read(len)
+                       ^^^^^^^^^^^^^^^^^^^^^^
+E               ssl.SSLError: [SSL: SSLV3_ALERT_BAD_RECORD_MAC] sslv3 alert bad record mac (_ssl.c:2657)
+
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/ssl.py:1140: SSLError
+=========================== short test summary info ============================
+FAILED tests/test_mediated_client.py::test_slow_drip_tls_request_has_a_total_connection_deadline
+1 failed, 1033 passed, 36 skipped in 151.55s (0:02:31)
