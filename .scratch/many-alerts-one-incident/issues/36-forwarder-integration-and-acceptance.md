@@ -123,3 +123,13 @@ tests pass; the full suite reports 1378 passed, 36 skipped. No socket collection
 response send, receipt, route success or native/upstream compatibility is implied.
 Response transport, receipt-before-send and service policy remain subsequent
 local implementation. This planning ticket stays open.
+
+The [tenth local unit](../reviews/forwarder-response-receive/outcome.md) adds
+bounded response collection from an established client TLS socket. It shares
+head/framing validation, enforces the original deadline and twenty-second read
+inactivity, and preserves caller socket ownership and one-shot collection.
+Independent review and 137 focused tests pass; the full suite reports
+1432 passed, 36 skipped. Local synthetic TLS observations do not qualify real
+upstreams or native clients. Receipt-before-send forwarding, route policies and
+durable Receiver/accounting remain subsequent work. This planning ticket stays
+open under the separate local implementation authority.

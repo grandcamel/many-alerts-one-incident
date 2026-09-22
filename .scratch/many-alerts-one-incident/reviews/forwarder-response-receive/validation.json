@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_BOUNDED_TLS_RESPONSE_COLLECTION",
+  "baseline_commit": "1220f4c314ee2181d072969e6380d5b3e06e2672",
+  "focused_tests": {
+    "passed": 137,
+    "existing_codec": 83,
+    "deterministic_new": 39,
+    "real_local_tls_new": 15,
+    "seconds": 2.18,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 1432,
+    "skipped": 36,
+    "seconds": 167.44,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/full-suite.txt"
+  },
+  "independent_review": {
+    "verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "model": "gpt-5.6-terra",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/review.md",
+    "execution_evidence_owner": "root"
+  },
+  "ruff": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_http_response.py": "8f88b84438563fb14e019a999377008a5a65413e20add61564814e2095420bb9",
+    "grafana_jsm_sandbox/forwarder_response_receive.py": "e9c5e7da25ae061ece41c2e3e0d72ddb811c57923591922476f3733f00c217ae",
+    "tests/test_forwarder_response_receive.py": "3eb451cf3378d034348d0a41501600af1e5962cb6f45657cfb275a762fce2065",
+    "tests/test_forwarder_response_receive_adversarial.py": "751c0e416bc1a1a09bd0e92e625f9983c44e3d39191f796e899a0611dc88f009",
+    "tests/test_forwarder_response_receive_integration.py": "8457bd786115a81679584600039c9e3826fc466a766c9aad90234394a1e02ab0",
+    "docs/forwarder-control.md": "f04ade8e3882261088a06dbb77039a6139bfca917a509f01777c6ab60d4de004",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "fec519dcc04e24731b8099353b60db9e403c1bce31d3c1005326422267aa1d08",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "d2388658a434d486ffa204638327846f15d84a9c00e89fa0ec55fc58d82dddde",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/focused-tests.txt": "7365c4ae4ad048da13eb1a47d2791784d6dfba22ab867439c62c21d1e164b7d4",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/full-suite.txt": "28de9c5bfd646738a92c2599d15d5cb2de67d6c8d29cc4a62e48a75875159351",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/implementation-plan.md": "4b8abdd800509996967d0b9c04b95577e68f293585047e2ced49a25d47553e8f",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/outcome.md": "fe94f2af3cbce6ae2908b1575c9c9f3e67a31b2d0615b42ca44114846a13fbbe",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/review.md": "cb4beb16fca3f20a761fb6d3ba2b85923293c99af312aa1545adb74d2f4d95e1",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-response-receive/tls-tests-initial.txt": "70f1902931a8b0f3d9511d552e29751572b362bd32ef25dc808260c19c6d0ab0"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "unchanged_regression_tests": {
+    "tests/test_forwarder_http_response.py": "2fa68b84ff6870c8b7b9313a8015cc1eca971b0cdd72e917f14c2de99e2496a5",
+    "tests/test_forwarder_http_response_adversarial.py": "174d70b6fbccf345632bde0cc8bdda0d311467386170d9cd5a5cddaa66ce6ad3"
+  },
+  "observed_scope": [
+    "Shared pure response-head framing without dummy body allocation",
+    "Single established client TLS response collection under byte and monotonic time caps",
+    "Synthetic certificates and real local TLS fixtures for five fixed-service adapters",
+    "Socket claim, caller ownership, restoration fault and adversarial deadline tests"
+  ],
+  "not_qualified": [
+    "Approved upstream fixed-origin connection setup and original handshake trust attestation",
+    "Response forwarding and sanitized receipt-before-send coordination",
+    "Semantic JSON/schema/route scope and successful external effects",
+    "Atomic lease/revocation/dispatch and durable Receiver/recovery/accounting",
+    "Chunked/compressed/SSE or real upstream/native client compatibility",
+    "Actual credentials, provider/tenant/native execution or deployment",
+    "Paid cumulative exposure and human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

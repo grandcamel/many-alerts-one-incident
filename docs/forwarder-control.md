@@ -324,7 +324,45 @@ Complete-buffer bounds do not bound an upstream socket read or detect later
 unread bytes. The transport owner must enforce collection and original handler
 deadlines, then coordinate receipt-before-send and close after one response.
 
-The next integration units are bounded response transport and
+## Bounded TLS response collection
+
+`parse_response_head` shares the full response parser's framing rules and returns
+only status and declared body length, without allocating a dummy body.
+`receive_response(connection, deadline=...)` then collects one response from an
+already established client TLS socket. It checks current TLS/client verification
+configuration and accepts only absent ALPN or HTTP/1.1. The connection owner still
+must establish approved fixed-origin identity/trust; these checks cannot attest
+how an existing connection was created or authorize an upstream route.
+
+The caller supplies its original absolute monotonic handler deadline clipped to
+the lease, at most forty seconds away. Each read is limited to twenty seconds or
+the remaining deadline, whichever is smaller. Clock checks before/after reads
+and timeout restoration reject expiry, faults or regression. A completed read
+that took twenty seconds or more also rejects, even if the overall deadline
+remains open. Fragments do not reset that deadline. Timeouts and read errors
+are not retried.
+
+Status-line and header reads obey the 2 KiB/16 KiB caps, at most 4 KiB per read
+and further clipped to the applicable remaining cap plus one. Shared head parsing
+rejects redirects, unsupported framing and invalid lengths before further body
+reads. A coalesced body prefix is preserved; body reads are at most 64 KiB and
+remaining length plus one, with an overall 1 MiB body cap. Headerless 204 and
+205 framing finish without waiting for EOF. Captured excess bytes are rejected;
+exact completion does not probe for later bytes or another unread TLS record.
+
+A permanent socket claim prevents repeated or concurrent collection, including
+after failure. The owner must close the socket after this exchange and must not
+remove the marker or share the socket. Timeout restoration cannot falsely return
+success or mask an earlier failure. The collector sends nothing, closes nothing
+and returns only status/opaque body; it does not create a receipt or classify an
+external effect. The owner must use dispatch context to retain uncertain or
+partial outcomes. A parsed 2xx response is not external-effect confirmation.
+
+Real local TLS fixtures exercise fragmented responses, opaque bytes, no-body
+statuses, invalid heads, captured extras, stalled input and EOF. They do not
+qualify a real upstream, native client, credential boundary or deployment.
+
+The next integration units are response forwarding with receipt-before-send and
 request-aware service policies, followed by durable admission and the guarded
 launcher. Real provider/tenant operations, native execution and deployment remain
 gated by their own acceptance evidence. Local module tests cannot replace that
@@ -333,5 +371,5 @@ evidence or human Report adjudication.
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py
 ```

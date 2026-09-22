@@ -5,9 +5,12 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-_MAX_STATUS_LINE = 2_048
-_MAX_HEADERS = 16_384
-_MAX_BODY = 1_048_576
+MAX_STATUS_LINE_BYTES = 2_048
+MAX_HEADER_BYTES = 16_384
+MAX_BODY_BYTES = 1_048_576
+_MAX_STATUS_LINE = MAX_STATUS_LINE_BYTES
+_MAX_HEADERS = MAX_HEADER_BYTES
+_MAX_BODY = MAX_BODY_BYTES
 _MAX_INPUT = _MAX_STATUS_LINE + _MAX_HEADERS + _MAX_BODY
 _MAX_FIELDS = 64
 _TOKEN = frozenset(b"!#$%&'*+-.^_`|~0123456789"
@@ -30,6 +33,14 @@ class ParsedResponse:
 
     status: int
     body: bytes = field(repr=False)
+
+
+@dataclass(frozen=True)
+class ParsedResponseHead:
+    """Validated complete response head with a declared body length only."""
+
+    status: int
+    body_length: int
 
 
 def _fail() -> None:
@@ -107,15 +118,15 @@ def _parse_headers(data: bytes, start: int) -> tuple[dict[str, str], int]:
     return headers, end + 4
 
 
-def _validate_framing(status: int, headers: dict[str, str], body: bytes) -> None:
+def _body_length(status: int, headers: dict[str, str]) -> int:
     if status == 204:
-        if "content-length" in headers or "content-type" in headers or body:
+        if "content-length" in headers or "content-type" in headers:
             _fail()
-        return
+        return 0
     if status == 205:
-        if headers.get("content-length") != "0" or "content-type" in headers or body:
+        if headers.get("content-length") != "0" or "content-type" in headers:
             _fail()
-        return
+        return 0
     length = headers.get("content-length")
     if (
         length is None
@@ -128,25 +139,44 @@ def _validate_framing(status: int, headers: dict[str, str], body: bytes) -> None
         declared = int(length)
     except ValueError:
         _fail()
-    if declared > _MAX_BODY or not body or len(body) != declared:
+    if declared > _MAX_BODY or not declared:
         _fail()
+    return declared
+
+
+def parse_response_head(data: bytes) -> ParsedResponseHead:
+    """Validate exactly one complete status and header region without a body."""
+    if type(data) is not bytes or len(data) > _MAX_STATUS_LINE + _MAX_HEADERS:
+        _fail()
+    status, header_start = _parse_status_line(data)
+    headers, body_start = _parse_headers(data, header_start)
+    if body_start != len(data):
+        _fail()
+    remainder = data.replace(b"\r\n", b"")
+    if b"\r" in remainder or b"\n" in remainder:
+        _fail()
+    return ParsedResponseHead(status=status, body_length=_body_length(status, headers))
 
 
 def parse_response(data: bytes) -> ParsedResponse:
     """Parse one complete bounded response, discarding all upstream metadata."""
     if type(data) is not bytes or len(data) > _MAX_INPUT:
         _fail()
-    status, header_start = _parse_status_line(data)
-    headers, body_start = _parse_headers(data, header_start)
-    header_bytes = data[:body_start]
-    remainder = header_bytes.replace(b"\r\n", b"")
-    if b"\r" in remainder or b"\n" in remainder:
+    status_end = data.find(b"\r\n")
+    if status_end < 0:
         _fail()
+    if data[status_end + 2:status_end + 4] == b"\r\n":
+        body_start = status_end + 4
+    else:
+        header_end = data.find(b"\r\n\r\n", status_end + 2)
+        if header_end < 0:
+            _fail()
+        body_start = header_end + 4
+    head = parse_response_head(data[:body_start])
     body = data[body_start:]
-    if len(body) > _MAX_BODY:
+    if len(body) > _MAX_BODY or len(body) != head.body_length:
         _fail()
-    _validate_framing(status, headers, body)
-    return ParsedResponse(status=status, body=body)
+    return ParsedResponse(status=head.status, body=body)
 
 
 def serialize_response(response: ParsedResponse) -> bytes:
