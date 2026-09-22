@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "status": "STANDING_COST_AUTHORIZATION_GRANTED",
+  "approved_on": "2026-09-22",
+  "approved_by": "Jason Krueger (user in this task)",
+  "approval_text": "I also approve experiments which have costs associated as long as the total is under $50",
+  "scope": "Many Alerts, One Incident experiments advanced by this task",
+  "currency": "USD",
+  "aggregate_ceiling_microdollars": 50000000,
+  "ceiling_exclusive": true,
+  "per_experiment_reconfirmation_required": false,
+  "accounting_policy": [
+    "One cumulative experiment envelope, not $50 per attempt/model/worker/week or a new allowance on retry/restart.",
+    "Count experiment costs, failed attempts, retries and experiment-support paid worker/review calls once; reserve defensible maximum exposure before dispatch.",
+    "Reconcile existing applicable spend and unresolved exposure before establishing available balance; this approval does not assert a fresh $50 balance or reset any ledger.",
+    "Keep estimates distinct from provider actuals; unknown exposure is not zero. Hold paid admission when the remaining headroom cannot be established conservatively.",
+    "Existing tighter operational/attempt/weekly limits remain unless explicitly changed; no automatic recharge or infrastructure subscription."
+  ],
+  "execution_policy": [
+    "Prepare and freeze a concrete attempt card, verify technical/auth/containment/evidence/accounting prerequisites, then execute under this standing approval without another cost-permission question.",
+    "This authorization supersedes previous absence-of-paid-authorization and per-card user cost-approval requirements, not technical evidence gates or human Report adjudication.",
+    "Keep native auth/transport/qualification closed until their required evidence exists; historical results do not satisfy those gates."
+  ],
+  "balance": {
+    "available_microdollars": null,
+    "provider_actuals": null,
+    "status": "NOT_RECONCILED"
+  },
+  "paid_experiments_launched_when_recorded": 0
+}

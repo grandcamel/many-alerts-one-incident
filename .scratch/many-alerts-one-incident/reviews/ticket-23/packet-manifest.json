@@ -1,9 +1,9 @@
 {
-  "schema_version": 12,
-  "scope": "Local ticket23 integrated fixed rehearsal, approved rubric and native readiness draft; native launch CLOSED",
-  "supersedes_manifest_sha256": "515b3f88a7088d7d7b1c3858babe769a85bd6fdfaa66b40adba5ec4954685ae6",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-source-readiness/prior-phase-snapshot",
-  "local_links_verified": 104,
+  "schema_version": 13,
+  "scope": "Local ticket23 integrated fixture and readiness evidence; standing experiment cost approval total strictly below USD50; native execution technically closed",
+  "supersedes_manifest_sha256": "f47fe6c56b2c67ec03fa8544afca74559ef88c7aa6072b9c42c98d62ecff6f42",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-experiment-authorization/prior-phase-snapshot",
+  "local_links_verified": 85,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
@@ -27,8 +27,13 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md",
-      "bytes": 4975,
-      "sha256": "26082fed299bd4bcfe171fb9b49ab70b6bd96a3099043bf5c1a7e354e8eae8ec"
+      "bytes": 5473,
+      "sha256": "2b676155ea6a664527c0a3074ef2704b61fe7a5c1ae66995e35e5fcb1ce22129"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/experiment-authorization.json",
+      "bytes": 2015,
+      "sha256": "f93ee7b0946ba96657f3c14cbb9aa96ec0d7e367f169ec296b1f508f68fe6825"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-cases.json",
@@ -192,13 +197,13 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/README.md",
-      "bytes": 4013,
-      "sha256": "c76b172886e0c6c71ac54f0bc2f2cd7b504987ff5a4337720410148dc9a73b50"
+      "bytes": 4315,
+      "sha256": "bc65e405a6c6c455b3ae00d9c90695b5f9ac8698ad34fadcc943c6a606bcfe89"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/draft-manifest.json",
-      "bytes": 3210,
-      "sha256": "676a08a871e5dd1dfc72a8b2970eac9b06ea140b5fd43375c78e83dce9ce736a"
+      "bytes": 3279,
+      "sha256": "f9bc464b9ec59a46c71b7e949d74efe98a1aad92eff125cc93909864ba50ae23"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/adjudication-template.json",
@@ -207,8 +212,8 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/preflight.md",
-      "bytes": 4218,
-      "sha256": "b9ab700aabddeb5c50dfddb254f62c59318a41ce1f3ac95c56e93215d344de10"
+      "bytes": 4446,
+      "sha256": "77700fc695056b41789ee317d223bb4608627a34280ddc7bd35c146ce4cf16ad"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/rubric-approval.json",

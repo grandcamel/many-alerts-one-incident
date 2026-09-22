@@ -31,8 +31,8 @@
     },
     {
       "path": "operator/preflight.md",
-      "bytes": 4218,
-      "sha256": "b9ab700aabddeb5c50dfddb254f62c59318a41ce1f3ac95c56e93215d344de10"
+      "bytes": 4446,
+      "sha256": "77700fc695056b41789ee317d223bb4608627a34280ddc7bd35c146ce4cf16ad"
     },
     {
       "path": "operator/rubric.md",
@@ -41,8 +41,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4013,
-      "sha256": "c76b172886e0c6c71ac54f0bc2f2cd7b504987ff5a4337720410148dc9a73b50"
+      "bytes": 4315,
+      "sha256": "bc65e405a6c6c455b3ae00d9c90695b5f9ac8698ad34fadcc943c6a606bcfe89"
     },
     {
       "path": "operator/rubric-approval.json",
@@ -97,5 +97,6 @@
     "score.py"
   ],
   "security_boundary": "PROPOSED_ONLY_NOT_ENFORCED",
-  "human_rubric_approval": "operator/rubric-approval.json"
+  "human_rubric_approval": "operator/rubric-approval.json",
+  "standing_cost_authorization": "../experiment-authorization.json"
 }

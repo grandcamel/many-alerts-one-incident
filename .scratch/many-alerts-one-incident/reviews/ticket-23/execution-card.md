@@ -1,13 +1,15 @@
-# Ticket 23 — CLOSED measurement card
+# Ticket 23 — technical preflight measurement card
 
-Prepared 2026-09-21. **DRAFT / NOT EXECUTABLE / NO PAID RUN AUTHORIZED.**
-Offline preparation does not reserve funds, create credentials, start containers or
-authorize either model probe. No launch command is supplied.
+Prepared 2026-09-21. **COST AUTHORIZED UNDER AGGREGATE CAP / TECHNICAL PREFLIGHT NOT READY.**
+The user approved cost-bearing experiments with a cumulative total strictly below $50;
+[standing authorization](experiment-authorization.json) records the exact instruction.
+No repeat cost approval is needed within that scope. This draft still has unset technical
+fields, creates no reservation and supplies no launch command.
 
 | Field | Required value or current state |
 | --- | --- |
 | Purpose | New synthetic timing diagnostic or fixed command-length diagnostic; select exactly one per authorized card. |
-| Attempt ID / operator / execution date | UNSET — must be unique, recorded and approved. |
+| Attempt ID / operator / execution date | UNSET — must be unique and recorded before admission under standing authorization. |
 | Timing model / effort | Requested historical `claude-fable-5-1` / explicit `high`; availability and actual model NOT VERIFIED. |
 | Length model / effort | Historical Haiku 4.5 family; exact identifier and supported explicit effort UNSET. |
 | Fallback | No automatic substitution; detected native fallback/refusal stops and holds the experiment. |
@@ -21,7 +23,7 @@ authorize either model probe. No launch command is supplied.
 | Reservation | $3 before this attempt, one diagnostic attempt; no reservation made by this card. Guard is not a hard billing cap. |
 | Evidence root / capacity / retention | UNSET production private operator-owned path outside Git and Run mounts; 100 MiB/Run, 2 GiB total, 30 days. Fixed fixtures now retain at most 1 MiB capture with digest read-back; this does not implement production quota, sanitization or retention. |
 | Containment / receipt / terminal / identity acceptance | Offline predicates plus real fixed-host-fixture group/pipe cleanup and collision tests passed. Adversarial confinement, authenticated transport and native event compatibility NOT RUN. See process-outcome.md. |
-| Current status | Offline core, fixed-process harness, synthetic diagnostic ledger, fixture byte-integrity closeout and inert length-case records, pinned queries, synthetic Incident revisions/effects bounded retained snapshots, local capability binding and integrated child-process rehearsal implemented/tested. See integration-outcome.md. Native model executor, authoritative auth/billing/tenant/venue acceptance NOT RUN; paid execution remains CLOSED. |
+| Current status | Offline core, fixed-process harness, synthetic diagnostic ledger, fixture byte-integrity closeout and inert length-case records, pinned queries, synthetic Incident revisions/effects, bounded retained snapshots, local capability binding and integrated child-process rehearsal implemented/tested. See integration-outcome.md. Native model executor, authoritative auth/billing/tenant/venue acceptance NOT RUN; standing cost approval is GRANTED; native execution remains technically CLOSED. |
 
 ## Required evidence before this card can open
 
@@ -33,8 +35,10 @@ authorize either model probe. No launch command is supplied.
   preserve unresolved reservations, no assumption of zero usage or a fresh allowance.
 - Named operator, exact single attempt/model/effort/fixture/paths, capture capacity,
   cancellation mechanism and dispositions for failure, unknown dispatch and exposure.
-- Separate explicit authorization for that reviewed one-attempt card. No previous
-  ticket 19 exception or support-chat authorization opens this card.
+- Apply the standing experiment authorization after recording this concrete one-attempt
+  card and verifying aggregate actuals plus unresolved/reserved exposure stay strictly
+  below $50. Do not ask again for cost approval within this scope. Native readiness and
+  any unrelated account/infrastructure changes are not established by that approval.
 
 ## Required closeout after any future authorized attempt
 

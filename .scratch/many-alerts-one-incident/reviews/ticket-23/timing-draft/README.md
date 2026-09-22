@@ -40,7 +40,7 @@ hold provenance and status only; reading one cannot grant execution authority.
 [Operator preflight](operator/preflight.md) lists the exact unresolved bindings and
 human-review inputs. Prompt/Skill digests identify this draft, not a frozen executable
 comparison set. The operator must approve the final Mechanism baseline, rubric and full
-input/executable manifest before a separately authorized attempt. Changing these inputs
+input/executable manifest before an attempt admitted under the standing authorization. Changing these inputs
 starts a new diagnostic series unless retained evidence is explicitly re-adjudicated.
 
 The [rubric](operator/rubric.md) is for named human adjudication, not an automated judge.
@@ -53,4 +53,7 @@ complete audit/scoring specification and ticket 38 of qualification/accounting i
 The user approved the pinned synthetic Mechanism baseline and this exact rubric.
 [Approval record](operator/rubric-approval.json) binds the unchanged rubric bytes and
 fixture identities. Its approval supersedes the original rubric text's draft/pending
-status; scoring rules are unchanged. No Report is graded and no experiment is authorized.
+status; scoring rules are unchanged. That rubric approval grades no Report and was not itself experiment authorization.
+The later [standing cost approval](../experiment-authorization.json), dated 2026-09-22,
+permits experiments under a cumulative total strictly below $50 after technical and
+accounting preflight, without another per-experiment cost-permission question.

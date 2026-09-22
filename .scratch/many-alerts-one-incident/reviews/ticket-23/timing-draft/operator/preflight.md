@@ -1,6 +1,6 @@
 # Operator-only assembly and freeze gates
 
-**CLOSED. No attempt is admitted by this checklist.**
+**TECHNICAL PREFLIGHT CLOSED. Standing cost authorization exists; no attempt is admitted by this checklist alone.**
 
 1. Verify the draft manifest, pinned historical commit and source digests. Preserve the
    seven-Alert Notification and canned telemetry unchanged. Do not execute the historical
@@ -42,9 +42,11 @@
    Local timing snapshots retain bounded synthetic records and checked links only; they
    do not establish native audit completeness, custody, expiry or a durable-closeout deadline.
 8. Complete the separate one-attempt execution card with operator, unique ID, exact model,
-   effort, inputs, evidence root and failure dispositions. Obtain its explicit execution
-   authorization. Run neither arm under source-review approval, and admit no automatic retry
-   or second arm. This draft creates no reservation, auth change or paid measurement.
+   effort, inputs, evidence root and failure dispositions. Apply the user's standing
+   [experiment authorization](../../experiment-authorization.json): cumulative total must
+   remain strictly below $50, with reconciled prior exposure and a bounded reservation.
+   No repeat cost approval is needed. Each later arm/retry needs its own preflight and
+   reservation; this draft creates no reservation, auth change or paid measurement.
 
 The source draft can be reviewed now. Native preparation/execution and actual human Report adjudication
 remain separate work. Do not claim current model rates, capabilities or installed-client
