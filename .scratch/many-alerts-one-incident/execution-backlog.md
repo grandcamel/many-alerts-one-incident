@@ -9,10 +9,12 @@ not a percentage of the finished product.
 
 The user requested aggressive ticket progress without repeated “continue”
 prompts, cheaper-model delegation, and local commits. Automatic continuation
-`advance-many-alerts-one-incident` is paused for the prepared runtime source
-implementation scope decision below. Its configured interval is 30 minutes; it
-should resume after that scope is authorized, reporting meaningful changes or
-required action rather than repeated unchanged status.
+`advance-many-alerts-one-incident` is active every 30 minutes. The user authorized
+the reviewed local application source/test proposal by replying `continue` to
+the pending scope question; the [approval record](reviews/native-runtime-source-implementation-approval.json)
+preserves that scope. No repeated scope approval is needed for these local
+implementation follow-ups. Native/provider/tenant/deployment and spending gates
+remain separate; unchanged status should not produce repeated notifications.
 
 The [experiment authorization](reviews/ticket-23/experiment-authorization.json)
 covers aggregate experiment cost strictly below $50 across attempts and retries;
@@ -35,9 +37,12 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **874 passed, 36 skipped**, including 39 new supervised
-  integration tests and the existing streaming, buffered and process regressions.
-  See the [supervised streaming outcome](reviews/ticket-23/supervised-streaming-outcome.md).
+- Latest code validation: **924 passed, 36 skipped**, including 50 service/lease
+  tests plus the existing supervised streaming, buffered and process regressions.
+  The [first application outcome](reviews/forwarder-lease-implementation-outcome.md)
+  records local source validation; the existing
+  [supervised streaming outcome](reviews/ticket-23/supervised-streaming-outcome.md)
+  retains its separate fixture evidence.
 - The [native readiness register](reviews/ticket-23/native-adapter-readiness.md)
   separates implemented synthetic fixtures from the unqualified native client,
   provider accounting, isolation and intended venue.
@@ -77,11 +82,12 @@ now maps 14 evidence areas to pre-launch, post-attempt and sample-set phases.
 The installed client/source pins and all six historical approved fixture inputs
 were reverified. Native execution remains closed.
 
-The next substantive step is the
-[local runtime source implementation proposal](reviews/native-runtime-source-implementation-proposal.md).
-Tickets 36 and 37 explicitly exclude runtime implementation from their current
-planning scope. Source implementation therefore needs that scope decision; more
-synthetic stream cases cannot supply the missing runtime boundaries.
+The user approved the [local runtime source implementation proposal](reviews/native-runtime-source-implementation-proposal.md)
+as a separate follow-up to the planning tickets. The
+[first application unit](reviews/forwarder-lease-implementation-plan.md) implements
+fixed service profiles, mandatory/optional readiness and scoped lease state.
+Its [review and full-suite outcome](reviews/forwarder-lease-implementation-outcome.md)
+is complete. It does not wire the legacy launcher or claim authenticated control/OS isolation.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
@@ -89,7 +95,7 @@ synthetic stream cases cannot supply the missing runtime boundaries.
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | 23 and integration follow-ups | Native-launch evidence contract and source pins complete; local application implementation proposal ready for scope decision | Existing planning-only tickets grant no runtime implementation; proposed code/tests stay local and keep native/provider/tenant/deployment execution closed |
+| 5 | Authorized application implementation follow-ups | Service profiles and scoped leases complete; next add authenticated control, fixed TLS/request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets
@@ -108,6 +114,6 @@ criteria remain unmet and link completed deliverables from the issue.
 | Human Report adjudication | Actual future Report revisions and private evidence for a named human reviewer | Capture/parser contracts, deterministic prechecks and evidence preparation |
 | External actions outside scope | Concrete provisioning, new auth/keys, publication or tenant mutation not already authorized for that action | Prepare reviewable plans and continue other local work |
 
-The prepared implementation scope decision is the next required input. Existing
-paid, native, tenant, venue and human-adjudication gates are unchanged; approval
-of local code/tests would not satisfy those external acceptance gates.
+The local implementation scope is authorized; no further user input is needed
+for the next application source/test unit. Existing paid, native, tenant, venue
+and human-adjudication gates remain unchanged.

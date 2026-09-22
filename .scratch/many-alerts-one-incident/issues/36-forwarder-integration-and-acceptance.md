@@ -36,3 +36,15 @@ request, retrieval, revision and uncertain-effect boundaries. This is planning
 work, not an accepted replacement ADR, changed tool permission, or runtime
 acceptance. The ticket remains open for its unresolved inputs and final review.
 No provider-blocked C2 retry or live request was performed.
+
+## Separately authorized application follow-up, 2026-09-22
+
+The user's [separate implementation approval](../reviews/native-runtime-source-implementation-approval.json)
+authorizes local application source and tests outside this ticket's planning-only
+scope. The [first unit](../reviews/forwarder-lease-implementation-outcome.md)
+adds fixed service profiles, mandatory/optional readiness and the in-process
+scoped lease registry, with independent review and local tests. It does not wire
+the existing launcher, authenticate control peers, start listeners or establish
+native, tenant, credential-isolation or deployment acceptance. This ticket stays
+open; authenticated control, fixed TLS/request policy and the remaining evidence
+are subsequent work.

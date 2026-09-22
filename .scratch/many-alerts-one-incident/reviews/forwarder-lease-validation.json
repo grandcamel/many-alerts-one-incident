@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_APPLICATION_SOURCE",
+  "baseline_commit": "7037e15d3864671f65648948e255b7f53ddcf944",
+  "focused_tests": {
+    "passed": 50,
+    "seconds": 52.68
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "exit_code": 0,
+    "passed": 924,
+    "skipped": 36,
+    "seconds": 157.19,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-lease-full-suite.txt"
+  },
+  "ruff": "PASS on both source modules and both test modules",
+  "independent_source_review": "PASS at frozen source hashes",
+  "independent_test_review": "PASS after root regression strengthening",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_services.py": "819c3657db8c052065488a16eee6966729f14939dd9a5c1c819394cb3ce3dc91",
+    "grafana_jsm_sandbox/forwarder_leases.py": "4d7bc53ce9c7410ab2438855568d2da2bfd44dd24c47be909e55c9eea2d4df70",
+    "tests/test_forwarder_services.py": "09f9a4da3ece2f722ae889075e51c5b28184f939aec1a5b13f310bed72c34129",
+    "tests/test_forwarder_leases.py": "47181a5899affca9be99ba04642d21dcb927415ce1fac716832f6c3175f5728a",
+    "docs/forwarder-control.md": "adc3872c4f302429936707abf59c7415043bf33aee4f9ab126a0be3aea12de2f",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "ae71afb4b50ac9e4cd1e01d5f3cea008297bfa14e48b8df015f13719f8e9b4ed",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "75f48d594403d024ee079e4469afc90349c53389f4505293a661f225fe649621",
+    ".scratch/many-alerts-one-incident/reviews/native-runtime-source-implementation-approval.json": "0cc1eecefc8ad1fb8859ba42b0ca318a77dce243f6edbb0b86fd3a1e333bf781",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-lease-implementation-plan.md": "bd4a48281501d23358d5f47932686ae5d43eed69ba8c8565bb8c0d1e0914bd53",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-lease-review.md": "aedfe7c8b6e32af68a036706aed6530776b52f6b67eff6cce7256363477fe1b1",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-lease-full-suite.txt": "f96df519f4908107b6c063925848d865a8fe8d3545c053a02cf795fd014123f6",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-lease-implementation-outcome.md": "724552f11d302a8cdb766aee8b65a08523e4603d6302881d89759c5c5f9fade3"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Authenticated Receiver control transport",
+    "Native model client execution",
+    "Provider or tenant requests",
+    "Kernel and credential isolation",
+    "Deployment",
+    "Paid accounting admission",
+    "Human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

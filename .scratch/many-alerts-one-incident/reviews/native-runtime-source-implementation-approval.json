@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "AUTHORIZED_LOCAL_APPLICATION_SOURCE_AND_TESTS",
+  "user_response": "continue",
+  "context": "Response to the pending question asking approval of this reviewed local Forwarder/Receiver/accounting source implementation proposal, following the explicit continuation pause for that scope decision.",
+  "approved_proposal": {
+    "path": ".scratch/many-alerts-one-incident/reviews/native-runtime-source-implementation-proposal.md",
+    "sha256": "8441cab12aec33c2bf5190382f57eed5e27dc280d431ca2d35234d40a5b29d36"
+  },
+  "scope": [
+    "Local application source implementation of Forwarder, Receiver/recovery and accounting contracts",
+    "Local tests, independent review and local commits",
+    "Separate implementation follow-ups; planning tickets are not marked runtime-accepted"
+  ],
+  "excluded": [
+    "Native model client execution",
+    "Provider or real tenant calls",
+    "Credential read/change or account operations",
+    "Deployment/provisioning",
+    "Push/publication",
+    "Provider-blocked C2 retry/modification",
+    "Automatic Report adjudication or model qualification"
+  ],
+  "cost_policy": "Existing strict aggregate cap and unknown-exposure/technical gates remain unchanged; this scope decision does not admit paid execution.",
+  "continuation": "Existing automation resumed; no repeat permission needed for this local source/test scope."
+}
