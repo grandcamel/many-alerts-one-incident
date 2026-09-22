@@ -37,6 +37,12 @@ only; runtime compatibility remains unqualified. A separate
 [offline normalization](../../../../prototype/run_timing/DOCUMENTED_STREAM.md).
 It is not an observed-and-qualified installed-client schema.
 
+A separate [local TLS harness](../../../../prototype/mediated_client/README.md)
+provides real Python loopback transport checks with synthetic leases/credentials.
+The [configuration source map](client-configuration-sources.md) records current
+client documentation. Neither supplies installed-client, OS isolation, streaming
+or billing acceptance.
+
 ## What Ticket 23 can carry forward
 
 | Existing contract | Reusable offline property | It does not prove |

@@ -55,6 +55,11 @@ and combines offline stream checks with explicit supplied process observations.
 Its best result is `stream_consistent`; native qualification remains `NOT_ASSESSED`
 and further dispatch stays held. It is not wired to a launcher or the synthetic parser.
 
+The separate [local mediated-client harness](../mediated_client/README.md) now
+exercises real loopback TLS, scoped fixture leases, fixed request routing, header
+replacement and held transport failures with synthetic credentials. It does not
+launch a native model client or alter the production Forwarder.
+
 `executor.py` provides:
 
 - A virtual-clock lifecycle with fixed 270/20/10 boundaries, early cancellation,

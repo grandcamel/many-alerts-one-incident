@@ -1,14 +1,19 @@
 {
-  "schema_version": 15,
-  "scope": "Documented-source offline stream normalizer with held native qualification; standing cumulative experiment cap below USD50",
-  "supersedes_manifest_sha256": "ba46b8405df4f99c21af9c31df0ab71d9186b6d39a3e3066f37cbc93028fbe0c",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/prior-phase-snapshot",
-  "local_links_verified": 106,
+  "schema_version": 16,
+  "scope": "Local Python two-hop TLS, synthetic scoped leases and held native qualification; aggregate experiment cap below USD50",
+  "supersedes_manifest_sha256": "2cd1e6a6ac93973979fe9a45da4ede1790937785e976f13bf5ea441b25c4b60d",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/prior-phase-snapshot",
+  "local_links_verified": 137,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
-      "bytes": 7415,
-      "sha256": "522643a75f21ab7bf6b415fecfa031b8d1386b5525c134065205afb9a01a5037"
+      "bytes": 7746,
+      "sha256": "95a6619e3f5fe86979546e053d4aa80eedc653c38a8a197c90fec26b3bcdf89c"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/client-configuration-sources.md",
+      "bytes": 6483,
+      "sha256": "30ebf77ea5ad12c0f08f7617a59dedd19e1ea2ee74564c540defbb50a3bcf214"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/client-evidence-register.json",
@@ -57,8 +62,8 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md",
-      "bytes": 5817,
-      "sha256": "01d170338c97b7feb060e4a262f7ee6019bdd24f0f7564cb23ca78168060cde0"
+      "bytes": 5967,
+      "sha256": "c4a1dbccb732526f9f9656f496cc8cf5f611cb67286cafeac4eefda605506ae7"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/experiment-authorization.json",
@@ -156,9 +161,24 @@
       "sha256": "4603aa944eca0e3d3c72c22b1cb5bb6899ae46839f4f0cd9ca710dff5d0f51b3"
     },
     {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/mediated-client-outcome.md",
+      "bytes": 3743,
+      "sha256": "cc141c422bc1d4a77f9b217818a06636748c44102c5e4ecc543f6dbbcc915499"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/mediated-client-plan.md",
+      "bytes": 8803,
+      "sha256": "f8e5225398a6f22fcdeef3dd81516b68556abce58a7ac22ea0bc5ebf468c31da"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/mediated-client-validation.json",
+      "bytes": 8852,
+      "sha256": "bab22a763c1e82bb6b1638cf9a997bb2feabda7f24a9981915e16db1138e15a3"
+    },
+    {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/native-adapter-readiness.md",
-      "bytes": 10042,
-      "sha256": "438fc4421fab0bc6c4234dfd8df2353d46b77c7ee8bc0781a13769f988391ceb"
+      "bytes": 10389,
+      "sha256": "7159ca4d8a67516cf4b4e98b845905f750fee152c4b04f4a3c5a46f3865ac27a"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/process-outcome.md",
@@ -301,6 +321,31 @@
       "sha256": "9a3de56b48b170c1dd73bc30075a7c53274c6ab94227df045f77a6d83f35ca89"
     },
     {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-36/contract-draft.md",
+      "bytes": 16045,
+      "sha256": "696164b3c0ed670b03691354186a19bd6247bc1e29fb9a5d974a4756cf278651"
+    },
+    {
+      "path": "prototype/mediated_client/README.md",
+      "bytes": 3002,
+      "sha256": "275f66a9662144520fafdf6f6256f4a5ba20401ec30df8b1ac08183d97cb1d85"
+    },
+    {
+      "path": "prototype/mediated_client/__init__.py",
+      "bytes": 491,
+      "sha256": "501173f58f28851554de1f954e2d75f0113deb38741ecb654758339211fc361d"
+    },
+    {
+      "path": "prototype/mediated_client/certificates.py",
+      "bytes": 4645,
+      "sha256": "f7b48ce09154fd9764dec3f3164a20285ef72f6207bbb07b6df6c6ea07dd82a3"
+    },
+    {
+      "path": "prototype/mediated_client/harness.py",
+      "bytes": 33907,
+      "sha256": "5300266b2f1829726c810b2d3317bd91f483a30145242f67fecd3e9b20dbee15"
+    },
+    {
       "path": "prototype/run_timing/DOCUMENTED_STREAM.md",
       "bytes": 2472,
       "sha256": "2b1c02705fa15fc7b95ff0ef9e314b39806b9b8cdc54237df2da092f943a4907"
@@ -327,8 +372,8 @@
     },
     {
       "path": "prototype/run_timing/README.md",
-      "bytes": 7957,
-      "sha256": "4dde07e7ca7ccfd6c2c445cfb84fc9ed6e0d713a598ea570248f58bb60cbfc51"
+      "bytes": 8263,
+      "sha256": "eb12e1c8f361666c7be68b04094bf882523d3f38605b2a8aa5d785cebd18c300"
     },
     {
       "path": "prototype/run_timing/TIMING_BINDING.md",
@@ -454,6 +499,11 @@
       "path": "prototype/run_timing/timing_snapshot.py",
       "bytes": 13037,
       "sha256": "ff87394437a136ecd30598051f8254190169c1519ec5f2012cc6ce57500145a6"
+    },
+    {
+      "path": "tests/test_mediated_client.py",
+      "bytes": 26027,
+      "sha256": "e13e077e96c9855598c6f0958ce19eb3b2bf5d1569c7f64cc5a31d30a9c6ca91"
     },
     {
       "path": "tests/test_timing_binding.py",

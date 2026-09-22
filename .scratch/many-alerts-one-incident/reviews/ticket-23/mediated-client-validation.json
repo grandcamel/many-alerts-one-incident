@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "scope": "Isolated two-hop local Python TLS with synthetic leases and bounded buffered replies; native client NOT RUN",
+  "baseline_commit": "36a89c5",
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 794,
+    "skipped": 36,
+    "seconds": 47.0,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "implementation": "Terra; isolated prototype only",
+    "tests": {
+      "author": "independent Luna agent",
+      "final_targeted_passed": 50,
+      "scope": "Real loopback Python TLS and synthetic credential/lease fixtures"
+    },
+    "standards": {
+      "reviewer": "independent Luna agent",
+      "final_verdict": "PASS; no remaining material blockers",
+      "reviewed_harness_sha256": "5300266b2f1829726c810b2d3317bd91f483a30145242f67fecd3e9b20dbee15",
+      "reviewed_certificate_helper_sha256": "f7b48ce09154fd9764dec3f3164a20285ef72f6207bbb07b6df6c6ea07dd82a3",
+      "findings_fixed": [
+        "Exact response/framing/expiry predicates made explicit",
+        "Accepted connection budget leaves room for upstream failure response",
+        "One-time opaque pending dispatch correlation prevents forged direct-stub receipts"
+      ]
+    },
+    "root": {
+      "verdict": "PASS",
+      "corrections": [
+        "Handshake timeout applied before TLS wrap on accepted socket",
+        "Absolute connection deadline prevents slow-drip extension",
+        "Original accepted deadline also bounds outbound connect/send/read and success predicate",
+        "Malformed non-ASCII credentials and huge Content-Length reject explicitly",
+        "Synthetic upstream read caps and partial constructor cleanup",
+        "Concurrent shutdown acknowledgement and bounded joins",
+        "OpenSSL test certificate generation uses minimal environment and mode-restricted temporary keys"
+      ]
+    },
+    "interpretation": "Connection deadline bounds mediator handling and outbound transport; it cannot undo already dispatched synthetic upstream work. Shutdown has its own five-second bound.",
+    "external_headless": "NOT RUN; no new paid external review or experiment"
+  },
+  "source_files": [
+    {
+      "path": "prototype/mediated_client/certificates.py",
+      "bytes": 4645,
+      "sha256": "f7b48ce09154fd9764dec3f3164a20285ef72f6207bbb07b6df6c6ea07dd82a3"
+    },
+    {
+      "path": "prototype/mediated_client/harness.py",
+      "bytes": 33907,
+      "sha256": "5300266b2f1829726c810b2d3317bd91f483a30145242f67fecd3e9b20dbee15"
+    },
+    {
+      "path": "prototype/mediated_client/__init__.py",
+      "bytes": 491,
+      "sha256": "501173f58f28851554de1f954e2d75f0113deb38741ecb654758339211fc361d"
+    },
+    {
+      "path": "tests/test_mediated_client.py",
+      "bytes": 26027,
+      "sha256": "e13e077e96c9855598c6f0958ce19eb3b2bf5d1569c7f64cc5a31d30a9c6ca91"
+    }
+  ],
+  "evidence_files": [
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/client-configuration-sources.md",
+      "bytes": 6435,
+      "sha256": "4d79d21e7eb108170ed0a0e77c29f85cc1fe006aec50050ba47abf4aec2016b7"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/example-summary.txt",
+      "bytes": 1317,
+      "sha256": "6a2e8241142bf86366bed2e9eab3e6dc9a15e5090a0d34fed32ba2d057453c9d"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/full-suite-before-dispatch-deadline.txt",
+      "bytes": 993,
+      "sha256": "46ced1fadf62948552194e07314ee20052a501397c1681a3c226aa8973661501"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/full-suite-final.txt",
+      "bytes": 993,
+      "sha256": "6b46295f14fc085f2732a53a2e02e22e674c294f17791f0976947d34b9d37242"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/certificate-index.json",
+      "bytes": 863,
+      "sha256": "df6c36be7bb872742d98e82d9f34220e0f994efcfdd2a8ae7c710d07657aac54"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/disconnect.json",
+      "bytes": 1525,
+      "sha256": "812549403e9d729b4f52f94c8305da39799c9f2823401c950def75d4be1b5648"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/expired.json",
+      "bytes": 731,
+      "sha256": "07062612839da0614e3c70b9622fff359c170bf98b64f1f3ae82a6d5e4fb5422"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/expired_certificate.json",
+      "bytes": 391,
+      "sha256": "de933326bc45253bd56c9e3146f3470a8c588c0f9c0d4d5b7c42e2facc621133"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/index.json",
+      "bytes": 1317,
+      "sha256": "6a2e8241142bf86366bed2e9eab3e6dc9a15e5090a0d34fed32ba2d057453c9d"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/not_active.json",
+      "bytes": 737,
+      "sha256": "654d4f14b291d62280e9956c2a358a094857c98fa0bbc291c0aa682f78379ab5"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/oversize.json",
+      "bytes": 1522,
+      "sha256": "070e8d54e791f213e71bb0991bf06fe596224aca26cc11a7afef9816d3fe7625"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/redirect.json",
+      "bytes": 1515,
+      "sha256": "36d8bdf2c8e93e43c82240a525fd15ece4c3475772a6c570821d019446fb74d0"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/response_cap.json",
+      "bytes": 1528,
+      "sha256": "40670a86714806bfe20928536d389f0eaca776e6a60e7e360afb30d704a5564d"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/revoked.json",
+      "bytes": 734,
+      "sha256": "29933209c4ccb49d27c280e60aedd9e2c33b8c065f0a582020cbae43bd883b8f"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/timeout.json",
+      "bytes": 1522,
+      "sha256": "a5b32094249966e6f60ac9494e891dc98033f2ac7fc5cd84306ef7a812e8a871"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/truncate.json",
+      "bytes": 1520,
+      "sha256": "601f3dc36433f862d4403a788180a0338ef85672785dd479cec73da99ea9cde5"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/upstream_expired.json",
+      "bytes": 1198,
+      "sha256": "1b1d9df1acf362e49a6b43f69321ff3b2cc372715a6139ff47edb1cbb3d342f6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/upstream_wrong_hostname.json",
+      "bytes": 1205,
+      "sha256": "f58d4639c7364f0fa1401c7413d973b6c5471d83499a9fbb7ea3b10cae94fc24"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/valid.json",
+      "bytes": 1073,
+      "sha256": "e0714c52113386dd87ec1d6dad693dc1ace87d30105abc6fb6948cb113756d1f"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/wrong_ca.json",
+      "bytes": 380,
+      "sha256": "0bf72627f08603c96499b4fda1e98cfa0e4e6a5ea9a90b085be825e6fe453928"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/wrong_hostname.json",
+      "bytes": 385,
+      "sha256": "388e0d8dd018ad8174ad3620d396f5176e356dd17e1d2e8ec017d14fddb88df4"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/local-examples/wrong_service.json",
+      "bytes": 743,
+      "sha256": "d1f1a703a069ba54250738498c7362ec43ed334831b1031759a3fdff2f1e880d"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/review-summary.json",
+      "bytes": 1713,
+      "sha256": "4d2f2dde86095d75c3d62eca9d22b06fcded913e906662a8ee7060860e1c479d"
+    }
+  ],
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-mediated-client/prior-phase-snapshot",
+  "prior_files_verified": 103,
+  "not_run": [
+    "Installed CLI stream compatibility",
+    "Native model/tool launch",
+    "Authenticated source/effect receipts",
+    "Native client TLS/streaming/revocation and OS control separation",
+    "Provider billing reconciliation",
+    "Production audit sanitization/quota/retention",
+    "Full durable-closeout deadline",
+    "Human Report grading",
+    "Model/tenant/venue qualification",
+    "External headless model review",
+    "Push or publication"
+  ]
+}

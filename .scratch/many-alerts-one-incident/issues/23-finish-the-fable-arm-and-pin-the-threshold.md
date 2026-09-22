@@ -106,3 +106,8 @@ qualification, mediated routing and real spend reconciliation remain pending. Th
 [standing experiment authorization](../reviews/ticket-23/experiment-authorization.json)
 and [rubric approval](../reviews/ticket-23/timing-draft/operator/rubric-approval.json)
 are granted; no repeat cost permission is required within the aggregate cap.
+
+The [local mediated-client outcome](../reviews/ticket-23/mediated-client-outcome.md)
+adds real two-hop Python TLS fixtures with scoped leases, deadline enforcement,
+credential-header replacement and unknown/no-retry failure handling. Native client
+streaming, real request policies, OS isolation and billing remain separate gates.

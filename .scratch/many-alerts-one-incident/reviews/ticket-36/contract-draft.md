@@ -126,3 +126,18 @@ It cannot make ticket 36 implementation-ready until the policy-owner inputs abov
 are resolved and the selected parameters are reviewed. It authorizes no runtime
 change, client invocation, credential use, account operation, cluster work, or
 model run.
+
+## Local transport evidence, 2026-09-22
+
+The isolated [mediated-client fixture](../../../../prototype/mediated_client/README.md)
+and [outcome](../ticket-23/mediated-client-outcome.md) exercise two real loopback TLS
+hops, scoped synthetic leases, fixed fixture request/header policy, bounded replies,
+revocation and unknown/no-retry transport outcomes. All certificates and credentials
+are temporary synthetic inputs. Its configurable limits and ephemeral ports are
+fixture choices, not accepted deployment settings. Responses are buffered; native
+streaming and installed-client compatibility remain NOT RUN.
+
+This does not change the production Forwarder or complete this specification.
+The five-service policies, Receiver/Run OS boundary, direct-route prevention,
+production certificate lifecycle, authenticated control plane, native operation
+shapes, billing and venue acceptance still need their own evidence.
