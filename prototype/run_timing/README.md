@@ -19,6 +19,11 @@ The [timing instruction drafts](../../.scratch/many-alerts-one-incident/reviews/
 separate future Run text from the operator-only rubric and preflight. They are not installed;
 human rubric freeze and a reviewed native binding remain required.
 
+[Pinned timing queries](TIMING_QUERIES.md) now provide bounded in-process retrieval of the
+historical synthetic Notification and telemetry with correlated response read-back. This
+is the read-only fixture API only; native transport and synthetic Incident writes remain
+unimplemented.
+
 `outcomes.py` parses bounded synthetic Claude-shaped JSON events and derives execution
 outcomes without discarding malformed evidence, duplicate terminals or receiver-observed
 failures. The deliberately small schema accepts assistant messages with explicit model

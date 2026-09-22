@@ -81,3 +81,8 @@ The [timing text outcome](../reviews/ticket-23/timing-text-outcome.md) adds revi
 drafts for the prompt, diagnostic Skill and operator-only human rubric. Historical inputs
 are pinned; legacy flag-name grading is excluded. Human Mechanism/rubric freeze and the
 native adapter/executable binding remain pending. No Skill was installed and no probe ran.
+
+The [pinned query outcome](../reviews/ticket-23/query-outcome.md) adds a read-only in-process
+fixture API with exact input hashes, bounded queries, explicit truncation and correlated
+response read-back. Native transport, authenticated receipts and synthetic Incident writes
+remain unimplemented; the timing measurement card remains closed.

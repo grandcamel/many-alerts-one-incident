@@ -26,7 +26,7 @@ The source work in this batch is:
 | `run/system-prompt.md`, `run/task-prompt.md`, `run/incident-report/SKILL.md` | Run instruction inputs only | Source drafts, exact digests in draft-manifest.json |
 | Pinned `notification-cascade.json` as `notification.json` | Read-only Run input | Historical source digest verified, no mount prepared |
 | Binding manifest | Run-visible capability syntax, fixture identities, response correlation and stop interface | UNSET; reviewed implementation required |
-| Pinned canned telemetry | Supervisor-owned inert query adapter; exact returned responses recorded | Historical source digests verified; new adapter unimplemented |
+| Pinned canned telemetry | Supervisor-owned inert query adapter; exact returned responses recorded | Pinned in-process read-only query API implemented/tested; native isolated adapter remains unimplemented |
 | Synthetic Incident store and mutation receipts | Supervisor-owned; capabilities only, no live route | UNSET; fresh empty baseline and mutation semantics must be proven |
 | Operator directory, draft manifest, this README, historical Ground truth and scoring material | Operator/reviewer only, outside Run mounts and Memory | Planning artifacts; no access boundary implemented |
 

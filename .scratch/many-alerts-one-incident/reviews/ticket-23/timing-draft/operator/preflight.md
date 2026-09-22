@@ -9,6 +9,8 @@
    request/response schemas, response IDs, query scope, event/observation times, immutable
    Report revisions and separate dispatch/effect receipts. This binding is UNSET. Tool names,
    CLI flags, ADF support and host-installed Jira semantics are not inferred from history.
+   The local `TimingQueries` prototype supplies read-only pinned data and in-memory response
+   records only. Its Python discovery output is not this native execution binding.
 3. Freeze synthetic Incident semantics. The initial timing scenario has a fresh empty store;
    verify that state through the actual bound query path. Candidate matching, additive member
    labels, retained revisions, severity/urgency/source fields, failure/uncertain-write handling

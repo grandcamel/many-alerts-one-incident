@@ -31,8 +31,8 @@
     },
     {
       "path": "operator/preflight.md",
-      "bytes": 3429,
-      "sha256": "2a94859c3ff868b47cc5ab540c7e30868b94ef90786a3ebf367eea1b7f9fdc32"
+      "bytes": 3605,
+      "sha256": "5190383766b39eb5a1f5d86675c09824c963c1e644ddc8667466c691f298a896"
     },
     {
       "path": "operator/rubric.md",
@@ -41,8 +41,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 3521,
-      "sha256": "90501b36978f183e80791de2c9cf1543d3d006f76ebe08382d25c2cc495b593a"
+      "bytes": 3563,
+      "sha256": "ba459d4a9fd96094c5dc9b6e0b28cae40e30fcacb4461cb09211c07f53f44fc6"
     }
   ],
   "historical_inputs": [

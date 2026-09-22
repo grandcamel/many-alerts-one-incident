@@ -1,14 +1,14 @@
 {
-  "schema_version": 7,
-  "scope": "Local ticket 23 fixture implementation and reviewed timing text drafts; no native approval",
-  "supersedes_manifest_sha256": "c20f2a63c42870e0edf087b6dc29150b1e59a2bc3158ec80162ac4bd49a6ddcc",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-texts/prior-phase-snapshot",
-  "local_links_verified": 44,
+  "schema_version": 8,
+  "scope": "Local ticket23 fixture implementation, pinned query adapter and timing drafts; no native approval",
+  "supersedes_manifest_sha256": "49da77289b222945dd2429c7fde9b26c9cbc2a01ef45548b67a1170bf6805d64",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/prior-phase-snapshot",
+  "local_links_verified": 49,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
-      "bytes": 5270,
-      "sha256": "bf36ab533a8676d861fedae40044c7a6dea061cfce953d07a8259d530f7a646e"
+      "bytes": 5611,
+      "sha256": "c906d4b8e7322f25d5e27ebd064894af82c170e59e19fdbab2a9d9d687852167"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/closeout-outcome.md",
@@ -27,8 +27,8 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md",
-      "bytes": 4599,
-      "sha256": "c68e4ca04a4f544179de083a1fd7d0f2bb08f0eaf1e03ac4bf0d72f505cb372b"
+      "bytes": 4630,
+      "sha256": "849a831ea922cc40f759469afdc8c754de9a29660d7d2c076dce334e95d50382"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-cases.json",
@@ -106,6 +106,21 @@
       "sha256": "f4894da5ef97b6dc24f9695404ce93587cdc3f3b9e4cee5b6a2abacaaec8534f"
     },
     {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/query-outcome.md",
+      "bytes": 5282,
+      "sha256": "a479c1b0f1f6e7e5ca03e816f291ddbe746e063ab27fe70a96c9fcd82e0ab8da"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/query-plan.md",
+      "bytes": 2218,
+      "sha256": "9fd4ca54ca73f4d157f1b754b692f2f45f5066a94efe274f8c3368cf6d4a028d"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/query-validation.json",
+      "bytes": 5071,
+      "sha256": "089b7ab609cef2697421e28e3af1372807d42c45a99f07dfdc7c0fd43806bd8f"
+    },
+    {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/review.md",
       "bytes": 2324,
       "sha256": "edaa7807a81c6654d8d0ff34fa9fdf031114bce839299a5d037e7921915e3c1c"
@@ -122,13 +137,13 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/README.md",
-      "bytes": 3521,
-      "sha256": "90501b36978f183e80791de2c9cf1543d3d006f76ebe08382d25c2cc495b593a"
+      "bytes": 3563,
+      "sha256": "ba459d4a9fd96094c5dc9b6e0b28cae40e30fcacb4461cb09211c07f53f44fc6"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/draft-manifest.json",
       "bytes": 2956,
-      "sha256": "614ddf32a1ecfd2e1a41405a44e51cccf555e8f3432624b4815faa36489892a0"
+      "sha256": "290cf6ceb6599bfa3761314accd53dd5b3769bd387acad75c10e3a6e22cf09d1"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/adjudication-template.json",
@@ -137,8 +152,8 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/preflight.md",
-      "bytes": 3429,
-      "sha256": "2a94859c3ff868b47cc5ab540c7e30868b94ef90786a3ebf367eea1b7f9fdc32"
+      "bytes": 3605,
+      "sha256": "5190383766b39eb5a1f5d86675c09824c963c1e644ddc8667466c691f298a896"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/rubric.md",
@@ -197,8 +212,13 @@
     },
     {
       "path": "prototype/run_timing/README.md",
-      "bytes": 5673,
-      "sha256": "789e008f4367cb25735a6bb977fb210ea4bf69552dfebc6d269e031b8f1a6b4f"
+      "bytes": 5958,
+      "sha256": "3fcf2feadde2e34616399d2b6c343f9a05a0aaa3fbf74f93a516e87fdb577d7c"
+    },
+    {
+      "path": "prototype/run_timing/TIMING_QUERIES.md",
+      "bytes": 6105,
+      "sha256": "f51a8b1f4cb1b24051bd14aa643a55d07a7712efaf72d0d374e2b1cbdac1cbbc"
     },
     {
       "path": "prototype/run_timing/__init__.py",
@@ -236,6 +256,36 @@
       "sha256": "9b6b4aba3b9f74c81191e82223b72eaf65346ec58d09b09620df7182f274af33"
     },
     {
+      "path": "prototype/run_timing/timing_data/changes.json",
+      "bytes": 663,
+      "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/logs.jsonl",
+      "bytes": 6524,
+      "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/metrics.json",
+      "bytes": 19153,
+      "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/notification.json",
+      "bytes": 8752,
+      "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/traces.json",
+      "bytes": 3985,
+      "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c"
+    },
+    {
+      "path": "prototype/run_timing/timing_queries.py",
+      "bytes": 11360,
+      "sha256": "4b3039244ced178b004113d50b841f9beed1b93cbee73177da01f6d0317ffe3b"
+    },
+    {
       "path": "tests/test_timing_executor.py",
       "bytes": 15630,
       "sha256": "7d26a35de4758c72e20d00c059c234836b6b7c4e237de081331d90860490586e"
@@ -264,6 +314,11 @@
       "path": "tests/test_timing_process_fixture.py",
       "bytes": 10368,
       "sha256": "9be54e9db66e5b0844489254e3973acaf3b486fcc307137762eb88d4f0f5b9dd"
+    },
+    {
+      "path": "tests/test_timing_queries.py",
+      "bytes": 11105,
+      "sha256": "eac7724472b636828ac89a8795462f297c70f89e1ef04f460c9bf3c51c8c7b7d"
     }
   ]
 }

@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "scope": "Pinned in-process synthetic read-only query adapter; native launch CLOSED",
+  "baseline_commit": "44ed5f5",
+  "targeted_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_queries.py",
+    "passed": 43,
+    "seconds": 0.24,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 529,
+    "skipped": 36,
+    "seconds": 28.62,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "findings": 0,
+      "remaining": 0,
+      "final_correction_readback": true
+    },
+    "spec": {
+      "findings": 0,
+      "remaining": 0,
+      "final_correction_readback": true
+    },
+    "fable": {
+      "classification": "usable",
+      "exit_code": 0,
+      "requested_model": "claude-fable-5-1",
+      "actual_assistant_models": [
+        "claude-fable-5-1"
+      ],
+      "verdict": "CHANGES_REQUIRED",
+      "session_id": "3a2fd875-213c-4c7d-a655-8ebc9ee0c9bd",
+      "duration_ms": 103218,
+      "session_estimate_usd": 1.529522,
+      "provider_actual_usd": null,
+      "reviewed_source": "Frozen initial source; not corrected source",
+      "artifacts": [
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/fable-review/manifest.json",
+          "bytes": 1331,
+          "sha256": "abb5c016080fec0350e26cfadf07115ec3b8d0962a627d3cc3d5a01633fbccc6"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/fable-review/native-review.jsonl",
+          "bytes": 62195,
+          "sha256": "765e93d2b21b998a04f48d0c3e192a0c410349ebb15b705c7ab34bda8113daa2"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/fable-review/prompt.txt",
+          "bytes": 79927,
+          "sha256": "cb3297b11a66b524991860dad35b48947dbd6a7783a526f5e06134ab84e6d011"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/fable-review/review-stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/fable-review/review.md",
+          "bytes": 4188,
+          "sha256": "78ee5402894b42fb99f882a3c8f0b57b8d39f77fdcf60a97b7759021f96b6dcc"
+        }
+      ],
+      "correction_adjudication": "Parent regression/full suite plus final Codex Standards/Spec readbacks; no Fable rereview"
+    }
+  },
+  "correction": {
+    "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/review-correction.json",
+    "bytes": 534,
+    "sha256": "a60b99fcdcdf961e19bed29602a89c01676339152f470502ab47bcc6dc3676cc"
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/timing_queries.py",
+      "bytes": 11360,
+      "sha256": "4b3039244ced178b004113d50b841f9beed1b93cbee73177da01f6d0317ffe3b"
+    },
+    {
+      "path": "prototype/run_timing/TIMING_QUERIES.md",
+      "bytes": 6105,
+      "sha256": "f51a8b1f4cb1b24051bd14aa643a55d07a7712efaf72d0d374e2b1cbdac1cbbc"
+    },
+    {
+      "path": "tests/test_timing_queries.py",
+      "bytes": 11105,
+      "sha256": "eac7724472b636828ac89a8795462f297c70f89e1ef04f460c9bf3c51c8c7b7d"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/notification.json",
+      "bytes": 8752,
+      "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/changes.json",
+      "bytes": 663,
+      "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/logs.jsonl",
+      "bytes": 6524,
+      "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/metrics.json",
+      "bytes": 19153,
+      "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae"
+    },
+    {
+      "path": "prototype/run_timing/timing_data/traces.json",
+      "bytes": 3985,
+      "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c"
+    }
+  ],
+  "pinned_input_readback": "5 files match historical source-manifest and compiled hashes",
+  "not_run": [
+    "native query transport and authenticated receipts",
+    "Run/operator mount enforcement",
+    "synthetic Incident write/read-back binding",
+    "durable private audit custody/retention",
+    "human rubric freeze",
+    "real provider billing",
+    "300-second launch-to-durable-closeout",
+    "paid timing/length measurement",
+    "model/tenant/venue acceptance"
+  ],
+  "prior_phase_archive": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/prior-phase-snapshot",
+  "archive_provenance": {
+    "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-queries/archive-provenance.json",
+    "bytes": 163,
+    "sha256": "68913f13bf0b0fa7e826bfaefc48ec73d82adbaa58d7222b5df20d6a3f0f74fa"
+  }
+}

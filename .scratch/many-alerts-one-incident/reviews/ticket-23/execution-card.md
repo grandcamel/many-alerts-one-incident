@@ -13,7 +13,7 @@ authorize either model probe. No launch command is supplied.
 | Fallback | No automatic substitution; detected native fallback/refusal stops and holds the experiment. |
 | CLI / effective policy | Inspected 2.1.278; re-freeze version/help, effective permission policy and tools before execution. |
 | Historical input | `79a14c8904f3a125d1f03b192d10797d30979c86`; digests in source-manifest.json. |
-| Executable revision / prompt / Skill / adapter / rubric | Offline core has no native launcher. Reviewed prompt/Skill/rubric source drafts exist in timing-draft/; human rubric freeze, native binding, qualified adapter and full executable manifest remain UNSET. Historical runner/Skill are not approved. |
+| Executable revision / prompt / Skill / adapter / rubric | Offline core and pinned in-process queries have no native launcher. Reviewed prompt/Skill/rubric source drafts exist in timing-draft/; human rubric freeze, native transport/Incident adapter and full executable manifest remain UNSET. Historical runner/Skill are not approved. |
 | Run access | Sealed read-only fixture bundle; synthetic stubs only; no Ground truth, rubric, audit store or host credentials. |
 | Auth | Dedicated metered API via fixed Forwarder and per-Run sentinel; upstream key outside Run. Current readiness NOT VERIFIED. |
 | Time | 270s startup/work + up to 20s interrupt/local flush + up to 10s kill/reap; total at most 300s monotonic. |
