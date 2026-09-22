@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "scope": "Inert length-case metadata only; native launch CLOSED",
+  "baseline_commit": "def767b",
+  "targeted_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_length_records.py",
+    "passed": 22,
+    "seconds": 0.09,
+    "exit_code": 0
+  },
+  "combined_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_length_records.py tests/test_timing_executor.py",
+    "passed": 88,
+    "seconds": 0.28,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 486,
+    "skipped": 36,
+    "seconds": 30.22,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "findings": 0,
+      "remaining": 0
+    },
+    "spec": {
+      "findings": 0,
+      "remaining": 0
+    },
+    "external_model": "NOT RUN; bounded deterministic export reviewed on two internal axes"
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/executor.py",
+      "bytes": 17674,
+      "sha256": "7c9683be5be1e916661f14c715c340551eb040a471a14c454ae1beee30e53da6"
+    },
+    {
+      "path": "prototype/run_timing/LENGTH_RECORDS.md",
+      "bytes": 3353,
+      "sha256": "971841c6ae79a9a311aa1d74d3ef0afbfbfbf49a371bf413a01fe7cdebc9303f"
+    },
+    {
+      "path": "tests/test_timing_length_records.py",
+      "bytes": 7940,
+      "sha256": "df9ac085946eeb6497a163df8fdae45e2d9ffeb0637d685979a7284ee0ccaf2e"
+    }
+  ],
+  "example": {
+    "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-record-example.json",
+    "bytes": 5348,
+    "sha256": "eb3ce3cede42f819ee92cdda1b4e353f93ec2ed1f72322f380fbdc075816d666"
+  },
+  "example_json_readback": "MATCH",
+  "not_run": [
+    "native command boundary or permissions",
+    "authenticated external receipt transport",
+    "native policy/model/auth/version comparison",
+    "real billing or budget admission",
+    "human semantic scoring",
+    "paid timing/length measurement",
+    "tenant/venue qualification"
+  ],
+  "prior_phase_archive": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-length-records/prior-phase-snapshot",
+  "archive_provenance": {
+    "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-length-records/archive-provenance.json",
+    "bytes": 163,
+    "sha256": "1d6c40c7715dbe2a3e251a0cc58a0564c113dd16725c7770786d0aa5470aa93e"
+  }
+}

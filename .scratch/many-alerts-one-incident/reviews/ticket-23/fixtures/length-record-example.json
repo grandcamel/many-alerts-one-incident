@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "scope": "OFFLINE_LENGTH_RECORDS_ONLY",
+  "native_launch": "CLOSED",
+  "clock": "virtual_seconds",
+  "receipt_authority": "in_memory_object_identity",
+  "at": 14.0,
+  "hold": false,
+  "work_allowed": false,
+  "probe_cleanup_actions": [],
+  "lifecycle": {
+    "finished": false,
+    "revoked": false,
+    "cleanup_at": null,
+    "reasons": []
+  },
+  "bracket": {
+    "status": "observed_bracket",
+    "largest_dispatched": 11000,
+    "smallest_denied": 12000,
+    "scope": "synthetic fixed-shape replay only"
+  },
+  "cases": [
+    {
+      "case_bytes": 9500,
+      "expected_command": {
+        "bytes": 9500,
+        "sha256": "a1df6047165f59bc99ee51583f1e8b9a9bc1c8c84768ebe25b02c450823c5f7e"
+      },
+      "request": {
+        "command": {
+          "bytes": 9500,
+          "sha256": "a1df6047165f59bc99ee51583f1e8b9a9bc1c8c84768ebe25b02c450823c5f7e"
+        },
+        "tool_id": "fixture-tool-0",
+        "at": 0.0
+      },
+      "dispatch": {
+        "at": 1.0,
+        "tool_id": "fixture-tool-0",
+        "command_sha256": "a1df6047165f59bc99ee51583f1e8b9a9bc1c8c84768ebe25b02c450823c5f7e",
+        "stub_exit": 7,
+        "receipt_scope": "IN_MEMORY_ISSUED_HERE"
+      },
+      "observation": {
+        "command": {
+          "bytes": 9500,
+          "sha256": "a1df6047165f59bc99ee51583f1e8b9a9bc1c8c84768ebe25b02c450823c5f7e"
+        },
+        "at": 2.0,
+        "synthetic_decision": null,
+        "decision_reference": "synthetic-observation-0",
+        "coverage_complete": false,
+        "supplied_receipt": "issued_here"
+      },
+      "classification": "dispatched"
+    },
+    {
+      "case_bytes": 11000,
+      "expected_command": {
+        "bytes": 11000,
+        "sha256": "6e31de6dad78960d259af9e79683646fbdb45a30f6b0d60ebc37b8bd0b1a9b2e"
+      },
+      "request": {
+        "command": {
+          "bytes": 11000,
+          "sha256": "6e31de6dad78960d259af9e79683646fbdb45a30f6b0d60ebc37b8bd0b1a9b2e"
+        },
+        "tool_id": "fixture-tool-1",
+        "at": 3.0
+      },
+      "dispatch": {
+        "at": 4.0,
+        "tool_id": "fixture-tool-1",
+        "command_sha256": "6e31de6dad78960d259af9e79683646fbdb45a30f6b0d60ebc37b8bd0b1a9b2e",
+        "stub_exit": 7,
+        "receipt_scope": "IN_MEMORY_ISSUED_HERE"
+      },
+      "observation": {
+        "command": {
+          "bytes": 11000,
+          "sha256": "6e31de6dad78960d259af9e79683646fbdb45a30f6b0d60ebc37b8bd0b1a9b2e"
+        },
+        "at": 5.0,
+        "synthetic_decision": null,
+        "decision_reference": "synthetic-observation-1",
+        "coverage_complete": false,
+        "supplied_receipt": "issued_here"
+      },
+      "classification": "dispatched"
+    },
+    {
+      "case_bytes": 12000,
+      "expected_command": {
+        "bytes": 12000,
+        "sha256": "14365e499d8873a43711a634f175c740b3ab36185a7f9e12b00c5ec51bb3c96e"
+      },
+      "request": {
+        "command": {
+          "bytes": 12000,
+          "sha256": "14365e499d8873a43711a634f175c740b3ab36185a7f9e12b00c5ec51bb3c96e"
+        },
+        "tool_id": "fixture-tool-2",
+        "at": 6.0
+      },
+      "dispatch": null,
+      "observation": {
+        "command": {
+          "bytes": 12000,
+          "sha256": "14365e499d8873a43711a634f175c740b3ab36185a7f9e12b00c5ec51bb3c96e"
+        },
+        "at": 8.0,
+        "synthetic_decision": "permission_denied_before_dispatch",
+        "decision_reference": "synthetic-observation-2",
+        "coverage_complete": true,
+        "supplied_receipt": "absent"
+      },
+      "classification": "permission_denied_no_dispatch"
+    },
+    {
+      "case_bytes": 13000,
+      "expected_command": {
+        "bytes": 13000,
+        "sha256": "365ec535256fddefde60252363c839592b999fd29c252f2f852a7abcf71b584b"
+      },
+      "request": {
+        "command": {
+          "bytes": 13000,
+          "sha256": "365ec535256fddefde60252363c839592b999fd29c252f2f852a7abcf71b584b"
+        },
+        "tool_id": "fixture-tool-3",
+        "at": 9.0
+      },
+      "dispatch": null,
+      "observation": {
+        "command": {
+          "bytes": 13000,
+          "sha256": "365ec535256fddefde60252363c839592b999fd29c252f2f852a7abcf71b584b"
+        },
+        "at": 11.0,
+        "synthetic_decision": "permission_denied_before_dispatch",
+        "decision_reference": "synthetic-observation-3",
+        "coverage_complete": true,
+        "supplied_receipt": "absent"
+      },
+      "classification": "permission_denied_no_dispatch"
+    },
+    {
+      "case_bytes": 14000,
+      "expected_command": {
+        "bytes": 14000,
+        "sha256": "9d82096e56e01d5a1694cb8d3b53945c98d04c691a34bd85207bd42a4c63da5c"
+      },
+      "request": {
+        "command": {
+          "bytes": 14000,
+          "sha256": "9d82096e56e01d5a1694cb8d3b53945c98d04c691a34bd85207bd42a4c63da5c"
+        },
+        "tool_id": "fixture-tool-4",
+        "at": 12.0
+      },
+      "dispatch": null,
+      "observation": {
+        "command": {
+          "bytes": 14000,
+          "sha256": "9d82096e56e01d5a1694cb8d3b53945c98d04c691a34bd85207bd42a4c63da5c"
+        },
+        "at": 14.0,
+        "synthetic_decision": "permission_denied_before_dispatch",
+        "decision_reference": "synthetic-observation-4",
+        "coverage_complete": true,
+        "supplied_receipt": "absent"
+      },
+      "classification": "permission_denied_no_dispatch"
+    }
+  ]
+}

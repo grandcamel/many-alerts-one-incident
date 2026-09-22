@@ -1,14 +1,14 @@
 {
-  "schema_version": 5,
-  "scope": "Local fixed-process fixtures, synthetic ledger and byte-integrity closeout; no native model approval",
-  "supersedes_manifest_sha256": "8f7c33299a33bfb9b1dd8869f49f6caeee6a4a0197375f430b9437b5a333b3ca",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/prior-phase-snapshot",
-  "local_links_verified": 31,
+  "schema_version": 6,
+  "scope": "Local fixed-process fixtures, synthetic ledger, byte-integrity closeout and inert length-case records; no native model approval",
+  "supersedes_manifest_sha256": "d1147f4a0a30bf67b12b0a50b4fd76e4179fd664f6c581c59a005854641e9162",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-length-records/prior-phase-snapshot",
+  "local_links_verified": 36,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
-      "bytes": 4578,
-      "sha256": "e8f21c8bbb65e3d4b5b43b6a0547ddc339c42e62c5c0da4fab5a78a281175403"
+      "bytes": 4908,
+      "sha256": "ba4292ea5bcf0925e8494ea0d8df7d74cb8bb604cdc467acef9cf3c741e93d54"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/closeout-outcome.md",
@@ -27,13 +27,18 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md",
-      "bytes": 4523,
-      "sha256": "36d41ad01bd9aa632f5bc5416448f4538207b900c30f9e9965a01ffddfb001b0"
+      "bytes": 4550,
+      "sha256": "efe9a679d94c4859919c8a36a2ffd4ae8064314ece6b972dfcc85a0b89ef9050"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-cases.json",
       "bytes": 61660,
       "sha256": "30216c76264c9effbf583cde5cbc5b38943a38c889664293bebe52e522ab112d"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-record-example.json",
+      "bytes": 5348,
+      "sha256": "eb3ce3cede42f819ee92cdda1b4e353f93ec2ed1f72322f380fbdc075816d666"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/outcome-cases.json",
@@ -69,6 +74,21 @@
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/ledger-validation.json",
       "bytes": 4102,
       "sha256": "f659231997641ffc0a56a13e45bcfa489f0d0d6bec09d366bba755dc1ca9d91c"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/length-record-outcome.md",
+      "bytes": 3343,
+      "sha256": "e1807f890a04baafd8b88f0379aee6d4dce14bffb0a6d5549e878ba61ec28dd5"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/length-record-plan.md",
+      "bytes": 1818,
+      "sha256": "70aaf3f4d244af2aecf59c0fcdc943fa2bce41f4fa5b72a07dd0876e1adca7e2"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/length-record-validation.json",
+      "bytes": 2354,
+      "sha256": "4603aa944eca0e3d3c72c22b1cb5bb6899ae46839f4f0cd9ca710dff5d0f51b3"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/process-outcome.md",
@@ -116,14 +136,19 @@
       "sha256": "26559d5a63afc552afab0e80d9a95ecd87508fd8d0be81e3994f32f544e5854c"
     },
     {
+      "path": "prototype/run_timing/LENGTH_RECORDS.md",
+      "bytes": 3353,
+      "sha256": "971841c6ae79a9a311aa1d74d3ef0afbfbfbf49a371bf413a01fe7cdebc9303f"
+    },
+    {
       "path": "prototype/run_timing/PROCESS_FIXTURES.md",
       "bytes": 3532,
       "sha256": "7cf43f0730b66635b5ed78ce72898d1098cbd170e8a9ec63fb23e4e060551c12"
     },
     {
       "path": "prototype/run_timing/README.md",
-      "bytes": 5204,
-      "sha256": "5bd5767fd52c19728aa15bbedccefdd57e71af4153ab1512c49919f96648022d"
+      "bytes": 5397,
+      "sha256": "95bcaa88314fa1934994dcdee4a23c5298466a5e8552cac9af627a78b6d2d009"
     },
     {
       "path": "prototype/run_timing/__init__.py",
@@ -137,8 +162,8 @@
     },
     {
       "path": "prototype/run_timing/executor.py",
-      "bytes": 14889,
-      "sha256": "25f1a14eecfe3196ceb0b7ebfc321b1a21e23c2cae3d2e924d14935ef8a6180a"
+      "bytes": 17674,
+      "sha256": "7c9683be5be1e916661f14c715c340551eb040a471a14c454ae1beee30e53da6"
     },
     {
       "path": "prototype/run_timing/fixture_evidence.py",
@@ -174,6 +199,11 @@
       "path": "tests/test_timing_fixture_ledger.py",
       "bytes": 13744,
       "sha256": "33db6e80bb031686c20a6c26b124b5f32379c8676ff5808dfe3bf808776ca3ae"
+    },
+    {
+      "path": "tests/test_timing_length_records.py",
+      "bytes": 7940,
+      "sha256": "df9ac085946eeb6497a163df8fdae45e2d9ffeb0637d685979a7284ee0ccaf2e"
     },
     {
       "path": "tests/test_timing_outcomes.py",

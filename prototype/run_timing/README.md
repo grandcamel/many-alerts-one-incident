@@ -36,6 +36,9 @@ observed identity only, not diagnostic quality or model qualification.
   records a tool request before resolving permission; `dispatch` can begin it implicitly.
   Cleanup may collect a pending request's result but cannot begin another. Provider
   refusal/fallback cancels the linked lifecycle and exposes the required cleanup actions.
+  [Case-record snapshots](LENGTH_RECORDS.md) retain digests, virtual times, request/receipt
+  observations and pending/unattempted cases without exporting command bodies or native
+  authority.
 - A diagnostic admission predicate over explicit supplied ledger snapshots. Unknown
   prior-week exposure holds admission too. This does not persist a ledger, reserve real
   funds, authenticate provider actuals, or supply atomic/concurrent admission. Empty

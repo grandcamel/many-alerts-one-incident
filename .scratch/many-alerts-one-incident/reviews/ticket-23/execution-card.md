@@ -21,7 +21,7 @@ authorize either model probe. No launch command is supplied.
 | Reservation | $3 before this attempt, one diagnostic attempt; no reservation made by this card. Guard is not a hard billing cap. |
 | Evidence root / capacity / retention | UNSET production private operator-owned path outside Git and Run mounts; 100 MiB/Run, 2 GiB total, 30 days. Fixed fixtures now retain at most 1 MiB capture with digest read-back; this does not implement production quota, sanitization or retention. |
 | Containment / receipt / terminal / identity acceptance | Offline predicates plus real fixed-host-fixture group/pipe cleanup and collision tests passed. Adversarial confinement, authenticated transport and native event compatibility NOT RUN. See process-outcome.md. |
-| Current status | Offline core, fixed-process harness, synthetic diagnostic ledger and fixture byte-integrity closeout implemented/tested. Native model executor, authoritative auth/billing/tenant/venue acceptance NOT RUN; paid execution remains CLOSED. |
+| Current status | Offline core, fixed-process harness, synthetic diagnostic ledger, fixture byte-integrity closeout and inert length-case records implemented/tested. Native model executor, authoritative auth/billing/tenant/venue acceptance NOT RUN; paid execution remains CLOSED. |
 
 ## Required evidence before this card can open
 

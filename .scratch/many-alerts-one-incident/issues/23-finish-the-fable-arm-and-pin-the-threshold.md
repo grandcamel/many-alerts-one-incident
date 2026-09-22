@@ -71,3 +71,8 @@ The [fixture closeout outcome](../reviews/ticket-23/closeout-outcome.md) adds bo
 retained output, exclusive publication and digest/linkage read-back. Byte integrity does
 not establish semantic acceptance, production audit custody or a launch-to-durable-closeout
 deadline. Closeout failures preserve unresolved ledger claims. Paid execution remains closed.
+
+The [inert length-record outcome](../reviews/ticket-23/length-record-outcome.md) adds
+five-case snapshots with command digests, virtual times and separate issued/supplied
+receipt observations. Synthetic permission labels and opaque references do not establish
+native permission or authenticated dispatch. Ticket 23 remains open.

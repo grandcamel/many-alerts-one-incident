@@ -8,6 +8,7 @@ Receipts prove dispatch inside this object only, not OS isolation or a live tool
 from __future__ import annotations
 
 import hashlib
+from copy import deepcopy
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from decimal import Decimal
@@ -182,6 +183,13 @@ class LengthProbe:
         self._tool_ids: set[str] = set()
         self._active: tuple[bytes, str] | None = None
         self.cleanup_actions: tuple[str, ...] = ()
+        self._records = [{"case_bytes": n, "expected_command": self._command_record(command_for(n)),
+                          "request": None, "dispatch": None, "observation": None,
+                          "classification": "not_attempted"} for n in LENGTHS]
+
+    @staticmethod
+    def _command_record(command: bytes) -> dict:
+        return {"bytes": len(command), "sha256": hashlib.sha256(command).hexdigest()}
 
     def begin(self, command: bytes, tool_id: str) -> None:
         """Record the tool request before permission resolution or stub entry."""
@@ -200,6 +208,10 @@ class LengthProbe:
             raise ValueError("duplicate tool id")
         self._tool_ids.add(tool_id)
         self._active = (command, tool_id)
+        self._records[self.index]["request"] = {
+            "command": self._command_record(command), "tool_id": tool_id,
+            "at": self.lifecycle.now}
+        self._records[self.index]["classification"] = "pending"
 
     def dispatch(self, command: bytes, tool_id: str, *, stub_exit: int = 0) -> Receipt:
         self._check_work()
@@ -208,7 +220,7 @@ class LengthProbe:
         if command != command_for(LENGTHS[self.index]) or self._active != (command, tool_id):
             self.hold = True
             raise ValueError("edited, uncorrelated or out-of-order command")
-        if type(stub_exit) is not int:
+        if type(stub_exit) is not int or not -(2**31) <= stub_exit < 2**31:
             self.hold = True
             raise ValueError("invalid stub exit")
         if any(r.case == self.index for r in self._issued):
@@ -216,14 +228,27 @@ class LengthProbe:
             raise ValueError("duplicate case dispatch")
         receipt = Receipt(self.index, tool_id, hashlib.sha256(command).hexdigest(), stub_exit)
         self._issued.append(receipt)
+        self._records[self.index]["dispatch"] = {
+            "at": self.lifecycle.now, "tool_id": tool_id,
+            "command_sha256": receipt.command_sha256, "stub_exit": stub_exit,
+            "receipt_scope": "IN_MEMORY_ISSUED_HERE"}
         return receipt
 
     def observe(self, command: bytes, *, receipt: Receipt | None = None,
-                native_decision: str | None = None, coverage_complete: bool = False) -> str:
+                native_decision: str | None = None, coverage_complete: bool = False,
+                decision_reference: str | None = None) -> str:
         if type(coverage_complete) is not bool:
+            self.hold = True
             raise TypeError("coverage must be an explicit boolean")
         if self.hold or self.index >= len(LENGTHS) or self._active is None:
             raise ValueError("no pending case to observe")
+        if (type(command) is not bytes or len(command) > max(LENGTHS) or
+                any(value is not None and (not isinstance(value, str) or len(value) > 200)
+                    for value in (native_decision, decision_reference))):
+            self.hold = True
+            raise ValueError("invalid or oversized synthetic observation")
+        issued = [r for r in self._issued if r.case == self.index]
+        valid = any(r is receipt for r in issued)
         if native_decision in ("provider_refusal", "model_unavailable", "fallback"):
             result = "not_length_evidence"
             if not self.lifecycle.finished:
@@ -231,8 +256,6 @@ class LengthProbe:
         elif command != command_for(LENGTHS[self.index]) or command != self._active[0]:
             result = "invalid_case"
         else:
-            issued = [r for r in self._issued if r.case == self.index]
-            valid = any(r is receipt for r in issued)
             if native_decision == "permission_denied_before_dispatch":
                 result = ("permission_denied_no_dispatch" if coverage_complete and not issued
                           and receipt is None else "dispatch_unknown")
@@ -240,6 +263,13 @@ class LengthProbe:
                 result = "dispatched"
             else:
                 result = "dispatch_unknown"
+        self._records[self.index]["observation"] = {
+            "command": self._command_record(command), "at": self.lifecycle.now,
+            "synthetic_decision": native_decision, "decision_reference": decision_reference,
+            "coverage_complete": coverage_complete,
+            "supplied_receipt": "absent" if receipt is None else
+                                "issued_here" if valid else "unrecognized"}
+        self._records[self.index]["classification"] = result
         self.results.append(result)
         self.index += 1
         self._active = None
@@ -265,6 +295,20 @@ class LengthProbe:
             return {"status": "nonmonotonic"}
         return {"status": "observed_bracket", "largest_dispatched": max(accepted),
                 "smallest_denied": min(denied), "scope": "synthetic fixed-shape replay only"}
+
+    def report(self) -> dict:
+        """Snapshot bounded synthetic metadata; neither native proof nor dispatch authority."""
+        return {"version": 1, "scope": "OFFLINE_LENGTH_RECORDS_ONLY", "native_launch": "CLOSED",
+                "clock": "virtual_seconds", "receipt_authority": "in_memory_object_identity",
+                "at": self.lifecycle.now, "hold": self.hold,
+                "work_allowed": not self.hold and self.index < len(LENGTHS) and
+                                self.lifecycle.work_allowed,
+                "probe_cleanup_actions": list(self.cleanup_actions),
+                "lifecycle": {"finished": self.lifecycle.finished,
+                              "revoked": self.lifecycle.revoked,
+                              "cleanup_at": self.lifecycle.cleanup_at,
+                              "reasons": sorted(self.lifecycle.reasons)},
+                "bracket": self.bracket(), "cases": deepcopy(self._records)}
 
 
 @dataclass(frozen=True)
