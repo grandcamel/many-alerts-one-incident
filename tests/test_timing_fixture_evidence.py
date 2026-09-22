@@ -205,7 +205,7 @@ def test_failed_flush_prevents_publication(tmp_path, monkeypatch):
 def test_closeout_failure_retains_ledger_claim(tmp_path, monkeypatch):
     ledger = FixtureLedger.create(tmp_path / 'fixture.db')
 
-    def failed(*args):
+    def failed(*args, **kwargs):
         raise EvidenceUnavailable('synthetic closeout failure')
 
     monkeypatch.setattr(process_fixture, 'write_fixture_evidence', failed)

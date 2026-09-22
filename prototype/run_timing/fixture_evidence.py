@@ -11,7 +11,9 @@ from pathlib import Path
 
 SCOPE = "FIXED_FIXTURE_BYTE_INTEGRITY_ONLY"
 LIMITS = {"fixture.py": 64 * 1024, "capture.bin": 1024 * 1024, "result.json": 64 * 1024}
+V2_LIMITS = {**LIMITS, "stdout.bin": 1024 * 1024, "stderr.bin": 1024 * 1024}
 MANIFEST_LIMIT = 4096
+_STREAM_FIELDS = ("stdout_bytes", "stdout_sha256", "stderr_bytes", "stderr_sha256")
 
 
 class EvidenceUnavailable(RuntimeError):
@@ -82,9 +84,11 @@ class FixtureEvidence:
     manifest_sha256: str
     scope: str = SCOPE
     native_launch: str = "CLOSED"
+    stdout: bytes | None = None
+    stderr: bytes | None = None
 
 
-def _linked_result(directory: Path, contents: dict[str, bytes]) -> dict:
+def _linked_result(directory: Path, contents: dict[str, bytes], *, version: int) -> dict:
     result = _json(contents["result.json"])
     if (result.get("scope") != "FIXED_HOST_FIXTURES_ONLY" or
             result.get("native_launch") != "CLOSED" or
@@ -94,21 +98,51 @@ def _linked_result(directory: Path, contents: dict[str, bytes]) -> dict:
             result.get("capture_sha256") != _record(contents["capture.bin"])["sha256"] or
             result.get("worker_sha256") != _record(contents["fixture.py"])["sha256"]):
         raise EvidenceUnavailable("fixture result linkage mismatch")
+    if version == 1:
+        if any(result.get(field) is not None for field in _STREAM_FIELDS):
+            raise EvidenceUnavailable("stream metadata cannot be downgraded to version 1")
+    elif version == 2:
+        stdout, stderr = contents["stdout.bin"], contents["stderr.bin"]
+        for name, data in (("stdout", stdout), ("stderr", stderr)):
+            if (type(result.get(name + "_bytes")) is not int or
+                    result[name + "_bytes"] != len(data) or
+                    result.get(name + "_sha256") != _record(data)["sha256"]):
+                raise EvidenceUnavailable("fixture stream linkage mismatch")
+        if result["stdout_bytes"] + result["stderr_bytes"] != result["captured_bytes"]:
+            raise EvidenceUnavailable("fixture stream lengths do not match diagnostic capture")
+        if not stderr and contents["capture.bin"] != stdout:
+            raise EvidenceUnavailable("stdout does not match single-stream diagnostic capture")
+        if not stdout and contents["capture.bin"] != stderr:
+            raise EvidenceUnavailable("stderr does not match single-stream diagnostic capture")
+    else:
+        raise EvidenceUnavailable("unsupported fixture manifest")
     return result
 
 
-def write_fixture_evidence(directory: Path, capture: bytes, result: dict) -> FixtureEvidence:
+def write_fixture_evidence(directory: Path, capture: bytes, result: dict, *,
+                           stdout: bytes | None = None, stderr: bytes | None = None) -> FixtureEvidence:
     """Publish once after supervision; failures leave partial files and never release cost."""
     directory = Path(directory).absolute()
     try:
         if type(capture) is not bytes or len(capture) > LIMITS["capture.bin"]:
             raise EvidenceUnavailable("invalid fixed fixture capture")
+        if (stdout is None) != (stderr is None):
+            raise EvidenceUnavailable("fixture stream evidence must include both streams")
+        if stdout is not None and (type(stdout) is not bytes or type(stderr) is not bytes):
+            raise EvidenceUnavailable("invalid fixed fixture stream evidence")
+        version = 2 if stdout is not None else 1
         contents = {"fixture.py": _read(directory / "fixture.py", LIMITS["fixture.py"]),
                     "capture.bin": capture,
                     "result.json": _encoded(result, LIMITS["result.json"])}
-        _linked_result(directory, contents)
-        _write(directory / "capture.bin", contents["capture.bin"])
-        _write(directory / "result.json", contents["result.json"])
+        if version == 2:
+            if len(stdout) > V2_LIMITS["stdout.bin"] or len(stderr) > V2_LIMITS["stderr.bin"]:
+                raise EvidenceUnavailable("fixture stream evidence exceeds file bound")
+            contents["stdout.bin"] = stdout
+            contents["stderr.bin"] = stderr
+        _linked_result(directory, contents, version=version)
+        for name in ("capture.bin", "result.json", "stdout.bin", "stderr.bin"):
+            if name in contents:
+                _write(directory / name, contents[name])
         # The worker snapshot was created before launch. Flush it before publishing linkage.
         fd = os.open(directory / "fixture.py", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
         try:
@@ -119,7 +153,7 @@ def write_fixture_evidence(directory: Path, capture: bytes, result: dict) -> Fix
             os.close(fd)
         _sync_directory(directory)
         _sync_directory(directory.parent)
-        manifest = {"version": 1, "scope": SCOPE, "native_launch": "CLOSED",
+        manifest = {"version": version, "scope": SCOPE, "native_launch": "CLOSED",
                     "files": {name: _record(data) for name, data in contents.items()}}
         pending = directory / "closeout.pending"
         _write(pending, _encoded(manifest, MANIFEST_LIMIT))
@@ -139,19 +173,24 @@ def read_fixture_evidence(directory: Path) -> FixtureEvidence:
         raw = _read(directory / "closeout.json", MANIFEST_LIMIT)
         manifest = _json(raw)
         if (set(manifest) != {"version", "scope", "native_launch", "files"} or
-                type(manifest["version"]) is not int or manifest["version"] != 1 or
+                type(manifest["version"]) is not int or manifest["version"] not in (1, 2) or
                 manifest["scope"] != SCOPE or manifest["native_launch"] != "CLOSED" or
-                not isinstance(manifest["files"], dict) or set(manifest["files"]) != set(LIMITS)):
+                not isinstance(manifest["files"], dict)):
+            raise EvidenceUnavailable("unsupported fixture manifest")
+        version = manifest["version"]
+        limits = LIMITS if version == 1 else V2_LIMITS
+        if set(manifest["files"]) != set(limits):
             raise EvidenceUnavailable("unsupported fixture manifest")
         contents = {}
-        for name, limit in LIMITS.items():
+        for name, limit in limits.items():
             data = _read(directory / name, limit)
             entry = manifest["files"][name]
             if (not isinstance(entry, dict) or type(entry.get("bytes")) is not int or
                     entry != _record(data)):
                 raise EvidenceUnavailable("fixture evidence digest/size mismatch")
             contents[name] = data
-        return FixtureEvidence(_linked_result(directory, contents),
-                               hashlib.sha256(raw).hexdigest())
+        result = _linked_result(directory, contents, version=version)
+        return FixtureEvidence(result, hashlib.sha256(raw).hexdigest(),
+                               stdout=contents.get("stdout.bin"), stderr=contents.get("stderr.bin"))
     except (OSError, ValueError, TypeError, RecursionError) as exc:
         raise EvidenceUnavailable("fixture evidence unavailable or malformed") from exc

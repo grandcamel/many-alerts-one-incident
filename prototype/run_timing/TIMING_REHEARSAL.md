@@ -59,11 +59,9 @@ Missing, duplicated, corrupt or mismatched evidence raises `EvidenceUnavailable`
 wraps post-process verification failures as `RehearsalEvidenceError` carrying the actual
 `ProcessResult`. Existing `FixtureCloseoutError` also preserves its observed process result.
 No exception erases the attempt directory or ledger claim, and there is no automatic replay.
-The supervisor capture combines stdout and stderr. The fixed worker is expected to emit
-JSONL only on stdout and no stderr. Non-JSON stderr or interleaved bytes make read-back
-unavailable; they cannot produce integrated success. Retained capture has no stream
-provenance: valid JSON non-assistant records can be ignored by the receipt reader, and
-read-back cannot prove they came from stdout or certify the absence of stderr. Stream
+The supervisor retains stream-separated evidence. Integrated read-back requires version-2
+evidence, parses receipts from retained stdout only, and rejects any nonempty retained stderr.
+The merged capture remains diagnostic and does not prove cross-stream emission order. Stream
 authenticity is outside this fixed fixture. A deterministic bundle-build failure
 after launch claim likewise preserves an unresolved reservation, even if no child started.
 

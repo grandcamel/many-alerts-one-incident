@@ -22,8 +22,9 @@ it cannot enlarge them. Tests use scale 0.01 (2.7/0.2/0.1 seconds), or 0.02 for 
 forced-kill tests to allow more scheduler/reaping margin. Cancellation enters
 cleanup earlier. A forced orphan kill remains visible as cancellation. The result records
 observed elapsed supervision time, original and cleanup deadlines, root reaping, group
-disappearance, pipe EOF, capture completeness/digest and lifecycle actions. Compact JSON
-and bounded retained capture are written only after supervision returns, with a
+disappearance, pipe EOF, capture completeness/digest and lifecycle actions. Compact JSON, a
+bounded diagnostic merge, and separately bounded accepted stdout and stderr bytes are written
+only after supervision returns, with a
 [verifiable closeout manifest](FIXTURE_EVIDENCE.md). These artifact writes are not included in the
 supervision duration. Thus these results do not establish the complete native 300-second
 launch-to-durable-closeout contract.
@@ -56,3 +57,6 @@ The three closed [timing rehearsal](TIMING_REHEARSAL.md) scenarios now use an em
 fixed module/data bundle inside the captured worker bytes. They exercise actual child-side
 queries, synthetic Incident calls and evidence writes; `ProcessResult.scenario` records the
 selected closed scenario. The original fixture scenarios retain their original worker.
+The `stderr_noise` and `stderr_json` scenarios otherwise produce the normal successful stdout
+sequence while emitting fixed non-JSON or JSON bytes on stderr; they exist only to exercise
+supervisor stream attribution and do not accept an executable or arbitrary payload.

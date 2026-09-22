@@ -140,10 +140,11 @@ def read_rehearsal_evidence(directory: Path, *, scenario: str) -> dict:
         process_receipt = read_fixture_evidence(directory)
         process = process_receipt.result
         _require(process.get('scenario') == scenario, 'supervisor scenario mismatch')
-        capture = _read(directory / 'capture.bin', 1024 * 1024)
-        _require(hashlib.sha256(capture).hexdigest() == process['capture_sha256'] and
-                 len(capture) == process['captured_bytes'], 'capture changed after process read-back')
-        receipt = _receipt(capture)
+        _require(process_receipt.stdout is not None and process_receipt.stderr is not None,
+                 'integrated rehearsal requires version-2 stream evidence')
+        stdout, stderr = process_receipt.stdout, process_receipt.stderr
+        _require(not stderr, 'integrated rehearsal fixture emitted stderr')
+        receipt = _receipt(stdout)
         _require(receipt['scenario'] == scenario and receipt['attempt_id'] == directory.name,
                  'rehearsal receipt identity mismatch')
         manifest_bytes = _read(directory / 'timing-snapshot/manifest.json', 4096)
@@ -176,6 +177,9 @@ def read_rehearsal_evidence(directory: Path, *, scenario: str) -> dict:
             _require(receipt['capture_phase'] == 'before_wait' and effects == [] and
                      state['pending_dispatch_id'] is not None and not store['revisions'],
                      'waiting flow must retain its pending dispatch')
+        _require(all(type(process[field]) is bool for field in
+                     ('capture_complete', 'root_reaped', 'group_gone', 'pipes_closed')),
+                 'invalid process completion flags')
         execution = process['outcome']['execution']
         completed = (scenario == 'timing_rehearsal' and execution == 'completed' and
                      process['capture_complete'] and process['root_reaped'] and process['group_gone'] and

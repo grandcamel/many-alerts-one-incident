@@ -30,12 +30,16 @@ See [the timing core](../../../../prototype/run_timing/README.md).  The supplied
 scout remains an external metadata artifact at the path above; this draft does
 not reproduce transcript content.
 
+The [installed-client evidence register](client-evidence-register.md) now freezes
+local version/help and a wrapper command preview. This establishes syntax evidence
+only; native event fields and runtime compatibility remain unqualified.
+
 ## What Ticket 23 can carry forward
 
 | Existing contract | Reusable offline property | It does not prove |
 | --- | --- | --- |
 | [Timing binding](../../../../prototype/run_timing/TIMING_BINDING.md) | Canonical bounded fixture requests, explicit structured rejections, finite call history, controller-only completion | Native tool schema, registration, authorization, or client identity |
-| [Integrated rehearsal](../../../../prototype/run_timing/TIMING_REHEARSAL.md) | Child-generated artifact linkage, supervisor result retained on evidence failure, held unknown/pending fixture effects | Stream origin, native cancellation/revocation, authenticated receipt, provider operation |
+| [Integrated rehearsal](../../../../prototype/run_timing/TIMING_REHEARSAL.md) | Child-generated artifact linkage, separate stdout/stderr retention, supervisor result retained on evidence failure, held unknown/pending fixture effects | Stream origin, native cancellation/revocation, authenticated receipt, provider operation |
 | [Outcome/recovery ADR](../../../../docs/adr/0012-run-outcomes-and-recovery-are-explicit.md) | Derived execution remains separate from reported terminal and external effects | The actual client terminal vocabulary or error schema |
 | [Synthetic parser boundary](../../../../prototype/run_timing/README.md) | Bounded decoding and fail-closed malformed/duplicate-terminal handling | Compatibility with the observed wrapper or any native stream |
 
@@ -105,7 +109,7 @@ does not qualify this adapter.
 
 | Gate | Evidence required | Current state |
 | --- | --- | --- |
-| A — source readiness | This boundary, exact-client evidence register template, and unresolved-field list reviewed without schemas invented | Draft only |
+| A — source readiness | This boundary, exact-client evidence register template, and unresolved-field list reviewed without schemas invented | CLI/version/help register captured; native schema and launch contract remain incomplete |
 | B — offline normalization | Version-pinned, redacted fixtures cover every qualified family and negative matrix; bounded parser preserves raw/digest provenance and holds invalid input | NOT RUN |
 | C — supervised client contract | Exact-client stream plus independent process/stream identity, cancel/timeout/reap evidence, and authenticated receipt correlation | NOT RUN |
 | D — mediated and accounted admission | Ticket 36 route/revocation evidence and Ticket 38 durable reservation/provider reconciliation | NOT RUN |

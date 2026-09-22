@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "scope": "INSTALLED_CLIENT_SELF_DOCUMENTATION_ONLY",
+  "observed_on": "2026-09-22",
+  "version_stdout": "2.1.278 (Claude Code)",
+  "evidence_root": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register",
+  "evidence_manifest_sha256": "d7ea7645a79294a7aeb6c94417556522e0d73872c78d30483d174950560a9ca1",
+  "command_evidence": [
+    {
+      "command": [
+        "/Users/jasonkrueger/.local/bin/claude",
+        "--version"
+      ],
+      "resolved_executable": "/Users/jasonkrueger/.local/share/claude/versions/2.1.278",
+      "executable_sha256": "c522425e3d42275d2ac2238757ef8ba7f80d165a934044ec5a7a5fd7d7b9950b",
+      "executable_bytes": 226521952,
+      "exit_code": 0,
+      "stdout_file": "claude-version.stdout.txt",
+      "stdout_bytes": 22,
+      "stdout_sha256": "f0d384f3abe85e8cb2f0366465826cc8232426881854235d3ad1150e4a76f689",
+      "stderr_file": "claude-version.stderr.txt",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Users/jasonkrueger/.local/bin/claude",
+        "--help"
+      ],
+      "resolved_executable": "/Users/jasonkrueger/.local/share/claude/versions/2.1.278",
+      "executable_sha256": "c522425e3d42275d2ac2238757ef8ba7f80d165a934044ec5a7a5fd7d7b9950b",
+      "executable_bytes": 226521952,
+      "exit_code": 0,
+      "stdout_file": "claude-help.stdout.txt",
+      "stdout_bytes": 21401,
+      "stdout_sha256": "ae85d661e9c086f05637ebcd868f5702b477ff6e55e2e65b8ada7807cd51a4b6",
+      "stderr_file": "claude-help.stderr.txt",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Users/jasonkrueger/.nvm/versions/node/v24.12.0/bin/headless",
+        "--help"
+      ],
+      "resolved_executable": "/Users/jasonkrueger/.nvm/versions/node/v24.12.0/lib/node_modules/@roberttlange/headless/dist/cli.js",
+      "executable_sha256": "12e050c62ad623de02c8af9fdcee4d23eec3c1c69e107355b2e26d3f3bb60123",
+      "executable_bytes": 162069,
+      "exit_code": 0,
+      "stdout_file": "headless-help.stdout.txt",
+      "stdout_bytes": 5851,
+      "stdout_sha256": "059a08a0ce0cc21acb29570cfb57ea26abd135da5a66a6e1bbd1000f72c804b3",
+      "stderr_file": "headless-help.stderr.txt",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Users/jasonkrueger/.nvm/versions/node/v24.12.0/bin/headless",
+        "claude",
+        "--allow",
+        "read-only",
+        "--model",
+        "claude-fable-5-1",
+        "--reasoning-effort",
+        "high",
+        "--prompt",
+        "Fixed inert command-preview text; not submitted.",
+        "--print-command",
+        "--json"
+      ],
+      "exit_code": 0,
+      "stdout_file": "headless-print-command.stdout.txt",
+      "stdout_bytes": 332,
+      "stdout_sha256": "98b34976114ef61d4d53a2e1a26df47c6f104cb5c77d248acf75fbf2ad306700",
+      "stderr_file": "headless-print-command.stderr.txt",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "COMMAND_PREVIEW_ONLY_NO_EXECUTION"
+    }
+  ],
+  "documented_flags": [
+    {
+      "flag": "--input-format",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 116,
+      "line_end": 119,
+      "excerpt": "  --input-format <format>               Input format (only works with --print):\n                                        \"text\" (default), or \"stream-json\"\n                                        (realtime streaming input) (choices:\n                                        \"text\", \"stream-json\")",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--output-format",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 139,
+      "line_end": 143,
+      "excerpt": "  --output-format <format>              Output format (only works with --print):\n                                        \"text\" (default), \"json\" (single\n                                        result), or \"stream-json\" (realtime\n                                        streaming) (choices: \"text\", \"json\",\n                                        \"stream-json\")",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--include-partial-messages",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 113,
+      "line_end": 115,
+      "excerpt": "  --include-partial-messages            Include partial message chunks as they\n                                        arrive (only works with --print and\n                                        --output-format=stream-json)",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--include-hook-events",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 110,
+      "line_end": 112,
+      "excerpt": "  --include-hook-events                 Include all hook lifecycle events in the\n                                        output stream (only works with\n                                        --output-format=stream-json)",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--replay-user-messages",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 184,
+      "line_end": 187,
+      "excerpt": "  --replay-user-messages                Re-emit user messages from stdin back on\n                                        stdout for acknowledgment (only works\n                                        with --input-format=stream-json and\n                                        --output-format=stream-json)",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--verbose",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 253,
+      "line_end": 254,
+      "excerpt": "  --verbose                             Override verbose mode setting from\n                                        config",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--model",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 127,
+      "line_end": 131,
+      "excerpt": "  --model <model>                       Model for the current session. Provide\n                                        an alias for the latest model (e.g.\n                                        'fable', 'opus', or 'sonnet') or a\n                                        model's full name (e.g.\n                                        'claude-fable-5').",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--fallback-model",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 87,
+      "line_end": 92,
+      "excerpt": "  --fallback-model <model>              Enable automatic fallback to specified\n                                        model(s) when the default model is\n                                        overloaded or not available. Accepts a\n                                        comma-separated list to try each in\n                                        order. Re-tries the primary at the start\n                                        of each user turn.",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--max-budget-usd",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 123,
+      "line_end": 124,
+      "excerpt": "  --max-budget-usd <amount>             Maximum dollar amount to spend on API\n                                        calls (only works with --print)",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--permission-mode",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 144,
+      "line_end": 147,
+      "excerpt": "  --permission-mode <mode>              Permission mode to use for the session\n                                        (choices: \"acceptEdits\", \"auto\",\n                                        \"bypassPermissions\", \"manual\",\n                                        \"dontAsk\", \"plan\")",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--permission-prompts",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 148,
+      "line_end": 155,
+      "excerpt": "  --permission-prompts <target>         Who answers permission prompts with\n                                        --print: \"host\" (the SDK host or\n                                        --permission-prompt-tool) or \"none\"\n                                        (nobody: anything that would prompt is\n                                        denied automatically; the permission\n                                        mode still decides everything else)\n                                        (choices: \"host\", \"none\", default:\n                                        \"host\")",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--tools",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 248,
+      "line_end": 252,
+      "excerpt": "  --tools <tools...>                    Specify the list of available tools from\n                                        the built-in set. Use \"\" to disable all\n                                        tools, \"default\" to use all tools, or\n                                        specify tool names (e.g.\n                                        \"Bash,Edit,Read\").",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--allowedTools",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 22,
+      "line_end": 24,
+      "excerpt": "  --allowedTools, --allowed-tools <tools...>\n      Comma or space-separated list of tool names to allow (e.g. \"Bash(git *)\n      Edit\")",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--mcp-config",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 125,
+      "line_end": 126,
+      "excerpt": "  --mcp-config <configs...>             Load MCP servers from JSON files or\n                                        strings (space-separated)",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--strict-mcp-config",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 223,
+      "line_end": 224,
+      "excerpt": "  --strict-mcp-config                   Only use MCP servers from --mcp-config,\n                                        ignoring all other MCP configurations",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--setting-sources",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 219,
+      "line_end": 220,
+      "excerpt": "  --setting-sources <sources>           Comma-separated list of setting sources\n                                        to load (user, project, local).",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--settings",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 221,
+      "line_end": 222,
+      "excerpt": "  --settings <file-or-json>             Path to a settings JSON file or a JSON\n                                        string to load additional settings from",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--restricted",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 188,
+      "line_end": 202,
+      "excerpt": "  --restricted                          Restricted mode: removes the built-in\n                                        tools that run commands or code (Bash,\n                                        PowerShell, REPL and the other\n                                        code-running tools) and WebFetch unless\n                                        --tools names them, and ignores user,\n                                        project and local settings files\n                                        (managed settings and --settings still\n                                        apply; add --strict-mcp-config to skip\n                                        MCP servers too). Also confines the file\n                                        tools to the working directories\n                                        (--add-dir included), refuses\n                                        bypassPermissions, and lets only a\n                                        person or the configured permission\n                                        handler approve writes to settings, git\n                                        and tool-configuration files.",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--safe-mode",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 206,
+      "line_end": 216,
+      "excerpt": "  --safe-mode                           Start with all customizations\n                                        (CLAUDE.md, skills, plugins, hooks, MCP\n                                        servers, custom commands and agents,\n                                        output styles, workflows, custom themes,\n                                        keybindings, and more) disabled \u2014 useful\n                                        for troubleshooting a broken\n                                        configuration. Admin-managed (policy)\n                                        settings still apply. Auth, model\n                                        selection, built-in tools, and\n                                        permissions work normally. Sets\n                                        CLAUDE_CODE_SAFE_MODE=1.",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--no-session-persistence",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 136,
+      "line_end": 138,
+      "excerpt": "  --no-session-persistence              Disable session persistence - sessions\n                                        will not be saved to disk and cannot be\n                                        resumed (only works with --print)",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--session-id",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 217,
+      "line_end": 218,
+      "excerpt": "  --session-id <uuid>                   Use a specific session ID for the\n                                        conversation (must be a valid UUID)",
+      "runtime_acceptance": "NOT_RUN"
+    },
+    {
+      "flag": "--system-prompt",
+      "status": "DOCUMENTED_SYNTAX_ONLY",
+      "source": "claude-help.stdout.txt",
+      "line_start": 225,
+      "line_end": 225,
+      "excerpt": "  --system-prompt <prompt>              System prompt to use for the session",
+      "runtime_acceptance": "NOT_RUN"
+    }
+  ],
+  "native_schema_qualification": {
+    "status": "UNKNOWN",
+    "families": {
+      "init": "UNKNOWN",
+      "assistant": "UNKNOWN",
+      "tool_invocation": "UNKNOWN",
+      "tool_result": "UNKNOWN",
+      "permission_request": "UNKNOWN",
+      "permission_decision": "UNKNOWN",
+      "terminal_success": "UNKNOWN",
+      "terminal_error": "UNKNOWN",
+      "provider_error": "UNKNOWN",
+      "cancellation": "UNKNOWN",
+      "fallback": "UNKNOWN",
+      "usage": "UNKNOWN"
+    }
+  },
+  "unset_contracts": [
+    "Exact field schema/type/optionality for each native event",
+    "Event ordering and source stream semantics",
+    "Request/tool/session correlation and identity authenticity",
+    "Exact endpoint and public-CA trust configuration",
+    "Mediated auth replacement and direct-route prevention",
+    "Effective managed/user/runtime permission behavior",
+    "Actual model availability and provider charges",
+    "Hard budget exposure bound and billing reconciliation"
+  ],
+  "inference_invoked": false,
+  "credentials_read_or_modified": false,
+  "native_launch": "CLOSED",
+  "standing_cost_authorization": "experiment-authorization.json",
+  "wrapper_command_preview": {
+    "agent": "claude",
+    "provider": "anthropic",
+    "model": "claude-fable-5-1",
+    "reasoningEffort": "high",
+    "command": "claude --model claude-fable-5-1 --settings '{\"fastMode\":false}' -p 'Fixed inert command-preview text; not submitted.' --output-format stream-json --verbose --effort high --allowedTools 'Read,Grep,Glob,LS,WebFetch,WebSearch'",
+    "runtime_acceptance": "NOT_RUN"
+  }
+}

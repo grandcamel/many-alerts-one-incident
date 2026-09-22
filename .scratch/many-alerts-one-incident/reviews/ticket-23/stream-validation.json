@@ -1,0 +1,588 @@
+{
+  "schema_version": 1,
+  "scope": "Fixed-fixture stream attribution and installed CLI self-documentation; no native model execution",
+  "baseline_commit": "b0e1f8b",
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 700,
+    "skipped": 36,
+    "seconds": 43.24,
+    "exit_code": 0
+  },
+  "targeted_tests": {
+    "passed": 127,
+    "command": "python3 -m pytest -q tests/test_timing_process_fixture.py tests/test_timing_fixture_evidence.py tests/test_timing_rehearsal.py tests/test_timing_streams.py"
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "initial_findings": 1,
+      "finding": "Rehashed nonboolean process completion flags could produce false integrated completion",
+      "correction": "Exact bools required at integrated semantic boundary; invalid strings/integers reject, false retains hold",
+      "final_verdict": "PASS; no remaining concrete contract violation"
+    },
+    "spec": {
+      "reviewer": "independent test author, production source read-back",
+      "final_verdict": "PASS; no remaining defect within fixed-fixture plan"
+    },
+    "root": {
+      "single_channel_link": "Added byte equality between sole nonempty stream and merged capture",
+      "test_integrity": "Tamper helpers refresh stream/aggregate/result/manifest links before inner semantic checks"
+    },
+    "external_headless": "NOT RUN; no paid external review or experiment in this batch"
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/fixture_evidence.py",
+      "bytes": 9218,
+      "sha256": "31c4f07e8055c6875e0ee494bd77587898e61f21890cc33addc4ebded2fa7fb3"
+    },
+    {
+      "path": "prototype/run_timing/process_fixture.py",
+      "bytes": 12109,
+      "sha256": "b0245e1bcf35e2e608a6ec3254a124e1ca3b1ca3f1a60acfe32b7d40bf0f8f0f"
+    },
+    {
+      "path": "prototype/run_timing/_fixture_worker.py",
+      "bytes": 2246,
+      "sha256": "b9a691703f8062a5cd6f3cecb34bc0c85ea5d8c1adbf042de2d359024560f1e2"
+    },
+    {
+      "path": "prototype/run_timing/timing_rehearsal.py",
+      "bytes": 12741,
+      "sha256": "f9ee60d7f36d3acf06e0ecd42ce163463dc14e60946b4a382413369141b77650"
+    },
+    {
+      "path": "tests/test_timing_streams.py",
+      "bytes": 11822,
+      "sha256": "7a65e23ae4017a501ac776d6a24aafd38edaad73b694cafd0e41b0e1a79cabf2"
+    },
+    {
+      "path": "tests/test_timing_rehearsal.py",
+      "bytes": 17417,
+      "sha256": "a44a254d3ca4d0c6c1bd48c6158ee60be9e7d3c805b43dda4ae714edb4ec5dbd"
+    },
+    {
+      "path": "tests/test_timing_fixture_evidence.py",
+      "bytes": 10666,
+      "sha256": "485183f440a945db73b12261cf4f5bc9665f0b7c288848ed63805aca5686ffc3"
+    }
+  ],
+  "self_documentation": {
+    "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/client-evidence-register.json",
+    "bytes": 17111,
+    "sha256": "8d4bdbb0d2154583c540b6d567d6d4d1f3a53ecad9bbb55ad30a616590b276a7"
+  },
+  "evidence_files": [
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/full-suite-final.txt",
+      "bytes": 913,
+      "sha256": "59540ea26b1575e871377700beb58232cbcab484d5fd73436c66c57ac32b972c"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/review-summary.json",
+      "bytes": 835,
+      "sha256": "59109672abe889b9de698dc86d4688c7f02bce2519a77ebd69af332d73d2f5dc"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/claude-help.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/claude-help.stdout.txt",
+      "bytes": 21401,
+      "sha256": "ae85d661e9c086f05637ebcd868f5702b477ff6e55e2e65b8ada7807cd51a4b6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/claude-version.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/claude-version.stdout.txt",
+      "bytes": 22,
+      "sha256": "f0d384f3abe85e8cb2f0366465826cc8232426881854235d3ad1150e4a76f689"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/headless-help.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/headless-help.stdout.txt",
+      "bytes": 5851,
+      "sha256": "059a08a0ce0cc21acb29570cfb57ea26abd135da5a66a6e1bbd1000f72c804b3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/headless-print-command.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/headless-print-command.stdout.txt",
+      "bytes": 332,
+      "sha256": "98b34976114ef61d4d53a2e1a26df47c6f104cb5c77d248acf75fbf2ad306700"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/client-register/manifest.json",
+      "bytes": 3146,
+      "sha256": "d7ea7645a79294a7aeb6c94417556522e0d73872c78d30483d174950560a9ca1"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_json/capture.bin",
+      "bytes": 156,
+      "sha256": "e4c097ecd83771de19fc013acec4b3904d824bf84b1c465a7faaf336e77e89b1"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_json/closeout.json",
+      "bytes": 766,
+      "sha256": "83e98f19f37ea1468b78837ca1d28f5282d1ceefa233c44ec45b3ac6770b7681"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_json/fixture.py",
+      "bytes": 2246,
+      "sha256": "b9a691703f8062a5cd6f3cecb34bc0c85ea5d8c1adbf042de2d359024560f1e2"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_json/result.json",
+      "bytes": 1236,
+      "sha256": "12ac432c3e5c4e38c7d6c34c76a2b8cdafbc2860fb77f39ced43df072075c3d3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_json/stderr.bin",
+      "bytes": 21,
+      "sha256": "aa7ba52358c019550877eed29caaa21ef83e719698c5f8de343a0eee348c390c"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_json/stdout.bin",
+      "bytes": 135,
+      "sha256": "168473d0831adcb5d81d92d0beaf4b540db25e27e0cecf35d646fd8bd1012d1c"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_noise/capture.bin",
+      "bytes": 154,
+      "sha256": "15ea7723b64592bb9dda1d72a428ba70879b950c7499e70bad2eec74fdc4fec8"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_noise/closeout.json",
+      "bytes": 766,
+      "sha256": "26cd0e8561ef8b149eac9eda49b7e20a78d256333d5170007b455211e593d4dc"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_noise/fixture.py",
+      "bytes": 2246,
+      "sha256": "b9a691703f8062a5cd6f3cecb34bc0c85ea5d8c1adbf042de2d359024560f1e2"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_noise/result.json",
+      "bytes": 1237,
+      "sha256": "e52e264f919c3c1072c71b3d05b3cd6151ff98a8ec13759f6b1b2e6d62ef367f"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_noise/stderr.bin",
+      "bytes": 19,
+      "sha256": "c6685663f189af5c47ce669cca49c06e981dc271dccd7d2abc68eaf3a9b69752"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/stderr_noise/stdout.bin",
+      "bytes": 135,
+      "sha256": "168473d0831adcb5d81d92d0beaf4b540db25e27e0cecf35d646fd8bd1012d1c"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/summary.json",
+      "bytes": 1143,
+      "sha256": "203987b03fa78c5ce9ed97e3240f28894063eea93061afc95c2c76e9da3f2e49"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/binding-audit.json",
+      "bytes": 38096,
+      "sha256": "6f4329bc2483675dbd99551feacd5e6c7d3124e5b9aaa8e3e5e50f80da79b0ef"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/capture.bin",
+      "bytes": 742,
+      "sha256": "5b84a7831def6dc15274f5272fa23588f64076dc13086da4d56a7a32a00d6a4f"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/closeout.json",
+      "bytes": 766,
+      "sha256": "a4ea206e6a3e9e9ce53bd25003f5c1922b4b316db15619029b4c4f01e7803793"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/fixture.py",
+      "bytes": 40825,
+      "sha256": "61c12abd41dfa3772c1961b60faa42c9f440e5940239f0500e916d752c45bef2"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/result.json",
+      "bytes": 1269,
+      "sha256": "a04b28201473289bbdde47235524007c62bc9874494f9bdbb1fe115eca43500b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/stdout.bin",
+      "bytes": 742,
+      "sha256": "5b84a7831def6dc15274f5272fa23588f64076dc13086da4d56a7a32a00d6a4f"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing-snapshot/manifest.json",
+      "bytes": 169,
+      "sha256": "8e504a99324946ce2fdbae0bfe9ef10f35ce2cb9c8b9f987df6c7e9151d110f8"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing-snapshot/snapshot.json",
+      "bytes": 15325,
+      "sha256": "34bb1cf5986a690582f896ddb4b5051e52ba6390e3d7e38ba53e4a901c583668"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/__init__.py",
+      "bytes": 89,
+      "sha256": "27f379ed14c8a07caa9a619ec8ac851c9ed6837b7f54504b58dfcc2a89030aca"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/_timing_rehearsal_worker.py",
+      "bytes": 8560,
+      "sha256": "5b91c02687cfdefaa395a71f53829574f00a2e5dde08cef796a76545da305258"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/executor.py",
+      "bytes": 17674,
+      "sha256": "7c9683be5be1e916661f14c715c340551eb040a471a14c454ae1beee30e53da6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/fixture_evidence.py",
+      "bytes": 9218,
+      "sha256": "31c4f07e8055c6875e0ee494bd77587898e61f21890cc33addc4ebded2fa7fb3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/outcomes.py",
+      "bytes": 6779,
+      "sha256": "9941362d28554340a076081a2499a9359be9806676d57def6e64f9d82ee29bd3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_binding.py",
+      "bytes": 13230,
+      "sha256": "603be80c3dcf57013670b00c3b0d0cbadc5b12ebd3917a3418bbc358a108696b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_data/changes.json",
+      "bytes": 663,
+      "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_data/logs.jsonl",
+      "bytes": 6524,
+      "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_data/metrics.json",
+      "bytes": 19153,
+      "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_data/notification.json",
+      "bytes": 8752,
+      "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_data/traces.json",
+      "bytes": 3985,
+      "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_incidents.py",
+      "bytes": 12884,
+      "sha256": "41a0d9580aa5d266f708cf3273598dd8c39c463fd9ad0fa3ed84be5ea2c77123"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_queries.py",
+      "bytes": 11732,
+      "sha256": "99086daaa1b11cee0d6a944a0323d2bb19d27e6ebf058d9118f7115b5192b969"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/attempts/timing_rehearsal/timing_bundle/timing_snapshot.py",
+      "bytes": 13037,
+      "sha256": "ff87394437a136ecd30598051f8254190169c1519ec5f2012cc6ce57500145a6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/readback.json",
+      "bytes": 2955,
+      "sha256": "665703a05a274a511356b6ffdac3b7797f8e3e682d71e9856e0222b5dad4f630"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_rehearsal/synthetic-ledger.db",
+      "bytes": 32768,
+      "sha256": "ba42a51b6fec083232d29ea424f1cf2b89c788207f636bf048409336269c5e31"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/binding-audit.json",
+      "bytes": 33477,
+      "sha256": "e7a7ecd5d8486b54aff3b02a02b10ce7984e9d831b4e4f6d0e60915290de2c7b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/capture.bin",
+      "bytes": 738,
+      "sha256": "a45289ae500760e45063a2cbcb5ee05422bbd788cad4e8fac9693996725ba701"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/closeout.json",
+      "bytes": 766,
+      "sha256": "1c41cc734c61b80cd6dd8fb7ede1706a897ce154bdfb8b07779374a7a3f7d9db"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/fixture.py",
+      "bytes": 40825,
+      "sha256": "61c12abd41dfa3772c1961b60faa42c9f440e5940239f0500e916d752c45bef2"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/result.json",
+      "bytes": 1262,
+      "sha256": "b831c7a3d2bb79d63b328be042e37236d6409c00211338a5c1dc40271c85411c"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/stdout.bin",
+      "bytes": 738,
+      "sha256": "a45289ae500760e45063a2cbcb5ee05422bbd788cad4e8fac9693996725ba701"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing-snapshot/manifest.json",
+      "bytes": 169,
+      "sha256": "734f0e986660e4609c6ef35c90f7b630a3eb26d4feb32d2a272e07849010e495"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing-snapshot/snapshot.json",
+      "bytes": 12679,
+      "sha256": "3137c6bccb804c5c584527affcb762b7da3e4c6e666a42159547b722140bccf0"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/__init__.py",
+      "bytes": 89,
+      "sha256": "27f379ed14c8a07caa9a619ec8ac851c9ed6837b7f54504b58dfcc2a89030aca"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/_timing_rehearsal_worker.py",
+      "bytes": 8560,
+      "sha256": "5b91c02687cfdefaa395a71f53829574f00a2e5dde08cef796a76545da305258"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/executor.py",
+      "bytes": 17674,
+      "sha256": "7c9683be5be1e916661f14c715c340551eb040a471a14c454ae1beee30e53da6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/fixture_evidence.py",
+      "bytes": 9218,
+      "sha256": "31c4f07e8055c6875e0ee494bd77587898e61f21890cc33addc4ebded2fa7fb3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/outcomes.py",
+      "bytes": 6779,
+      "sha256": "9941362d28554340a076081a2499a9359be9806676d57def6e64f9d82ee29bd3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_binding.py",
+      "bytes": 13230,
+      "sha256": "603be80c3dcf57013670b00c3b0d0cbadc5b12ebd3917a3418bbc358a108696b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_data/changes.json",
+      "bytes": 663,
+      "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_data/logs.jsonl",
+      "bytes": 6524,
+      "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_data/metrics.json",
+      "bytes": 19153,
+      "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_data/notification.json",
+      "bytes": 8752,
+      "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_data/traces.json",
+      "bytes": 3985,
+      "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_incidents.py",
+      "bytes": 12884,
+      "sha256": "41a0d9580aa5d266f708cf3273598dd8c39c463fd9ad0fa3ed84be5ea2c77123"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_queries.py",
+      "bytes": 11732,
+      "sha256": "99086daaa1b11cee0d6a944a0323d2bb19d27e6ebf058d9118f7115b5192b969"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/attempts/timing_unknown/timing_bundle/timing_snapshot.py",
+      "bytes": 13037,
+      "sha256": "ff87394437a136ecd30598051f8254190169c1519ec5f2012cc6ce57500145a6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/readback.json",
+      "bytes": 2913,
+      "sha256": "328f5a4d8e43485f2884212fb3e17c262cc4fc7ade9de0b0eade3e0f3922034b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_unknown/synthetic-ledger.db",
+      "bytes": 32768,
+      "sha256": "fe7f9c7412e2b142c156691c0f42203651365208addb37a4e511563eac206770"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/binding-audit.json",
+      "bytes": 31178,
+      "sha256": "0e2df2ba760ef637509576082181886fdfab3ce7de5e1389703b68c84295c7c1"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/capture.bin",
+      "bytes": 735,
+      "sha256": "48c15dc1d625450147242e8f2ce2a26f221bdcf61db6b316846079e1a7b6bf14"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/closeout.json",
+      "bytes": 766,
+      "sha256": "605e6854ae26c4e6a273661843f1ecd8d0464d460755cb66c01cc7aa667c1d37"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/fixture.py",
+      "bytes": 40825,
+      "sha256": "61c12abd41dfa3772c1961b60faa42c9f440e5940239f0500e916d752c45bef2"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/result.json",
+      "bytes": 1334,
+      "sha256": "8f30d4b14759a720389a7afe58e58512b7136d806fe46dde821ca32427dc06ab"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/stdout.bin",
+      "bytes": 735,
+      "sha256": "48c15dc1d625450147242e8f2ce2a26f221bdcf61db6b316846079e1a7b6bf14"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing-snapshot/manifest.json",
+      "bytes": 169,
+      "sha256": "17b720a5ce9ca1808c6b984d16e8387bc5a76dfcce6decb4a6528e45f4dc4e5a"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing-snapshot/snapshot.json",
+      "bytes": 10407,
+      "sha256": "fbe2d36623eeba623f336f8cf95eec26dafd871c4aaa232f0e46edfd2b8e7f41"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/__init__.py",
+      "bytes": 89,
+      "sha256": "27f379ed14c8a07caa9a619ec8ac851c9ed6837b7f54504b58dfcc2a89030aca"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/_timing_rehearsal_worker.py",
+      "bytes": 8560,
+      "sha256": "5b91c02687cfdefaa395a71f53829574f00a2e5dde08cef796a76545da305258"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/executor.py",
+      "bytes": 17674,
+      "sha256": "7c9683be5be1e916661f14c715c340551eb040a471a14c454ae1beee30e53da6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/fixture_evidence.py",
+      "bytes": 9218,
+      "sha256": "31c4f07e8055c6875e0ee494bd77587898e61f21890cc33addc4ebded2fa7fb3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/outcomes.py",
+      "bytes": 6779,
+      "sha256": "9941362d28554340a076081a2499a9359be9806676d57def6e64f9d82ee29bd3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_binding.py",
+      "bytes": 13230,
+      "sha256": "603be80c3dcf57013670b00c3b0d0cbadc5b12ebd3917a3418bbc358a108696b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_data/changes.json",
+      "bytes": 663,
+      "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_data/logs.jsonl",
+      "bytes": 6524,
+      "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_data/metrics.json",
+      "bytes": 19153,
+      "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_data/notification.json",
+      "bytes": 8752,
+      "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_data/traces.json",
+      "bytes": 3985,
+      "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_incidents.py",
+      "bytes": 12884,
+      "sha256": "41a0d9580aa5d266f708cf3273598dd8c39c463fd9ad0fa3ed84be5ea2c77123"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_queries.py",
+      "bytes": 11732,
+      "sha256": "99086daaa1b11cee0d6a944a0323d2bb19d27e6ebf058d9118f7115b5192b969"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/attempts/timing_wait/timing_bundle/timing_snapshot.py",
+      "bytes": 13037,
+      "sha256": "ff87394437a136ecd30598051f8254190169c1519ec5f2012cc6ce57500145a6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/readback.json",
+      "bytes": 3037,
+      "sha256": "99b587c05bc5872f2d982190b4def81cc453a15cae27432fd4c852b4b6408ac8"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/final-examples/timing_wait/synthetic-ledger.db",
+      "bytes": 32768,
+      "sha256": "cf01b9f4bd9b7368fc56d6da6998b6ab081c3f995b239fc59ceaef424811c81b"
+    }
+  ],
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-stream-evidence/prior-phase-snapshot",
+  "prior_files_verified": 90,
+  "not_run": [
+    "Native event schema qualification",
+    "Native model/tool execution",
+    "Authenticated source/effect receipts",
+    "Mediated client TLS/revocation",
+    "Provider billing reconciliation",
+    "Production audit sanitization/quota/retention",
+    "Full durable-closeout deadline",
+    "Human Report grading",
+    "Model/tenant/venue qualification",
+    "Push or publication"
+  ]
+}

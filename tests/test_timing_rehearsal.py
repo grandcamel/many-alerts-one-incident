@@ -175,14 +175,17 @@ def _rewrite_closeout(directory: Path) -> None:
     result_path.write_text(json.dumps(result, indent=2) + "\n")
     manifest_path = directory / "closeout.json"
     manifest = json.loads(manifest_path.read_text())
-    for name in ("capture.bin", "result.json"):
+    for name in ("capture.bin", "stdout.bin", "stderr.bin", "result.json"):
+        if not (directory / name).exists():
+            continue
         raw = (directory / name).read_bytes()
         manifest["files"][name] = {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
 
 
 def _rewrite_capture(directory: Path, mutate_event) -> None:
-    lines = (directory / "capture.bin").read_bytes().splitlines()
+    stdout_before = (directory / "stdout.bin").read_bytes()
+    lines = stdout_before.splitlines()
     changed = False
     rewritten = []
     for line in lines:
@@ -191,11 +194,16 @@ def _rewrite_capture(directory: Path, mutate_event) -> None:
         rewritten.append(json.dumps(event, sort_keys=True, separators=(",", ":")).encode())
     assert changed
     capture = b"\n".join(rewritten) + b"\n"
-    (directory / "capture.bin").write_bytes(capture)
+    (directory / "stdout.bin").write_bytes(capture)
     result_path = directory / "result.json"
     result = json.loads(result_path.read_text())
-    result["captured_bytes"] = len(capture)
-    result["capture_sha256"] = hashlib.sha256(capture).hexdigest()
+    result["stdout_bytes"] = len(capture)
+    result["stdout_sha256"] = hashlib.sha256(capture).hexdigest()
+    assert not (directory / "stderr.bin").read_bytes()
+    diagnostic = capture
+    (directory / "capture.bin").write_bytes(diagnostic)
+    result["captured_bytes"] = len(diagnostic)
+    result["capture_sha256"] = hashlib.sha256(diagnostic).hexdigest()
     result_path.write_text(json.dumps(result, indent=2) + "\n")
     _rewrite_closeout(directory)
 
@@ -249,14 +257,20 @@ def test_readback_rejects_tampered_or_incomplete_rehearsal_evidence(tmp_path, ta
     elif tamper == "missing_audit":
         (directory / "binding-audit.json").unlink()
     elif tamper == "duplicate_receipt":
-        lines = (directory / "capture.bin").read_bytes().splitlines()
+        stdout_before = (directory / "stdout.bin").read_bytes()
+        lines = stdout_before.splitlines()
         receipt_line = next(line for line in lines if b"timing_rehearsal_receipt" in line)
-        (directory / "capture.bin").write_bytes(b"\n".join(lines + [receipt_line]) + b"\n")
+        stdout = b"\n".join(lines + [receipt_line]) + b"\n"
+        (directory / "stdout.bin").write_bytes(stdout)
         result_path = directory / "result.json"
         result = json.loads(result_path.read_text())
-        capture = (directory / "capture.bin").read_bytes()
-        result["captured_bytes"] = len(capture)
-        result["capture_sha256"] = hashlib.sha256(capture).hexdigest()
+        result["stdout_bytes"] = len(stdout)
+        result["stdout_sha256"] = hashlib.sha256(stdout).hexdigest()
+        assert not (directory / "stderr.bin").read_bytes()
+        diagnostic = stdout
+        (directory / "capture.bin").write_bytes(diagnostic)
+        result["captured_bytes"] = len(diagnostic)
+        result["capture_sha256"] = hashlib.sha256(diagnostic).hexdigest()
         result_path.write_text(json.dumps(result, indent=2) + "\n")
         _rewrite_closeout(directory)
     elif tamper == "wrong_attempt":
@@ -364,6 +378,9 @@ def test_rehearsal_error_preserves_completed_process_result_when_readback_fails(
 def test_readback_rejects_rehashed_non_json_stderr_capture(tmp_path):
     _, output, _ = run_case(tmp_path, "timing_rehearsal")
     directory = output / "attempt"
+    stderr_path = directory / "stderr.bin"
+    stderr = stderr_path.read_bytes() + b"stderr-is-not-json\n"
+    stderr_path.write_bytes(stderr)
     capture_path = directory / "capture.bin"
     capture = capture_path.read_bytes() + b"stderr-is-not-json\n"
     capture_path.write_bytes(capture)
@@ -371,6 +388,8 @@ def test_readback_rejects_rehashed_non_json_stderr_capture(tmp_path):
     result = json.loads(result_path.read_text())
     result["captured_bytes"] = len(capture)
     result["capture_sha256"] = hashlib.sha256(capture).hexdigest()
+    result["stderr_bytes"] = len(stderr)
+    result["stderr_sha256"] = hashlib.sha256(stderr).hexdigest()
     result_path.write_text(json.dumps(result, indent=2) + "\n")
     _rewrite_closeout(directory)
     with pytest.raises(EvidenceUnavailable):

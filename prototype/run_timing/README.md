@@ -12,7 +12,9 @@ reconciliation, concurrent admission and weekly limits using synthetic inputs on
 It does not access real account balances or authorize a paid model call.
 
 [Fixed-fixture closeout](FIXTURE_EVIDENCE.md) now retains the bounded capture bytes and
-verifies worker/capture/result linkage on read-back. These byte-integrity receipts do not
+verifies worker/capture/result linkage on read-back. Version-2 closeout also retains
+separate stdout/stderr bytes under the shared capture cap; historical version-1
+receipts remain stream-unknown. Integrated rehearsal requires version 2 and empty stderr. These byte-integrity receipts do not
 establish semantic success, real audit acceptance or a durable-closeout time bound.
 
 The [timing instruction drafts](../../.scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/README.md)

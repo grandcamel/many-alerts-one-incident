@@ -21,6 +21,10 @@ def main():
     emit({"type": "assistant", "message": {"model": "fixture-only", "content": []}})
     if scenario == "malformed":
         print("not JSON", flush=True)
+    elif scenario == "stderr_noise":
+        os.write(2, b"stderr-is-not-json\n")
+    elif scenario == "stderr_json":
+        os.write(2, b'{"channel":"stderr"}\n')
     elif scenario == "flood":
         while True:
             os.write(2, b"x" * 8192)

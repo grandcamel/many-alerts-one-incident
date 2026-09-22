@@ -26,7 +26,8 @@ from .rehearsal_bundle import TIMING_SCENARIOS, build_rehearsal_worker
 
 SCENARIOS = frozenset({"success", "nonzero", "result_error", "duplicate", "malformed",
                        "silence", "ignore_interrupt", "held_pipe", "held_pipe_ignore",
-                       "closed_pipes_alive", "flood", "oversized_line"}) | TIMING_SCENARIOS
+                       "closed_pipes_alive", "flood", "oversized_line", "stderr_noise",
+                       "stderr_json"}) | TIMING_SCENARIOS
 
 
 def _group_alive(pgid: int) -> bool:
@@ -65,6 +66,10 @@ class ProcessResult:
     scope: str = "FIXED_HOST_FIXTURES_ONLY"
     native_launch: str = "CLOSED"
     scenario: str = ""
+    stdout_bytes: int | None = None
+    stdout_sha256: str | None = None
+    stderr_bytes: int | None = None
+    stderr_sha256: str | None = None
 
 
 class FixtureCloseoutError(EvidenceUnavailable):
@@ -116,6 +121,8 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
     life = Lifecycle()
     transcript = Transcript("fixture-only")
     capture = Capture(limit=capture_limit)
+    stdout_capture = bytearray()
+    stderr_capture = bytearray()
     pending = bytearray()
     actions = []
     process = None
@@ -195,6 +202,7 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                             pending.clear()
                             continue
                         if key.fileobj is process.stdout:
+                            stdout_capture.extend(data)
                             pending.extend(data)
                             while b"\n" in pending:
                                 line, _, rest = pending.partition(b"\n")
@@ -204,6 +212,8 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                                 transcript.reasons.add("capture_limit")
                                 transcript.stop_requested = True
                                 pending.clear()
+                        else:
+                            stderr_capture.extend(data)
             if io_failed:
                 transcript.reasons.add("malformed_evidence")
         finally:
@@ -225,12 +235,17 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                            process.pid if process else None, root_reaped,
                            group_gone, pipes_closed, capture.complete, len(capture.data),
                            hashlib.sha256(capture.data).hexdigest(), str(directory),
-                           hashlib.sha256(worker_bytes).hexdigest(), scenario=scenario)
+                           hashlib.sha256(worker_bytes).hexdigest(), scenario=scenario,
+                           stdout_bytes=len(stdout_capture),
+                           stdout_sha256=hashlib.sha256(stdout_capture).hexdigest(),
+                           stderr_bytes=len(stderr_capture),
+                           stderr_sha256=hashlib.sha256(stderr_capture).hexdigest())
     payload = asdict(result)
     estimate = result.outcome.estimate_usd
     payload["outcome"]["estimate_usd"] = str(estimate) if estimate is not None else None
     try:
-        write_fixture_evidence(directory, bytes(capture.data), payload)
+        write_fixture_evidence(directory, bytes(capture.data), payload,
+                               stdout=bytes(stdout_capture), stderr=bytes(stderr_capture))
     except EvidenceUnavailable as exc:
         raise FixtureCloseoutError(result) from exc
     return result

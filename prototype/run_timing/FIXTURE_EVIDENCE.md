@@ -1,24 +1,32 @@
 # Fixed-fixture closeout evidence
 
-The fixed process harness retains `capture.bin`, `result.json`, its existing `fixture.py`
-snapshot and a versioned `closeout.json` manifest. All content is synthetic from the
+The fixed process harness retains `capture.bin`, `stdout.bin`, `stderr.bin`, `result.json`, its existing `fixture.py`
+snapshot and a version-2 `closeout.json` manifest. All content is synthetic from the
 closed worker scenarios. Never use this module to capture native model prompts,
 credentials, Ground truth or real audit traffic: it is not a sanitizer or access boundary.
 
-Capture contains stdout/stderr bytes merged in supervisor read order, capped at 1 MiB.
-It does not preserve stream identity or constitute a replayable native transcript.
+`stdout.bin` and `stderr.bin` retain each stream in its own accepted read order. `capture.bin`
+remains a diagnostic merge in supervisor read order, capped at 1 MiB across both streams.
+The stream lengths must sum to the diagnostic capture length, and each stream result count and
+digest is linked to its file. A single nonempty stream must exactly equal the diagnostic capture;
+the diagnostic merge cannot reconstruct cross-stream emission order.
 `capture_complete=false` remains incomplete even when every retained byte verifies.
-The worker and result each have a 64 KiB limit and the manifest a 4 KiB limit. The manifest
-has exactly three fixed filenames and records each size and SHA-256. Its linkage check
-also verifies the result's capture size/digest, worker digest, attempt directory, fixture
-scope and closed native-launch flag. A byte-integrity receipt is not a success verdict:
+The worker and result each have a 64 KiB limit, each retained stream and their aggregate have a
+1 MiB limit, and the manifest has a 4 KiB limit. The version-2 manifest has exactly five fixed
+filenames and records each size and SHA-256. Its linkage check also verifies the result's
+aggregate and stream sizes/digests, worker digest, attempt directory, fixture scope and closed
+native-launch flag. A byte-integrity receipt is not a success verdict:
 failed/cancelled/partial fixture executions can have valid receipts.
+Version-1 three-file receipts (`fixture.py`, `capture.bin`, `result.json`) remain readable as
+historical evidence with `stdout` and `stderr` unavailable. New publication permits version 1
+only when no non-null stream metadata is supplied; partial stream metadata and a one-stream
+downgrade are rejected.
 Result serialization accepts JSON values only; the process binding explicitly renders
 its optional Decimal cost estimate as a decimal string. Unsupported values cannot silently
 become strings or lose structure.
 
-Publication uses exclusive mode-0600 capture/result files and flush/fsync, flushes the
-existing worker snapshot, syncs the attempt directory and its parent, writes and syncs
+Publication uses exclusive mode-0600 aggregate-capture, result and stream files and flush/fsync,
+flushes the existing worker snapshot, syncs the attempt directory and its parent, writes and syncs
 `closeout.pending`, then hard-links it to `closeout.json` without overwrite. The pending
 link is removed and the directory synced before return and read-back. Existing files
 are never overwritten or deleted for recovery. On failure, partial evidence is preserved
