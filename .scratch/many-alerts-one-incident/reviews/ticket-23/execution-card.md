@@ -3,7 +3,11 @@
 Prepared 2026-09-21. **COST AUTHORIZED UNDER AGGREGATE CAP / TECHNICAL PREFLIGHT NOT READY.**
 The user approved cost-bearing experiments with a cumulative total strictly below $50;
 [standing authorization](experiment-authorization.json) records the exact instruction.
-No repeat cost approval is needed within that scope. This draft still has unset technical
+No repeat cost approval is needed within that scope. The 2026-09-22
+[native-launch contract](native-launch-evidence-contract.md) and
+[readiness record](native-launch-readiness.json) now distinguish prior prerequisites
+from observations produced by an attempt; neither creates launch authority.
+This draft still has unset technical
 fields, creates no reservation and supplies no launch command.
 
 | Field | Required value or current state |

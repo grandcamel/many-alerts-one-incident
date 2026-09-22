@@ -1,0 +1,362 @@
+{
+  "schema_version": 1,
+  "record_kind": "SOURCE_PREPARATION_READINESS_SNAPSHOT",
+  "observed_on": "2026-09-22",
+  "baseline_git_commit": "ee2d83895167725e3c370c0b40c9eb4ca1e3acfd",
+  "contract": "native-launch-evidence-contract.md",
+  "native_launch": "CLOSED",
+  "runtime_admission_authority": false,
+  "qualification": "NOT_ASSESSED",
+  "compatibility_probe": "PROPOSED_ONLY_NOT_LAUNCHED",
+  "launch_command": null,
+  "attempt_id": null,
+  "reservation_created": false,
+  "standing_cost_authorization": "GRANTED_STRICT_AGGREGATE_CAP",
+  "aggregate_cost_cap_microdollars": 50000000,
+  "comparison": "strictly_less_than",
+  "historical_actuals_microdollars": null,
+  "unsettled_exposure_microdollars": null,
+  "new_attempt_liability_microdollars": null,
+  "available_budget_microdollars": null,
+  "source_pins": [
+    {
+      "id": "client-evidence-register.json",
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/client-evidence-register.json",
+      "git_commit": "ee2d83895167725e3c370c0b40c9eb4ca1e3acfd",
+      "bytes": 17111,
+      "sha256": "8d4bdbb0d2154583c540b6d567d6d4d1f3a53ecad9bbb55ad30a616590b276a7"
+    },
+    {
+      "id": "documented-stream-validation.json",
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/documented-stream-validation.json",
+      "git_commit": "ee2d83895167725e3c370c0b40c9eb4ca1e3acfd",
+      "bytes": 8734,
+      "sha256": "09f091fc2d60191dd80fccfc7ad255d2a4ed36f19976d1acc998ace1cba08862"
+    },
+    {
+      "id": "supervised-streaming-validation.json",
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/supervised-streaming-validation.json",
+      "git_commit": "ee2d83895167725e3c370c0b40c9eb4ca1e3acfd",
+      "bytes": 4018,
+      "sha256": "031c241a1478cfebcff764d8dece2d543864821380a173b226650446a937559c"
+    },
+    {
+      "id": "timing-draft/operator/rubric-approval.json",
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/rubric-approval.json",
+      "git_commit": "ee2d83895167725e3c370c0b40c9eb4ca1e3acfd",
+      "bytes": 2498,
+      "sha256": "4d74d1451a8580de6465340ab7a6f7f0e21295f964467cae58d2d6fe17201dab"
+    },
+    {
+      "id": "experiment-authorization.json",
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/experiment-authorization.json",
+      "git_commit": "ee2d83895167725e3c370c0b40c9eb4ca1e3acfd",
+      "bytes": 2015,
+      "sha256": "f93ee7b0946ba96657f3c14cbb9aa96ec0d7e367f169ec296b1f508f68fe6825"
+    }
+  ],
+  "source_verification": {
+    "method": "read-only file and pinned Git object hashing; no client execution",
+    "launcher_path": "/Users/jasonkrueger/.local/bin/claude",
+    "current_resolved_executable": "/Users/jasonkrueger/.local/share/claude/versions/2.1.278",
+    "executable_bytes": 226521952,
+    "executable_sha256": "c522425e3d42275d2ac2238757ef8ba7f80d165a934044ec5a7a5fd7d7b9950b",
+    "matches_registered_executable": true,
+    "native_behavior_verified": false,
+    "wrapper_dependency_closure_verified": false,
+    "historical_fixture_inputs": [
+      {
+        "path": "prototype/run-timing/fixtures/ground-truth.md",
+        "bytes": 3197,
+        "sha256": "eb4a8ba419f4ddfc08bf802302c99d558d042de316de23db474476b71830a7cd",
+        "role": "operator_only",
+        "git_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+        "status": "MATCH_AT_PINNED_COMMIT"
+      },
+      {
+        "path": "prototype/run-timing/fixtures/notification-cascade.json",
+        "bytes": 8752,
+        "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744",
+        "role": "run_notification",
+        "git_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+        "status": "MATCH_AT_PINNED_COMMIT"
+      },
+      {
+        "path": "prototype/run-timing/telemetry/changes.json",
+        "bytes": 663,
+        "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956",
+        "role": "supervisor_query_fixture",
+        "git_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+        "status": "MATCH_AT_PINNED_COMMIT"
+      },
+      {
+        "path": "prototype/run-timing/telemetry/logs.jsonl",
+        "bytes": 6524,
+        "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b",
+        "role": "supervisor_query_fixture",
+        "git_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+        "status": "MATCH_AT_PINNED_COMMIT"
+      },
+      {
+        "path": "prototype/run-timing/telemetry/metrics.json",
+        "bytes": 19153,
+        "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae",
+        "role": "supervisor_query_fixture",
+        "git_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+        "status": "MATCH_AT_PINNED_COMMIT"
+      },
+      {
+        "path": "prototype/run-timing/telemetry/traces.json",
+        "bytes": 3985,
+        "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c",
+        "role": "supervisor_query_fixture",
+        "git_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+        "status": "MATCH_AT_PINNED_COMMIT"
+      }
+    ]
+  },
+  "gates": [
+    {
+      "id": "frozen_launch_profile",
+      "phase": "before_launch",
+      "applies_to": [
+        "provider_disabled_compatibility",
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "PARTIAL_SOURCE_ONLY",
+      "owner": "Ticket 23 / trusted launcher",
+      "existing_evidence": [
+        "client-evidence-register.json",
+        "documented-stream-validation.json"
+      ],
+      "still_required": [
+        "One exact attempt/card digest and executable/source/argument/environment/adapter bindings",
+        "Effective managed policy and tool profile for that candidate; no untrusted overrides"
+      ]
+    },
+    {
+      "id": "isolated_client_boundary",
+      "phase": "before_launch",
+      "applies_to": [
+        "provider_disabled_compatibility",
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "UNVERIFIED",
+      "owner": "Ticket 36 / venue operator",
+      "existing_evidence": [
+        "supervised-streaming-validation.json"
+      ],
+      "still_required": [
+        "Enforced credential, filesystem, descriptor, control and network isolation for exact native process",
+        "Independent denied-bypass/containment evidence; process groups and settings alone are insufficient"
+      ]
+    },
+    {
+      "id": "provider_disabled_route",
+      "phase": "before_launch",
+      "applies_to": [
+        "provider_disabled_compatibility"
+      ],
+      "current_status": "UNVERIFIED",
+      "owner": "Ticket 23 / trusted fixture operator",
+      "existing_evidence": [],
+      "still_required": [
+        "Exclusive local canned route and independent proof no provider destination or upstream credential is reachable",
+        "No model, provider or tenant operation; zero provider liability must be demonstrated, not assumed from endpoint variables"
+      ]
+    },
+    {
+      "id": "mediated_run_routes",
+      "phase": "before_launch",
+      "applies_to": [
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "UNVERIFIED",
+      "owner": "Ticket 36 / Forwarder",
+      "existing_evidence": [
+        "supervised-streaming-validation.json"
+      ],
+      "still_required": [
+        "Mandatory Jira, Grafana/Eyes, Kubernetes and Anthropic readiness; Confluence failure only degrades Memory",
+        "Exact fixed native endpoint/trust/header profile, credential custody and live control generation/lease/expiry receipts"
+      ]
+    },
+    {
+      "id": "durable_paid_admission",
+      "phase": "before_launch",
+      "applies_to": [
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "SYNTHETIC_ONLY",
+      "owner": "Tickets 37 and 38 / Receiver",
+      "existing_evidence": [
+        "supervised-streaming-validation.json"
+      ],
+      "still_required": [
+        "Durable production reservation and attempt launch claim bound to journal/card/lease",
+        "Restart hold, authoritative reconciliation and no duplicate launch"
+      ]
+    },
+    {
+      "id": "aggregate_liability",
+      "phase": "before_launch",
+      "applies_to": [
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "UNKNOWN",
+      "owner": "Ticket 38 / accounting",
+      "existing_evidence": [
+        "experiment-authorization.json"
+      ],
+      "still_required": [
+        "Authoritative prior applicable actuals and unresolved liabilities with coverage/lag/attribution",
+        "Defensible new U at least USD3; one exposure per attempt; experiment liability plus new U strictly below USD50 and all tighter limits"
+      ]
+    },
+    {
+      "id": "native_clock_and_containment",
+      "phase": "before_launch",
+      "applies_to": [
+        "provider_disabled_compatibility",
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "SYNTHETIC_ONLY",
+      "owner": "Tickets 23 and 37 / launcher",
+      "existing_evidence": [
+        "supervised-streaming-validation.json"
+      ],
+      "still_required": [
+        "Native 270/20/10 launch-clock enforcement, early cancellation cutoffs and descendant containment",
+        "Separate preflight/queue times plus observed transport cleanup and durable closeout; no extrapolation from fixture process interval"
+      ]
+    },
+    {
+      "id": "private_capture",
+      "phase": "before_launch",
+      "applies_to": [
+        "provider_disabled_compatibility",
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "SYNTHETIC_ONLY",
+      "owner": "Ticket 39 / operator",
+      "existing_evidence": [
+        "supervised-streaming-validation.json"
+      ],
+      "still_required": [
+        "Private sanitized capture inaccessible to Run, outside Git/Memory/telemetry",
+        "Qualification capacity/readback under 100MiB per Run, 2GiB total, maximum30days; mid-Run failure cannot block required OPS"
+      ]
+    },
+    {
+      "id": "pinned_rubric",
+      "phase": "before_launch",
+      "applies_to": [
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "APPROVED_PINNED_SYNTHETIC_ONLY",
+      "owner": "Ticket 39 / named human",
+      "existing_evidence": [
+        "timing-draft/operator/rubric-approval.json"
+      ],
+      "still_required": [
+        "Bind future Report-producing diagnostic to exact approved rubric and runtime operator-only access",
+        "A different comparison rubric or Fault scope is not covered by this approval"
+      ],
+      "condition": "Applies when the diagnostic produces a Report or contributes a reviewed diagnostic claim; pure command-length observations do not invent a Report grade."
+    },
+    {
+      "id": "native_compatibility_observations",
+      "phase": "after_attempt",
+      "applies_to": [
+        "provider_disabled_compatibility",
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "NOT_RUN",
+      "owner": "Ticket 23 / client evidence owner",
+      "existing_evidence": [
+        "client-evidence-register.json",
+        "documented-stream-validation.json"
+      ],
+      "still_required": [
+        "Observed bounded native event/permission/tool/terminal/cancel/error metadata for exact profile",
+        "Generated SDK-subset fixtures cannot replace installed-client observation; unknown input holds rather than expands parser"
+      ]
+    },
+    {
+      "id": "intended_venue_and_fault_set",
+      "phase": "before_launch",
+      "applies_to": [
+        "model_qualification"
+      ],
+      "current_status": "UNVERIFIED",
+      "owner": "Tickets 38,39,41,42 / operator",
+      "existing_evidence": [],
+      "still_required": [
+        "Three representative lifecycle plan: two primary and one designated fallback, at least one cold and one Memory-assisted",
+        "Reviewed Fault definitions, intended API auth/venue and Change/effect readiness; a fixture diagnostic is not tenant mutation authority"
+      ]
+    },
+    {
+      "id": "provider_coverage_and_effects",
+      "phase": "after_attempt",
+      "applies_to": [
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "NOT_RUN",
+      "owner": "Tickets 36,37,38 / Receiver",
+      "existing_evidence": [],
+      "still_required": [
+        "Unique authenticated provider charge lines and complete coverage; actual replaces U without double counting",
+        "Separately attributed intent/dispatch/response/readback effects; unknown remains reserved/held"
+      ]
+    },
+    {
+      "id": "human_report_adjudication",
+      "phase": "after_attempt",
+      "applies_to": [
+        "metered_diagnostic",
+        "model_qualification"
+      ],
+      "current_status": "NOT_RUN",
+      "owner": "Ticket 39 / named human",
+      "existing_evidence": [
+        "timing-draft/operator/rubric-approval.json"
+      ],
+      "still_required": [
+        "Named human evaluates each actual Report revision against retained private evidence",
+        "Baseline approval, automated checks and model reviews do not constitute Report grading; disputes remain held"
+      ],
+      "condition": "Applies when the diagnostic produces a Report or contributes a reviewed diagnostic claim; pure command-length observations do not invent a Report grade."
+    },
+    {
+      "id": "representative_qualification",
+      "phase": "after_sample_set",
+      "applies_to": [
+        "model_qualification"
+      ],
+      "current_status": "NOT_ASSESSED",
+      "owner": "Tickets 38 and 39",
+      "existing_evidence": [],
+      "still_required": [
+        "All three lifecycle samples satisfy execution, effect, time, cost, evidence and human-review predicates",
+        "Failures, retries, corrections, missing evidence and disputes cannot be averaged away"
+      ]
+    }
+  ],
+  "limitations": [
+    "This JSON is a human-reviewable evidence inventory, not executable policy or an admission token",
+    "A proposed provider-disabled probe needs independently verified isolation and exact scoped card; current source cannot establish zero provider exposure",
+    "Actual reports, charges and native observations are not required to exist before their observation attempt; their safety and accounting prerequisites are",
+    "No credentials or account data were read, no provider/model/tenant operation performed, no C2 retry"
+  ]
+}

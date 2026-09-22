@@ -136,3 +136,13 @@ The rehearsal's scripted child, structural hashes, fixture model label, normal
 completion, and held unknown/wait cases support only their fixed synthetic
 claims.  They do not advance any native-client, authentication, provider,
 billing, tenant, or venue gate.
+
+
+## Native-launch evidence contract, 2026-09-22
+
+The [contract and source-pin outcome](native-launch-evidence-outcome.md) separates
+provider-disabled client observations, metered diagnostics and model qualification.
+The [readiness record](native-launch-readiness.json) maps current evidence and
+missing facts without granting launch authority. Native gates C–E remain NOT RUN.
+The next application-code step is a separately scoped implementation proposal;
+the existing planning tickets do not authorize that implementation.

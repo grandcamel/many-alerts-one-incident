@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "scope": "source preparation and read-only provenance; no runtime implementation or native admission",
+  "baseline_commit": "ee2d83895167725e3c370c0b40c9eb4ca1e3acfd",
+  "full_suite_this_change": "NOT_RUN_DOCUMENTATION_ONLY",
+  "latest_code_baseline": {
+    "commit": "ee2d83895167725e3c370c0b40c9eb4ca1e3acfd",
+    "passed": 874,
+    "skipped": 36,
+    "source": "supervised-streaming-validation.json"
+  },
+  "source_verification": {
+    "client_manifest": "MATCH",
+    "retained_client_stream_files_verified": 8,
+    "unique_executable_files_verified": 2,
+    "documented_stream_source_files_verified": 2,
+    "documented_stream_evidence_files_verified": 25,
+    "supervised_artifacts_verified_at_baseline": 13,
+    "rubric": "MATCH",
+    "historical_fixture_git_objects_verified": 6,
+    "historical_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+    "historical_path_semantics": "Pinned Git objects; absent HEAD paths do not mean source loss"
+  },
+  "checks": {
+    "json_syntax": "PASS",
+    "gate_identity_phase_scope_checks": "PASS_14_GATES",
+    "native_admission_remains_closed": true,
+    "unknown_costs_remain_null": true,
+    "source_pin_readback": "PASS",
+    "local_links_verified": 88
+  },
+  "reviews": [
+    {
+      "reviewer": "stream_impl / gpt-5.6-terra",
+      "role": "bounded contract drafting"
+    },
+    {
+      "reviewer": "stream_tests / gpt-5.6-luna",
+      "role": "read-only source/receipt verification",
+      "historical_source_correction": "Root verified six fixture Git objects at recorded commit, not HEAD paths"
+    },
+    {
+      "reviewer": "integration_standards / gpt-5.6-luna",
+      "role": "independent contract/record/scope review",
+      "verdict": "PASS_AFTER_IMMEDIATE_REVOCATION_CLARIFICATION"
+    }
+  ],
+  "root_review": "PASS; purpose/phase applicability, optional Confluence, OPS-preserving audit failure, early cancellation, qualification scope and historical Git provenance",
+  "native_client_executions": 0,
+  "provider_operations": 0,
+  "paid_experiments": 0,
+  "credentials_read_or_modified": false,
+  "artifact_sha256": {
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/native-launch-evidence-contract.md": "eabfb5df0f07c07eee3a4a8c1e3e3d926eb34378d30e4bec059a4997ac80d6f0",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/native-launch-readiness.json": "5878f885051134127a9d3c8bd8565786acb1d4f9ad49b21ba616891c3a6d2d2e",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/native-launch-evidence-outcome.md": "6f578938d44cb5f143d7ff0c20a1ac1d3728565f99d936e8fb9236627496a372",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/native-adapter-readiness.md": "f21c2cddf63a2faaaaf4749cc2c7eceb297e5074486cc1910d9777ed317e926a",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md": "5463b811a2cbeae74ce38cb94c8e90e70ade44f119c1b29de9d7557c542ad911",
+    ".scratch/many-alerts-one-incident/reviews/native-runtime-source-implementation-proposal.md": "8441cab12aec33c2bf5190382f57eed5e27dc280d431ca2d35234d40a5b29d36",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "1dae940355e3c0132b802d126eb8926c07bfff3393645a073ced24a06984e434",
+    ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md": "570a6057cdbe1d443efb0550f5efef80daeba9124f826ee2312c460ac5e2b5ad"
+  }
+}

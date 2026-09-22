@@ -117,3 +117,9 @@ joins an actual fixed child's decoded frames to parent transport receipts and
 process evidence. Cancellation, capture loss, nonzero exit and incomplete evidence
 remain held; synthetic ledger claims are not automatically settled. This remains
 fixture evidence, with native qualification and the measurement card closed.
+
+The [native-launch evidence outcome](../reviews/ticket-23/native-launch-evidence-outcome.md)
+adds a phase-specific contract, 14-area readiness record and reverified source pins.
+The historical fixture inputs match their pinned Git commit; no current native
+behavior, spending or Report grade is inferred. Application implementation is the
+next proposed scope, separate from planning tickets and still excluding deployment.

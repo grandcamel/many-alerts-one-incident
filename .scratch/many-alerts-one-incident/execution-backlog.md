@@ -22,7 +22,8 @@ future Reports is a separate requirement.
 
 Local specification, implementation within authorized scope, testing and review
 continue without another permission question. Full tests precede commits that
-change code. Work stays local. The provider-blocked C2 implementation is not
+change code. Work stays local. The explicit 2026-09-22 push was completed through
+`ee2d838`; it does not make later pushes automatic. The provider-blocked C2 implementation is not
 retried; its unrelated dirty files and the historical planning-frontier edits
 are preserved. No paid probe starts on an assumed balance or an unqualified
 transport. A planning-only ticket does not become runtime/deployment authority
@@ -70,10 +71,16 @@ now proves first-frame delivery, partial failure and bounded revocation in the
 local fixture. The
 [supervised streaming join](reviews/ticket-23/supervised-streaming-outcome.md) now
 binds an actual fixed child's decoding to those receipts and process evidence.
-Next is the source-bounded native-launch evidence contract: map the pinned client
-register and route, isolation, accounting and audit requirements to the exact
-observations a future launch must supply. That preparation cannot admit a native
-launch or turn an UNKNOWN input into acceptance.
+The [native-launch evidence contract](reviews/ticket-23/native-launch-evidence-outcome.md)
+now maps 14 evidence areas to pre-launch, post-attempt and sample-set phases.
+The installed client/source pins and all six historical approved fixture inputs
+were reverified. Native execution remains closed.
+
+The next substantive step is the
+[local runtime source implementation proposal](reviews/native-runtime-source-implementation-proposal.md).
+Tickets 36 and 37 explicitly exclude runtime implementation from their current
+planning scope. Source implementation therefore needs that scope decision; more
+synthetic stream cases cannot supply the missing runtime boundaries.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
@@ -81,7 +88,7 @@ launch or turn an UNKNOWN input into acceptance.
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | 23 and integration follow-ups | Supervised stream join complete; prepare the source-bounded native-launch evidence contract from the pinned client register and dependency specifications | Exact required observations and missing inputs; no native launch, new schema qualification or paid admission inferred |
+| 5 | 23 and integration follow-ups | Native-launch evidence contract and source pins complete; local application implementation proposal ready for scope decision | Existing planning-only tickets grant no runtime implementation; proposed code/tests stay local and keep native/provider/tenant/deployment execution closed |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets
@@ -100,4 +107,6 @@ criteria remain unmet and link completed deliverables from the issue.
 | Human Report adjudication | Actual future Report revisions and private evidence for a named human reviewer | Capture/parser contracts, deterministic prechecks and evidence preparation |
 | External actions outside scope | Concrete provisioning, new auth/keys, publication or tenant mutation not already authorized for that action | Prepare reviewable plans and continue other local work |
 
-No new user input is needed for the next local source-preparation unit.
+The prepared implementation scope decision is the next required input. Existing
+paid, native, tenant, venue and human-adjudication gates are unchanged; approval
+of local code/tests would not satisfy those external acceptance gates.
