@@ -33,3 +33,12 @@ ADR 0016 adds a separate $10 weekly venue envelope, $2 reserved per creation att
 ## Approved fallback definition from ticket 40
 
 The human approved [adFailure's Mechanism/Trigger definition](../reviews/ticket-40/definition.md), pinned to upstream commit `1755859a9de82c2e5e225be68abc401a5ebf2b4f`. The missing-definition prerequisite is satisfied. Keep it operator/repository-only, not reference material for Runs. It describes nominal one-in-ten ad RPC rejection with frontend error propagation, not total outage; an exact observed 10-percent ratio is not required for a correct diagnosis. Source/image correspondence, retrieved claim support and corrected-rule live acceptance remain qualification gates. Historical zero matching logs do not refute the warning emitted by source.
+
+## Specification progress, 2026-09-22
+
+The [proposed implementation contract](../reviews/ticket-38/accounting-specification.md)
+now records the concrete state, persistence, integration and acceptance requirements.
+Accepted ADR policy remains distinct from proposed implementation choices. See the
+[cross-ticket review](../reviews/recovery-accounting-audit-integration.md).
+This planning artifact is not runtime, model, billing, tenant or venue acceptance;
+the ticket remains open for its unresolved inputs and final integration.

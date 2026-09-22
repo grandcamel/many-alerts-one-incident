@@ -23,3 +23,12 @@ ADR 0016 holds new dispatch on venue-readiness failure and forbids Run launch at
 ## Accepted Confluence input from ticket 33
 
 ADR 0017 adds reference-revocation cancellation: track delivered page/version identity, cancel exposed active Runs under the existing bounded deadline and hold new dispatch for operator review. Unknown exposure conservatively includes active Runs admitted to that manifest. Reconcile confirmed/uncertain effects and mark affected outputs for review; retry remains explicit and budgeted with fresh context. Cancellation does not undo OPS writes or erase read context.
+
+## Specification progress, 2026-09-22
+
+The [proposed implementation contract](../reviews/ticket-37/recovery-specification.md)
+now records the concrete state, persistence, integration and acceptance requirements.
+Accepted ADR policy remains distinct from proposed implementation choices. See the
+[cross-ticket review](../reviews/recovery-accounting-audit-integration.md).
+This planning artifact is not runtime, model, billing, tenant or venue acceptance;
+the ticket remains open for its unresolved inputs and final integration.

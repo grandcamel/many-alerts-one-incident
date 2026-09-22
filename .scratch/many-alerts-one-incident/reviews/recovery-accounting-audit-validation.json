@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-22T13:16:04.712934+00:00",
+  "scope": "Planning specifications and local autonomous work queue only",
+  "validation": {
+    "documents": 9,
+    "local_links_checked": 61,
+    "json_illustration_blocks_syntax_checked": 4,
+    "executable_schema_validation": "NOT_RUN; examples are schematic",
+    "runtime_acceptance": "NOT_RUN",
+    "paid_experiments_launched": 0,
+    "code_changes": false,
+    "full_suite": "Not repeated for documentation-only change; last code baseline 794 passed,36 skipped at 17037db"
+  },
+  "files": [
+    {
+      "path": ".scratch/many-alerts-one-incident/execution-backlog.md",
+      "sha256": "62d1b141fe05fb1c295f26666eec5e69162930b683b0ffcfc323c7b22fdd5107"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/issues/16-the-report.md",
+      "sha256": "cbf717c938ed97dbc70412d2133ea854df6996f481104adbba0592f4b17f1ec6"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md",
+      "sha256": "59455393957f4ceb3d865dbbe85c31628dcc7e9d198a3f21becb4f7cb6784583"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/issues/38-budget-accounting-and-model-qualification.md",
+      "sha256": "6abec1ac0294300d3f6f14f250f8f8be797ba6fe92446d50fda10c3c7b1e97f1"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/issues/39-report-audit-and-scoring-specification.md",
+      "sha256": "292e45b94b36f9e64721844a85f024686252e0080c8b359ef261fe2b147ea1e8"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/recovery-accounting-audit-integration.md",
+      "sha256": "c316b87fcff836b0f72b5ae299f4d1895e65ec33ff6103aa31f264e7b1225e58"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-37/recovery-specification.md",
+      "sha256": "b7f5b069a07e0e0e9b2964793cb679e4ac2e3e01de437b4e70a354dffe752bde"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-38/accounting-specification.md",
+      "sha256": "88c090f26a265e3139958cdee3b8a2480f9ef334bda6afb2575d405833bed561"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-39/audit-specification.md",
+      "sha256": "bd7a33a3964ee9d997931e3cca05023825647712eb8d1c72383bd4b4a67f184a"
+    }
+  ]
+}

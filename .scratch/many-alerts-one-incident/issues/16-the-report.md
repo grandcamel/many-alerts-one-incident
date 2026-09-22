@@ -42,3 +42,18 @@ this ceiling is negotiable at Run time. Report size is the one lever over both.
 ## Accepted scoring input from ticket 24
 
 ADR 0014 requires claim-to-retrieval linkage and clear observed/inferred language, explicit uncertainty and auditable revisions. A supported inference can score correctly without a retrieved Trigger. Preserve corrections and earlier defects; a citation link or tool name alone does not prove returned evidence supported the claim.
+
+## Current interpretation of the historical length measurements
+
+[ADR 0012](../../../docs/adr/0012-run-outcomes-and-recovery-are-explicit.md)
+supersedes the universal-limit interpretation above: the observed accepted and
+denied command lengths describe that historical client/policy configuration,
+not a proven current CLI maximum or a general content-independent threshold.
+Retain the measurements as historical evidence, but do not choose a current
+Report size by treating 9,417 characters as a guaranteed safe limit.
+
+The current contract still requires a compact Report and one shorter,
+evidence-backed attempt only after trusted evidence proves the denied mutation
+was not dispatched, within the original Run budget. An uncertain effect must
+be reconciled before another create. Ticket 23's offline length records and
+synthetic transport fixtures do not establish native permission behavior.
