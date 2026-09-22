@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "scope": "Reviewed instruction/rubric source drafts only; not installed; native launch CLOSED",
+  "baseline_commit": "9ab04ab",
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 486,
+    "skipped": 36,
+    "seconds": 28.71,
+    "exit_code": 0
+  },
+  "diff_check": "PASS",
+  "static_checks": {
+    "historical_source_hashes_verified": 22,
+    "notification_alerts": 7,
+    "unique_fingerprints": 7,
+    "telemetry_sources_parsed": 4,
+    "run_text_files": 3,
+    "operator_only_files": 4,
+    "skill_frontmatter": "PASS",
+    "template_json": "PASS; unfilled/pending/unknown",
+    "draft_digest_readback": "MATCH",
+    "limited_answer_marker_scan": "PASS; not a runtime or semantic leakage proof"
+  },
+  "reviews": {
+    "standards": {
+      "findings": 0,
+      "remaining": 0
+    },
+    "spec": {
+      "findings": 0,
+      "remaining": 0
+    },
+    "external_model": "NOT RUN; source documentation reviewed on two internal axes"
+  },
+  "draft_files": [
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/README.md",
+      "bytes": 3521,
+      "sha256": "90501b36978f183e80791de2c9cf1543d3d006f76ebe08382d25c2cc495b593a"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/draft-manifest.json",
+      "bytes": 2956,
+      "sha256": "614ddf32a1ecfd2e1a41405a44e51cccf555e8f3432624b4815faa36489892a0"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/adjudication-template.json",
+      "bytes": 1582,
+      "sha256": "5404a574f320c59ed6b2ee515e7cd36bc4ff72c7bc5c75d522efdadeb79395e6"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/preflight.md",
+      "bytes": 3429,
+      "sha256": "2a94859c3ff868b47cc5ab540c7e30868b94ef90786a3ebf367eea1b7f9fdc32"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/rubric.md",
+      "bytes": 6247,
+      "sha256": "e470929ae2fac8b5a1f48d28831f1d310c9457a15fab6cd65cc00a9a9f5ffae4"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/run/incident-report/SKILL.md",
+      "bytes": 5205,
+      "sha256": "e28aba1df10b3532798a13207e965833726ba83e26b2087c173c95eab4147340"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/run/system-prompt.md",
+      "bytes": 1448,
+      "sha256": "5e72842edd30dc1c0e47859985399aa2c3dde868559d5216a83ba671d7f38eae"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/run/task-prompt.md",
+      "bytes": 702,
+      "sha256": "0bc322d11eedb609e4506c9b206c74fd40dfe027b1fc980ffa31274238a46155"
+    }
+  ],
+  "not_run": [
+    "human Mechanism baseline approval and rubric freeze",
+    "prompt/Skill model execution",
+    "native capability binding and adapter",
+    "enforced Run/operator access separation",
+    "semantic scoring or model qualification",
+    "private audit capture readiness",
+    "authoritative provider accounting",
+    "paid timing/length measurements",
+    "tenant/venue acceptance"
+  ],
+  "prior_phase_archive": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-texts/prior-phase-snapshot",
+  "archive_provenance": {
+    "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-texts/archive-provenance.json",
+    "bytes": 163,
+    "sha256": "4ce68f0706c55e8f56c876c5ab2b6a68f5a4c1c976bc3852114bb0926b23dc49"
+  }
+}

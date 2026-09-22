@@ -15,6 +15,10 @@ It does not access real account balances or authorize a paid model call.
 verifies worker/capture/result linkage on read-back. These byte-integrity receipts do not
 establish semantic success, real audit acceptance or a durable-closeout time bound.
 
+The [timing instruction drafts](../../.scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/README.md)
+separate future Run text from the operator-only rubric and preflight. They are not installed;
+human rubric freeze and a reviewed native binding remain required.
+
 `outcomes.py` parses bounded synthetic Claude-shaped JSON events and derives execution
 outcomes without discarding malformed evidence, duplicate terminals or receiver-observed
 failures. The deliberately small schema accepts assistant messages with explicit model

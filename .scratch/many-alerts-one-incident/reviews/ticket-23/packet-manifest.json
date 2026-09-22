@@ -1,14 +1,14 @@
 {
-  "schema_version": 6,
-  "scope": "Local fixed-process fixtures, synthetic ledger, byte-integrity closeout and inert length-case records; no native model approval",
-  "supersedes_manifest_sha256": "d1147f4a0a30bf67b12b0a50b4fd76e4179fd664f6c581c59a005854641e9162",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-length-records/prior-phase-snapshot",
-  "local_links_verified": 36,
+  "schema_version": 7,
+  "scope": "Local ticket 23 fixture implementation and reviewed timing text drafts; no native approval",
+  "supersedes_manifest_sha256": "c20f2a63c42870e0edf087b6dc29150b1e59a2bc3158ec80162ac4bd49a6ddcc",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-texts/prior-phase-snapshot",
+  "local_links_verified": 44,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
-      "bytes": 4908,
-      "sha256": "ba4292ea5bcf0925e8494ea0d8df7d74cb8bb604cdc467acef9cf3c741e93d54"
+      "bytes": 5270,
+      "sha256": "bf36ab533a8676d861fedae40044c7a6dea061cfce953d07a8259d530f7a646e"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/closeout-outcome.md",
@@ -27,8 +27,8 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md",
-      "bytes": 4550,
-      "sha256": "efe9a679d94c4859919c8a36a2ffd4ae8064314ece6b972dfcc85a0b89ef9050"
+      "bytes": 4599,
+      "sha256": "c68e4ca04a4f544179de083a1fd7d0f2bb08f0eaf1e03ac4bf0d72f505cb372b"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-cases.json",
@@ -121,6 +121,56 @@
       "sha256": "4f9347fd795ba3f6ce373465ef2a9ba51d6ae0e68a9c2ce4cf72cd80d96bf9be"
     },
     {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/README.md",
+      "bytes": 3521,
+      "sha256": "90501b36978f183e80791de2c9cf1543d3d006f76ebe08382d25c2cc495b593a"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/draft-manifest.json",
+      "bytes": 2956,
+      "sha256": "614ddf32a1ecfd2e1a41405a44e51cccf555e8f3432624b4815faa36489892a0"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/adjudication-template.json",
+      "bytes": 1582,
+      "sha256": "5404a574f320c59ed6b2ee515e7cd36bc4ff72c7bc5c75d522efdadeb79395e6"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/preflight.md",
+      "bytes": 3429,
+      "sha256": "2a94859c3ff868b47cc5ab540c7e30868b94ef90786a3ebf367eea1b7f9fdc32"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/rubric.md",
+      "bytes": 6247,
+      "sha256": "e470929ae2fac8b5a1f48d28831f1d310c9457a15fab6cd65cc00a9a9f5ffae4"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/run/incident-report/SKILL.md",
+      "bytes": 5205,
+      "sha256": "e28aba1df10b3532798a13207e965833726ba83e26b2087c173c95eab4147340"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/run/system-prompt.md",
+      "bytes": 1448,
+      "sha256": "5e72842edd30dc1c0e47859985399aa2c3dde868559d5216a83ba671d7f38eae"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/run/task-prompt.md",
+      "bytes": 702,
+      "sha256": "0bc322d11eedb609e4506c9b206c74fd40dfe027b1fc980ffa31274238a46155"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-text-outcome.md",
+      "bytes": 3680,
+      "sha256": "ad63261d08e8fcfa1664bc6bdc6dfc6bb7ccb2285c99c0943533349f68848bec"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-text-validation.json",
+      "bytes": 3526,
+      "sha256": "6928a6e6bafa668f4dd45c405f193f94afff73baca5d61c699a7b9dd7d03b338"
+    },
+    {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/validation.json",
       "bytes": 946,
       "sha256": "9a3de56b48b170c1dd73bc30075a7c53274c6ab94227df045f77a6d83f35ca89"
@@ -147,8 +197,8 @@
     },
     {
       "path": "prototype/run_timing/README.md",
-      "bytes": 5397,
-      "sha256": "95bcaa88314fa1934994dcdee4a23c5298466a5e8552cac9af627a78b6d2d009"
+      "bytes": 5673,
+      "sha256": "789e008f4367cb25735a6bb977fb210ea4bf69552dfebc6d269e031b8f1a6b4f"
     },
     {
       "path": "prototype/run_timing/__init__.py",

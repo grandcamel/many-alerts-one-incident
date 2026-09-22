@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "record_status": "unfilled_template",
+  "scope": "SYNTHETIC_DIAGNOSTIC_HUMAN_REVIEW_DRAFT",
+  "native_launch": "CLOSED",
+  "series_id": null,
+  "rubric_id": "ticket23-timing-rubric-v1-draft",
+  "rubric_sha256": null,
+  "approved_mechanism_reference": null,
+  "fault_lifecycle_id": null,
+  "run_id": null,
+  "synthetic_incident_id": null,
+  "report_revision_id": null,
+  "report_sha256": null,
+  "prior_report_revision_id": null,
+  "model_requested": null,
+  "model_observed": null,
+  "effort": null,
+  "auth_condition": null,
+  "venue_condition": null,
+  "memory_condition": null,
+  "review": {
+    "status": "pending",
+    "reviewer": null,
+    "reviewed_at": null,
+    "mechanism_grade": null,
+    "evidence_grade": null,
+    "arithmetic_grade": null,
+    "rationale": null,
+    "claims": [],
+    "defects": [],
+    "supersedes_adjudication_id": null,
+    "supersession_kind": null,
+    "second_reviewer_reference": null
+  },
+  "audit": {
+    "bundle_reference": null,
+    "request_response_index_reference": null,
+    "completeness": "unknown",
+    "gaps": [],
+    "expires_at": null,
+    "expired": null
+  },
+  "independent_outcome_references": {
+    "execution": null,
+    "effects": null,
+    "identity": null,
+    "containment": null,
+    "timing": null,
+    "ledger": null
+  },
+  "cost": {
+    "estimate_usd": null,
+    "provider_actual_usd": null,
+    "provider_actual_status": "unknown",
+    "reservation_status": "unknown"
+  },
+  "lifecycle_manifest_reference": null,
+  "clean_lifecycle_verdict": "pending",
+  "qualification": "NOT_ASSESSED"
+}

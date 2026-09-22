@@ -76,3 +76,8 @@ The [inert length-record outcome](../reviews/ticket-23/length-record-outcome.md)
 five-case snapshots with command digests, virtual times and separate issued/supplied
 receipt observations. Synthetic permission labels and opaque references do not establish
 native permission or authenticated dispatch. Ticket 23 remains open.
+
+The [timing text outcome](../reviews/ticket-23/timing-text-outcome.md) adds reviewed source
+drafts for the prompt, diagnostic Skill and operator-only human rubric. Historical inputs
+are pinned; legacy flag-name grading is excluded. Human Mechanism/rubric freeze and the
+native adapter/executable binding remain pending. No Skill was installed and no probe ran.

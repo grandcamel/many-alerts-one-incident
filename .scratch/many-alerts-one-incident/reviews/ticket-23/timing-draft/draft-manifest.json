@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "draft_id": "ticket23-timing-text-v1",
+  "status": "SOURCE_DRAFT_NOT_DEPLOYED",
+  "native_launch": "CLOSED",
+  "human_rubric_freeze": "PENDING",
+  "runtime_binding": "UNSET",
+  "historical_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+  "run_text_files": [
+    {
+      "path": "run/incident-report/SKILL.md",
+      "bytes": 5205,
+      "sha256": "e28aba1df10b3532798a13207e965833726ba83e26b2087c173c95eab4147340"
+    },
+    {
+      "path": "run/system-prompt.md",
+      "bytes": 1448,
+      "sha256": "5e72842edd30dc1c0e47859985399aa2c3dde868559d5216a83ba671d7f38eae"
+    },
+    {
+      "path": "run/task-prompt.md",
+      "bytes": 702,
+      "sha256": "0bc322d11eedb609e4506c9b206c74fd40dfe027b1fc980ffa31274238a46155"
+    }
+  ],
+  "operator_only_files": [
+    {
+      "path": "operator/adjudication-template.json",
+      "bytes": 1582,
+      "sha256": "5404a574f320c59ed6b2ee515e7cd36bc4ff72c7bc5c75d522efdadeb79395e6"
+    },
+    {
+      "path": "operator/preflight.md",
+      "bytes": 3429,
+      "sha256": "2a94859c3ff868b47cc5ab540c7e30868b94ef90786a3ebf367eea1b7f9fdc32"
+    },
+    {
+      "path": "operator/rubric.md",
+      "bytes": 6247,
+      "sha256": "e470929ae2fac8b5a1f48d28831f1d310c9457a15fab6cd65cc00a9a9f5ffae4"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3521,
+      "sha256": "90501b36978f183e80791de2c9cf1543d3d006f76ebe08382d25c2cc495b593a"
+    }
+  ],
+  "historical_inputs": [
+    {
+      "path": "prototype/run-timing/fixtures/ground-truth.md",
+      "bytes": 3197,
+      "sha256": "eb4a8ba419f4ddfc08bf802302c99d558d042de316de23db474476b71830a7cd",
+      "role": "operator_only"
+    },
+    {
+      "path": "prototype/run-timing/fixtures/notification-cascade.json",
+      "bytes": 8752,
+      "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744",
+      "role": "run_notification"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/changes.json",
+      "bytes": 663,
+      "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956",
+      "role": "supervisor_query_fixture"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/logs.jsonl",
+      "bytes": 6524,
+      "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b",
+      "role": "supervisor_query_fixture"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/metrics.json",
+      "bytes": 19153,
+      "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae",
+      "role": "supervisor_query_fixture"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/traces.json",
+      "bytes": 3985,
+      "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c",
+      "role": "supervisor_query_fixture"
+    }
+  ],
+  "excluded_historical_execution": [
+    "measure.py",
+    "make_fixtures.py",
+    "arms.sh",
+    "bin/eyes",
+    "bin/jira-as",
+    "score.py"
+  ],
+  "security_boundary": "PROPOSED_ONLY_NOT_ENFORCED"
+}
