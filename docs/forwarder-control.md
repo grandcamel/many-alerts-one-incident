@@ -79,7 +79,37 @@ path, verify its directory ownership or mount permissions, or load a mode-0400
 secret. The caller must also give this adapter exclusive control of its registry.
 Local socket tests do not establish deployed UID/mount/kernel or secret isolation.
 
-The next integration units are listener provisioning, fixed TLS listeners and
+## Private listener and shutdown
+
+`PrivateControlListener` creates one filesystem Unix socket beneath an
+operator-provisioned absolute parent with exact owner UID, control GID and mode
+0710. A fresh exclusive child stays private during preparation, then publishes
+as mode 02710 with a mode-0660 socket. The complete endpoint is limited to 100
+encoded bytes. Directory descriptors anchor identity checks and cleanup; parent
+and endpoint permissions are checked before and after accepting a connection.
+Accept has a finite deadline of at most one second. Accepted sockets still need
+`ForwarderControl` authentication before they can control leases.
+Use one accept caller at a time. A lifecycle lock protects open/close and
+filesystem guards, while close can interrupt the blocking accept. The returned
+endpoint and accepted socket are observations at their checks; later shutdown
+still requires the controller's admission gate and caller-owned worker tracking.
+
+The operator must establish stable protected ancestors, trusted group membership,
+ACL and mount policy, and distinct deployed identities. Local pathname checks
+cannot establish these conditions. Cleanup preserves replaced or unexpectedly
+populated paths and reports `unknown`; it never recursively removes a directory
+or sweeps stale endpoints. Portable identity-check/unlink operations do not form
+an atomic guarantee against trusted same-UID/operator filesystem mutation.
+
+`ForwarderControl.shutdown()` permanently holds lease authority under the same
+lock used for admission, then interrupts all admitted sockets outside that lock.
+Later connections receive `control_closed`, including when old handlers still
+occupy every slot. Call it before removing the private listener. Socket closure
+does not prove handler completion: the caller must observe or join its workers.
+A held registry requires a fresh controller and registry generation for recovery;
+failed revocation remains `unknown` rather than a successful closeout receipt.
+
+The next integration units are managed accept/worker supervision, fixed TLS listeners and
 request-aware service policies, followed by durable admission and the guarded
 launcher. Real provider/tenant operations, native execution and deployment remain
 gated by their own acceptance evidence. Local module tests cannot replace that
@@ -88,5 +118,5 @@ evidence or human Report adjudication.
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py
 ```

@@ -189,6 +189,22 @@ class ForwarderControl:
         self._lock = threading.Lock()
         self._slots = threading.BoundedSemaphore(MAX_CONNECTIONS)
         self._owner: _Owner | None = None
+        self._connections: set[socket.socket] = set()
+        self._closed = False
+
+    def shutdown(self) -> None:
+        """Permanently hold authority and interrupt every admitted connection.
+
+        Call before removing the listener. This closes sockets but does not join
+        caller-owned handler threads; a supervisor must separately observe their
+        completion. Recovery requires a fresh controller and registry generation.
+        """
+        with self._lock:
+            self._closed = True
+            self._registry.hold()
+            connections = tuple(self._connections)
+        for connection in connections:
+            _close(connection)
 
     def serve_connection(self, sock: socket.socket) -> ControlOutcome:
         """Serve and close an accepted socket; return fixed nonsecret diagnostics.
@@ -197,9 +213,17 @@ class ForwarderControl:
         counts schema-valid commands submitted to the registry, including a
         rejected registry operation. Closeout is unknown if disconnect failed.
         """
-        if not self._slots.acquire(blocking=False):
+        rejection = None
+        with self._lock:
+            if self._closed:
+                rejection = "control_closed"
+            elif not self._slots.acquire(blocking=False):
+                rejection = "connection_capacity"
+            else:
+                self._connections.add(sock)
+        if rejection is not None:
             _close(sock)
-            return ControlOutcome("connection_capacity", False, 0, "not_owner")
+            return ControlOutcome(rejection, False, 0, "not_owner")
         owner = None
         authenticated = False
         commands = 0
@@ -225,6 +249,8 @@ class ForwarderControl:
                 raise ControlProtocolError("authentication_failed")
             owner = _Owner(boot, sock)
             with self._lock:
+                if self._closed:
+                    raise ControlProtocolError("control_closed")
                 previous = self._owner
                 if previous is not None:
                     self._disconnect(previous)
@@ -256,6 +282,8 @@ class ForwarderControl:
                 params = request["params"]
                 _keys(params, _PARAMETERS[operation])
                 with self._lock:
+                    if self._closed:
+                        raise ControlProtocolError("control_closed")
                     if self._owner is not owner:
                         raise ControlProtocolError("session_replaced")
                     commands += 1
@@ -290,6 +318,8 @@ class ForwarderControl:
             if released is not None:
                 closeout = released
             _close(sock)
+            with self._lock:
+                self._connections.discard(sock)
             self._slots.release()
         return ControlOutcome(reason, authenticated, commands, closeout)
 

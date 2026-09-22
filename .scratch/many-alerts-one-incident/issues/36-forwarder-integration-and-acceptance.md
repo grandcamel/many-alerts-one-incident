@@ -55,3 +55,12 @@ challenge/response and commands, replacement fencing, and revocation or a held
 registry on failed closeout. Its full suite passes 977 tests with 36 skipped.
 This does not provision a listener or validate deployed secret/mount/kernel
 isolation, Linux peer credentials, service TLS or native request policies.
+
+The [third local unit](../reviews/forwarder-listener/outcome.md) provisions a private
+filesystem Unix socket under a verified operator parent, checks permissions and
+identities around acceptance, and preserves replaced/unknown paths during cleanup.
+Permanent controller shutdown holds authority and interrupts admitted sockets.
+Independent review passes; the full suite reports 1009 passed and 36 skipped.
+Managed accept/worker supervision remains next, followed by service TLS/request
+policy. Deployed identity, ancestor/mount/ACL/group and credential isolation remain
+separate acceptance gates. This planning ticket remains open.
