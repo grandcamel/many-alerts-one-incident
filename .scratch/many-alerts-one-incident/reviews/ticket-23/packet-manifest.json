@@ -1,9 +1,9 @@
 {
-  "schema_version": 11,
-  "scope": "Local ticket23 fixtures, integrated fixed-child rehearsal and approved synthetic rubric; native launch CLOSED",
-  "supersedes_manifest_sha256": "4bbb3ab1f1fc7add429055a21ec40108988f447905d73412a30aa61c1e742af1",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-integrated-rehearsal/prior-phase-snapshot",
-  "local_links_verified": 72,
+  "schema_version": 12,
+  "scope": "Local ticket23 integrated fixed rehearsal, approved rubric and native readiness draft; native launch CLOSED",
+  "supersedes_manifest_sha256": "515b3f88a7088d7d7b1c3858babe769a85bd6fdfaa66b40adba5ec4954685ae6",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-source-readiness/prior-phase-snapshot",
+  "local_links_verified": 104,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
@@ -121,6 +121,11 @@
       "sha256": "4603aa944eca0e3d3c72c22b1cb5bb6899ae46839f4f0cd9ca710dff5d0f51b3"
     },
     {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/native-adapter-readiness.md",
+      "bytes": 9351,
+      "sha256": "928c059dadeedb0a5f056d82a117e1eff1aa30349af6ba6d5e4b607e73469e98"
+    },
+    {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/process-outcome.md",
       "bytes": 4211,
       "sha256": "c552f9f8b7a21369bfa7124bc26cb6d5dee8ed9f1be284d3ea2082c69d036951"
@@ -149,6 +154,11 @@
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/query-validation.json",
       "bytes": 5071,
       "sha256": "089b7ab609cef2697421e28e3af1372807d42c45a99f07dfdc7c0fd43806bd8f"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/readiness-validation.json",
+      "bytes": 2255,
+      "sha256": "3cb6a0be193ceb36a0bb54d94d132eeb0fbef979c66cbadbe01b113ee156fcd6"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/review.md",

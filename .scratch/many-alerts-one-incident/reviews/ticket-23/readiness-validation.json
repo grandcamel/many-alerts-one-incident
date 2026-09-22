@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "scope": "Source-only readiness drafts; no runtime or acceptance change",
+  "baseline_commit": "6a7251f",
+  "source_documents": [
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/native-adapter-readiness.md",
+      "bytes": 9351,
+      "sha256": "928c059dadeedb0a5f056d82a117e1eff1aa30349af6ba6d5e4b607e73469e98"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-36/contract-draft.md",
+      "bytes": 15131,
+      "sha256": "74b08875fd58472b215a2d1bdcae4822257096504e32b71e09faea961905d048"
+    }
+  ],
+  "reviews": {
+    "forwarder_draft": {
+      "author": "gpt-5.6-terra",
+      "reviewer": "gpt-5.6-luna",
+      "root_corrections": [
+        "Optional Confluence does not hold all admission",
+        "Revoking denies immediately",
+        "Native exporter remains allowed only through separately verified permitted path"
+      ],
+      "review_findings": [
+        "Missing settled Change authority/retrieval",
+        "Missing settled Confluence operation and manifest authority restrictions"
+      ],
+      "disposition": "Both addressed; final independent read-back no remaining contradiction",
+      "sha256": "74b08875fd58472b215a2d1bdcae4822257096504e32b71e09faea961905d048"
+    },
+    "native_readiness": {
+      "author": "gpt-5.6-terra",
+      "root_review": "PASS after correcting cancellation predicate: observed timeout/cancel always overrides apparent terminal success",
+      "metadata_source": "Existing metadata-only scout; no transcript content inspected in this batch",
+      "scope": "Readiness work units and missing schema evidence; no new API/client/architecture acceptance",
+      "sha256": "928c059dadeedb0a5f056d82a117e1eff1aa30349af6ba6d5e4b607e73469e98"
+    }
+  },
+  "code_changed": false,
+  "test_basis": "No code changes after 6a7251f full suite: 679 passed,36 skipped; not rerun for documentation-only draft",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-source-readiness/prior-phase-snapshot",
+  "prior_files_verified": 87,
+  "unrun": [
+    "Native model/client schema qualification",
+    "TLS/control/secret isolation",
+    "Tenant/provider/venue acceptance",
+    "Paid diagnostic",
+    "Publication"
+  ]
+}
