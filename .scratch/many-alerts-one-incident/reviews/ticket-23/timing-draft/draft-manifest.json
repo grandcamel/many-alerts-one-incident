@@ -31,8 +31,8 @@
     },
     {
       "path": "operator/preflight.md",
-      "bytes": 3784,
-      "sha256": "96ee29b830a243ba7c5c9be28a6f87630cc3cfb970e1054a214fa23fd9b3e6e7"
+      "bytes": 3967,
+      "sha256": "f66e147f82ed7025d23ff56df0f4fd0f09c543a63b96967bef00178081e15eda"
     },
     {
       "path": "operator/rubric.md",

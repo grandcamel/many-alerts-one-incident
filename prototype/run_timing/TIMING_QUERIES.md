@@ -86,4 +86,8 @@ for local Report references and simulated writes. Native binding, sealed access,
 and paid execution remain unimplemented. Every response advertises `OFFLINE_PINNED_QUERIES_ONLY`
 and native launch `CLOSED`. The timing prompt/Skill remains an uninstalled draft.
 
+The operator-only `audit_snapshot()` returns all retained responses and query identity as
+detached objects. The [timing snapshot writer](TIMING_SNAPSHOT.md) can persist these with
+Incident revisions; this does not make the query adapter itself recoverable or authenticated.
+
 Run local tests: `python3 -m pytest -q tests/test_timing_queries.py`.

@@ -219,6 +219,18 @@ class TimingIncidents:
             "pending_dispatch_id": self._pending[0] if self._pending else None,
             "revision_ids": list(self._revisions), "dispatch_ids": list(self._dispatches)}))
 
+    def audit_snapshot(self) -> dict:
+        """Operator-only coherent inventory in this trusted single-threaded process."""
+        return {"version": 1, "scope": SCOPE, "native_launch": "CLOSED",
+                "notification_response_id": self._notification_ref,
+                "queries": self._queries.audit_snapshot(), "state": self.inspect(),
+                "lifecycle": {"now": seconds(self.lifecycle.now),
+                              "work_allowed": self.lifecycle.work_allowed,
+                              "revoked": self.lifecycle.revoked, "finished": self.lifecycle.finished},
+                "dispatches": [json.loads(raw) for raw in self._dispatches.values()],
+                "effects": [json.loads(raw) for raw in self._effects.values()],
+                "revisions": [json.loads(raw) for raw in self._revisions.values()]}
+
     def read_record(self, kind: str, identity: str) -> dict:
         """Retained operator-side byte read-back only; no call or receipt re-import."""
         records = {"dispatch": self._dispatches, "effect": self._effects, "revision": self._revisions}

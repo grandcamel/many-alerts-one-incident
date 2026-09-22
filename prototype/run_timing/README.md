@@ -27,6 +27,10 @@ The [synthetic Incident store](TIMING_INCIDENTS.md) adds instance-local create/a
 immutable Report revisions, linked query references and separate simulated dispatch/effect
 receipts. Failed or uncertain effects hold further work. It has no durable or live Jira binding.
 
+[Retained timing snapshots](TIMING_SNAPSHOT.md) now export the exact query responses and
+Incident records together for bounded operator read-back. Pending/unknown effects and
+coverage gaps stay explicit; snapshots are not authenticated audit or recovery journals.
+
 `outcomes.py` parses bounded synthetic Claude-shaped JSON events and derives execution
 outcomes without discarding malformed evidence, duplicate terminals or receiver-observed
 failures. The deliberately small schema accepts assistant messages with explicit model

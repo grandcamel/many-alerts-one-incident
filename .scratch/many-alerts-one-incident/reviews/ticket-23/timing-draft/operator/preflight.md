@@ -36,6 +36,8 @@
    capture and quota/retention, existing authoritative ledger/provider billing/lag, unknown
    exposure and current rates/limits. A $3 diagnostic reservation is a prerequisite, not
    a hard billing cap. Do not populate actual costs from estimates or reset lost accounting.
+   Local timing snapshots retain bounded synthetic records and checked links only; they
+   do not establish native audit completeness, custody, expiry or a durable-closeout deadline.
 8. Complete the separate one-attempt execution card with operator, unique ID, exact model,
    effort, inputs, evidence root and failure dispositions. Obtain its explicit execution
    authorization. Run neither arm under source-review approval, and admit no automatic retry

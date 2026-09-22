@@ -93,4 +93,9 @@ and receipts. Restart loses all state and allows a new empty store; cross-instan
 concurrency, durable recovery and authenticated receipts are explicitly unimplemented. No claim
 about production Incident uniqueness follows from this instance-local limit.
 
+The operator-only `audit_snapshot()` now inventories query responses, Incident records,
+current state and Lifecycle without admitting work or clearing holds. The separate
+[timing snapshot writer](TIMING_SNAPSHOT.md) preserves that inventory for read-back; it
+does not restore a writable store or turn a failed/unknown outcome into confirmation.
+
 Run local checks: `python3 -m pytest -q tests/test_timing_incidents.py`.

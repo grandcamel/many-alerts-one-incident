@@ -92,3 +92,8 @@ empty candidate store, additive membership, immutable Report revisions, retained
 references and separate simulated dispatch/effect receipts. Failed or uncertain writes
 hold further work. Native binding, authenticated receipts, durable recovery and human
 grading remain unimplemented or NOT RUN; the measurement card remains closed.
+
+The [retained snapshot outcome](../reviews/ticket-23/snapshot-outcome.md) adds a bounded
+operator-only bundle preserving query responses, Incident revisions and effect receipts
+with byte/link read-back. Pending and unknown states stay explicit; no human audit grade,
+native provenance, writable recovery or paid execution is established. Ticket 23 stays open.

@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "scope": "Trusted in-process retained timing snapshots; native launch CLOSED",
+  "baseline_commit": "3e535c2",
+  "targeted_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_snapshot.py",
+    "passed": 60,
+    "seconds": 0.52,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 635,
+    "skipped": 36,
+    "seconds": 29.11,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "initial_findings": 1,
+      "remaining": 0,
+      "final_correction_readback": "PASS"
+    },
+    "spec": {
+      "initial_findings": 2,
+      "remaining": 0,
+      "final_correction_readback": "PASS"
+    },
+    "fable": {
+      "classification": "usable",
+      "exit_code": 0,
+      "requested_model": "claude-fable-5-1",
+      "actual_assistant_models": [
+        "claude-fable-5-1"
+      ],
+      "verdict": "PASS",
+      "required_findings": 0,
+      "optional_findings": 3,
+      "session_id": "d698b0a1-019c-4db8-8be2-5922b6c0638a",
+      "duration_ms": 261431,
+      "session_estimate_usd": 2.033722,
+      "provider_actual_usd": null,
+      "reviewed_source": "Frozen initial source; not final corrections",
+      "adjudication": [
+        "Zero-revision Incident was also found by Spec; corrected and regression-tested.",
+        "Added increasing revision-to-dispatch order plus regression preserving individual links while reversing chronology.",
+        "Documented intentional omission of transient pending proposal bodies.",
+        "Added invalid lifecycle time regressions; internal reviews had already identified oversized integer overflow."
+      ],
+      "final_corrections_review": "Parent tests plus Standards/Spec final readbacks; no Fable rereview",
+      "artifacts": [
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/fable-review/manifest.json",
+          "bytes": 1322,
+          "sha256": "83e60ffce6a79508eff3b84f6be3ff42c2840f49fb5e43bcf69bbf4be6a54850"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/fable-review/native-review.jsonl",
+          "bytes": 134302,
+          "sha256": "9a44936a8c53577949fe358c6aeb17ce867a51dc2769ffcee0e1fc3d5166be52"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/fable-review/prompt.txt",
+          "bytes": 65614,
+          "sha256": "4955f35a7d066a20ffbe20f2667a6c08f1246da9aca10b6f49a85f26d4cab336"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/fable-review/review-stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/fable-review/review.md",
+          "bytes": 3969,
+          "sha256": "60a8f6ac78f9c9cee793444587a9e0234c24ec0c1716cac0527cbe8f919ad68c"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/fable-review/workdir.txt",
+          "bytes": 79,
+          "sha256": "51d5fc434769c1a3719f6fddb9866a2be02aa62fa542a363a627c1a9bbf83044"
+        }
+      ]
+    }
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/timing_snapshot.py",
+      "bytes": 13037,
+      "sha256": "ff87394437a136ecd30598051f8254190169c1519ec5f2012cc6ce57500145a6"
+    },
+    {
+      "path": "prototype/run_timing/TIMING_SNAPSHOT.md",
+      "bytes": 5568,
+      "sha256": "b5dbfc34dfdce1aceb53853de64e8851b0c5bc85baeed99afedbe26b099008b4"
+    },
+    {
+      "path": "tests/test_timing_snapshot.py",
+      "bytes": 15367,
+      "sha256": "08842fe4efa9641fcbb4d682be0daa19268e8c5309e81b1d282565be9e917db7"
+    },
+    {
+      "path": "prototype/run_timing/timing_queries.py",
+      "bytes": 11732,
+      "sha256": "99086daaa1b11cee0d6a944a0323d2bb19d27e6ebf058d9118f7115b5192b969"
+    },
+    {
+      "path": "prototype/run_timing/timing_incidents.py",
+      "bytes": 12884,
+      "sha256": "41a0d9580aa5d266f708cf3273598dd8c39c463fd9ad0fa3ed84be5ea2c77123"
+    },
+    {
+      "path": "prototype/run_timing/fixture_evidence.py",
+      "bytes": 6678,
+      "sha256": "82cbe1bd0754028159fb635fe4bf3079713adf90ce82cb6b9d7038dc8bc693d7"
+    }
+  ],
+  "retained_evidence": [
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/full-suite-final.txt",
+      "bytes": 833,
+      "sha256": "9ee9e21aa00aab4357024ccaca746dcb670c9808dbfccdad989ccd2706891fb4"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/full-suite-initial.txt",
+      "bytes": 833,
+      "sha256": "36a9d6524fa2b7157a96264b0a6859dc73e2e1d8c7874f2858984d194a63b5c5"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/full-suite.txt",
+      "bytes": 833,
+      "sha256": "a9a556aee829d3242b526549ff6dbc76d5fea02afab8972a0566121ae916f051"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/internal-reviews.json",
+      "bytes": 551,
+      "sha256": "623f93058fe767978b1744282c38216df6f13db514bd4fb45cb1250e7f95025a"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/review-corrections.json",
+      "bytes": 1285,
+      "sha256": "66f2c130a45925b4ebe911d60a075bc9af085f2741ffb8ba48e6f6fcb192e378"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/review-summary.json",
+      "bytes": 2364,
+      "sha256": "cd64beedf93d1130d94d2543137b8f4b5a2e647b9fb2290ebdd885ed0c3c6c5a"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/ruff.txt",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/targeted-tests.txt",
+      "bytes": 99,
+      "sha256": "43cc9ec86daa6c3973828960db00ffaf3776ae5b4e5305d5d28de61874444749"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/example-bundle/manifest.json",
+      "bytes": 169,
+      "sha256": "f8861f201f9981f182506410b204d0a46ab51a889957e31515e46af3c36be9c2"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/example-bundle/snapshot.json",
+      "bytes": 12698,
+      "sha256": "4d7fa691747471e4bc0a5daf8b3b822ea5fc5c1b01b5cad20a8dc284000d6080"
+    }
+  ],
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/prior-phase-snapshot",
+  "prior_files_verified": 69,
+  "not_run": [
+    "Native tool binding",
+    "Real Jira or OPS effects",
+    "Authenticated effect receipts",
+    "Durable recovery",
+    "Cross-instance uniqueness",
+    "Adversarial isolation",
+    "Human Report grading or rubric freeze",
+    "Paid length/timing probes",
+    "Provider billing actuals",
+    "Tenant/model/venue qualification",
+    "Push or publication"
+  ]
+}

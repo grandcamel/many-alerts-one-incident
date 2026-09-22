@@ -188,6 +188,12 @@ class TimingQueries:
             raise QueryRejected("unknown fixture response")
         return json.loads(self._responses[response_id])
 
+    def audit_snapshot(self) -> dict:
+        """Operator-only detached inventory; does not perform a query or prove native capture."""
+        return {"version": 1, "scope": SCOPE, "native_launch": "CLOSED",
+                "attempt_id": self.attempt_id, "session_id": self.session_id,
+                "responses": [json.loads(raw) for raw in self._responses.values()]}
+
     def _select(self, operation, args):
         data = self._data[OPERATIONS[operation][0]]
         if operation == "notification.get":

@@ -1,14 +1,14 @@
 {
-  "schema_version": 9,
-  "scope": "Local ticket23 fixtures, pinned queries, synthetic Incident store and timing drafts; no native approval",
-  "supersedes_manifest_sha256": "fdfa3c0715b7c4b68f0ee127f79a25c20958508ff58af2dd98bee8338eebb6d1",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/prior-phase-snapshot",
-  "local_links_verified": 55,
+  "schema_version": 10,
+  "scope": "Local ticket23 fixtures, queries, Incident store, retained snapshots and timing drafts; no native approval",
+  "supersedes_manifest_sha256": "8d52208e25cb5115654d8a1de00cf6b641bb34e171b6d0868a4174741abad404",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/prior-phase-snapshot",
+  "local_links_verified": 62,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
-      "bytes": 6044,
-      "sha256": "6ce40e31cf86d3f7da60123c6948d9cd534210094c04fe317f2cdf8b9808f984"
+      "bytes": 6405,
+      "sha256": "68ec5014065c9dd7cd4280a41a0b74c41a6e97f43bc4dfd9a211dc174071d53b"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/closeout-outcome.md",
@@ -27,8 +27,8 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md",
-      "bytes": 4712,
-      "sha256": "87a5522b882f8a6ec4fded9d74ccd0ae22e0f60bb8382f280dfc1e5fc5730374"
+      "bytes": 4740,
+      "sha256": "2b2ebbdd5617cd71fb0e9c34dc7b8ea0c81286fa460683867ef9313131f9889a"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-cases.json",
@@ -141,6 +141,21 @@
       "sha256": "edaa7807a81c6654d8d0ff34fa9fdf031114bce839299a5d037e7921915e3c1c"
     },
     {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/snapshot-outcome.md",
+      "bytes": 4720,
+      "sha256": "ca652af6f30cd7e55527ee7fb605e4e505ab3e60dd419c7f9758ab0b2db831bf"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/snapshot-plan.md",
+      "bytes": 2045,
+      "sha256": "9647101b6cf0ddc00f57ffee4598b89078a2af65bd0127a12be5dc0ec0028ce6"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/snapshot-validation.json",
+      "bytes": 7163,
+      "sha256": "f894bb6fe494f4a6ab9537de6738e587212f60c3022e3c42798e073512268b22"
+    },
+    {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/source-manifest.json",
       "bytes": 4024,
       "sha256": "6c32954a2fcf096c6ce93dfd9799fecd6c52d7aaf616d744ddb14fe4f4b1aac0"
@@ -158,7 +173,7 @@
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/draft-manifest.json",
       "bytes": 2956,
-      "sha256": "a41a02fed711b28768e14e98ac1c873f5bd2cd35a0975d87d2c7004905818127"
+      "sha256": "96b5b56a338a9d7acef6bd1895bc2a65b9273cfa9cec990f249332de20ae0146"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/adjudication-template.json",
@@ -167,8 +182,8 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/preflight.md",
-      "bytes": 3784,
-      "sha256": "96ee29b830a243ba7c5c9be28a6f87630cc3cfb970e1054a214fa23fd9b3e6e7"
+      "bytes": 3967,
+      "sha256": "f66e147f82ed7025d23ff56df0f4fd0f09c543a63b96967bef00178081e15eda"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/rubric.md",
@@ -227,18 +242,23 @@
     },
     {
       "path": "prototype/run_timing/README.md",
-      "bytes": 6205,
-      "sha256": "893db03529942aaafda6131bf18ed266724970f6ca4e1b1f66834e270bfe9ab2"
+      "bytes": 6470,
+      "sha256": "45b8f720af0e9b72a079014b48cf1bc9b4160e900f49ca0f81eed3f969b128d1"
     },
     {
       "path": "prototype/run_timing/TIMING_INCIDENTS.md",
-      "bytes": 7003,
-      "sha256": "015c8510c1dd34dc46b3d9159b116a0bfb5ee0247cec616a89df4cf4c0e9baae"
+      "bytes": 7349,
+      "sha256": "5af8fdf44f0a4a969b50eb4df11fe0ab68d93ac7385fa990698d12bc6ace2d4e"
     },
     {
       "path": "prototype/run_timing/TIMING_QUERIES.md",
-      "bytes": 6208,
-      "sha256": "7aff731ea4c6d1804bba0f7eedbf29d85c4c182d2cabe92c341427b04234db73"
+      "bytes": 6483,
+      "sha256": "ee974dcb573dd475eb3dbc3763d5356ba8de8967670fc80dd0792611ab07e0e2"
+    },
+    {
+      "path": "prototype/run_timing/TIMING_SNAPSHOT.md",
+      "bytes": 5568,
+      "sha256": "b5dbfc34dfdce1aceb53853de64e8851b0c5bc85baeed99afedbe26b099008b4"
     },
     {
       "path": "prototype/run_timing/__init__.py",
@@ -302,13 +322,18 @@
     },
     {
       "path": "prototype/run_timing/timing_incidents.py",
-      "bytes": 12038,
-      "sha256": "e88713333d049903d3f56a8cbb61fd005d8a7f4485e8b3fb86be33ebded5917b"
+      "bytes": 12884,
+      "sha256": "41a0d9580aa5d266f708cf3273598dd8c39c463fd9ad0fa3ed84be5ea2c77123"
     },
     {
       "path": "prototype/run_timing/timing_queries.py",
-      "bytes": 11360,
-      "sha256": "4b3039244ced178b004113d50b841f9beed1b93cbee73177da01f6d0317ffe3b"
+      "bytes": 11732,
+      "sha256": "99086daaa1b11cee0d6a944a0323d2bb19d27e6ebf058d9118f7115b5192b969"
+    },
+    {
+      "path": "prototype/run_timing/timing_snapshot.py",
+      "bytes": 13037,
+      "sha256": "ff87394437a136ecd30598051f8254190169c1519ec5f2012cc6ce57500145a6"
     },
     {
       "path": "tests/test_timing_executor.py",
@@ -349,6 +374,11 @@
       "path": "tests/test_timing_queries.py",
       "bytes": 11105,
       "sha256": "eac7724472b636828ac89a8795462f297c70f89e1ef04f460c9bf3c51c8c7b7d"
+    },
+    {
+      "path": "tests/test_timing_snapshot.py",
+      "bytes": 15367,
+      "sha256": "08842fe4efa9641fcbb4d682be0daa19268e8c5309e81b1d282565be9e917db7"
     }
   ]
 }
