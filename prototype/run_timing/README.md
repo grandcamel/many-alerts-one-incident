@@ -17,7 +17,8 @@ establish semantic success, real audit acceptance or a durable-closeout time bou
 
 The [timing instruction drafts](../../.scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/README.md)
 separate future Run text from the operator-only rubric and preflight. They are not installed;
-human rubric freeze and a reviewed native binding remain required.
+the user has approved the pinned rubric/baseline, recorded in its operator-only approval
+receipt. A reviewed native binding and Report-by-Report human adjudication remain required.
 
 [Pinned timing queries](TIMING_QUERIES.md) now provide bounded in-process retrieval of the
 historical synthetic Notification and telemetry with correlated response read-back. This
@@ -30,6 +31,11 @@ receipts. Failed or uncertain effects hold further work. It has no durable or li
 [Retained timing snapshots](TIMING_SNAPSHOT.md) now export the exact query responses and
 Incident records together for bounded operator read-back. Pending/unknown effects and
 coverage gaps stay explicit; snapshots are not authenticated audit or recovery journals.
+
+The [fixed local binding](TIMING_BINDING.md) and [integrated rehearsal](TIMING_REHEARSAL.md)
+now let an actual supervised scripted child query fixtures, create/update synthetic Reports
+and publish linked evidence under a synthetic ledger claim. Unknown effects and real fixture
+timeouts remain held; this adds no native model client or paid measurement.
 
 `outcomes.py` parses bounded synthetic Claude-shaped JSON events and derives execution
 outcomes without discarding malformed evidence, duplicate terminals or receiver-observed
@@ -95,3 +101,7 @@ Output collision and process-group cleanup now have fixed-fixture host evidence;
 adversarial containment, direct-route denial, credential custody, actual model/fallback
 behavior, provider charges, tenant effects and venue qualification remain NOT RUN. No
 local result here opens the execution card or authorizes a paid experiment.
+
+The [integrated rehearsal outcome](../../.scratch/many-alerts-one-incident/reviews/ticket-23/integration-outcome.md)
+records the fixed child flows, review corrections and retained evidence. The approved rubric
+is a prerequisite for future human grading, not an adjudication of these scripted storage exercises.

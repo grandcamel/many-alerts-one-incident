@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "status": "APPROVED_FOR_PINNED_SYNTHETIC_FIXTURE",
+  "approved_on": "2026-09-21",
+  "approved_by": "Jason Krueger (user in this conversation)",
+  "approval_text": "Approve this baseline and rubric",
+  "approved_source": {
+    "path": "operator/rubric.md",
+    "bytes": 6247,
+    "sha256": "e470929ae2fac8b5a1f48d28831f1d310c9457a15fab6cd65cc00a9a9f5ffae4"
+  },
+  "historical_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
+  "mechanism": "Unbounded cache growth during misses in the recommendation service increases memory, garbage-collection and CPU pressure, slowing request handling and propagating latency and deadline failures to its callers.",
+  "authority": "User response to the explicit baseline/rubric approval question in this task. Original rubric bytes are preserved; draft/pending wording records their pre-approval authorship status. This companion approval supersedes that status only.",
+  "scope": [
+    "Synthetic baseline and rubric for pinned fixture",
+    "No experiment authorization",
+    "No Report adjudication or qualification result",
+    "No live source/image or model/tenant/venue acceptance"
+  ],
+  "fixture_inputs": [
+    {
+      "path": "prototype/run-timing/fixtures/ground-truth.md",
+      "bytes": 3197,
+      "sha256": "eb4a8ba419f4ddfc08bf802302c99d558d042de316de23db474476b71830a7cd",
+      "role": "operator_only"
+    },
+    {
+      "path": "prototype/run-timing/fixtures/notification-cascade.json",
+      "bytes": 8752,
+      "sha256": "a916f500db4c069c5397eac8b49e689f208225ab43f6898554bc836d6da4b744",
+      "role": "run_notification"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/changes.json",
+      "bytes": 663,
+      "sha256": "cda98e82286ad8a9532fd2941221c64e5dd4847e444f762bf8ac6a613b6be956",
+      "role": "supervisor_query_fixture"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/logs.jsonl",
+      "bytes": 6524,
+      "sha256": "a01dc708847f315cefe5627684b3590f660da6d1be6bd26ec0e77ee7bc54386b",
+      "role": "supervisor_query_fixture"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/metrics.json",
+      "bytes": 19153,
+      "sha256": "943fd2ec1177f6bac283c1f37a85b7a07741ea4a64ec2df00ca5768b5b5920ae",
+      "role": "supervisor_query_fixture"
+    },
+    {
+      "path": "prototype/run-timing/telemetry/traces.json",
+      "bytes": 3985,
+      "sha256": "4395cb01ebcd5c747a39b0175e925cf7680a804d0e5dacfc93154cfa5bed2b3c",
+      "role": "supervisor_query_fixture"
+    }
+  ]
+}

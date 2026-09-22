@@ -13,7 +13,7 @@ authorize either model probe. No launch command is supplied.
 | Fallback | No automatic substitution; detected native fallback/refusal stops and holds the experiment. |
 | CLI / effective policy | Inspected 2.1.278; re-freeze version/help, effective permission policy and tools before execution. |
 | Historical input | `79a14c8904f3a125d1f03b192d10797d30979c86`; digests in source-manifest.json. |
-| Executable revision / prompt / Skill / adapter / rubric | Offline core and pinned in-process queries have no native launcher. Reviewed prompt/Skill/rubric source drafts exist in timing-draft/; human rubric freeze, native transport/Incident adapter and full executable manifest remain UNSET. Historical runner/Skill are not approved. |
+| Executable revision / prompt / Skill / adapter / rubric | Offline core and pinned in-process queries have no native launcher. Reviewed prompt/Skill/rubric source drafts exist in timing-draft/; human rubric/baseline approved with exact hashes in timing-draft/operator/rubric-approval.json; a local synthetic binding and integrated fixed-client rehearsal now exist; native transport/authenticated Incident adapter and full native executable manifest remain UNSET. Historical runner/Skill are not approved. |
 | Run access | Sealed read-only fixture bundle; synthetic stubs only; no Ground truth, rubric, audit store or host credentials. |
 | Auth | Dedicated metered API via fixed Forwarder and per-Run sentinel; upstream key outside Run. Current readiness NOT VERIFIED. |
 | Time | 270s startup/work + up to 20s interrupt/local flush + up to 10s kill/reap; total at most 300s monotonic. |
@@ -21,7 +21,7 @@ authorize either model probe. No launch command is supplied.
 | Reservation | $3 before this attempt, one diagnostic attempt; no reservation made by this card. Guard is not a hard billing cap. |
 | Evidence root / capacity / retention | UNSET production private operator-owned path outside Git and Run mounts; 100 MiB/Run, 2 GiB total, 30 days. Fixed fixtures now retain at most 1 MiB capture with digest read-back; this does not implement production quota, sanitization or retention. |
 | Containment / receipt / terminal / identity acceptance | Offline predicates plus real fixed-host-fixture group/pipe cleanup and collision tests passed. Adversarial confinement, authenticated transport and native event compatibility NOT RUN. See process-outcome.md. |
-| Current status | Offline core, fixed-process harness, synthetic diagnostic ledger, fixture byte-integrity closeout and inert length-case records, pinned queries, synthetic Incident revisions/effects and bounded retained snapshots implemented/tested. See snapshot-outcome.md. Native model executor, authoritative auth/billing/tenant/venue acceptance NOT RUN; paid execution remains CLOSED. |
+| Current status | Offline core, fixed-process harness, synthetic diagnostic ledger, fixture byte-integrity closeout and inert length-case records, pinned queries, synthetic Incident revisions/effects bounded retained snapshots, local capability binding and integrated child-process rehearsal implemented/tested. See integration-outcome.md. Native model executor, authoritative auth/billing/tenant/venue acceptance NOT RUN; paid execution remains CLOSED. |
 
 ## Required evidence before this card can open
 

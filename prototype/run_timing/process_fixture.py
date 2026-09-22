@@ -22,10 +22,11 @@ from pathlib import Path
 from .executor import Capture, Lifecycle
 from .fixture_evidence import EvidenceUnavailable, write_fixture_evidence
 from .outcomes import Outcome, Transcript, seconds
+from .rehearsal_bundle import TIMING_SCENARIOS, build_rehearsal_worker
 
 SCENARIOS = frozenset({"success", "nonzero", "result_error", "duplicate", "malformed",
                        "silence", "ignore_interrupt", "held_pipe", "held_pipe_ignore",
-                       "closed_pipes_alive", "flood", "oversized_line"})
+                       "closed_pipes_alive", "flood", "oversized_line"}) | TIMING_SCENARIOS
 
 
 def _group_alive(pgid: int) -> bool:
@@ -63,6 +64,7 @@ class ProcessResult:
     worker_sha256: str
     scope: str = "FIXED_HOST_FIXTURES_ONLY"
     native_launch: str = "CLOSED"
+    scenario: str = ""
 
 
 class FixtureCloseoutError(EvidenceUnavailable):
@@ -103,7 +105,7 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
     # Exclusive admission: an existing attempt, file or symlink is never removed/reused.
     directory = Path(output_parent).resolve(strict=True) / attempt_id
     worker = Path(__file__).with_name("_fixture_worker.py").resolve(strict=True)
-    worker_bytes = worker.read_bytes()
+    worker_bytes = build_rehearsal_worker() if scenario in TIMING_SCENARIOS else worker.read_bytes()
     directory.mkdir(mode=0o700)
     snapshot = directory / "fixture.py"
     with snapshot.open("xb") as handle:
@@ -223,7 +225,7 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                            process.pid if process else None, root_reaped,
                            group_gone, pipes_closed, capture.complete, len(capture.data),
                            hashlib.sha256(capture.data).hexdigest(), str(directory),
-                           hashlib.sha256(worker_bytes).hexdigest())
+                           hashlib.sha256(worker_bytes).hexdigest(), scenario=scenario)
     payload = asdict(result)
     estimate = result.outcome.estimate_usd
     payload["outcome"]["estimate_usd"] = str(estimate) if estimate is not None else None

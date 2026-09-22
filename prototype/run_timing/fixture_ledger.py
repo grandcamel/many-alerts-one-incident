@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import re
 import sqlite3
+import threading
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -278,9 +279,11 @@ class FixtureLedger:
 
 def run_budgeted_fixture(ledger: FixtureLedger, scenario: str, output_parent: Path,
                          attempt_id: str, now: datetime, *, billing_current: bool,
-                         time_scale: float = 1.0) -> ProcessResult:
+                         time_scale: float = 1.0, capture_limit: int = 1024 * 1024,
+                         cancel: threading.Event | None = None) -> ProcessResult:
     """Durably reserve, then durably claim before one fixed fixture; never auto-reconcile."""
-    validate_fixture_request(scenario, attempt_id, time_scale=time_scale)
+    validate_fixture_request(scenario, attempt_id, time_scale=time_scale,
+                             capture_limit=capture_limit, cancel=cancel)
     reserved = ledger.reserve(attempt_id, now, billing_current=billing_current)
     if not reserved.accepted:
         raise LedgerUnavailable("fixture reservation denied: " + ",".join(reserved.reasons))
@@ -288,4 +291,5 @@ def run_budgeted_fixture(ledger: FixtureLedger, scenario: str, output_parent: Pa
     if not claimed.accepted:
         raise LedgerUnavailable("fixture launch held: " + ",".join(claimed.reasons))
     # Exceptions/crashes retain the claimed reservation. A repeated call cannot relaunch it.
-    return run_fixture(scenario, output_parent, attempt_id, time_scale=time_scale)
+    return run_fixture(scenario, output_parent, attempt_id, time_scale=time_scale,
+                       capture_limit=capture_limit, cancel=cancel)

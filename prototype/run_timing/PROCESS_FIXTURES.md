@@ -51,3 +51,8 @@ Full-duration 270/20/10 testing, Linux/cgroup confinement, escaping descendants,
 API custody/network enforcement, actual client event shapes, durable budget admission,
 private audit retention and paid timing/length probes remain NOT RUN. Every result is
 labelled `FIXED_HOST_FIXTURES_ONLY`, with native model launch `CLOSED`.
+
+The three closed [timing rehearsal](TIMING_REHEARSAL.md) scenarios now use an embedded
+fixed module/data bundle inside the captured worker bytes. They exercise actual child-side
+queries, synthetic Incident calls and evidence writes; `ProcessResult.scenario` records the
+selected closed scenario. The original fixture scenarios retain their original worker.

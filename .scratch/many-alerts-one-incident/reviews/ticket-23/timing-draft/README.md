@@ -47,3 +47,10 @@ The [rubric](operator/rubric.md) is for named human adjudication, not an automat
 The [template](operator/adjudication-template.json) is an unfilled compact example, not
 implemented validation or an accepted review record. Ticket 39 retains ownership of the
 complete audit/scoring specification and ticket 38 of qualification/accounting integration.
+
+## Human rubric approval — 2026-09-21
+
+The user approved the pinned synthetic Mechanism baseline and this exact rubric.
+[Approval record](operator/rubric-approval.json) binds the unchanged rubric bytes and
+fixture identities. Its approval supersedes the original rubric text's draft/pending
+status; scoring rules are unchanged. No Report is graded and no experiment is authorized.

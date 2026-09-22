@@ -1,9 +1,9 @@
 {
-  "schema_version": 10,
-  "scope": "Local ticket23 fixtures, queries, Incident store, retained snapshots and timing drafts; no native approval",
-  "supersedes_manifest_sha256": "8d52208e25cb5115654d8a1de00cf6b641bb34e171b6d0868a4174741abad404",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-snapshot/prior-phase-snapshot",
-  "local_links_verified": 62,
+  "schema_version": 11,
+  "scope": "Local ticket23 fixtures, integrated fixed-child rehearsal and approved synthetic rubric; native launch CLOSED",
+  "supersedes_manifest_sha256": "4bbb3ab1f1fc7add429055a21ec40108988f447905d73412a30aa61c1e742af1",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-integrated-rehearsal/prior-phase-snapshot",
+  "local_links_verified": 72,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
@@ -27,8 +27,8 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md",
-      "bytes": 4740,
-      "sha256": "2b2ebbdd5617cd71fb0e9c34dc7b8ea0c81286fa460683867ef9313131f9889a"
+      "bytes": 4975,
+      "sha256": "26082fed299bd4bcfe171fb9b49ab70b6bd96a3099043bf5c1a7e354e8eae8ec"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-cases.json",
@@ -74,6 +74,21 @@
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/incident-validation.json",
       "bytes": 6339,
       "sha256": "ea06056b35cbad81ee9a766408ca8b37c856a325dd406e072610b7a7c884400c"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/integration-outcome.md",
+      "bytes": 6436,
+      "sha256": "0daa425fdbcb2353d0c7820e4cb9e6f37531284589e86806f5534e8801689953"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/integration-plan.md",
+      "bytes": 2647,
+      "sha256": "551e119ebe3cc4477d7b6ec91030a45762672df15c3e02b3a0d3dff6255d27a4"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/integration-validation.json",
+      "bytes": 27988,
+      "sha256": "6ad5b2a85ab29410660e5afb68f8343242414f8e5c30f8b397120f3029a73a67"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/ledger-outcome.md",
@@ -167,13 +182,13 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/README.md",
-      "bytes": 3629,
-      "sha256": "698cef82f45e459eef96be1dbe9801598cf14a914d68e6b7d25468cde17345aa"
+      "bytes": 4013,
+      "sha256": "c76b172886e0c6c71ac54f0bc2f2cd7b504987ff5a4337720410148dc9a73b50"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/draft-manifest.json",
-      "bytes": 2956,
-      "sha256": "96b5b56a338a9d7acef6bd1895bc2a65b9273cfa9cec990f249332de20ae0146"
+      "bytes": 3210,
+      "sha256": "676a08a871e5dd1dfc72a8b2970eac9b06ea140b5fd43375c78e83dce9ce736a"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/adjudication-template.json",
@@ -182,8 +197,13 @@
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/preflight.md",
-      "bytes": 3967,
-      "sha256": "f66e147f82ed7025d23ff56df0f4fd0f09c543a63b96967bef00178081e15eda"
+      "bytes": 4218,
+      "sha256": "b9ab700aabddeb5c50dfddb254f62c59318a41ce1f3ac95c56e93215d344de10"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/rubric-approval.json",
+      "bytes": 2498,
+      "sha256": "4d74d1451a8580de6465340ab7a6f7f0e21295f964467cae58d2d6fe17201dab"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/timing-draft/operator/rubric.md",
@@ -227,8 +247,8 @@
     },
     {
       "path": "prototype/run_timing/FIXTURE_LEDGER.md",
-      "bytes": 4481,
-      "sha256": "26559d5a63afc552afab0e80d9a95ecd87508fd8d0be81e3994f32f544e5854c"
+      "bytes": 4765,
+      "sha256": "f9a68edcc96b0ac4ae78a9c07018b4d0a060f4af5a503f15ab58968ad6022342"
     },
     {
       "path": "prototype/run_timing/LENGTH_RECORDS.md",
@@ -237,13 +257,18 @@
     },
     {
       "path": "prototype/run_timing/PROCESS_FIXTURES.md",
-      "bytes": 3532,
-      "sha256": "7cf43f0730b66635b5ed78ce72898d1098cbd170e8a9ec63fb23e4e060551c12"
+      "bytes": 3890,
+      "sha256": "f229cb3fec83997c9a57f9827b8e5e9c80f1d3bf7d75daef1ddc4526a82bbf0f"
     },
     {
       "path": "prototype/run_timing/README.md",
-      "bytes": 6470,
-      "sha256": "45b8f720af0e9b72a079014b48cf1bc9b4160e900f49ca0f81eed3f969b128d1"
+      "bytes": 7251,
+      "sha256": "ad3a52531f96408f9f1184d069a0de64d6941f3c9cf2c20b7009a28990ad69c2"
+    },
+    {
+      "path": "prototype/run_timing/TIMING_BINDING.md",
+      "bytes": 4242,
+      "sha256": "1f0417e8019ab0462a0ea1d37fa4e03e5ce0ec6f42931504d8d15de33a49fe1b"
     },
     {
       "path": "prototype/run_timing/TIMING_INCIDENTS.md",
@@ -254,6 +279,11 @@
       "path": "prototype/run_timing/TIMING_QUERIES.md",
       "bytes": 6483,
       "sha256": "ee974dcb573dd475eb3dbc3763d5356ba8de8967670fc80dd0792611ab07e0e2"
+    },
+    {
+      "path": "prototype/run_timing/TIMING_REHEARSAL.md",
+      "bytes": 6731,
+      "sha256": "a65812d9a3b1f512e2565e2012fb408ed08a1128158a7bc0cc9233faa8b79516"
     },
     {
       "path": "prototype/run_timing/TIMING_SNAPSHOT.md",
@@ -271,6 +301,11 @@
       "sha256": "fd5a9ae2ea0df757f4a06acdc48c5966f73e8230b5c5c6ada9f521712b94d172"
     },
     {
+      "path": "prototype/run_timing/_timing_rehearsal_worker.py",
+      "bytes": 8560,
+      "sha256": "5b91c02687cfdefaa395a71f53829574f00a2e5dde08cef796a76545da305258"
+    },
+    {
       "path": "prototype/run_timing/executor.py",
       "bytes": 17674,
       "sha256": "7c9683be5be1e916661f14c715c340551eb040a471a14c454ae1beee30e53da6"
@@ -282,8 +317,8 @@
     },
     {
       "path": "prototype/run_timing/fixture_ledger.py",
-      "bytes": 13378,
-      "sha256": "ac6b5183cff7e6e575a4211f98a04b42984b41e84be948dff008b65fbf14b16d"
+      "bytes": 13633,
+      "sha256": "41904146150ed7dee9b7ebb2d34a5509017224d6d1ad9f26eda541267a2f43bb"
     },
     {
       "path": "prototype/run_timing/outcomes.py",
@@ -292,8 +327,18 @@
     },
     {
       "path": "prototype/run_timing/process_fixture.py",
-      "bytes": 11124,
-      "sha256": "9b6b4aba3b9f74c81191e82223b72eaf65346ec58d09b09620df7182f274af33"
+      "bytes": 11318,
+      "sha256": "0f2cc7f9d9d8dda5c87d43c52e1a087d024e6badfd70fc586aedd4d5d334dbd3"
+    },
+    {
+      "path": "prototype/run_timing/rehearsal_bundle.py",
+      "bytes": 3052,
+      "sha256": "0db86176906cfb0893a728541688c9d92183596694668e8de9523fc711205bec"
+    },
+    {
+      "path": "prototype/run_timing/timing_binding.py",
+      "bytes": 13230,
+      "sha256": "603be80c3dcf57013670b00c3b0d0cbadc5b12ebd3917a3418bbc358a108696b"
     },
     {
       "path": "prototype/run_timing/timing_data/changes.json",
@@ -331,9 +376,19 @@
       "sha256": "99086daaa1b11cee0d6a944a0323d2bb19d27e6ebf058d9118f7115b5192b969"
     },
     {
+      "path": "prototype/run_timing/timing_rehearsal.py",
+      "bytes": 12474,
+      "sha256": "c736df89eb46b76b3e1939252b972179e9bc87abfd2079e58f5a9b28bbe3109f"
+    },
+    {
       "path": "prototype/run_timing/timing_snapshot.py",
       "bytes": 13037,
       "sha256": "ff87394437a136ecd30598051f8254190169c1519ec5f2012cc6ce57500145a6"
+    },
+    {
+      "path": "tests/test_timing_binding.py",
+      "bytes": 10772,
+      "sha256": "cd7b0a67ccf2e74505c30ad593566747423647ced857cf9fe3707bde033d5878"
     },
     {
       "path": "tests/test_timing_executor.py",
@@ -374,6 +429,11 @@
       "path": "tests/test_timing_queries.py",
       "bytes": 11105,
       "sha256": "eac7724472b636828ac89a8795462f297c70f89e1ef04f460c9bf3c51c8c7b7d"
+    },
+    {
+      "path": "tests/test_timing_rehearsal.py",
+      "bytes": 16525,
+      "sha256": "85be64d696cf92e4b7da4c6c9f5bc78080c0b7902d60f78d131b5f1b136549ec"
     },
     {
       "path": "tests/test_timing_snapshot.py",

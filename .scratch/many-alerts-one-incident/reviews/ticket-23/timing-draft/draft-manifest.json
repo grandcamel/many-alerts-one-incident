@@ -3,7 +3,7 @@
   "draft_id": "ticket23-timing-text-v1",
   "status": "SOURCE_DRAFT_NOT_DEPLOYED",
   "native_launch": "CLOSED",
-  "human_rubric_freeze": "PENDING",
+  "human_rubric_freeze": "APPROVED_FOR_PINNED_SYNTHETIC_FIXTURE",
   "runtime_binding": "UNSET",
   "historical_commit": "79a14c8904f3a125d1f03b192d10797d30979c86",
   "run_text_files": [
@@ -31,8 +31,8 @@
     },
     {
       "path": "operator/preflight.md",
-      "bytes": 3967,
-      "sha256": "f66e147f82ed7025d23ff56df0f4fd0f09c543a63b96967bef00178081e15eda"
+      "bytes": 4218,
+      "sha256": "b9ab700aabddeb5c50dfddb254f62c59318a41ce1f3ac95c56e93215d344de10"
     },
     {
       "path": "operator/rubric.md",
@@ -41,8 +41,13 @@
     },
     {
       "path": "README.md",
-      "bytes": 3629,
-      "sha256": "698cef82f45e459eef96be1dbe9801598cf14a914d68e6b7d25468cde17345aa"
+      "bytes": 4013,
+      "sha256": "c76b172886e0c6c71ac54f0bc2f2cd7b504987ff5a4337720410148dc9a73b50"
+    },
+    {
+      "path": "operator/rubric-approval.json",
+      "bytes": 2498,
+      "sha256": "4d74d1451a8580de6465340ab7a6f7f0e21295f964467cae58d2d6fe17201dab"
     }
   ],
   "historical_inputs": [
@@ -91,5 +96,6 @@
     "bin/jira-as",
     "score.py"
   ],
-  "security_boundary": "PROPOSED_ONLY_NOT_ENFORCED"
+  "security_boundary": "PROPOSED_ONLY_NOT_ENFORCED",
+  "human_rubric_approval": "operator/rubric-approval.json"
 }

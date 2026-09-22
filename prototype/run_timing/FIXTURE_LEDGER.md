@@ -64,3 +64,7 @@ Run local acceptance with:
 ```sh
 python3 -m pytest -q tests/test_timing_fixture_ledger.py
 ```
+
+The budgeted helper also forwards the existing bounded capture limit and trusted cancellation
+event to the supervisor, validating both before reservation. The closed timing scenarios are
+integrated by [run_timing_rehearsal](TIMING_REHEARSAL.md); they still leave billing unresolved.
