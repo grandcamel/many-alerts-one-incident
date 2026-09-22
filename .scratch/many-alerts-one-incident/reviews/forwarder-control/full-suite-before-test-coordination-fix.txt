@@ -1,0 +1,46 @@
+............................ssss........ssssssssss...........ssss....... [  7%]
+ssssssssss................................................F............. [ 14%]
+........................................................................ [ 21%]
+.............ssssssss................................................... [ 28%]
+........................................................................ [ 35%]
+........................................................................ [ 42%]
+........................................................................ [ 49%]
+........................................................................ [ 56%]
+........................................................................ [ 63%]
+........................................................................ [ 71%]
+........................................................................ [ 78%]
+........................................................................ [ 85%]
+........................................................................ [ 92%]
+........................................................................ [ 99%]
+.....                                                                    [100%]
+=================================== FAILURES ===================================
+_ test_authenticated_replacement_revokes_old_but_old_finalizer_spares_new[receiver-a] _
+
+environment = (<tests.test_forwarder_control.Clock object at 0x110ca0510>, <grafana_jsm_sandbox.forwarder_leases.LeaseRegistry object at 0x110b0efd0>, <grafana_jsm_sandbox.forwarder_control.ForwarderControl object at 0x11174cc30>)
+start = <function start.<locals>.launch at 0x1117b7880>
+replacement_boot = 'receiver-a'
+
+    @pytest.mark.parametrize("replacement_boot", ["receiver-a", "receiver-b"])
+    def test_authenticated_replacement_revokes_old_but_old_finalizer_spares_new(
+        environment, start, replacement_boot,
+    ):
+        _clock, registry, control = environment
+        old, old_outcomes = start(control)
+        hello(old)
+        old_grant = registration(old)
+        command(old, "activate", 2, {"lease_id": old_grant["lease_id"], "launch_at": 1000.0})
+        replacement, new_outcomes = start(control)
+        hello(replacement, replacement_boot)
+        fresh = registration(replacement, run="run-b")
+        command(replacement, "activate", 2, {"lease_id": fresh["lease_id"], "launch_at": 1000.0})
+        old_result = old_outcomes.get(timeout=2)
+        assert old_result.closeout == "not_owner"
+        assert allowed(registry, old_grant) is False
+        assert allowed(registry, fresh) is True
+>       assert command(replacement, "heartbeat", 3, {})["ok"] is True
+E       assert False is True
+
+tests/test_forwarder_control.py:180: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_forwarder_control.py::test_authenticated_replacement_revokes_old_but_old_finalizer_spares_new[receiver-a]
+1 failed, 976 passed, 36 skipped in 127.38s (0:02:07)

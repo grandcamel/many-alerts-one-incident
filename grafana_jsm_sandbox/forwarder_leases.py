@@ -123,6 +123,15 @@ class LeaseRegistry:
         """The current opaque process generation for the trusted controller."""
         return self._generation
 
+    def hold(self) -> None:
+        """Permanently deny authority after an uncertain control closeout.
+
+        The trusted adapter uses this latch without consulting a possibly broken
+        clock. Only a fresh registry generation can recover from a hold.
+        """
+        with self._lock:
+            self._held_code = "control_failure"
+
     def handshake(self, *, receiver_boot_id: str, generation: str) -> LeaseReceipt:
         with self._lock:
             now = self._now()

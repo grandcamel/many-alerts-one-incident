@@ -48,3 +48,10 @@ the existing launcher, authenticate control peers, start listeners or establish
 native, tenant, credential-isolation or deployment acceptance. This ticket stays
 open; authenticated control, fixed TLS/request policy and the remaining evidence
 are subsequent work.
+
+The [second local unit](../reviews/forwarder-control/outcome.md) adds authenticated
+control sessions on accepted Unix sockets: OS peer-UID checks, bounded
+challenge/response and commands, replacement fencing, and revocation or a held
+registry on failed closeout. Its full suite passes 977 tests with 36 skipped.
+This does not provision a listener or validate deployed secret/mount/kernel
+isolation, Linux peer credentials, service TLS or native request policies.

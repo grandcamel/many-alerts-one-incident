@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_CONTROL_SOURCE_AND_SOCKET_TESTS",
+  "baseline_commit": "67454b34ae970888d7538d64351d5495216ad8be",
+  "focused_tests": {
+    "passed": 53,
+    "seconds": 0.63
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "exit_code": 0,
+    "passed": 977,
+    "skipped": 36,
+    "seconds": 126.26,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-control/full-suite.txt"
+  },
+  "prior_failure": {
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-control/full-suite-before-test-coordination-fix.txt",
+    "failed": 1,
+    "passed": 976,
+    "skipped": 36,
+    "disposition": "Deterministic old-finalizer test barrier and separate normal/timeout deadlines; no production change needed"
+  },
+  "ruff": "PASS",
+  "independent_review": "PASS; source review and revised replacement race test reviewed by Sol",
+  "observed_local_platform": "Darwin Unix socket peer UID, synthetic secrets only",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_control.py": "b45294a86a1697e41fa8c79ebe2c6e767048778457d3f73ef3109f7eaa4ee3d3",
+    "grafana_jsm_sandbox/forwarder_control_protocol.py": "51634eb0d05e0f025fb03a6f64bcd44344704bbf385ab2c49510bbf613f196e7",
+    "grafana_jsm_sandbox/forwarder_leases.py": "14b50bf283f183178efffd562b6900623ab769ca94cf892ead21bf6710262655",
+    "tests/test_forwarder_control.py": "566eb3eb43ab737d3f6e755e5769a495a5beeea14231634c1f4b94102e92c302",
+    "tests/test_forwarder_control_protocol.py": "73db613cb605d00477200bcabd13742b083af39d0d4dcc14e5a769d59efc0083",
+    "docs/forwarder-control.md": "f58deed865a5043586f766905d9c524c185d515298494b63bb9fe600bdc96b8d",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "d3a918565584d35116f030d4247146b76bb679bef2d8b4ed001d0d2598acdfd5",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "8bbf1aef6f939c0f11aeb25cf1d74e3de9ba706447d6857c52a9f6cc4d6ef9f5",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control/implementation-plan.md": "3d27b2f5302a66fef93866a787e72242540f05434c9f2e40e44d30e2cf55cf03",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control/review.md": "b78c6616c2bd6131e28fe47fe4a6067b05ed8646715ef890da3aeb7de612efc3",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control/outcome.md": "683c9c1143b175e8ba6a77163a21939fcf9d1365123bd43d8303bb279c448581",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control/full-suite.txt": "bfb1b277098196f598dc95ea8a08299ee0e9209bbd2611662177358e72632f1a",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control/full-suite-before-test-coordination-fix.txt": "db94fda3daa6a74f296e13a1c5f72079628ea45e1c4cc132c4ab6d2be08ca0e5"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Linux SO_PEERCRED",
+    "Deployed socket ownership and private listener provisioning",
+    "Mounted control secret custody and kernel isolation",
+    "Service TLS and request policy",
+    "Native model clients, provider and tenant operations",
+    "Deployment and paid accounting admission",
+    "Human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

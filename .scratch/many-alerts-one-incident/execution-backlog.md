@@ -37,10 +37,11 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **924 passed, 36 skipped**, including 50 service/lease
-  tests plus the existing supervised streaming, buffered and process regressions.
-  The [first application outcome](reviews/forwarder-lease-implementation-outcome.md)
-  records local source validation; the existing
+- Latest code validation: **977 passed, 36 skipped**, including 103 service,
+  lease and authenticated-control tests plus the existing integration regressions.
+  The [control-session outcome](reviews/forwarder-control/outcome.md) and
+  [first application outcome](reviews/forwarder-lease-implementation-outcome.md)
+  record their distinct local source validation; the existing
   [supervised streaming outcome](reviews/ticket-23/supervised-streaming-outcome.md)
   retains its separate fixture evidence.
 - The [native readiness register](reviews/ticket-23/native-adapter-readiness.md)
@@ -89,13 +90,19 @@ fixed service profiles, mandatory/optional readiness and scoped lease state.
 Its [review and full-suite outcome](reviews/forwarder-lease-implementation-outcome.md)
 is complete. It does not wire the legacy launcher or claim authenticated control/OS isolation.
 
+The [second application unit](reviews/forwarder-control/outcome.md) adds
+authenticated control over accepted Unix stream sockets, bounded framing and
+owner replacement/closeout. Local Darwin peer-UID and synthetic-secret tests pass.
+Listener provisioning, Linux peer validation, mounted secret custody, kernel
+isolation and service request transport remain separate work and evidence gates.
+
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles and scoped leases complete; next add authenticated control, fixed TLS/request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases and accepted-socket control sessions complete; next add listener provisioning, fixed TLS/request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets

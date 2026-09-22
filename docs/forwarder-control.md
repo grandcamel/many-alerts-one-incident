@@ -1,4 +1,4 @@
-# Forwarder service and lease core
+# Forwarder service, lease and control core
 
 The application modules `forwarder_services` and `forwarder_leases` provide the
 first local implementation unit of the reviewed Forwarder contract. They are
@@ -42,14 +42,51 @@ coordinate dispatch initiation with revocation. This module cannot prove socket
 peer identity, kernel isolation, safe native-client configuration, provider
 credential custody, or the disposition of bytes already sent.
 
-The next integration units are an authenticated Receiver control adapter, fixed
-TLS listeners and request-aware service policies, followed by durable admission
-and the guarded launcher. Real provider/tenant operations, native execution and
-deployment remain gated by their own acceptance evidence. Local module tests
-cannot replace that evidence or human Report adjudication.
+## Authenticated control sessions
+
+`ForwarderControl` serves an already accepted Unix stream socket. Both sides
+check the actual OS peer UID: the server uses the configured Receiver UID, and
+`authenticate_receiver` uses the configured Forwarder UID. Darwin uses
+[`getpeereid`](https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/getpeereid.3.html)
+to obtain effective credentials established at connection time. The Linux
+`SO_PEERCRED` branch needs validation on Linux. Unsupported identity mechanisms
+deny authentication.
+
+Construction supplies a 32-byte control secret. A fresh challenge, generation
+and Receiver boot ID bind role-separated HMAC-SHA256 proofs. The Receiver helper
+verifies the Forwarder proof before returning handshake metadata. The raw secret
+is never transmitted. A successful registration response intentionally delivers
+the lease sentinel over that authenticated channel; diagnostics do not retain it.
+
+Commands are limited to registration, activation, revocation and heartbeat.
+Exact parameter sets and increasing sequence numbers prevent extra control
+fields from overriding session identity. Frames are length-prefixed UTF-8 JSON,
+limited to 8 KiB, four object levels and bounded scalar fields. Each frame uses
+one absolute deadline, at most ten seconds in this controller. Malformed frames,
+duplicate keys and unsupported values fail closed.
+
+One connection owns control. Successful replacement revokes the previous
+connection's leases, including when the Receiver boot ID is unchanged. Old
+commands and finalizers cannot act on a replacement owner. EOF, timeout, failed
+response or rejected commands release authority before any error response is
+written. If closeout fails, `LeaseRegistry.hold()` permanently denies authority
+without reconstructing a clock; recovery needs a fresh registry generation.
+
+At most four accepted connections execute per controller. Unauthenticated peers
+can occupy these slots until their bounded frame deadlines. The caller must
+provision the listener and restrict access; this module does not create a socket
+path, verify its directory ownership or mount permissions, or load a mode-0400
+secret. The caller must also give this adapter exclusive control of its registry.
+Local socket tests do not establish deployed UID/mount/kernel or secret isolation.
+
+The next integration units are listener provisioning, fixed TLS listeners and
+request-aware service policies, followed by durable admission and the guarded
+launcher. Real provider/tenant operations, native execution and deployment remain
+gated by their own acceptance evidence. Local module tests cannot replace that
+evidence or human Report adjudication.
 
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py
 ```
