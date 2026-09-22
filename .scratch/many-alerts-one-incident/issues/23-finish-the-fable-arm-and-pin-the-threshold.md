@@ -66,3 +66,8 @@ tests around fixed local fixtures. Inputs and allocation amounts are synthetic; 
 accounting ledger or paid probe is admitted. This diagnostic slice does not complete
 ticket 38's lifecycle/Receiver integration. Ticket 23 remains open; native launch remains
 closed.
+
+The [fixture closeout outcome](../reviews/ticket-23/closeout-outcome.md) adds bounded
+retained output, exclusive publication and digest/linkage read-back. Byte integrity does
+not establish semantic acceptance, production audit custody or a launch-to-durable-closeout
+deadline. Closeout failures preserve unresolved ledger claims. Paid execution remains closed.

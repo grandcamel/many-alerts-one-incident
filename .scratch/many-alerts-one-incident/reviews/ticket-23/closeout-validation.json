@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "scope": "Fixed-fixture byte-integrity closeout; native launch CLOSED",
+  "baseline_commit": "414b689",
+  "targeted_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_fixture_evidence.py",
+    "passed": 52,
+    "seconds": 1.92,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 464,
+    "skipped": 36,
+    "seconds": 32.08,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "findings": 0,
+      "remaining": 0,
+      "final_correction_readback": true
+    },
+    "spec": {
+      "findings": 0,
+      "remaining": 0,
+      "final_correction_readback": true
+    },
+    "fable": {
+      "classification": "usable",
+      "exit_code": 0,
+      "requested_model": "claude-fable-5-1",
+      "actual_assistant_models": [
+        "claude-fable-5-1"
+      ],
+      "verdict": "PASS",
+      "session_id": "f6310703-eeea-4de4-94a4-7a396d9de1e8",
+      "duration_ms": 172774,
+      "session_estimate_usd": 1.396932,
+      "provider_actual_usd": null,
+      "reviewed_source": "Frozen initial snapshot, not subsequent corrections",
+      "artifacts": [
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/fable-review/manifest.json",
+          "bytes": 1335,
+          "sha256": "cf97f99d8cfff8a8ca21f3e9ddd29947b0b15b98fc0510bdada2dd55b14bf061"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/fable-review/native-review.jsonl",
+          "bytes": 94247,
+          "sha256": "f1ce1c4ad5b486455bb7fd848c244c0099ae7f7d9e82ff2b754e10149930d5bd"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/fable-review/prompt.txt",
+          "bytes": 33607,
+          "sha256": "5589b8b7f916085a8215d1707d23ee2c5023b0ea397d43451803723fea45b0ab"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/fable-review/review-stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/fable-review/review.md",
+          "bytes": 4774,
+          "sha256": "b0fc3967a7de52197982a123e6b5902f293ece64dc882fb6e8a03c50abf885d3"
+        }
+      ],
+      "corrections_adjudicated_by": "Parent tests and independent final Codex Standards/Spec readbacks; Fable did not review corrections"
+    }
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/fixture_evidence.py",
+      "bytes": 6678,
+      "sha256": "82cbe1bd0754028159fb635fe4bf3079713adf90ce82cb6b9d7038dc8bc693d7"
+    },
+    {
+      "path": "prototype/run_timing/process_fixture.py",
+      "bytes": 11124,
+      "sha256": "9b6b4aba3b9f74c81191e82223b72eaf65346ec58d09b09620df7182f274af33"
+    },
+    {
+      "path": "prototype/run_timing/FIXTURE_EVIDENCE.md",
+      "bytes": 4131,
+      "sha256": "c26311273bc01e9148de689646d6abfb236c082d5238c6b1077253673ed6f79d"
+    },
+    {
+      "path": "tests/test_timing_fixture_evidence.py",
+      "bytes": 10656,
+      "sha256": "f02aca387e006d239f06450ef58af72187d92be5933f54f3792c5bc125a5b01a"
+    }
+  ],
+  "not_run": [
+    "native stream and semantic audit qualification",
+    "authenticated provenance and same-user adversarial custody",
+    "directory ancestry or mount enforcement",
+    "hardware power-loss behavior and stale-store restoration detection",
+    "production quota/retention/sanitization",
+    "real billing and Receiver/Forwarder integration",
+    "300-second launch-to-durable-closeout bound",
+    "paid timing/length probes",
+    "model/tenant/venue qualification"
+  ],
+  "prior_phase_archive": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/prior-phase-snapshot",
+  "archive_provenance": {
+    "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/archive-provenance.json",
+    "bytes": 163,
+    "sha256": "9455c20071edd9dd6139d88716df1adf907740421afc5131445a318b95e014cd"
+  }
+}

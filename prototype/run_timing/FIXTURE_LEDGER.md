@@ -18,6 +18,8 @@ Reservation consumes one diagnostic attempt and $3 of synthetic allocation befor
 Claims are one-time and recheck billing readiness, date, holds and limits. Repeated IDs
 cannot launch again. A crash after commit or claim leaves unknown exposure, even if no
 child was spawned. Neither clean fixture exit nor an exception reconciles a charge.
+That includes a [fixture closeout](FIXTURE_EVIDENCE.md) storage/read-back failure after
+the child exits; retained output and byte-integrity receipts are not billing receipts.
 Operators supply an explicit synthetic final actual to settle it. Estimates are not
 accepted as reconciliation evidence. IDs/amounts are validated before state changes.
 

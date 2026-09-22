@@ -1,19 +1,34 @@
 {
-  "schema_version": 4,
-  "scope": "Local fixed-process fixtures and synthetic diagnostic ledger; no native model approval",
-  "supersedes_manifest_sha256": "fc6694695d8cfec971dc4075d86eb65bc6ccc555a6cf519070a907ef8e834600",
-  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-ledger/prior-phase-snapshot",
-  "local_links_verified": 24,
+  "schema_version": 5,
+  "scope": "Local fixed-process fixtures, synthetic ledger and byte-integrity closeout; no native model approval",
+  "supersedes_manifest_sha256": "8f7c33299a33bfb9b1dd8869f49f6caeee6a4a0197375f430b9437b5a333b3ca",
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-fixture-closeout/prior-phase-snapshot",
+  "local_links_verified": 31,
   "files": [
     {
       "path": ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md",
-      "bytes": 4216,
-      "sha256": "7253547d29e179cd942ccf41fd5b12afabe59298f15b829130d23dd9a63a8a1b"
+      "bytes": 4578,
+      "sha256": "e8f21c8bbb65e3d4b5b43b6a0547ddc339c42e62c5c0da4fab5a78a281175403"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/closeout-outcome.md",
+      "bytes": 4418,
+      "sha256": "b5f786361ca6feb5f46676da0020f83979581061b8d0b70b124de575902c50f9"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/closeout-plan.md",
+      "bytes": 1634,
+      "sha256": "57a25ea7d5cce5fff3816df707b382ff8faaee095d9996865a44f72046dbd633"
+    },
+    {
+      "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/closeout-validation.json",
+      "bytes": 4155,
+      "sha256": "8f6d22a4a6d8388c58632a6f61eee4cfa974560b60f0573855acd7dbd31b4b55"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md",
-      "bytes": 4339,
-      "sha256": "6c702d488a6eae730b908cbfd5a9ca31dcd45bd177c93a7673d68a87f5a4fa79"
+      "bytes": 4523,
+      "sha256": "36d41ad01bd9aa632f5bc5416448f4538207b900c30f9e9965a01ffddfb001b0"
     },
     {
       "path": ".scratch/many-alerts-one-incident/reviews/ticket-23/fixtures/length-cases.json",
@@ -91,19 +106,24 @@
       "sha256": "9a3de56b48b170c1dd73bc30075a7c53274c6ab94227df045f77a6d83f35ca89"
     },
     {
+      "path": "prototype/run_timing/FIXTURE_EVIDENCE.md",
+      "bytes": 4131,
+      "sha256": "c26311273bc01e9148de689646d6abfb236c082d5238c6b1077253673ed6f79d"
+    },
+    {
       "path": "prototype/run_timing/FIXTURE_LEDGER.md",
-      "bytes": 4306,
-      "sha256": "fd4e4f0dc2a0499813a77ecfab308862dae214de0e508e971529c8499e3e6df9"
+      "bytes": 4481,
+      "sha256": "26559d5a63afc552afab0e80d9a95ecd87508fd8d0be81e3994f32f544e5854c"
     },
     {
       "path": "prototype/run_timing/PROCESS_FIXTURES.md",
-      "bytes": 3439,
-      "sha256": "fd56e145061c3c5c858ad353db7c856a79fe5f51223ceb07cb405ca848782c9c"
+      "bytes": 3532,
+      "sha256": "7cf43f0730b66635b5ed78ce72898d1098cbd170e8a9ec63fb23e4e060551c12"
     },
     {
       "path": "prototype/run_timing/README.md",
-      "bytes": 4941,
-      "sha256": "52292869c35c0d04cae0e6b56499477fc5f2a1617c68495699e1f2942e9a5a41"
+      "bytes": 5204,
+      "sha256": "5bd5767fd52c19728aa15bbedccefdd57e71af4153ab1512c49919f96648022d"
     },
     {
       "path": "prototype/run_timing/__init__.py",
@@ -121,6 +141,11 @@
       "sha256": "25f1a14eecfe3196ceb0b7ebfc321b1a21e23c2cae3d2e924d14935ef8a6180a"
     },
     {
+      "path": "prototype/run_timing/fixture_evidence.py",
+      "bytes": 6678,
+      "sha256": "82cbe1bd0754028159fb635fe4bf3079713adf90ce82cb6b9d7038dc8bc693d7"
+    },
+    {
       "path": "prototype/run_timing/fixture_ledger.py",
       "bytes": 13378,
       "sha256": "ac6b5183cff7e6e575a4211f98a04b42984b41e84be948dff008b65fbf14b16d"
@@ -132,13 +157,18 @@
     },
     {
       "path": "prototype/run_timing/process_fixture.py",
-      "bytes": 10571,
-      "sha256": "8e9ea055bdf07fd9fa1bd53366292e16789996327aff935a5048e3e7f820d5b3"
+      "bytes": 11124,
+      "sha256": "9b6b4aba3b9f74c81191e82223b72eaf65346ec58d09b09620df7182f274af33"
     },
     {
       "path": "tests/test_timing_executor.py",
       "bytes": 15630,
       "sha256": "7d26a35de4758c72e20d00c059c234836b6b7c4e237de081331d90860490586e"
+    },
+    {
+      "path": "tests/test_timing_fixture_evidence.py",
+      "bytes": 10656,
+      "sha256": "f02aca387e006d239f06450ef58af72187d92be5933f54f3792c5bc125a5b01a"
     },
     {
       "path": "tests/test_timing_fixture_ledger.py",

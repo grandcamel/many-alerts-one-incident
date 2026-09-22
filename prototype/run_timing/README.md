@@ -11,6 +11,10 @@ launch claims for those fixed fixtures. It tests persistent unknown exposure, re
 reconciliation, concurrent admission and weekly limits using synthetic inputs only.
 It does not access real account balances or authorize a paid model call.
 
+[Fixed-fixture closeout](FIXTURE_EVIDENCE.md) now retains the bounded capture bytes and
+verifies worker/capture/result linkage on read-back. These byte-integrity receipts do not
+establish semantic success, real audit acceptance or a durable-closeout time bound.
+
 `outcomes.py` parses bounded synthetic Claude-shaped JSON events and derives execution
 outcomes without discarding malformed evidence, duplicate terminals or receiver-observed
 failures. The deliberately small schema accepts assistant messages with explicit model

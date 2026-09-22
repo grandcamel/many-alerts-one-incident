@@ -23,7 +23,8 @@ forced-kill tests to allow more scheduler/reaping margin. Cancellation enters
 cleanup earlier. A forced orphan kill remains visible as cancellation. The result records
 observed elapsed supervision time, original and cleanup deadlines, root reaping, group
 disappearance, pipe EOF, capture completeness/digest and lifecycle actions. Compact JSON
-is written only after supervision returns; this artifact write is not included in the
+and bounded retained capture are written only after supervision returns, with a
+[verifiable closeout manifest](FIXTURE_EVIDENCE.md). These artifact writes are not included in the
 supervision duration. Thus these results do not establish the complete native 300-second
 launch-to-durable-closeout contract.
 

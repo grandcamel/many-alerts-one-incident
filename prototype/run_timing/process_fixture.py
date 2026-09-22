@@ -8,7 +8,6 @@ No callback, executable, shell command, extra argument or environment can be sup
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import re
 import selectors
@@ -21,6 +20,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .executor import Capture, Lifecycle
+from .fixture_evidence import EvidenceUnavailable, write_fixture_evidence
 from .outcomes import Outcome, Transcript, seconds
 
 SCENARIOS = frozenset({"success", "nonzero", "result_error", "duplicate", "malformed",
@@ -63,6 +63,14 @@ class ProcessResult:
     worker_sha256: str
     scope: str = "FIXED_HOST_FIXTURES_ONLY"
     native_launch: str = "CLOSED"
+
+
+class FixtureCloseoutError(EvidenceUnavailable):
+    """Observed process result is available for diagnosis, but closeout was not acknowledged."""
+
+    def __init__(self, result: ProcessResult):
+        super().__init__("fixed fixture ran but evidence closeout failed")
+        self.process_result = result
 
 
 def validate_fixture_request(scenario: str, attempt_id: str, *, time_scale: float = 1.0,
@@ -216,7 +224,11 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                            group_gone, pipes_closed, capture.complete, len(capture.data),
                            hashlib.sha256(capture.data).hexdigest(), str(directory),
                            hashlib.sha256(worker_bytes).hexdigest())
-    with (directory / "result.json").open("x") as handle:
-        json.dump(asdict(result), handle, indent=2, default=str)
-        handle.write("\n")
+    payload = asdict(result)
+    estimate = result.outcome.estimate_usd
+    payload["outcome"]["estimate_usd"] = str(estimate) if estimate is not None else None
+    try:
+        write_fixture_evidence(directory, bytes(capture.data), payload)
+    except EvidenceUnavailable as exc:
+        raise FixtureCloseoutError(result) from exc
     return result
