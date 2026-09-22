@@ -103,3 +103,14 @@ passes; focused tests report 49 passed and the full suite 1239 passed, 36 skippe
 The operator still owns context/key custody; production HTTP collection, route
 policy and dispatch coordination remain separate work. This planning ticket
 stays open, with native and deployment acceptance gates unchanged.
+
+The [eighth local unit](../reviews/forwarder-http-receive/outcome.md) adds bounded
+incremental request collection over TLS with shared head validation and one
+absolute deadline. A permanent socket claim prevents repeated collection. The
+full suite exposed a stalled-handshake shutdown failure; nonblocking handshake
+steps and deadline-clipped readiness waits correct it while preserving the
+original real-TLS assertion. Independent review passes; 157 HTTP focused tests,
+52 TLS regression tests and five shutdown repetitions pass. Final full suite:
+1295 passed, 36 skipped. Response handling, route policy, atomic dispatch and
+durable Receiver/accounting remain subsequent local work. This planning ticket
+stays open; native/deployment and human acceptance gates remain separate.

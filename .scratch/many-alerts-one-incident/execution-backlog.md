@@ -37,9 +37,10 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **1239 passed, 36 skipped**, including 365 service,
+- Latest code validation: **1295 passed, 36 skipped**, including 421 service,
   lease, control, listener, supervisor, TLS and HTTP boundary tests plus existing regressions.
-  The [server TLS outcome](reviews/forwarder-server-tls/outcome.md),
+  The [bounded HTTP receipt outcome](reviews/forwarder-http-receive/outcome.md),
+  [server TLS outcome](reviews/forwarder-server-tls/outcome.md),
   [HTTP boundary outcome](reviews/forwarder-http/outcome.md),
   [TLS client outcome](reviews/forwarder-tls/outcome.md),
   [supervisor outcome](reviews/forwarder-supervisor/outcome.md),
@@ -140,13 +141,24 @@ shutdown now uses short polls against one deadline. Independent review and
 49 focused tests pass. Bounded production HTTP receipt/response and route-specific
 dispatch checks remain next; native/deployment readiness is still unqualified.
 
+The [eighth application unit](reviews/forwarder-http-receive/outcome.md) adds
+bounded incremental TLS request collection with shared head validation, opaque
+body preservation, one-shot socket claims and the caller's absolute deadline.
+Its 157 HTTP focused tests and 52 listener regression tests pass. The first full
+suite exposed stalled-handshake shutdown on Darwin; nonblocking TLS steps and
+short readiness waits correct it without changing the original integration
+assertion. That assertion passes five repeated runs; independent review and the
+final full suite pass (1295 passed, 36 skipped). Bounded response handling and
+request-aware service policy remain next, then atomic dispatch and durable
+Receiver/recovery/accounting. No native or deployment qualification is implied.
+
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server and common HTTP parser complete; next add bounded HTTP receipt/response, request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser and bounded request receipt complete; next add bounded response handling, request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets

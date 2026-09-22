@@ -287,6 +287,80 @@ def test_handshake_failure_closes_wrapped_connection_and_listener_can_close(monk
     assert listener.close() == "closed"
 
 
+def test_want_read_and_write_handshake_steps_poll_outside_lock_and_keep_one_deadline(monkeypatch):
+    context = _fake_context(monkeypatch)
+
+    class SteppedConnection(_Connection):
+        def __init__(self):
+            super().__init__()
+            self.steps = [ssl.SSLWantReadError(), ssl.SSLWantWriteError(), None]
+
+        def do_handshake(self):
+            step = self.steps.pop(0)
+            if step:
+                raise step
+
+    raw = SteppedConnection()
+    listener_socket = _Socket(accepted=raw)
+    selections = []
+    monkeypatch.setattr(forwarder_server_tls.socket, "socket", lambda *args: listener_socket)
+    monkeypatch.setattr(forwarder_server_tls.time, "monotonic", lambda: 10.0)
+    monkeypatch.setattr(
+        forwarder_server_tls.select,
+        "select",
+        lambda readable, writable, errors, timeout: selections.append((readable, writable, errors, timeout)) or (readable, writable, errors),
+    )
+    listener = FixedTLSListener("jira", context=context)
+    listener.open()
+
+    secured = listener.accept(timeout=1)
+
+    assert selections == [([raw], [], (), 0.1), ([], [raw], (), 0.1)]
+    assert raw.timeout_history == [0.0, 0.0, 0.0, 1.0]
+    secured.close()
+    assert listener.close() == "closed"
+
+
+def test_fatal_handshake_error_is_not_retried_through_readiness_poll(monkeypatch):
+    context = _fake_context(monkeypatch)
+    raw = _Connection(handshake_error=ssl.SSLError("fatal"))
+    listener_socket = _Socket(accepted=raw)
+    selections = []
+    monkeypatch.setattr(forwarder_server_tls.socket, "socket", lambda *args: listener_socket)
+    monkeypatch.setattr(forwarder_server_tls.time, "monotonic", lambda: 10.0)
+    monkeypatch.setattr(forwarder_server_tls.select, "select", lambda *args: selections.append(args))
+    listener = FixedTLSListener("jira", context=context)
+    listener.open()
+
+    _error(listener.accept, "handshake_failed")
+    assert selections == []
+
+
+def test_handshake_readiness_poll_is_clipped_to_the_original_deadline(monkeypatch):
+    context = _fake_context(monkeypatch)
+
+    class WantReadConnection(_Connection):
+        def do_handshake(self):
+            raise ssl.SSLWantReadError()
+
+    raw = WantReadConnection()
+    listener_socket = _Socket(accepted=raw)
+    times = iter((10, 10, 10.1, 10.2, 10.95, 10.96, 11))
+    selections = []
+    monkeypatch.setattr(forwarder_server_tls.socket, "socket", lambda *args: listener_socket)
+    monkeypatch.setattr(forwarder_server_tls.time, "monotonic", lambda: next(times))
+    monkeypatch.setattr(
+        forwarder_server_tls.select,
+        "select",
+        lambda _readable, _writable, _errors, timeout: selections.append(timeout) or ([], [], []),
+    )
+    listener = FixedTLSListener("jira", context=context)
+    listener.open()
+
+    _error(lambda: listener.accept(timeout=1), "deadline_expired")
+    assert selections == pytest.approx([0.1, 0.04])
+
+
 def test_raw_failure_before_wrap_closes_raw_connection(monkeypatch):
     context = _fake_context(monkeypatch)
     raw = _Connection()
@@ -395,15 +469,25 @@ def test_close_during_handshake_returns_unknown_then_allows_cleanup_to_finish(mo
     entered = threading.Event()
     release = threading.Event()
 
-    class BlockingHandshake(_Connection):
+    class WantReadHandshake(_Connection):
         def do_handshake(self):
-            entered.set()
-            assert release.wait(1)
+            raise ssl.SSLWantReadError()
 
-    raw = BlockingHandshake()
+    raw = WantReadHandshake()
     listener_socket = _Socket(accepted=raw)
     monkeypatch.setattr(forwarder_server_tls.socket, "socket", lambda *args: listener_socket)
     monkeypatch.setattr(forwarder_server_tls.time, "monotonic", lambda: 10.0)
+
+    def block_for_readiness(*_args):
+        entered.set()
+        assert release.wait(1)
+        return [], [], []
+
+    monkeypatch.setattr(
+        forwarder_server_tls.select,
+        "select",
+        block_for_readiness,
+    )
     listener = FixedTLSListener("jira", context=context)
     listener.open()
     errors = []

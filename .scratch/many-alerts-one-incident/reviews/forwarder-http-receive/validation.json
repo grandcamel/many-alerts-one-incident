@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_BOUNDED_TLS_REQUEST_COLLECTION",
+  "baseline_commit": "a71fa1cfd255a0b86c1ffde1ec774039ce230cc2",
+  "focused_tests": {
+    "passed": 157,
+    "seconds": 2.52,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/focused-tests.txt"
+  },
+  "tls_regression_tests": {
+    "passed": 52,
+    "seconds": 1.61,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/tls-regression-tests.txt"
+  },
+  "shutdown_repetitions": {
+    "attempts": 5,
+    "passed": 5,
+    "original_assertion_unchanged": true,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/shutdown-regression-repeat.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 1295,
+    "skipped": 36,
+    "seconds": 154.09,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/full-suite.txt"
+  },
+  "initial_full_suite": {
+    "failed": 1,
+    "passed": 1291,
+    "skipped": 36,
+    "seconds": 150.72,
+    "exit_code": 1,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/full-suite-before-handshake-fix.txt",
+    "disposition": "Corrected Darwin stalled handshake shutdown through deadline-clipped nonblocking handshake readiness; original integration assertion unchanged"
+  },
+  "independent_review": {
+    "verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "model": "gpt-5.6-terra",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/review.md",
+    "execution_evidence_owner": "root"
+  },
+  "ruff": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS_CODE_AND_DOCS; original failure log retained verbatim",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_http.py": "8ffb9d8c691833c26a9bedaf47f9b14b43d1550ec8f526a28f42c825b5f8348a",
+    "grafana_jsm_sandbox/forwarder_http_receive.py": "fdeedb4400b9bfd0460161c73a29740f93f6c187dd4bcd8a9ae91bf912671a84",
+    "grafana_jsm_sandbox/forwarder_server_tls.py": "91efea3ccbafbe5ecb2a86fcfe7f52c25f4c2d2ebe235f6b727f8ade4d0cc5f8",
+    "tests/test_forwarder_http_head.py": "96190abe59021f81de88562a05a7160ce32b06b9de7309cd10e4051dcc1f7666",
+    "tests/test_forwarder_http_receive.py": "23c27765217e0430c3e3c7b3e72cf7903581cf8db95cb3821cbe07026e6cdab3",
+    "tests/test_forwarder_http_receive_integration.py": "7fbfd41a858f23273f58bd99f938451997d72782eea46f2d282a43039640681b",
+    "tests/test_forwarder_server_tls.py": "3cb3b42f19289fd65cbc637aee5c67613a1e6d3c7a6cb968572d705e71661010",
+    "docs/forwarder-control.md": "b78c857b623904e6922268d6c543f95a138329092bf8a728a887be4c777def38",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "7e193719dafc200681a218af6216062365f7cf9f07f57edbbedb409c950548d8",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "afe390f8651cbd06caa3e7948e7907d90b270b68c75d0879bcced5f7fd08413d",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/focused-tests.txt": "2eb6761b862954f261aeaf481fe885ce204c1e6178a020e1eff1b2d08db4bccd",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/full-suite-before-handshake-fix.txt": "93f24eebc231ac33264a5689e950273db33fed6f15e8a34bfc9cbe3da24dd627",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/full-suite.txt": "b1f7ff0ab8e28a3e49db3df9c8254f6a321820a03be2b8c52e56fd1b23261894",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/implementation-plan.md": "9c589c907c3c0e601b9c711e4d838eb76c1ecf753229e6c318b46437941b710c",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/outcome.md": "236102aa9a3c6ac58bc57f3069b40756f42886d850e54ad87f5b8c10dbf3f4db",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/review.md": "9460201d66ea31dc70002a790f9c34bf7b282a53d63c341d0530915ffa89e25e",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/shutdown-regression-repeat.txt": "cc627b26a664b81ce992294f2588a673a026f416f5dff9c84ab53376979582ef",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-receive/tls-regression-tests.txt": "455468a5ba6f3af12b728b7e31f6accf264573416dc6566f4d861f4c19e0755f"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "unchanged_integration_assertion": {
+    "tests/test_forwarder_server_tls_integration.py": "9e9f1416606e5c4fc7112ee3e4c3c9d9fc633fc2f4c3db3f0da7e875411394a6"
+  },
+  "not_qualified": [
+    "Response handling and service route policy",
+    "Atomic lease/revocation/dispatch admission",
+    "Durable Receiver/recovery/accounting",
+    "Native client compatibility and execution",
+    "Deployed certificate/key custody and namespace isolation",
+    "Provider/tenant calls and paid cumulative exposure",
+    "Human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

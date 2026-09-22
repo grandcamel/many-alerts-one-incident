@@ -192,7 +192,11 @@ failure or close. `accept(timeout=1.0)` admits at most one caller and uses one
 finite deadline (at most ten seconds) across waiting and TLS handshake. Idle
 accept polls at most 0.1 seconds at a time, clipped to the remaining deadline,
 so terminal shutdown can be observed on systems where socket close does not
-promptly wake a blocked accept. Handshake failure receives no automatic retry.
+promptly wake a blocked accept. TLS handshake steps run nonblocking under the
+state lock; read/write readiness waits run outside that lock for at most 0.1
+seconds, clipped to the same original deadline. Only TLS want-read/want-write
+continues the same handshake; fatal failure receives no automatic retry. A
+successful handshake restores a finite remaining timeout before transfer.
 All owned sockets are non-inheritable.
 
 `close()` interrupts the listening socket and an in-flight handshake, while
@@ -208,9 +212,10 @@ composition, exact/missing/wrong SNI, HTTP/1.1 ALPN, stalled/plaintext peers and
 shutdown interruption. Handshake fixtures assert the fixed address selection
 before redirecting to ephemeral ports. A separate test binds each actual fixed
 port and verifies exclusive occupancy without fallback. These observations do
-not qualify deployed namespace isolation or native client configuration. Fixture
-request collection uses a known byte length; production bounded HTTP receipt and
-response handling still need implementation.
+not qualify deployed namespace isolation or native client configuration. The listener fixture
+uses known-length collection; the bounded collector below adds incremental
+request receipt. Response handling and service route policy remain subsequent
+implementation units.
 
 ## Common HTTP request structure
 
@@ -252,7 +257,44 @@ coordinate lease checks with dispatch and revocation. A complete-buffer parser
 cannot detect bytes that arrive later or establish deployed transport behavior.
 The existing launcher is not wired to it.
 
-The next integration units are bounded HTTP receipt/response handling and
+## Bounded request collection over TLS
+
+`parse_request_head` shares the complete parser's header validation and returns
+the declared body length without allocating a body. It requires exactly a
+complete request line and header section. `receive_request(connection, service,
+deadline=...)` uses that same grammar while collecting one request from an
+already handshaken server TLS socket. The caller must bind `service` to its
+listener; transport-state checks do not attest service or lease authority.
+
+The absolute monotonic deadline comes from the original handler budget clipped
+to its lease. It must be finite, future and at most forty seconds away when
+collection starts. Each read uses the remaining time, with clock checks before
+and after reads and after restoring the socket's prior timeout. A slow sender
+cannot reset the budget by producing another fragment. Malformed input, EOF,
+timeouts and restoration faults cannot become a successful request result.
+
+Line/header collection obeys the existing 2 KiB/16 KiB caps and uses reads of at
+most 4 KiB, further clipped to the applicable cap plus one. Validated headers
+supply a body length of at most 256 KiB; body reads are at most 64 KiB and the
+remaining body plus one. Coalesced body prefixes are preserved. Captured bytes
+past the declared body are rejected; exact completion does not wait for EOF or
+perform a blocking extra-byte probe. Body contents remain unchanged for later
+route-specific validation.
+
+A permanent socket marker, claimed under a lock, prevents a second or concurrent
+collection attempt, including after failure. The caller retains socket ownership
+and must close after one response or any error. The collector sends nothing,
+closes nothing and retries no request. It cannot detect later bytes or another
+unread TLS record; those bytes must never be interpreted as another request.
+Timeout restoration failures preserve an existing receive error or interruption,
+and cannot silently permit success when called from another exception handler.
+
+Local TLS tests compose the listener, strict client and collector with fragmented
+and opaque bodies, malformed heads, captured pipelining, EOF and stalled input.
+No native client, upstream effect, route authorization, response writer or
+production admission is qualified by these tests.
+
+The next integration units are bounded response handling and
 request-aware service policies, followed by durable admission and the guarded
 launcher. Real provider/tenant operations, native execution and deployment remain
 gated by their own acceptance evidence. Local module tests cannot replace that
@@ -261,5 +303,5 @@ evidence or human Report adjudication.
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py
 ```

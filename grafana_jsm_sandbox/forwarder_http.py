@@ -13,9 +13,12 @@ from dataclasses import dataclass, field
 
 from .forwarder_services import SERVICE_PROFILES
 
-_MAX_REQUEST_LINE = 2_048
-_MAX_HEADERS = 16_384
-_MAX_BODY = 262_144
+MAX_REQUEST_LINE_BYTES = 2_048
+MAX_HEADER_BYTES = 16_384
+MAX_BODY_BYTES = 262_144
+_MAX_REQUEST_LINE = MAX_REQUEST_LINE_BYTES
+_MAX_HEADERS = MAX_HEADER_BYTES
+_MAX_BODY = MAX_BODY_BYTES
 _MAX_INPUT = _MAX_REQUEST_LINE + _MAX_HEADERS + _MAX_BODY
 _MAX_HEADER_FIELDS = 64
 _MAX_QUERY_PAIRS = 32
@@ -55,6 +58,19 @@ class ParsedRequest:
     accept: str
     body: bytes = field(repr=False)
     sentinel: str = field(repr=False)
+
+
+@dataclass(frozen=True)
+class ParsedRequestHead:
+    """Validated complete HTTP head with a declared body length only."""
+
+    service: str
+    method: str
+    path: str = field(repr=False)
+    query: tuple[tuple[str, str], ...] = field(repr=False)
+    accept: str
+    sentinel: str = field(repr=False)
+    body_length: int
 
 
 def _fail() -> None:
@@ -273,8 +289,8 @@ def _parse_query(query: bytes | None,
     return tuple(result)
 
 
-def _validate_framing(method: str, headers: dict[str, str], body: bytes,
-                      service: str, accept: str) -> str:
+def _validate_head_framing(method: str, headers: dict[str, str], service: str,
+                           accept: str) -> tuple[str, int]:
     required = {"host", "authorization", "accept"}
     if not required.issubset(headers):
         _fail()
@@ -282,11 +298,12 @@ def _validate_framing(method: str, headers: dict[str, str], body: bytes,
     if headers["host"] != f"{profile.server_name}:{profile.port}" or headers["accept"] != accept:
         _fail()
     if method == "GET":
-        if "content-type" in headers or body:
+        if "content-type" in headers:
             _fail()
         length = headers.get("content-length")
         if length is not None and length != "0":
             _fail()
+        body_length = 0
     else:
         if headers.get("content-type") != "application/json":
             _fail()
@@ -301,9 +318,35 @@ def _validate_framing(method: str, headers: dict[str, str], body: bytes,
             declared_length = int(length)
         except ValueError:
             _fail()
-        if declared_length > _MAX_BODY or declared_length != len(body):
+        if declared_length > _MAX_BODY:
             _fail()
-    return _validate_sentinel(service, headers["authorization"])
+        body_length = declared_length
+    return _validate_sentinel(service, headers["authorization"]), body_length
+
+
+def parse_request_head(data: bytes, service: str, *,
+                       allowed_query_keys: frozenset[str] = frozenset(),
+                       accept: str = "application/json") -> ParsedRequestHead:
+    """Validate exactly one complete request line and header section, no body."""
+    if type(data) is not bytes or len(data) > _MAX_REQUEST_LINE + _MAX_HEADERS:
+        _fail()
+    service, keys, expected_accept = _validate_configuration(service, allowed_query_keys, accept)
+    method, target, header_start = _parse_request_line(data)
+    headers, body_start = _parse_headers(data, header_start)
+    if body_start != len(data):
+        _fail()
+    _reject_bad_newlines(data)
+    sentinel, body_length = _validate_head_framing(method, headers, service, expected_accept)
+    path, query = _parse_path(target)
+    return ParsedRequestHead(
+        service=service,
+        method=method,
+        path=path,
+        query=_parse_query(query, keys),
+        accept=expected_accept,
+        sentinel=sentinel,
+        body_length=body_length,
+    )
 
 
 def parse_request(data: bytes, service: str, *,
@@ -312,21 +355,28 @@ def parse_request(data: bytes, service: str, *,
     """Validate one complete request in the Forwarder's intentionally narrow profile."""
     if type(data) is not bytes or len(data) > _MAX_INPUT:
         _fail()
-    service, keys, expected_accept = _validate_configuration(service, allowed_query_keys, accept)
-    method, target, header_start = _parse_request_line(data)
-    headers, body_start = _parse_headers(data, header_start)
-    _reject_bad_newlines(data[:body_start])
-    body = data[body_start:]
-    if len(body) > _MAX_BODY:
+    line_end = data.find(b"\r\n")
+    if line_end < 0:
         _fail()
-    sentinel = _validate_framing(method, headers, body, service, expected_accept)
-    path, query = _parse_path(target)
+    header_end = data.find(b"\r\n\r\n", line_end + 2)
+    if header_end < 0:
+        _fail()
+    body_start = header_end + 4
+    head = parse_request_head(
+        data[:body_start],
+        service,
+        allowed_query_keys=allowed_query_keys,
+        accept=accept,
+    )
+    body = data[body_start:]
+    if len(body) > _MAX_BODY or len(body) != head.body_length:
+        _fail()
     return ParsedRequest(
-        service=service,
-        method=method,
-        path=path,
-        query=_parse_query(query, keys),
-        accept=expected_accept,
+        service=head.service,
+        method=head.method,
+        path=head.path,
+        query=head.query,
+        accept=head.accept,
         body=body,
-        sentinel=sentinel,
+        sentinel=head.sentinel,
     )

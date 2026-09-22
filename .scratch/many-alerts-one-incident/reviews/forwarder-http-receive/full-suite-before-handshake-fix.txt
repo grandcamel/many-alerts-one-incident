@@ -1,0 +1,116 @@
+............................ssss........ssssssssss...........ssss....... [  5%]
+ssssssssss.............................................................. [ 10%]
+........................................................................ [ 16%]
+........................................................................ [ 21%]
+........................................................................ [ 27%]
+........................................................................ [ 32%]
+...........F............................................................ [ 37%]
+........................................ssssssss........................ [ 43%]
+........................................................................ [ 48%]
+........................................................................ [ 54%]
+........................................................................ [ 59%]
+........................................................................ [ 65%]
+........................................................................ [ 70%]
+........................................................................ [ 75%]
+........................................................................ [ 81%]
+........................................................................ [ 86%]
+........................................................................ [ 92%]
+........................................................................ [ 97%]
+................................                                         [100%]
+=================================== FAILURES ===================================
+_________________ test_close_interrupts_stalled_tls_handshake __________________
+
+service_tls_material = (FixtureCertificates(ca_cert=PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkruege...ders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-307/service-tls1/service-kubernetes.pem'), ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ca8edd0>
+
+    def test_close_interrupts_stalled_tls_handshake(service_tls_material, monkeypatch):
+        entered = threading.Event()
+        original = ssl.SSLSocket.do_handshake
+    
+        def observed_handshake(connection, *args, **kwargs):
+            entered.set()
+            return original(connection, *args, **kwargs)
+    
+        monkeypatch.setattr(ssl.SSLSocket, "do_handshake", observed_handshake)
+        with (
+            ephemeral_listener(monkeypatch, service_tls_material) as (listener, address),
+            serve_once(listener, lambda _conn: pytest.fail('unexpected handshake'), timeout=5) as (_, done),
+        ):
+            with socket.create_connection(address, timeout=1):
+                assert entered.wait(1)
+                assert listener.close() == "unknown"
+>               assert done.wait(1.5)
+E               assert False
+E                +  where False = wait(1.5)
+E                +    where wait = <threading.Event at 0x10d7c1d90: unset>.wait
+
+tests/test_forwarder_server_tls_integration.py:244: AssertionError
+
+During handling of the above exception, another exception occurred:
+
+service_tls_material = (FixtureCertificates(ca_cert=PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkruege...ders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-307/service-tls1/service-kubernetes.pem'), ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ca8edd0>
+
+    def test_close_interrupts_stalled_tls_handshake(service_tls_material, monkeypatch):
+        entered = threading.Event()
+        original = ssl.SSLSocket.do_handshake
+    
+        def observed_handshake(connection, *args, **kwargs):
+            entered.set()
+            return original(connection, *args, **kwargs)
+    
+        monkeypatch.setattr(ssl.SSLSocket, "do_handshake", observed_handshake)
+        with (
+            ephemeral_listener(monkeypatch, service_tls_material) as (listener, address),
+>           serve_once(listener, lambda _conn: pytest.fail('unexpected handshake'), timeout=5) as (_, done),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ):
+
+tests/test_forwarder_server_tls_integration.py:239: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py:162: in __exit__
+    self.gen.throw(value)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+listener = <grafana_jsm_sandbox.forwarder_server_tls.FixedTLSListener object at 0x10d9567b0>
+handler = <function test_close_interrupts_stalled_tls_handshake.<locals>.<lambda> at 0x10d955da0>
+timeout = 5
+
+    @contextmanager
+    def serve_once(listener, handler, *, timeout=1.0):
+        outcomes = []
+        unexpected = []
+        completed = threading.Event()
+    
+        def serve():
+            connection = None
+            try:
+                connection = listener.accept(timeout=timeout)
+                handler(connection)
+                outcomes.append("accepted")
+            except TLSListenerError as error:
+                outcomes.append(error.code)
+            except BaseException as error:  # noqa: BLE001 - expose thread test failures
+                unexpected.append(error)
+            finally:
+                if connection is not None:
+                    connection.close()
+                completed.set()
+    
+        worker = threading.Thread(target=serve, daemon=True)
+        worker.start()
+        try:
+            yield outcomes, completed
+        finally:
+            listener.close()
+            worker.join(3.0)
+>           assert not worker.is_alive(), "listener test worker did not exit"
+E           AssertionError: listener test worker did not exit
+E           assert not True
+E            +  where True = is_alive()
+E            +    where is_alive = <Thread(Thread-96 (serve), started daemon 123145322516480)>.is_alive
+
+tests/test_forwarder_server_tls_integration.py:87: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_forwarder_server_tls_integration.py::test_close_interrupts_stalled_tls_handshake
+1 failed, 1291 passed, 36 skipped in 150.72s (0:02:30)

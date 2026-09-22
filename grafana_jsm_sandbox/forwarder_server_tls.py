@@ -7,6 +7,7 @@ bytes, makes no request-policy decision, and starts no worker.
 from __future__ import annotations
 
 import math
+import select
 import socket
 import ssl
 import threading
@@ -17,6 +18,7 @@ from .forwarder_services import SERVICE_PROFILES
 _CONTEXT_MARKER = "_maoi_fixed_tls_listener_claimed"
 _CONTEXT_CLAIM_LOCK = threading.Lock()
 _ACCEPT_POLL_INTERVAL = 0.1
+_HANDSHAKE_POLL_INTERVAL = 0.1
 
 
 class TLSListenerError(ValueError):
@@ -176,6 +178,38 @@ class FixedTLSListener:
                 return "unknown"
             return "closed"
 
+    def _nonblocking_handshake(self, secured: ssl.SSLSocket, deadline: float,
+                               previous: float) -> float:
+        """Advance exactly one handshake without blocking close on Darwin."""
+        while True:
+            remaining, previous = _remaining(deadline, previous)
+            readable: list[ssl.SSLSocket] = []
+            writable: list[ssl.SSLSocket] = []
+            with self._state_lock:
+                if self._closed or self._inflight is not secured:
+                    _fail("listener_closed")
+                secured.settimeout(0.0)
+                try:
+                    secured.do_handshake()
+                except ssl.SSLWantReadError:
+                    readable.append(secured)
+                except ssl.SSLWantWriteError:
+                    writable.append(secured)
+                else:
+                    remaining, previous = _remaining(deadline, previous)
+                    if self._closed or self._inflight is not secured:
+                        _fail("listener_closed")
+                    secured.settimeout(remaining)
+                    return previous
+            remaining, previous = _remaining(deadline, previous)
+            try:
+                select.select(readable, writable, (), min(remaining, _HANDSHAKE_POLL_INTERVAL))
+            except (OSError, ValueError, TypeError):
+                with self._state_lock:
+                    if self._closed:
+                        _fail("listener_closed")
+                _fail("handshake_failed")
+
     def accept(self, *, timeout: float = 1.0) -> ssl.SSLSocket:
         """Accept and explicitly handshake one TLS client under one deadline."""
         seconds = _timeout(timeout)
@@ -232,10 +266,7 @@ class FixedTLSListener:
                 raw = None
                 self._inflight = secured
             secured.set_inheritable(False)
-            remaining, observed = _remaining(deadline, observed)
-            secured.settimeout(remaining)
-            secured.do_handshake()
-            _remaining(deadline, observed)
+            observed = self._nonblocking_handshake(secured, deadline, observed)
             with self._state_lock:
                 if self._closed or self._inflight is not secured:
                     _fail("listener_closed")
