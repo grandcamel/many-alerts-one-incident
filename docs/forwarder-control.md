@@ -294,7 +294,37 @@ and opaque bodies, malformed heads, captured pipelining, EOF and stalled input.
 No native client, upstream effect, route authorization, response writer or
 production admission is qualified by these tests.
 
-The next integration units are bounded response handling and
+## Non-streaming response structure
+
+`forwarder_http_response.parse_response(data)` validates one complete buffered
+HTTP/1.1 response. The narrow local profile accepts 2xx, 4xx and 5xx statuses;
+all informational and redirect statuses are rejected. It limits the status line
+to 2 KiB, the header region to 16 KiB/64 fields and the body to 1 MiB. It rejects
+duplicate fields, malformed framing, chunked or compressed transfer, upgrades,
+truncation and captured excess bytes. Other well-formed upstream headers and the
+raw reason phrase are discarded, including Location and credential headers.
+
+Body responses require canonical Content-Length and exactly
+`Content-Type: application/json`. Their bytes remain opaque: this codec does not
+validate JSON structure, returned scope or a service's success schema. Status 204
+requires no body, length or content type; 205 requires exactly zero length and
+no body or content type. Connection options naming a framing field are rejected.
+These conservative framing/content-type choices do not establish compatibility
+with any real upstream or native client. SSE remains a separate qualified route.
+
+`serialize_response(response)` revalidates the public immutable status/body value
+and constructs a canonical response with a fixed reason, computed length where
+allowed, and `Connection: close`. It emits no supplied upstream headers and
+excludes the body from object representations. Serialization is a pure operation:
+it opens no socket and sends nothing. Trusted route policy must still validate
+the body; a sanitized receipt must be produced before any response is returned
+to a client. Creating bytes is neither dispatch permission nor effect evidence.
+
+Complete-buffer bounds do not bound an upstream socket read or detect later
+unread bytes. The transport owner must enforce collection and original handler
+deadlines, then coordinate receipt-before-send and close after one response.
+
+The next integration units are bounded response transport and
 request-aware service policies, followed by durable admission and the guarded
 launcher. Real provider/tenant operations, native execution and deployment remain
 gated by their own acceptance evidence. Local module tests cannot replace that
@@ -303,5 +333,5 @@ evidence or human Report adjudication.
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py
 ```

@@ -114,3 +114,12 @@ original real-TLS assertion. Independent review passes; 157 HTTP focused tests,
 1295 passed, 36 skipped. Response handling, route policy, atomic dispatch and
 durable Receiver/accounting remain subsequent local work. This planning ticket
 stays open; native/deployment and human acceptance gates remain separate.
+
+The [ninth local unit](../reviews/forwarder-http-response/outcome.md) adds a
+complete-buffer non-streaming response codec. It enforces status/header/body
+bounds and canonical framing, discards upstream metadata and validates again
+before canonical serialization. Independent source/test review and 83 focused
+tests pass; the full suite reports 1378 passed, 36 skipped. No socket collection,
+response send, receipt, route success or native/upstream compatibility is implied.
+Response transport, receipt-before-send and service policy remain subsequent
+local implementation. This planning ticket stays open.

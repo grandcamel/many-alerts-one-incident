@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_NON_STREAMING_RESPONSE_CODEC",
+  "baseline_commit": "2f447712b435ce5e5e9429e712ed6dedff261018",
+  "focused_tests": {
+    "command": "pytest -q tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py",
+    "passed": 83,
+    "contract": 44,
+    "adversarial": 39,
+    "seconds": 0.17,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http-response/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 1378,
+    "skipped": 36,
+    "seconds": 261.99,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http-response/full-suite.txt"
+  },
+  "independent_review": {
+    "verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "model": "gpt-5.6-terra",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-http-response/review.md",
+    "execution_evidence_owner": "root"
+  },
+  "ruff": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_http_response.py": "05491343f5ab49610b6c8fdbe921ebbdef109a0d92a8a4e045c81e069b1f5db6",
+    "tests/test_forwarder_http_response.py": "2fa68b84ff6870c8b7b9313a8015cc1eca971b0cdd72e917f14c2de99e2496a5",
+    "tests/test_forwarder_http_response_adversarial.py": "174d70b6fbccf345632bde0cc8bdda0d311467386170d9cd5a5cddaa66ce6ad3",
+    "docs/forwarder-control.md": "e8ad3223fc3c210d7465a4099ffdfaeb0167a3525c1143c7ab771846ff4c5cd7",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "ccd6fd290e64a5799f16746c7a773fe3ef629a0f94b086140ba2cfe0c402697e",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "88035e2d64c10dc0e937b0f664b27c5a8ce87f70374c2432b62a106bfbe61df1",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-response/focused-tests.txt": "6d618545b9c4196126e4a726428d4e6c0716a9b2068ce71ff08c7f39f522d9f5",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-response/full-suite.txt": "718c340f0004cabaa901b460bd4d4227c955b427ec7526ae802cc4e3c0bc7797",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-response/implementation-plan.md": "05c4b755bdf978fc8207a61a20188e1b7743418d26cf6c8119c94cc75a07b35a",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-response/outcome.md": "5074768f568f61ef48c77cec33f78bb6b848a514127d6868e9cb906d612255ad",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http-response/review.md": "7346172cab3bf90a07bbcc4c264ea93a691bb10190071fd8debf701250121437"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "observed_scope": [
+    "Pure complete-buffer HTTP response framing and canonical serialization",
+    "Local exact byte/header/status bounds and privacy tests",
+    "Independent revalidation of constructed response values"
+  ],
+  "not_qualified": [
+    "Upstream socket collection, response I/O and original handler deadlines",
+    "Receipt-before-send and atomic lease/revocation/dispatch",
+    "Service route JSON/schema/scope validation",
+    "Chunked/compressed/SSE and real upstream/native compatibility",
+    "Durable Receiver/recovery/accounting",
+    "Provider/tenant/native execution and deployment",
+    "Paid cumulative exposure and human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}
