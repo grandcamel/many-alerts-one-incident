@@ -35,7 +35,7 @@ grade against the Ground truth, and the threshold, and appends all three to
 
 ## Current execution boundary after ticket 22
 
-The commands and model availability above are historical, not runnable-now evidence or authorization. Ticket 22 refutes independent per-model balances as an established fact; a top-up is not an accepted remedy. ADR 0013 requires metered API billing, mediated credentials, budget preflight and separately authorized execution. Redesign these probes against that contract and ADR 0012's 300-second total bound before any future run; the historical 900-second command is not an approved current Run budget. No paid probe or credential change is authorized.
+The commands and model availability above are historical, not runnable-now evidence or authorization. Ticket 22 refutes independent per-model balances as an established fact; a top-up is not an accepted remedy. ADR 0013 requires metered API billing, mediated credentials, budget preflight and separately authorized execution. Redesign these probes against that contract and ADR 0012's 300-second total bound before any future run; the historical 900-second command is not an approved current Run budget. The user has since granted standing cost authorization strictly below $50 aggregate; see [the authorization receipt](../reviews/ticket-23/experiment-authorization.json). Native execution remains technically closed pending the mediated route, accounting and client evidence. No credential change is established by that approval.
 
 ## Source preparation, 2026-09-21
 
@@ -44,7 +44,7 @@ harness gaps, revised timing/length contracts, inert fixtures and implementation
 acceptance gates. The [measurement card](../reviews/ticket-23/execution-card.md) remains
 **CLOSED**. Source preparation can proceed independently of ticket 19's C2 provider
 block; paid execution still requires reviewed implementation, mediated-client and
-budget readiness, then separate one-attempt authorization. No new measurement or
+budget readiness, then a concrete one-attempt card under the standing aggregate authorization. No new measurement or
 qualification result is claimed; this ticket remains open.
 
 ## Offline implementation continuation
@@ -79,8 +79,9 @@ native permission or authenticated dispatch. Ticket 23 remains open.
 
 The [timing text outcome](../reviews/ticket-23/timing-text-outcome.md) adds reviewed source
 drafts for the prompt, diagnostic Skill and operator-only human rubric. Historical inputs
-are pinned; legacy flag-name grading is excluded. Human Mechanism/rubric freeze and the
-native adapter/executable binding remain pending. No Skill was installed and no probe ran.
+are pinned; legacy flag-name grading is excluded. The pinned Mechanism/rubric freeze is now human-approved in the
+[approval receipt](../reviews/ticket-23/timing-draft/operator/rubric-approval.json);
+the native adapter/executable binding remains pending. No Skill was installed and no probe ran.
 
 The [pinned query outcome](../reviews/ticket-23/query-outcome.md) adds a read-only in-process
 fixture API with exact input hashes, bounded queries, explicit truncation and correlated
@@ -97,3 +98,11 @@ The [retained snapshot outcome](../reviews/ticket-23/snapshot-outcome.md) adds a
 operator-only bundle preserving query responses, Incident revisions and effect receipts
 with byte/link read-back. Pending and unknown states stay explicit; no human audit grade,
 native provenance, writable recovery or paid execution is established. Ticket 23 stays open.
+
+The [documented stream outcome](../reviews/ticket-23/documented-stream-outcome.md)
+adds a bounded offline normalizer against pinned official SDK source, conservative
+process/stream correlation and metadata-only fixtures. Installed-client/native
+qualification, mediated routing and real spend reconciliation remain pending. The
+[standing experiment authorization](../reviews/ticket-23/experiment-authorization.json)
+and [rubric approval](../reviews/ticket-23/timing-draft/operator/rubric-approval.json)
+are granted; no repeat cost permission is required within the aggregate cap.

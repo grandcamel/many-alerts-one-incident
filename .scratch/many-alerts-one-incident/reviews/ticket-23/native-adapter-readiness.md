@@ -32,7 +32,10 @@ not reproduce transcript content.
 
 The [installed-client evidence register](client-evidence-register.md) now freezes
 local version/help and a wrapper command preview. This establishes syntax evidence
-only; native event fields and runtime compatibility remain unqualified.
+only; runtime compatibility remains unqualified. A separate
+[documented subset](documented-stream-sources.md) pins official SDK fields for
+[offline normalization](../../../../prototype/run_timing/DOCUMENTED_STREAM.md).
+It is not an observed-and-qualified installed-client schema.
 
 ## What Ticket 23 can carry forward
 
@@ -109,8 +112,8 @@ does not qualify this adapter.
 
 | Gate | Evidence required | Current state |
 | --- | --- | --- |
-| A — source readiness | This boundary, exact-client evidence register template, and unresolved-field list reviewed without schemas invented | CLI/version/help register captured; native schema and launch contract remain incomplete |
-| B — offline normalization | Version-pinned, redacted fixtures cover every qualified family and negative matrix; bounded parser preserves raw/digest provenance and holds invalid input | NOT RUN |
+| A — source readiness | This boundary, exact-client evidence register template, and unresolved-field list reviewed without schemas invented | CLI/version/help captured and official SDK source subset pinned; installed-client schema and launch contract remain incomplete |
+| B — offline normalization | Version-pinned, redacted fixtures cover every qualified family and negative matrix; bounded parser preserves raw/digest provenance and holds invalid input | Documented-subset implementation and fixtures prepared; installed-client qualification remains NOT RUN |
 | C — supervised client contract | Exact-client stream plus independent process/stream identity, cancel/timeout/reap evidence, and authenticated receipt correlation | NOT RUN |
 | D — mediated and accounted admission | Ticket 36 route/revocation evidence and Ticket 38 durable reservation/provider reconciliation | NOT RUN |
 | E — audit and qualification | Ticket 39 private evidence/review plus ADR 0013/0014 model, billing, human, tenant, and venue gates | NOT RUN |

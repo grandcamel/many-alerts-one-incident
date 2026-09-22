@@ -48,6 +48,13 @@ native stream as if its schema compatibility had been established. Missing cost 
 unknown; a returned estimate is never a provider actual. `comparison: eligible` concerns
 observed identity only, not diagnostic quality or model qualification.
 
+The separate [documented stream normalizer](DOCUMENTED_STREAM.md) parses a fixed
+source-derived subset of Claude Code events using a pinned official SDK reference.
+It keeps reported models and cost estimates separate from actual identity and billing,
+and combines offline stream checks with explicit supplied process observations.
+Its best result is `stream_consistent`; native qualification remains `NOT_ASSESSED`
+and further dispatch stays held. It is not wired to a launcher or the synthetic parser.
+
 `executor.py` provides:
 
 - A virtual-clock lifecycle with fixed 270/20/10 boundaries, early cancellation,

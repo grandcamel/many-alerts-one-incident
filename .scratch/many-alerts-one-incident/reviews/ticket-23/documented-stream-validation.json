@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "scope": "Official-source-derived offline stream subset; no installed-client qualification or native execution",
+  "baseline_commit": "946e41a",
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 744,
+    "skipped": 36,
+    "seconds": 41.69,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "reviewer": "independent Luna agent",
+      "final_verdict": "PASS; no remaining concrete blockers found",
+      "reviewed_source_sha256": "722395e1f2824876f5856d1184100b5a1d061c184eeab787076fb81e11c2adb6",
+      "findings_fixed": [
+        "Nonnull api_error_status must prevent stream_consistent even with success-shaped flags",
+        "Tool-result content arrays require object members"
+      ]
+    },
+    "source_comparison": {
+      "verdict": "PASS after nullable field amendment",
+      "source": "Pinned official Python SDK types and parser",
+      "corrections": [
+        "Nullable tool_result.is_error and result diagnostic fields accepted as absent on null"
+      ]
+    },
+    "root": {
+      "verdict": "PASS",
+      "corrections": [
+        "Correct object types for origin/deferred tool data",
+        "Seen tool IDs persist after returned result",
+        "Malformed process observations leave sticky incomplete reason",
+        "Per-event semantic hold reasons retained",
+        "Huge receiver integers normalize to ValueError with sticky reason",
+        "Diagnostic object members and assistant token counts validated",
+        "Private type errors comply with lint; public ValueError contract retained"
+      ]
+    },
+    "tests": {
+      "author": "independent Luna agent",
+      "final_targeted_passed": 44,
+      "scope": "Offline documented-subset adversarial regressions"
+    },
+    "external_headless": "NOT RUN; no new paid external review or experiment"
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/documented_stream.py",
+      "bytes": 23937,
+      "sha256": "722395e1f2824876f5856d1184100b5a1d061c184eeab787076fb81e11c2adb6"
+    },
+    {
+      "path": "tests/test_timing_documented_stream.py",
+      "bytes": 20007,
+      "sha256": "5e6a9ab78a89534d3e2c10cef1bffb9ed27e4120efaf3ec7675f039768921c34"
+    }
+  ],
+  "evidence_files": [
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/full-suite-final.txt",
+      "bytes": 913,
+      "sha256": "df22ac65a85f69db118b124849d7629707e790d4cc107de489605d49643ecb29"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/capture_loss.json",
+      "bytes": 1632,
+      "sha256": "31bd76035f4bed95aff10cb5e002a38f95b6cf72efaf44e1878dc50ebe5bd7ba"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/capture_loss.jsonl",
+      "bytes": 348,
+      "sha256": "a99f46e1115ce0df1cb97bcc1a353a7b8883601568d67bef5c0794fe808d94ed"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/containment_over_terminal.json",
+      "bytes": 1687,
+      "sha256": "d24645fe2a133bb5ce5b58ca64a70a9885dfb00b0633f6d52631a03f8b498b05"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/containment_over_terminal.jsonl",
+      "bytes": 348,
+      "sha256": "a99f46e1115ce0df1cb97bcc1a353a7b8883601568d67bef5c0794fe808d94ed"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/index.json",
+      "bytes": 1041,
+      "sha256": "1f8da3b671a9c7a821e6a582fb86edfea9303eff202d36806b98032102b692c3"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/reported_error.json",
+      "bytes": 1659,
+      "sha256": "bb89da815abf45b85d77ec7a69666d959f94990f08c661fd040667a6952921d1"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/reported_error.jsonl",
+      "bytes": 347,
+      "sha256": "75a0600789e3efb89a91849a77f248a4e6d873c5be2301412b2ae5c540cfd249"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/session_mismatch.json",
+      "bytes": 1733,
+      "sha256": "590137c98846e461c23a053769946279f56cd3aaadedc4aa659ea6e632dbedef"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/session_mismatch.jsonl",
+      "bytes": 356,
+      "sha256": "5fa5a19be62e434a88532ec1ef86a8b6cf95c2d5577ebd738da7c35ec2631276"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/text.json",
+      "bytes": 1574,
+      "sha256": "d710cd16d6a18c27818a4bfee18b85db7f9c27bcf3b425fe9da6bc20e9a0b115"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/text.jsonl",
+      "bytes": 348,
+      "sha256": "a99f46e1115ce0df1cb97bcc1a353a7b8883601568d67bef5c0794fe808d94ed"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/timeout_over_terminal.json",
+      "bytes": 1680,
+      "sha256": "f5478e05c510b1a7cf673c6bebc13e261c968c373f3f8dfd0b6569c6a1deedf0"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/timeout_over_terminal.jsonl",
+      "bytes": 348,
+      "sha256": "a99f46e1115ce0df1cb97bcc1a353a7b8883601568d67bef5c0794fe808d94ed"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/tool_pair.json",
+      "bytes": 2075,
+      "sha256": "b2b6ac6f943f343a61ebecdc25535ab5188b90f8569037ae61a82dea2c383c64"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/tool_pair.jsonl",
+      "bytes": 559,
+      "sha256": "35c4fe831fd6fd436419b90041848454ed78c3eabbb3c8dd8156fcd8dc4317b8"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/unpaired_tool.json",
+      "bytes": 1666,
+      "sha256": "a62e533e8cbeec923e03c7d6ab8e55a1fd16e378b72c4b68775eb84d8bb18a09"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/unpaired_tool.jsonl",
+      "bytes": 376,
+      "sha256": "245154c81f03dfa38884494a005f8205146b17775cdd0983e791ac0b52d99b39"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/unsupported_wrapper.json",
+      "bytes": 2102,
+      "sha256": "c87ee1cd483ec2655d7cae8aa0d3f5c4c81cfc92f805d96ebeba70f7c468c871"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/offline-examples/unsupported_wrapper.jsonl",
+      "bytes": 374,
+      "sha256": "6d34a50f8a3c585805759b36a2208bf645120b268d7cc044879ba1b8f60e3e43"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/primary-sources/sdk-message-parser.py",
+      "bytes": 16797,
+      "sha256": "febb1aee19e47e03433d89cd4b1f8c5636950e206df77e4f4ca2738b0c900393"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/primary-sources/sdk-types.py",
+      "bytes": 91408,
+      "sha256": "545a9f8a15fac2d7337346e45b8695b5536e3fa1ace60edc76b37f5ca8ef56b6"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/primary-sources/source-index.json",
+      "bytes": 979,
+      "sha256": "da6abade033ec42d2dced9e677373b1e34ab18186165f2c707132970c9d4fd5b"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/review-summary.json",
+      "bytes": 1445,
+      "sha256": "8c42f7ca15dad81c672d1ecc326b5fa0057c1d2cd3d793962615a23c4199a3a9"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/source-map.md",
+      "bytes": 7397,
+      "sha256": "eaca48cd1b28b9957805e9b429d6a0b4aa4cc55aa33448e99b632874a9ee7247"
+    }
+  ],
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260922-native-schema/prior-phase-snapshot",
+  "prior_files_verified": 96,
+  "not_run": [
+    "Installed CLI stream compatibility",
+    "Native model/tool launch",
+    "Authenticated source/effect receipts",
+    "Mediated client TLS/revocation",
+    "Provider billing reconciliation",
+    "Production audit sanitization/quota/retention",
+    "Full durable-closeout deadline",
+    "Human Report grading",
+    "Model/tenant/venue qualification",
+    "External headless model review",
+    "Push or publication"
+  ]
+}
