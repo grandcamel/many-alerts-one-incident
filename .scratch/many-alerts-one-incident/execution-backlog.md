@@ -8,8 +8,10 @@ not a percentage of the finished product.
 ## Standing authority and continuation
 
 The user requested aggressive ticket progress without repeated “continue”
-prompts, cheaper-model delegation, and local commits. Automatic continuation
-`advance-many-alerts-one-incident` is active every 30 minutes. The user authorized
+prompts, cheaper-model delegation, and local commits. At the user's request,
+automatic continuation `advance-many-alerts-one-incident` was deleted on
+2026-09-22 for transfer to a fresh Claude session. Do not recreate this session's
+reminder automatically. The user authorized
 the reviewed local application source/test proposal by replying `continue` to
 the pending scope question; the [approval record](reviews/native-runtime-source-implementation-approval.json)
 preserves that scope. No repeated scope approval is needed for these local
