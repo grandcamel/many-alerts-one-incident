@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "scope": "planning/source-only; no ADR or runtime change",
+  "baseline_commit": "e6a18a4846f864ac4ad7b2ec1d8dd0ea4a6c0d0a",
+  "tickets": [
+    12,
+    16,
+    36
+  ],
+  "checks": {
+    "markdown_documents": 10,
+    "local_link_targets_checked": 102,
+    "broken_local_links": 0,
+    "json_illustrations_parsed": 3,
+    "whitespace_errors": 0
+  },
+  "adf_example": [
+    {
+      "source": ".scratch/many-alerts-one-incident/reviews/ticket-16/report-proposal.md",
+      "serialized_utf8_bytes": 351,
+      "sha256": "7fa21c7345fb93f33924ed5cfe48ef46f4b43eeae15eaf452c1330aa813f875c",
+      "scope": "JSON serialization round-trip only; not ADF schema, complete Report or tenant rendering acceptance"
+    }
+  ],
+  "independent_reviews": [
+    {
+      "ticket": 12,
+      "reviewer": "stream_impl / gpt-5.6-terra",
+      "path": "ticket-12/eyes-proposal.md",
+      "reviewed_sha256": "3b0dcc80d765cb6f33b8e4b86786cdf19554491b8648fecee481376bf3cb976c",
+      "verdict": "PASS",
+      "scope": "internal source review; no native/runtime/tenant acceptance"
+    },
+    {
+      "ticket": 16,
+      "reviewer": "integration_standards / gpt-5.6-luna",
+      "path": "ticket-16/report-proposal.md",
+      "reviewed_sha256": "20737fde89f2ba75d9d617f9b34f5493b05ccc42d0e23bcd7b3207d18000e2b6",
+      "verdict": "PASS",
+      "scope": "internal source review; no native/runtime/tenant acceptance"
+    },
+    {
+      "ticket": 36,
+      "reviewer": "stream_tests / gpt-5.6-luna",
+      "path": "ticket-36/forwarder-specification.md",
+      "reviewed_sha256": "2bc01c71f1f1f13c8e3065859437df959e9dbb362266c8cdfa27a62f5e29b94f",
+      "verdict": "PASS",
+      "scope": "internal source review; no native/runtime/tenant acceptance"
+    }
+  ],
+  "root_integration_review": "PASS after scope, provenance, body framing, authority, dispatch permit and aggregate exposure corrections",
+  "code_tests": {
+    "run_this_batch": false,
+    "reason": "documentation only; no runtime or test code changed",
+    "latest_prior_code_commit": "17037db",
+    "prior_passed": 794,
+    "prior_skipped": 36,
+    "new_contract_runtime_validation": false
+  },
+  "paid_experiments_launched": 0,
+  "historical_provider_charges": "unknown; not zero",
+  "not_run": [
+    "provider-blocked C2 retry",
+    "native client and streaming",
+    "OS/cgroup/seccomp isolation",
+    "tenant grants and API mutations",
+    "Kubernetes/venue",
+    "provider billing and paid experiment",
+    "human Report adjudication"
+  ],
+  "artifacts_sha256": {
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "adc7e519dd11c6d8bba73c1d34d53c7fcb8eac87cd94b3e796530ad1f0b21202",
+    ".scratch/many-alerts-one-incident/issues/12-eyes.md": "e1e6fc7ce750fb42a80abc625b913f6464afcaa91c5d84821d3b123e57a6a577",
+    ".scratch/many-alerts-one-incident/issues/16-the-report.md": "f28cde0703f800742008e8ed0a395b1d61fca310a8b38214c302e14f93ed3697",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "cf3960e9cb3ccfa8e935a3def36aee6a999c2bd0e734bc8fab11de2652a1b9d7",
+    ".scratch/many-alerts-one-incident/reviews/eyes-report-forwarder-integration.md": "0c07accbed8ec1dec3d8f4bb9bb62c730e951479840846612cdc83a31ad6e2db",
+    ".scratch/many-alerts-one-incident/reviews/eyes-report-forwarder-sources.md": "ba320ad5cc35eb6cc062f9fbbec1fb533edd17fcfaf965f356dc6fdcb8f0bbd4",
+    ".scratch/many-alerts-one-incident/reviews/ticket-12/eyes-proposal.md": "3b0dcc80d765cb6f33b8e4b86786cdf19554491b8648fecee481376bf3cb976c",
+    ".scratch/many-alerts-one-incident/reviews/ticket-16/report-proposal.md": "20737fde89f2ba75d9d617f9b34f5493b05ccc42d0e23bcd7b3207d18000e2b6",
+    ".scratch/many-alerts-one-incident/reviews/ticket-36/forwarder-specification.md": "2bc01c71f1f1f13c8e3065859437df959e9dbb362266c8cdfa27a62f5e29b94f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-36/contract-draft.md": "5ce1d5fdf4d4cdd210423e09d5337182fb1d85bf8553f0f8535419c124fb4993"
+  }
+}

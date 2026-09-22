@@ -50,13 +50,18 @@ The [first integration review](reviews/recovery-accounting-audit-integration.md)
 and [second integration review](reviews/telemetry-change-reference-integration.md)
 record their shared boundaries and corrections. Remaining interface and
 live-evidence gaps stay explicit; drafting does not resolve those gates.
-The next independent drafting batch is tickets **12, 16 and 36**.
+The [Eyes](reviews/ticket-12/eyes-proposal.md),
+[compact Report](reviews/ticket-16/report-proposal.md), and
+[Forwarder](reviews/ticket-36/forwarder-specification.md) proposals now extend
+those drafts; their [integration review](reviews/eyes-report-forwarder-integration.md)
+retains the unresolved client and native-boundary gates. The next independent
+drafting batch is tickets **32, 42 and 44**.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
-| 3 | 12, 16, 36 | Consolidate Eyes and compact Report proposals with the Forwarder request/receipt contract | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
+| 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Memory acceptance, venue lifecycle/protected teardown and operator audience projection | Consume prior contracts; preserve distinct storage, retention and authority boundaries |
 | 5 | 23 and integration follow-ups | Close exact-client, process, transport, accounting and private-evidence gaps in bounded increments | Implementation only where authorized; fixtures retain their limited claims; full tests and independent review before local commits |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |

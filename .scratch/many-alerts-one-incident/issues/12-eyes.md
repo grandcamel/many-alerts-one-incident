@@ -95,3 +95,14 @@ Prometheus. Pod status via `kubectl` is the *only* carrier for it.
 ## Accepted Change input from ticket 25
 
 ADR 0015 requires read-only retrieval of the dedicated structured Loki Change stream through Eyes/Forwarder. Verify source identity, rehearsal scope, stage references and readiness diagnostic queryability. Grafana annotation APIs are optional audience presentation, not required Run access. No mutation authority or adjudication Ground truth is exposed.
+
+## Specification progress, 2026-09-22
+
+The [Eyes operation proposal](../reviews/ticket-12/eyes-proposal.md) supplies concrete proposed
+operation, scope, payload and acceptance contracts. The
+[integration review](../reviews/eyes-report-forwarder-integration.md) and
+[source checks](../reviews/eyes-report-forwarder-sources.md) preserve the shared
+request, retrieval, revision and uncertain-effect boundaries. This is planning
+work, not an accepted replacement ADR, changed tool permission, or runtime
+acceptance. The ticket remains open for its unresolved inputs and final review.
+No provider-blocked C2 retry or live request was performed.

@@ -57,3 +57,14 @@ evidence-backed attempt only after trusted evidence proves the denied mutation
 was not dispatched, within the original Run budget. An uncertain effect must
 be reconciled before another create. Ticket 23's offline length records and
 synthetic transport fixtures do not establish native permission behavior.
+
+## Specification progress, 2026-09-22
+
+The [compact Report proposal](../reviews/ticket-16/report-proposal.md) supplies concrete proposed
+operation, scope, payload and acceptance contracts. The
+[integration review](../reviews/eyes-report-forwarder-integration.md) and
+[source checks](../reviews/eyes-report-forwarder-sources.md) preserve the shared
+request, retrieval, revision and uncertain-effect boundaries. This is planning
+work, not an accepted replacement ADR, changed tool permission, or runtime
+acceptance. The ticket remains open for its unresolved inputs and final review.
+No provider-blocked C2 retry or live request was performed.

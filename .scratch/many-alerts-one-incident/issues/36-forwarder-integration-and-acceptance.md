@@ -25,3 +25,14 @@ ADR 0015 adds dedicated current-rehearsal Loki Change queries to the read-only E
 ## Accepted Confluence input from ticket 33
 
 ADR 0017 requires registered current-rehearsal draft IDs/Incidents and exact approved reference versions/digests, enforced status/operation and expected-version body binding. Deny other Confluence operations and cross-scope metadata leaks. The installed CLI read-then-increment is insufficient stale-body protection; ticket 43 supplies the narrow contract. Keep curator/manifest authority outside Runs and disable affected routes when enforcement is unverified.
+
+## Specification progress, 2026-09-22
+
+The [Forwarder specification](../reviews/ticket-36/forwarder-specification.md) supplies concrete proposed
+operation, scope, payload and acceptance contracts. The
+[integration review](../reviews/eyes-report-forwarder-integration.md) and
+[source checks](../reviews/eyes-report-forwarder-sources.md) preserve the shared
+request, retrieval, revision and uncertain-effect boundaries. This is planning
+work, not an accepted replacement ADR, changed tool permission, or runtime
+acceptance. The ticket remains open for its unresolved inputs and final review.
+No provider-blocked C2 retry or live request was performed.

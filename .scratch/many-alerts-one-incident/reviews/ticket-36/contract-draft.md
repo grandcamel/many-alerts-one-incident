@@ -141,3 +141,11 @@ This does not change the production Forwarder or complete this specification.
 The five-service policies, Receiver/Run OS boundary, direct-route prevention,
 production certificate lifecycle, authenticated control plane, native operation
 shapes, billing and venue acceptance still need their own evidence.
+
+## Concrete proposal follow-up, 2026-09-22
+
+The [Forwarder specification](forwarder-specification.md) develops this earlier
+constraint inventory into proposed listener, control, isolation, request, scope
+and receipt contracts. Consult it with the [integration review](../eyes-report-forwarder-integration.md).
+Both remain planning artifacts. Neither promotes the local TLS fixture to native
+client, deployment, tenant, streaming, billing or C2 acceptance.
