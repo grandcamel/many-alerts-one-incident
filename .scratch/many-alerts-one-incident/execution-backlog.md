@@ -31,10 +31,11 @@ merely because its document is finished.
 ## Verified baseline
 
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
-- Local commit `17037db` adds the bounded Python loopback TLS fixture.
-- Latest code validation: **835 passed, 36 skipped**. Incremental streaming adds
-  41 tests; all 50 buffered transport tests still pass. See the
-  [streaming outcome](reviews/ticket-23/incremental-streaming-outcome.md).
+- The supervised streaming integration joins an actual fixed child to the
+  bounded two-hop Python loopback TLS fixture.
+- Latest code validation: **874 passed, 36 skipped**, including 39 new supervised
+  integration tests and the existing streaming, buffered and process regressions.
+  See the [supervised streaming outcome](reviews/ticket-23/supervised-streaming-outcome.md).
 - The [native readiness register](reviews/ticket-23/native-adapter-readiness.md)
   separates implemented synthetic fixtures from the unqualified native client,
   provider accounting, isolation and intended venue.
@@ -66,10 +67,13 @@ where exact implementation choices or acceptance inputs are still missing.
 
 The [incremental synthetic TLS fixture](reviews/ticket-23/incremental-streaming-outcome.md)
 now proves first-frame delivery, partial failure and bounded revocation in the
-local fixture. Next is the
-[supervised streaming join](reviews/ticket-23/supervised-streaming-integration-plan.md):
-bind an actual fixed child's decoding evidence to the existing supervisor and
-transport receipts, with independent stream, process and evidence outcomes.
+local fixture. The
+[supervised streaming join](reviews/ticket-23/supervised-streaming-outcome.md) now
+binds an actual fixed child's decoding to those receipts and process evidence.
+Next is the source-bounded native-launch evidence contract: map the pinned client
+register and route, isolation, accounting and audit requirements to the exact
+observations a future launch must supply. That preparation cannot admit a native
+launch or turn an UNKNOWN input into acceptance.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
@@ -77,7 +81,7 @@ transport receipts, with independent stream, process and evidence outcomes.
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | 23 and integration follow-ups | Design then implement the bounded supervised streaming join using the existing fixed child and TLS fixture | Synthetic loopback only; full tests and independent review before local commits; no native or paid qualification claim |
+| 5 | 23 and integration follow-ups | Supervised stream join complete; prepare the source-bounded native-launch evidence contract from the pinned client register and dependency specifications | Exact required observations and missing inputs; no native launch, new schema qualification or paid admission inferred |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets
@@ -96,4 +100,4 @@ criteria remain unmet and link completed deliverables from the issue.
 | Human Report adjudication | Actual future Report revisions and private evidence for a named human reviewer | Capture/parser contracts, deterministic prechecks and evidence preparation |
 | External actions outside scope | Concrete provisioning, new auth/keys, publication or tenant mutation not already authorized for that action | Prepare reviewable plans and continue other local work |
 
-No new user input is needed for the next local fixture implementation.
+No new user input is needed for the next local source-preparation unit.

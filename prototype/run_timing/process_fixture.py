@@ -23,11 +23,12 @@ from .executor import Capture, Lifecycle
 from .fixture_evidence import EvidenceUnavailable, write_fixture_evidence
 from .outcomes import Outcome, Transcript, seconds
 from .rehearsal_bundle import TIMING_SCENARIOS, build_rehearsal_worker
+from .streaming_session import STREAM_SCENARIOS, StreamSession, build_streaming_worker
 
 SCENARIOS = frozenset({"success", "nonzero", "result_error", "duplicate", "malformed",
                        "silence", "ignore_interrupt", "held_pipe", "held_pipe_ignore",
                        "closed_pipes_alive", "flood", "oversized_line", "stderr_noise",
-                       "stderr_json"}) | TIMING_SCENARIOS
+                       "stderr_json"}) | TIMING_SCENARIOS | STREAM_SCENARIOS
 
 
 def _group_alive(pgid: int) -> bool:
@@ -110,7 +111,10 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
     # Exclusive admission: an existing attempt, file or symlink is never removed/reused.
     directory = Path(output_parent).resolve(strict=True) / attempt_id
     worker = Path(__file__).with_name("_fixture_worker.py").resolve(strict=True)
-    worker_bytes = build_rehearsal_worker() if scenario in TIMING_SCENARIOS else worker.read_bytes()
+    if scenario in STREAM_SCENARIOS:
+        worker_bytes = build_streaming_worker()
+    else:
+        worker_bytes = build_rehearsal_worker() if scenario in TIMING_SCENARIOS else worker.read_bytes()
     directory.mkdir(mode=0o700)
     snapshot = directory / "fixture.py"
     with snapshot.open("xb") as handle:
@@ -129,8 +133,15 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
     root_reaped = group_gone = pipes_closed = False
     exit_code = None
     io_failed = False
-    started = time.monotonic()
+    stream_control_failed = False
+    stream_cleanup_failed = False
+    supervision_elapsed = None
     with selectors.DefaultSelector() as selector:
+        # Construct the selector before transport setup so a selector-creation
+        # failure cannot strand a live fixture harness.
+        stream_session = (StreamSession(directory, scenario, hashlib.sha256(worker_bytes).hexdigest(),
+                                        scale) if scenario in STREAM_SCENARIOS else None)
+        started = time.monotonic()
         try:
             try:
                 process = subprocess.Popen(command, cwd=directory, env=environment,
@@ -148,6 +159,8 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                     selector.register(stream, selectors.EVENT_READ)
                 while not life.finished:
                     elapsed = time.monotonic() - started
+                    if stream_session is not None:
+                        stream_session.poll_revoke()
                     exit_code = process.poll()  # Reaps the direct child, not grandchildren.
                     root_reaped = exit_code is not None
                     group_gone = not _group_alive(process.pid)
@@ -156,12 +169,19 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                     running = not (root_reaped and group_gone)
                     changed = life.advance(elapsed / scale,
                                            cancel=bool(cancel and cancel.is_set()) or
-                                           ((transcript.stop_requested or io_failed) and running),
+                                           ((transcript.stop_requested or io_failed or
+                                             stream_control_failed or
+                                             (stream_session is not None and stream_session.hold))
+                                            and running),
                                            parent_exited=root_reaped,
                                            reaped=root_reaped and group_gone,
                                            pipes_closed=pipes_closed)
                     if changed:
                         actions.append((elapsed, changed))
+                    if "revoke" in changed and stream_session is not None:
+                        # Nonblocking intent/polling must precede interruption. The
+                        # controller cannot wait for a network-write lock here.
+                        stream_session.request_revoke("lifecycle", elapsed)
                     if "interrupt" in changed and not group_gone:
                         _signal_group(process.pid, signal.SIGINT)
                     if "kill_and_reap" in changed and not group_gone:
@@ -208,6 +228,19 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                                 line, _, rest = pending.partition(b"\n")
                                 pending[:] = rest
                                 transcript.feed(bytes(line))
+                                if stream_session is not None:
+                                    observed_at = time.monotonic() - started
+                                    allow_release = (not life.revoked and not transcript.stop_requested
+                                                     and capture.complete and not stream_control_failed
+                                                     and not (cancel and cancel.is_set())
+                                                     and observed_at < 270 * scale)
+                                    try:
+                                        stream_session.observe_stdout(bytes(line), observed_at,
+                                                                      bool(allow_release))
+                                    except (EvidenceUnavailable, OSError, ValueError, TypeError):
+                                        stream_control_failed = True
+                                        life.reasons.add("malformed_evidence")
+                                        stream_session.request_revoke("control_failure", observed_at)
                             if len(pending) > transcript.max_line_bytes:
                                 transcript.reasons.add("capture_limit")
                                 transcript.stop_requested = True
@@ -228,7 +261,13 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
                     life.reasons.add("containment_failure")
                 for stream in (process.stdout, process.stderr):
                     stream.close()
-    elapsed = time.monotonic() - started
+            if stream_session is not None:
+                supervision_elapsed = time.monotonic() - started
+                try:
+                    stream_session.close()
+                except (OSError, RuntimeError, ValueError):
+                    stream_cleanup_failed = True
+    elapsed = supervision_elapsed if supervision_elapsed is not None else time.monotonic() - started
     # Evidence above was sampled before cleanup/finalization; never fabricate pipe EOF.
     result = ProcessResult(transcript.outcome(exit_code, life.reasons), tuple(actions), elapsed,
                            300 * scale, life.end_at * scale,
@@ -246,6 +285,10 @@ def run_fixture(scenario: str, output_parent: Path, attempt_id: str, *,
     try:
         write_fixture_evidence(directory, bytes(capture.data), payload,
                                stdout=bytes(stdout_capture), stderr=bytes(stderr_capture))
-    except EvidenceUnavailable as exc:
+        if stream_session is not None:
+            if stream_cleanup_failed:
+                raise EvidenceUnavailable("stream cleanup was not confirmed")
+            stream_session.write_evidence(result)
+    except (EvidenceUnavailable, OSError, ValueError, TypeError) as exc:
         raise FixtureCloseoutError(result) from exc
     return result

@@ -54,3 +54,36 @@ The outcome must distinguish stream validity, local delivery, child decoding,
 process completion/containment, evidence completeness and synthetic accounting.
 Human Report adjudication and all native, account, billing, tenant and intended
 venue gates remain separate. No new user input is needed for this local unit.
+
+## Selected implementation boundary — 2026-09-22
+
+Measured before editing: the generic worker is 2,246 bytes; the existing timing
+bundle is 40,825 of 65,536 allowed bytes, covering 132,280 source bytes. The parent
+streaming module alone is 34,029 source bytes. This unit uses a separate standalone
+stdlib child instead of bundling the parent harness. Its exact final size must be
+checked against the unchanged 64 KiB worker limit before creating an attempt.
+
+The public supervisor signature stays unchanged. Only a closed set of new
+`stream_*` scenarios constructs an internal `StreamSession`. The parent creates
+the two TLS loopback listeners and a fixed-name private bootstrap file containing
+only fixture launch values. The child reads that bounded file with no extra
+argument or environment selection. The token is synthetic and temporary; it is
+excluded from captured worker source, stdout/stderr, and the retained sidecar.
+Cleanup failure remains a gap. This does not establish same-user OS isolation.
+
+The supervisor feeds only retained complete stdout lines to the session. A typed
+ACK must match the attempt, lease, bootstrap and first-frame digest/byte count,
+and the parent's first-frame-write observation before terminal release. The
+release decision also checks sampled cancellation and the original work deadline.
+An already released frame is never retroactively marked unsent.
+
+Revocation requests and polling in the selector loop are nonblocking. They record
+intent before interruption, prevent further release, and retain pending revocation
+until the harness lock can be acquired. Harness stop and evidence publication
+occur after process containment, with their own elapsed observations and visible
+failure state; they cannot extend the supervisor's original deadline.
+
+Implementation ownership is separate: Terra owns the fixed child and internal
+session/evidence module; root owns the supervisor hooks and budgeted wrapper;
+Luna owns independent integration tests. Review checks the shared API and state
+boundaries before a full repository test run and local commit.

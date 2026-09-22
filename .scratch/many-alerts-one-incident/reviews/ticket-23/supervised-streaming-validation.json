@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "scope": "fixed synthetic supervised child and two-hop TLS stream join; no native/provider acceptance",
+  "baseline_commit": "6984dfe378794f0f78c444a23da068d77d737140",
+  "full_suite": {
+    "command": "pytest -q",
+    "exit_code": 0,
+    "passed": 874,
+    "skipped": 36,
+    "elapsed_seconds": 76.8,
+    "log": ".scratch/many-alerts-one-incident/reviews/ticket-23/supervised-streaming-pytest.txt",
+    "sha256": "5782a2fd11f99ba44d8687d43ec587af496540df800d562bb1a6a380ba890db6"
+  },
+  "focused_suite": {
+    "new_integration_passed": 39,
+    "new_integration_elapsed_seconds": 22.86,
+    "existing_process_and_rehearsal_passed": 54,
+    "existing_elapsed_seconds": 25.14
+  },
+  "checks": {
+    "ruff": "PASS for all four changed/new source modules and new test file",
+    "whitespace": "PASS",
+    "worker_bytes": 11418,
+    "worker_limit_bytes": 65536,
+    "local_links": {
+      "checked": 66,
+      "broken": 0
+    }
+  },
+  "independent_reviews": [
+    {
+      "reviewer": "integration_standards / gpt-5.6-luna",
+      "verdict": "PASS",
+      "scope": "four integration source modules; identity, lifecycle, bounded capture, readback, chronology, cleanup and completion conditions",
+      "final_digest_verification": "root independently recomputed all retained artifact hashes; worker digest transcription normalized to file bytes"
+    },
+    {
+      "reviewer": "stream_tests / gpt-5.6-luna",
+      "verdict": "PASS",
+      "scope": "independent integration/fault/tamper tests",
+      "test_sha256": "384517dcb876da7aad70f53b8c83a3ccb96463d5e46d1362c7e6b662e8762005"
+    }
+  ],
+  "root_review": "PASS; source and tests reviewed, timing-overrun readback derived independently of sidecar gap list, final full suite run after code changes",
+  "paid_experiments_launched": 0,
+  "historical_provider_charges": "unknown; not zero",
+  "not_run": [
+    "provider-blocked C2 retry",
+    "installed native client/provider streaming",
+    "adversarial OS isolation or direct-route enforcement",
+    "provider cancellation or billing reconciliation",
+    "native total launch-to-durable-closeout deadline",
+    "tenant API mutation",
+    "cluster/venue",
+    "human Report adjudication"
+  ],
+  "artifacts_sha256": {
+    "prototype/run_timing/process_fixture.py": "438abeb937cdfaeb619f0fc3232b6360b2f98632e420cedf989f39841c0ea914",
+    "prototype/run_timing/streaming_session.py": "f4d0f1efbe0fea9a58a57f87381b776814082cf44c6a82d4703b40cbb23b86d2",
+    "prototype/run_timing/streaming_rehearsal.py": "b7aab4b214770b222a8a057e75cb6ae428ea4c50714528f3b0758b5d31663cdb",
+    "prototype/run_timing/_streaming_worker.py": "49073d91b8035ef629e6ab074a6f81efa9ffc64ba3e0019a45c300f05314486e",
+    "prototype/run_timing/SUPERVISED_STREAMING.md": "1e7892152ff906b06925c27cbbc0ee63785ec244421a252891267f44d915c696",
+    "prototype/run_timing/PROCESS_FIXTURES.md": "b0461da2672c60bb310852e8176e0ab43e808195101cbc36ed30555caa5fa141",
+    "tests/test_supervised_streaming.py": "384517dcb876da7aad70f53b8c83a3ccb96463d5e46d1362c7e6b662e8762005",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "32715124930621068c86ba15820ab0467feffaea6c8c5a1af65a56b940c4b330",
+    ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md": "864ead95d2dada0da12a0610ff59744fbb7e15ac73323151aade8c94011dbbf1",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/native-adapter-readiness.md": "0db4670f4eec80e0f5b9d79afb50f265d9a032600f1df3248d924da659a9bee4",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/supervised-streaming-integration-plan.md": "715a3d1203f2eceafcaec6899912d8c28a595c11a6cf1bce123139ba999b3336",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/supervised-streaming-outcome.md": "ace99ad5acc0a44f73cbf39de6921cbfcd1c2492706c7a556013ffdb93d316ec",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/supervised-streaming-pytest.txt": "5782a2fd11f99ba44d8687d43ec587af496540df800d562bb1a6a380ba890db6"
+  }
+}

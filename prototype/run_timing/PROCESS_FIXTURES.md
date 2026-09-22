@@ -60,3 +60,11 @@ selected closed scenario. The original fixture scenarios retain their original w
 The `stderr_noise` and `stderr_json` scenarios otherwise produce the normal successful stdout
 sequence while emitting fixed non-JSON or JSON bytes on stderr; they exist only to exercise
 supervisor stream attribution and do not accept an executable or arbitrary payload.
+
+The closed [supervised streaming](SUPERVISED_STREAMING.md) scenarios use a separate
+bounded stdlib child. They join actual child decoding to parent TLS receipts and
+the existing process evidence. Only a retained validated acknowledgement can
+release the terminal frame; revocation intent precedes interruption. TLS setup
+and transport cleanup remain outside the process supervision duration, and the
+sidecar records transport cleanup timing separately. Synthetic ledger claims
+remain unresolved until explicit reconciliation.

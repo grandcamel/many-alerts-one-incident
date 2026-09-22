@@ -111,3 +111,9 @@ The [local mediated-client outcome](../reviews/ticket-23/mediated-client-outcome
 adds real two-hop Python TLS fixtures with scoped leases, deadline enforcement,
 credential-header replacement and unknown/no-retry failure handling. Native client
 streaming, real request policies, OS isolation and billing remain separate gates.
+
+The [supervised streaming outcome](../reviews/ticket-23/supervised-streaming-outcome.md)
+joins an actual fixed child's decoded frames to parent transport receipts and
+process evidence. Cancellation, capture loss, nonzero exit and incomplete evidence
+remain held; synthetic ledger claims are not automatically settled. This remains
+fixture evidence, with native qualification and the measurement card closed.

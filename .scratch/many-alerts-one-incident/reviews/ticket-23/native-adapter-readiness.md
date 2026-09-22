@@ -45,8 +45,11 @@ failure/revocation through the same two loopback TLS hops. Its fixed Python
 fixture vocabulary is not an installed-client or provider stream schema.
 The [configuration source map](client-configuration-sources.md) records current
 client documentation. Neither supplies installed-client streaming, OS isolation
-or billing acceptance. The next offline join is
-[supervised streaming evidence](supervised-streaming-integration-plan.md).
+or billing acceptance. The
+[supervised streaming join](supervised-streaming-outcome.md) now binds a fixed
+child's decoded frames to parent transport receipts and process evidence. It
+retains cancellation, partial delivery, cleanup timing and read-back failures
+separately; the installed-client gate remains NOT RUN.
 
 ## What Ticket 23 can carry forward
 
