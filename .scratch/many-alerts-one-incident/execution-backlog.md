@@ -8,10 +8,11 @@ not a percentage of the finished product.
 ## Standing authority and continuation
 
 The user requested aggressive ticket progress without repeated “continue”
-prompts, cheaper-model delegation, and local commits. Automatic continuation is
-active in the existing task every 30 minutes, under automation
-`advance-many-alerts-one-incident`. It reports meaningful changes or required
-action, rather than repeated unchanged status.
+prompts, cheaper-model delegation, and local commits. Automatic continuation
+`advance-many-alerts-one-incident` is paused for the prepared runtime source
+implementation scope decision below. Its configured interval is 30 minutes; it
+should resume after that scope is authorized, reporting meaningful changes or
+required action rather than repeated unchanged status.
 
 The [experiment authorization](reviews/ticket-23/experiment-authorization.json)
 covers aggregate experiment cost strictly below $50 across attempts and retries;

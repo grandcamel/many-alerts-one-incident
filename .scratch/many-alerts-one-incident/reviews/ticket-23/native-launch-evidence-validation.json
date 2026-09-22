@@ -58,7 +58,8 @@
     ".scratch/many-alerts-one-incident/reviews/ticket-23/native-adapter-readiness.md": "f21c2cddf63a2faaaaf4749cc2c7eceb297e5074486cc1910d9777ed317e926a",
     ".scratch/many-alerts-one-incident/reviews/ticket-23/execution-card.md": "5463b811a2cbeae74ce38cb94c8e90e70ade44f119c1b29de9d7557c542ad911",
     ".scratch/many-alerts-one-incident/reviews/native-runtime-source-implementation-proposal.md": "8441cab12aec33c2bf5190382f57eed5e27dc280d431ca2d35234d40a5b29d36",
-    ".scratch/many-alerts-one-incident/execution-backlog.md": "1dae940355e3c0132b802d126eb8926c07bfff3393645a073ced24a06984e434",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "223fa189b26d2bfc5b06bac36fd8f271bc7b7c0ed3384aa814d134fa48748349",
     ".scratch/many-alerts-one-incident/issues/23-finish-the-fable-arm-and-pin-the-threshold.md": "570a6057cdbe1d443efb0550f5efef80daeba9124f826ee2312c460ac5e2b5ad"
-  }
+  },
+  "continuation_status": "PAUSED_PENDING_PREPARED_IMPLEMENTATION_SCOPE_DECISION"
 }
