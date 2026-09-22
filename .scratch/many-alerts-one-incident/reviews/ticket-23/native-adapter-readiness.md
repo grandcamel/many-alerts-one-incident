@@ -39,9 +39,14 @@ It is not an observed-and-qualified installed-client schema.
 
 A separate [local TLS harness](../../../../prototype/mediated_client/README.md)
 provides real Python loopback transport checks with synthetic leases/credentials.
+Its [incremental extension](incremental-streaming-outcome.md) now verifies
+first-frame delivery before final release, true-EOF terminal checks and partial
+failure/revocation through the same two loopback TLS hops. Its fixed Python
+fixture vocabulary is not an installed-client or provider stream schema.
 The [configuration source map](client-configuration-sources.md) records current
-client documentation. Neither supplies installed-client, OS isolation, streaming
-or billing acceptance.
+client documentation. Neither supplies installed-client streaming, OS isolation
+or billing acceptance. The next offline join is
+[supervised streaming evidence](supervised-streaming-integration-plan.md).
 
 ## What Ticket 23 can carry forward
 

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "scope": "fixed synthetic two-hop TLS incremental streaming; not native/provider acceptance",
+  "baseline_commit": "9561306e94e23b6ba01c694441765c8ee3d21a65",
+  "full_suite": {
+    "command": "pytest -q",
+    "exit_code": 0,
+    "passed": 835,
+    "skipped": 36,
+    "elapsed_seconds": 54.13,
+    "log": ".scratch/many-alerts-one-incident/reviews/ticket-23/incremental-streaming-pytest.txt",
+    "sha256": "9a81acc8bcdc5bfb64e94e01fdbf015d83d3dee94f8e586dfec48fb8dc03e0f8"
+  },
+  "focused_suite": {
+    "streaming_cases": 41,
+    "existing_buffered_cases": 50,
+    "combined_passed": 91,
+    "scope": "worker focused result; all cases also included in root full suite"
+  },
+  "checks": {
+    "ruff": "PASS for streaming.py, __init__.py and test_mediated_streaming.py",
+    "whitespace": "PASS",
+    "local_markdown_links": 46,
+    "broken_local_links": 0,
+    "buffered_harness_unchanged": true
+  },
+  "independent_reviews": [
+    {
+      "reviewer": "stream_tests / gpt-5.6-luna",
+      "verdict": "PASS",
+      "focus": "parser, stream sequencing, partial writes, EOF and test evidence",
+      "source_sha256": "b7fac74576ce342734323a041e97e186b7d138316f462f961b525d9e6f4eb57f"
+    },
+    {
+      "reviewer": "integration_standards / gpt-5.6-luna",
+      "verdict": "PASS",
+      "focus": "lifecycle, finite history, fixed TLS route, credentials, nonce and controller latches",
+      "source_sha256": "b7fac74576ce342734323a041e97e186b7d138316f462f961b525d9e6f4eb57f"
+    }
+  ],
+  "root_final_review": "PASS; test import ordering/expected exception narrowing and README local-write clarification reviewed; full suite rerun after test edits",
+  "paid_experiments_launched": 0,
+  "historical_provider_charges": "unknown; not zero",
+  "not_run": [
+    "provider-blocked C2 retry",
+    "native installed client or provider stream compatibility",
+    "OS identity/credential/direct-route isolation",
+    "provider cancellation or billing reconciliation",
+    "tenant API mutation",
+    "cluster/venue",
+    "human Report adjudication",
+    "supervised child and streaming integration"
+  ],
+  "artifacts_sha256": {
+    "prototype/mediated_client/streaming.py": "b7fac74576ce342734323a041e97e186b7d138316f462f961b525d9e6f4eb57f",
+    "prototype/mediated_client/__init__.py": "fc625cbd7e6644f23cac4494de9bd01a90fb09bb0bf39746144438dac6c35857",
+    "prototype/mediated_client/README.md": "ecb54449ad9e2a927cfc1a6ab9f70de5d3653e843a96723d0e4de46a1c0d113d",
+    "tests/test_mediated_streaming.py": "3c63343ce83d2542d1ce681b2bd734a6347f49c2d884c4ea8b93039a43cb31c1",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "40ca5e022561b534433869316b0907dae00464ad040d872b837a0234b1fd4619",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/native-adapter-readiness.md": "0fa153621a81747cc0b5f3abf77393b4485600655d9946f62c040101498498d7",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/incremental-streaming-outcome.md": "7c1d8a5919ee6d6180f0118c5953273fcaf6cec4631504dc737be323a757471a",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/supervised-streaming-integration-plan.md": "f20ef549619d19443c7ed11167fd3ca4e8ce4abb698011281b09d99449f198c2",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/incremental-streaming-pytest.txt": "9a81acc8bcdc5bfb64e94e01fdbf015d83d3dee94f8e586dfec48fb8dc03e0f8"
+  }
+}

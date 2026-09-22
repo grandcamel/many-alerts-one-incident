@@ -32,8 +32,9 @@ merely because its document is finished.
 
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - Local commit `17037db` adds the bounded Python loopback TLS fixture.
-- Latest code validation: 794 passed, 36 skipped. The fixture has 50 focused
-  tests and 16 retained examples; see the [outcome](reviews/ticket-23/mediated-client-outcome.md).
+- Latest code validation: **835 passed, 36 skipped**. Incremental streaming adds
+  41 tests; all 50 buffered transport tests still pass. See the
+  [streaming outcome](reviews/ticket-23/incremental-streaming-outcome.md).
 - The [native readiness register](reviews/ticket-23/native-adapter-readiness.md)
   separates implemented synthetic fixtures from the unqualified native client,
   provider accounting, isolation and intended venue.
@@ -63,11 +64,12 @@ initial specification sequence. Their
 reset, teardown, retention and human-review boundaries. Tickets remain open
 where exact implementation choices or acceptance inputs are still missing.
 
-The next implementation unit is the
-[incremental synthetic TLS fixture](reviews/ticket-23/incremental-streaming-fixture-plan.md):
-prove delivery before the final frame is released, preserve partial failures,
-and exercise bounded revocation between frames. It extends the existing local
-fixture without selecting a native client or making a provider call.
+The [incremental synthetic TLS fixture](reviews/ticket-23/incremental-streaming-outcome.md)
+now proves first-frame delivery, partial failure and bounded revocation in the
+local fixture. Next is the
+[supervised streaming join](reviews/ticket-23/supervised-streaming-integration-plan.md):
+bind an actual fixed child's decoding evidence to the existing supervisor and
+transport receipts, with independent stream, process and evidence outcomes.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
@@ -75,7 +77,7 @@ fixture without selecting a native client or making a provider call.
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | 23 and integration follow-ups | Implement and review the bounded incremental synthetic TLS streaming fixture, then revisit remaining transport/process/evidence gaps | Synthetic loopback only; full tests and independent review before local commits; no native or paid qualification claim |
+| 5 | 23 and integration follow-ups | Design then implement the bounded supervised streaming join using the existing fixed child and TLS fixture | Synthetic loopback only; full tests and independent review before local commits; no native or paid qualification claim |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets
