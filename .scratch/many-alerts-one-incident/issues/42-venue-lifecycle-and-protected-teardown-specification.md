@@ -21,3 +21,18 @@ Offline fixtures must use real lifecycle/admission/clock/health/ledger/export bo
 Plan the separately authorized no-Fault 90-minute venue baseline and three candidate qualification lifecycles on fresh venues within existing budgets. Include actual settings, observations, overruns, failures, cost and cleanup receipts. Do not run these measurements, provision, delete, purchase or modify credentials under this specification ticket. A failed gate retains labelled replay and produces a bounded tuning/measurement follow-up.
 
 Clarify exact `<85 minutes` Run admission and that queue wait, restarts and handoff never reset age or extend the 300-second Run deadline. Define restart-safe cluster age from verified creation evidence plus monotonic elapsed checks; unknown/skewed age cannot admit optimistically. Keep handoff operator-only, with no automatic import of prior-rehearsal Memory into Runs or promotion into authoritative OPS state. Explicitly define the permitted Memory-assisted qualification setup using same-rehearsal prior learning or approved reference material under ADR 0009, not an unreviewed recovery export. The no-Fault baseline is a separate venue gate, not a scored model sample.
+
+## Source progress — 2026-09-22
+
+The [venue specification](../reviews/ticket-42/venue-specification.md) defines
+proposed lifecycle, creation-age and health observations, weekly/aggregate cost
+admission, independent handoff verification and named acceptance, bounded cleanup
+inventory, and future offline/venue acceptance. The
+[integration review](../reviews/memory-venue-audience-integration.md) preserves
+each store's retention, uncertain effects and accounting after reset or teardown.
+
+This remains open for concrete provider timestamp/inventory/billing semantics,
+resource and metric bindings, private vault permissions/read-back, and later
+intended-venue evidence. No provisioning, deletion, pricing probe, credential
+change or paid baseline was performed. Age 90 remains a hold, not deletion
+authority; unknown historical and residual-resource charges remain liabilities.

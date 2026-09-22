@@ -54,16 +54,28 @@ The [Eyes](reviews/ticket-12/eyes-proposal.md),
 [compact Report](reviews/ticket-16/report-proposal.md), and
 [Forwarder](reviews/ticket-36/forwarder-specification.md) proposals now extend
 those drafts; their [integration review](reviews/eyes-report-forwarder-integration.md)
-retains the unresolved client and native-boundary gates. The next independent
-drafting batch is tickets **32, 42 and 44**.
+retains the unresolved client and native-boundary gates.
+The [Memory](reviews/ticket-32/memory-specification.md),
+[venue lifecycle](reviews/ticket-42/venue-specification.md), and
+[audience](reviews/ticket-44/audience-specification.md) drafts now complete the
+initial specification sequence. Their
+[integration review](reviews/memory-venue-audience-integration.md) preserves
+reset, teardown, retention and human-review boundaries. Tickets remain open
+where exact implementation choices or acceptance inputs are still missing.
+
+The next implementation unit is the
+[incremental synthetic TLS fixture](reviews/ticket-23/incremental-streaming-fixture-plan.md):
+prove delivery before the final frame is released, preserve partial failures,
+and exercise bounded revocation between frames. It extends the existing local
+fixture without selecting a native client or making a provider call.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
-| 4 | 32, 42, 44 | Memory acceptance, venue lifecycle/protected teardown and operator audience projection | Consume prior contracts; preserve distinct storage, retention and authority boundaries |
-| 5 | 23 and integration follow-ups | Close exact-client, process, transport, accounting and private-evidence gaps in bounded increments | Implementation only where authorized; fixtures retain their limited claims; full tests and independent review before local commits |
+| 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
+| 5 | 23 and integration follow-ups | Implement and review the bounded incremental synthetic TLS streaming fixture, then revisit remaining transport/process/evidence gaps | Synthetic loopback only; full tests and independent review before local commits; no native or paid qualification claim |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets
@@ -82,4 +94,4 @@ criteria remain unmet and link completed deliverables from the issue.
 | Human Report adjudication | Actual future Report revisions and private evidence for a named human reviewer | Capture/parser contracts, deterministic prechecks and evidence preparation |
 | External actions outside scope | Concrete provisioning, new auth/keys, publication or tenant mutation not already authorized for that action | Prepare reviewable plans and continue other local work |
 
-No new user input is needed for the current local specification queue.
+No new user input is needed for the next local fixture implementation.

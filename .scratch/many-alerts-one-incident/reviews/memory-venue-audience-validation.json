@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "scope": "planning/source-only; no ADR or runtime change",
+  "baseline_commit": "4c2e51bdbf01ee22969d2827fe3636babe607062",
+  "tickets": [
+    32,
+    42,
+    44
+  ],
+  "checks": {
+    "markdown_documents": 9,
+    "local_link_targets_checked": 70,
+    "broken_local_links": 0,
+    "json_illustrations_parsed_with_duplicate_key_rejection": 3,
+    "whitespace_errors": 0
+  },
+  "independent_reviews": [
+    {
+      "ticket": 32,
+      "reviewer": "stream_impl / gpt-5.6-terra",
+      "path": "ticket-32/memory-specification.md",
+      "reviewed_sha256": "9de4ae6d1c8413809a92a78307bcc3653378854899e9144253b74b1abd9a0d66",
+      "verdict": "PASS",
+      "scope": "internal source review; root reviewed integration and final corrections"
+    },
+    {
+      "ticket": 42,
+      "reviewer": "integration_standards / gpt-5.6-luna",
+      "path": "ticket-42/venue-specification.md",
+      "reviewed_sha256": "f4dcf31f9b323c149575e4da592cd9a29a02cdeb2ecb7de925fce5860ce3f0ab",
+      "verdict": "PASS",
+      "scope": "internal source review; root reviewed integration and final corrections"
+    },
+    {
+      "ticket": 44,
+      "reviewer": "integration_standards / gpt-5.6-luna",
+      "path": "ticket-44/audience-specification.md",
+      "reviewed_sha256": "c75a0daf12d3f929306a12a8b1691047096a0985d3158b1da59b64966585f7dd",
+      "verdict": "PASS",
+      "scope": "internal source review; root reviewed integration and final corrections"
+    }
+  ],
+  "code_tests": {
+    "run_this_batch": false,
+    "reason": "documentation only; no runtime or test code changed",
+    "latest_prior_code_commit": "17037db",
+    "prior_passed": 794,
+    "prior_skipped": 36,
+    "new_contract_runtime_validation": false
+  },
+  "paid_experiments_launched": 0,
+  "historical_provider_charges": "unknown; not zero",
+  "not_run": [
+    "provider-blocked C2 retry",
+    "native client or incremental streaming implementation",
+    "tenant grants or API mutations",
+    "volume and operator access enforcement",
+    "provider/venue/cleanup/billing",
+    "paid experiments",
+    "human Report adjudication"
+  ],
+  "artifacts_sha256": {
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "e43dd27ad53294102a716003ad360eeff05d313d723031c6414644e8763de947",
+    ".scratch/many-alerts-one-incident/issues/32-memory-storage-and-offline-acceptance.md": "105e04f06e49f00bf17529ebf14b3d2003e3a48a2c76c05f9bfb0c616f626796",
+    ".scratch/many-alerts-one-incident/issues/42-venue-lifecycle-and-protected-teardown-specification.md": "ca508e44549b97e519cbb89ab8c978d20d8b289fbf5706675c4509981a39d46f",
+    ".scratch/many-alerts-one-incident/issues/44-memory-audience-projection-and-acceptance.md": "f424aadc66327ba10664c2b39effa9f6c5c80655669d2edfbb51f50ed24e9825",
+    ".scratch/many-alerts-one-incident/reviews/memory-venue-audience-integration.md": "9d127b943c5c9d68f230cbd7a9842b281023d14c8e0adf8a475bba1c63cce9be",
+    ".scratch/many-alerts-one-incident/reviews/ticket-23/incremental-streaming-fixture-plan.md": "794079b5dc8a2a83f7b0da6146e6b825d9ff306fd394db45d97de0d709cfb32f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-32/memory-specification.md": "9de4ae6d1c8413809a92a78307bcc3653378854899e9144253b74b1abd9a0d66",
+    ".scratch/many-alerts-one-incident/reviews/ticket-42/venue-specification.md": "f4dcf31f9b323c149575e4da592cd9a29a02cdeb2ecb7de925fce5860ce3f0ab",
+    ".scratch/many-alerts-one-incident/reviews/ticket-44/audience-specification.md": "c75a0daf12d3f929306a12a8b1691047096a0985d3158b1da59b64966585f7dd"
+  }
+}
