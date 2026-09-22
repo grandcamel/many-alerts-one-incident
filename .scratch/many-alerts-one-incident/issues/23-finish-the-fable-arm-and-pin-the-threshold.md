@@ -86,3 +86,9 @@ The [pinned query outcome](../reviews/ticket-23/query-outcome.md) adds a read-on
 fixture API with exact input hashes, bounded queries, explicit truncation and correlated
 response read-back. Native transport, authenticated receipts and synthetic Incident writes
 remain unimplemented; the timing measurement card remains closed.
+
+The [synthetic Incident outcome](../reviews/ticket-23/incident-outcome.md) adds an in-process
+empty candidate store, additive membership, immutable Report revisions, retained query
+references and separate simulated dispatch/effect receipts. Failed or uncertain writes
+hold further work. Native binding, authenticated receipts, durable recovery and human
+grading remain unimplemented or NOT RUN; the measurement card remains closed.

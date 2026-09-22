@@ -81,8 +81,9 @@ loses its records; these are neither durable audit receipts nor authenticated na
 responses. Any future transport must preserve exact response bodies and prove attribution
 independently. Hashes alone do not authenticate a supplied response.
 
-Native binding, sealed access, synthetic Incident writes/receipts, real billing and paid
-execution remain unimplemented. Every response advertises `OFFLINE_PINNED_QUERIES_ONLY`
+A separate [synthetic Incident store](TIMING_INCIDENTS.md) uses these retained responses
+for local Report references and simulated writes. Native binding, sealed access, real billing
+and paid execution remain unimplemented. Every response advertises `OFFLINE_PINNED_QUERIES_ONLY`
 and native launch `CLOSED`. The timing prompt/Skill remains an uninstalled draft.
 
 Run local tests: `python3 -m pytest -q tests/test_timing_queries.py`.

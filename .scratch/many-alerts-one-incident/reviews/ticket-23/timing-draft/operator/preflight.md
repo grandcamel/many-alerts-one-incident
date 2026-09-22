@@ -15,6 +15,8 @@
    verify that state through the actual bound query path. Candidate matching, additive member
    labels, retained revisions, severity/urgency/source fields, failure/uncertain-write handling
    and read-back require explicit tested schemas. No live OPS key or network route is allowed.
+   Local `TimingIncidents` tests these semantics in trusted in-process state; it does not
+   establish the native binding, real effect receipts, recovery or matching correctness.
    A fake permission denial/dispatch result cannot qualify the native length experiment.
 4. Assemble an individual-file Run allowlist: only the three `run/` texts, pinned Notification
    and approved Run-visible binding. Keep raw telemetry behind the inert query adapter and

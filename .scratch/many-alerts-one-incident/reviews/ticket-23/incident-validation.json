@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "scope": "Trusted in-process synthetic Incident store; native launch CLOSED",
+  "baseline_commit": "f6563c5",
+  "targeted_tests": {
+    "command": "python3 -m pytest -q tests/test_timing_incidents.py",
+    "passed": 46,
+    "seconds": 0.18,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "command": "python3 -m pytest -q",
+    "passed": 575,
+    "skipped": 36,
+    "seconds": 28.81,
+    "exit_code": 0
+  },
+  "ruff": "PASS",
+  "diff_check": "PASS",
+  "reviews": {
+    "standards": {
+      "blocking_findings": 0,
+      "optional_suggestions": 1,
+      "final_documentation_readback": "PASS",
+      "adjudication": "Pending-state named tuple suggestion deferred; not a correctness defect."
+    },
+    "spec": {
+      "actionable_findings": 0,
+      "final_documentation_readback": "PASS"
+    },
+    "fable": {
+      "classification": "usable",
+      "exit_code": 0,
+      "requested_model": "claude-fable-5-1",
+      "actual_assistant_models": [
+        "claude-fable-5-1"
+      ],
+      "verdict": "PASS",
+      "required_findings": 0,
+      "optional_suggestions": 7,
+      "session_id": "130cc450-c99f-4a8d-8a84-6ad48fc3e264",
+      "duration_ms": 286468,
+      "session_estimate_usd": 2.107332,
+      "provider_actual_usd": null,
+      "reviewed_source": "Frozen initial implementation and documentation; final source/tests unchanged, documentation clarified afterward",
+      "adjudication": {
+        "1": "Deferred distinct rejection messages; state assertions already cover explicit hold and lifecycle conditions. No correctness defect identified.",
+        "2": "Documented discarded unapplied proposals and retained hash only.",
+        "3": "Documented references depend on paired query store; no standalone export promise.",
+        "4": "Documented aggregate byte cap applies beyond individual field maxima.",
+        "5": "Documented construction is not work admission.",
+        "6": "Clarified inspect lists dispatch/revision IDs and effect uses dispatch identity.",
+        "7": "No new corpus schema validation: exact pinned input digests and parity test establish the fixed trusted corpus. Not a generic loader."
+      },
+      "untested_advisories": "Preserved in review.md; no native or production acceptance inferred.",
+      "artifacts": [
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/fable-review/manifest.json",
+          "bytes": 1181,
+          "sha256": "ce10a4e94de692629c273d8ff3d3f517b73fc8307ec68e6e6c27e4115c1f0f75"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/fable-review/native-review.jsonl",
+          "bytes": 149299,
+          "sha256": "b4f46d60ed4faa687eedb489fa1de75f87baa726057eed74059c370a5f892815"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/fable-review/prompt.txt",
+          "bytes": 64893,
+          "sha256": "73edc95259433d9df1ec947b17e7eab709ecc5aa95fe87c6bf9673e1b714a120"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/fable-review/review-stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/fable-review/review.md",
+          "bytes": 4313,
+          "sha256": "56336b8544bf99e91c3e6505906239c7ec77c6df086cbf1bad4fe6b53d163059"
+        },
+        {
+          "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/fable-review/workdir.txt",
+          "bytes": 80,
+          "sha256": "8c9e3ada48ca080cedb583a7453ee1abb86db28d40aaeaea847fd103304af96c"
+        }
+      ]
+    }
+  },
+  "source_files": [
+    {
+      "path": "prototype/run_timing/timing_incidents.py",
+      "bytes": 12038,
+      "sha256": "e88713333d049903d3f56a8cbb61fd005d8a7f4485e8b3fb86be33ebded5917b"
+    },
+    {
+      "path": "prototype/run_timing/TIMING_INCIDENTS.md",
+      "bytes": 7003,
+      "sha256": "015c8510c1dd34dc46b3d9159b116a0bfb5ee0247cec616a89df4cf4c0e9baae"
+    },
+    {
+      "path": "tests/test_timing_incidents.py",
+      "bytes": 14244,
+      "sha256": "d131802e17690bdd82d450d73dceff31d9283938d781b712a7dadbffa2dd70f3"
+    },
+    {
+      "path": "prototype/run_timing/timing_queries.py",
+      "bytes": 11360,
+      "sha256": "4b3039244ced178b004113d50b841f9beed1b93cbee73177da01f6d0317ffe3b"
+    },
+    {
+      "path": "prototype/run_timing/executor.py",
+      "bytes": 17674,
+      "sha256": "7c9683be5be1e916661f14c715c340551eb040a471a14c454ae1beee30e53da6"
+    }
+  ],
+  "retained_evidence": [
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/full-suite.txt",
+      "bytes": 753,
+      "sha256": "045be2eb513c9048a3c37bb8e201aa4257bffc96c3adaa50e7659091f4265b82"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/internal-reviews.json",
+      "bytes": 926,
+      "sha256": "e04a0eb873734a3e132dd6866610f1b41aea639aa076ad0db37d7aee216aea4f"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/review-summary.json",
+      "bytes": 2739,
+      "sha256": "68919c500454eb75437e7442e0153635a2c17e49ed077382f60dee1af81e1e64"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/ruff.txt",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/targeted-tests.txt",
+      "bytes": 99,
+      "sha256": "9b8f861c2f5c5681aa0659953c1d78302c92ae5b7c9ce259e502fb1dab60bdae"
+    }
+  ],
+  "prior_phase_snapshot": "/Users/jasonkrueger/maoi-ticket23-evidence/20260921-timing-incidents/prior-phase-snapshot",
+  "prior_files_verified": 63,
+  "not_run": [
+    "Native tool binding",
+    "Real Jira or OPS effects",
+    "Authenticated effect receipts",
+    "Durable recovery",
+    "Cross-instance uniqueness",
+    "Adversarial isolation",
+    "Human Report grading or rubric freeze",
+    "Paid length/timing probes",
+    "Provider billing actuals",
+    "Tenant/model/venue qualification",
+    "Push or publication"
+  ]
+}
