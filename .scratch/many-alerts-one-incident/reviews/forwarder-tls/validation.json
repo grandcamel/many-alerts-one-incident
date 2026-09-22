@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_FIXED_SERVICE_TLS_CLIENT",
+  "baseline_commit": "74978acbb9e86c6ad4c9a7938f9b148ab41dbfcf",
+  "focused_tests": {
+    "passed": 52,
+    "unit": 34,
+    "integration": 18,
+    "seconds": 2.15,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-tls/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "exit_code": 0,
+    "passed": 1086,
+    "skipped": 36,
+    "seconds": 143.83,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-tls/full-suite.txt"
+  },
+  "independent_review": {
+    "verdict": "PASS_SOURCE_REVIEW",
+    "model": "gpt-5.6-terra",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-tls/review.md",
+    "execution_evidence_owner": "root"
+  },
+  "ruff": "PASS",
+  "whitespace": "PASS",
+  "observed_platform": "Darwin with temporary synthetic CA and real loopback TLS; asserted fixed destination redirected to ephemeral fixture port",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_tls.py": "a4b4b7d94253c9eab986846593e128bc9e8e2fc32bff22f482771ca236314a1a",
+    "tests/test_forwarder_tls.py": "519f6fd254e8b23b4e161e0593b5d0af1493b508689dcc2d42e5f43682810db8",
+    "tests/test_forwarder_tls_integration.py": "2d363b2662e507677f1db6270e40cf4d03e269fb39d282d1930655bf3d9cf73f",
+    "docs/forwarder-control.md": "9bc790ec3ea537a43c03fe88424d4c3929809793af8b0567cee2e9da61883ced",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "ab8259b7d7a128d1ac5ce518e778c6fe66b27bf15f9caa54cae0fe071d9e8e61",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "028ec0dca5cf38251962bb9142a22c2c579725b95a41219e778ab404af8b7a2f",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-tls/implementation-plan.md": "6b8faf7f96fc44bcee436db6ffa1d4131ad7cd517ccbbfba4c2663b180e56b85",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-tls/review.md": "eb1b988afa5ffdcd1270d7dc2877db786f60970c5384789a44aca343c75aa5a0",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-tls/outcome.md": "6b62831415cb6a03c8c58808fcd1827ce0db4823a32981d748111f666b30009a",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-tls/focused-tests.txt": "7fea951fed34dbdbd998f4c1824a2415970079828f45042bf3d4135e067e8d75",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-tls/full-suite.txt": "70d5018601b9881047c551a337b976b4eb03ed5cde0d769ac7e57b007683503a"
+  },
+  "dependency_hashes": {
+    "grafana_jsm_sandbox/forwarder_services.py": "819c3657db8c052065488a16eee6966729f14939dd9a5c1c819394cb3ce3dc91"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Fixed-port server binding and server-side TLS listeners",
+    "Request-aware policies and lease integration",
+    "Native clients and provider/tenant operations",
+    "Deployed credentials, UID, mount and route isolation",
+    "Linux isolation",
+    "Durable Receiver/recovery/accounting integration",
+    "Cumulative paid exposure and experiment admission",
+    "Human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

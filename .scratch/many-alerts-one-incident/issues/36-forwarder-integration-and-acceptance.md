@@ -74,3 +74,12 @@ reports 1034 passed and 36 skipped. An existing TLS deadline test was repaired
 to avoid concurrent operations on one client SSL object while retaining its
 deadline and no-upstream assertions. Fixed service TLS/request policies and
 durable Receiver/accounting remain subsequent local work; this ticket stays open.
+
+The [fifth local unit](../reviews/forwarder-tls/outcome.md) adds a fixed-service
+TLS client boundary with explicit CA-only trust, exact service SANs, certificate
+lifetime bounds and one TCP/handshake deadline. Independent source review passes;
+52 focused tests and the full suite (1086 passed, 36 skipped) pass. Real local
+TLS fixtures use an asserted destination adapter to ephemeral ports; they do
+not qualify deployed fixed-port listeners, native clients or credential custody.
+Server TLS/request policies and durable Receiver/accounting remain next. This
+planning ticket stays open and no native/provider/deployment admission changes.

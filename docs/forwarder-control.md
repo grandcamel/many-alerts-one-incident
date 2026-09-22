@@ -138,7 +138,39 @@ shutdown with fixed diagnostics. The owner must keep this service's listener and
 controller exclusive; importing or constructing it does not wire the legacy
 launcher, load a secret or establish deployment isolation.
 
-The next integration units are fixed TLS listeners and
+## Fixed service TLS client boundary
+
+`connect_service_tls(service, ca_pem=..., timeout=1.0)` returns an exclusively
+caller-owned SSL socket connected to the service profile's fixed IPv4 loopback
+address and port. It sends no application bytes, accepts no alternate destination,
+and performs no DNS lookup, proxy selection or retry. A successful connection is
+a transport observation; it supplies no lease or request authority.
+
+The function accepts only bounded public CA certificate PEM supplied in memory,
+with no private-key blocks or non-CA certificates. It creates a fresh client
+context with certificate and hostname verification, TLS 1.2 or newer, and no
+common-name fallback. It loads only that CA bundle, without loading system roots,
+environment settings or files. Python documents these verification controls in
+the [ssl reference](https://docs.python.org/3.13/library/ssl.html).
+
+After the verified handshake, the certificate must name exactly the fixed service
+DNS identity and 127.0.0.1 in its SAN. Wildcards, additional identities and missing
+IP SANs are rejected. Leaf validity must be positive and at most 24 hours, with
+at least ten minutes remaining. These are the local ticket-36 certificate-policy
+bounds, not evidence of deployed CA custody or certificate rotation.
+
+One monotonic deadline covers TCP connect, TLS handshake and certificate policy
+evaluation. Clock faults or regression deny the connection. Setup failures close
+owned sockets; interrupted setup still attempts cleanup. If close and detach both
+fail, the code preserves the original failure rather than closing a descriptor
+still owned by another socket object. Exceptions do not report raw SSL details.
+The caller owns request deadlines and socket closure after a successful return.
+
+Tests use real local TLS handshakes and synthetic certificates. A test adapter
+asserts the selected fixed destination before connecting to an ephemeral fixture
+port; this does not qualify actual fixed-port listener binding or native clients.
+
+The next integration units are fixed server-side TLS listeners and
 request-aware service policies, followed by durable admission and the guarded
 launcher. Real provider/tenant operations, native execution and deployment remain
 gated by their own acceptance evidence. Local module tests cannot replace that
@@ -147,5 +179,5 @@ evidence or human Report adjudication.
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py
 ```

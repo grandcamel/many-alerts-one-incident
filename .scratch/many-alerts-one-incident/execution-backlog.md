@@ -37,9 +37,10 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **1034 passed, 36 skipped**, including 160 service,
-  lease, control, listener and supervisor tests plus existing regressions.
-  The [supervisor outcome](reviews/forwarder-supervisor/outcome.md),
+- Latest code validation: **1086 passed, 36 skipped**, including 212 service,
+  lease, control, listener, supervisor and TLS tests plus existing regressions.
+  The [TLS client outcome](reviews/forwarder-tls/outcome.md),
+  [supervisor outcome](reviews/forwarder-supervisor/outcome.md),
   [private-listener outcome](reviews/forwarder-listener/outcome.md),
   [control-session outcome](reviews/forwarder-control/outcome.md) and
   [first application outcome](reviews/forwarder-lease-implementation-outcome.md)
@@ -112,13 +113,21 @@ ownership, and reports unknown completion until outstanding work is observed.
 Fixed service TLS/request policies and durable Receiver/accounting integration
 remain subsequent local implementation work.
 
+The [fifth application unit](reviews/forwarder-tls/outcome.md) adds fixed-service
+TLS client connections using only explicit CA trust, exact SAN identities and
+bounded certificate lifetime. All five services pass real local TLS handshakes;
+negative trust, identity, lifetime and deadline cases fail closed. Test routing
+uses ephemeral fixture ports, so fixed server-port binding remains unqualified.
+Server-side TLS listeners/request policies and durable Receiver/accounting
+integration remain subsequent local work.
+
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener and managed supervision complete; next add fixed TLS/request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision and TLS client boundary complete; next add server TLS/request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets
