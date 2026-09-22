@@ -40,18 +40,22 @@ merely because its document is finished.
 
 ## Priority queue
 
-Current specification batch: [recovery](reviews/ticket-37/recovery-specification.md),
+Retained specification batches: [recovery](reviews/ticket-37/recovery-specification.md),
 [accounting](reviews/ticket-38/accounting-specification.md), and
-[audit](reviews/ticket-39/audit-specification.md). The
-[integration review](reviews/recovery-accounting-audit-integration.md) records
-their shared boundaries and review corrections. Their remaining interface and
-live-evidence gaps stay explicit; drafting them does not resolve those gates.
-The next independent drafting batch is tickets **35, 41 and 43**.
+[audit](reviews/ticket-39/audit-specification.md), followed by
+[telemetry](reviews/ticket-35/telemetry-specification.md),
+[Change](reviews/ticket-41/change-specification.md), and
+[Confluence](reviews/ticket-43/confluence-specification.md).
+The [first integration review](reviews/recovery-accounting-audit-integration.md)
+and [second integration review](reviews/telemetry-change-reference-integration.md)
+record their shared boundaries and corrections. Remaining interface and
+live-evidence gaps stay explicit; drafting does not resolve those gates.
+The next independent drafting batch is tickets **12, 16 and 36**.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
-| 2 | 35, 41, 43 | Sanitized telemetry, Change coordinator and scoped reference/draft specifications | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
+| 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Consolidate Eyes and compact Report proposals with the Forwarder request/receipt contract | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Memory acceptance, venue lifecycle/protected teardown and operator audience projection | Consume prior contracts; preserve distinct storage, retention and authority boundaries |
 | 5 | 23 and integration follow-ups | Close exact-client, process, transport, accounting and private-evidence gaps in bounded increments | Implementation only where authorized; fixtures retain their limited claims; full tests and independent review before local commits |

@@ -25,3 +25,12 @@ ADR 0014 and ticket 39 own the separate private citation-audit bundle (100 MiB/R
 ## Accepted audience input from ticket 34
 
 ADR 0018 adds an operator-only Memory presentation linking this sanitized activity/timeline. Human scoring summaries are sourced separately outside Run-readable feeds. Five-second refresh and 30-second stale display do not replace source timestamps, backend retention or gap handling. Ticket 44 owns that presentation specification.
+
+## Specification progress, 2026-09-22
+
+The [proposed implementation contract](../reviews/ticket-35/telemetry-specification.md)
+records the operation, identity, persistence, bounds and acceptance requirements.
+See the [cross-ticket integration review](../reviews/telemetry-change-reference-integration.md).
+Accepted ADR policy is separate from proposed implementation choices and current
+public documentation from intended-venue or tenant evidence. The ticket remains
+open for unresolved inputs and final integration; no runtime acceptance is claimed.

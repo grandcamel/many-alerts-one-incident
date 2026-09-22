@@ -21,3 +21,12 @@ Offline fixtures must exercise real coordinator/journal/transport/query interfac
 ## Accepted venue input from ticket 30
 
 ADR 0016 gates injection on venue age/readiness and requires verified off-cluster handoff of unresolved Change state before teardown. Preserve emergency undo and explicit uncertain stages when ordinary admission is held. Age 90 is not deletion authority; completed export does not mean the system recovered.
+
+## Specification progress, 2026-09-22
+
+The [proposed implementation contract](../reviews/ticket-41/change-specification.md)
+records the operation, identity, persistence, bounds and acceptance requirements.
+See the [cross-ticket integration review](../reviews/telemetry-change-reference-integration.md).
+Accepted ADR policy is separate from proposed implementation choices and current
+public documentation from intended-venue or tenant evidence. The ticket remains
+open for unresolved inputs and final integration; no runtime acceptance is claimed.

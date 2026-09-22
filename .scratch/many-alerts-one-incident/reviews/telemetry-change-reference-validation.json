@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "scope": "planning/source-only",
+  "baseline_commit": "cfbc890911a91ce1ef111362bac27af721f56d9c",
+  "tickets": [
+    35,
+    41,
+    43
+  ],
+  "checks": {
+    "markdown_documents": 11,
+    "local_link_targets_checked": 70,
+    "broken_local_links": 0,
+    "json_illustrations_parsed": 1,
+    "trailing_whitespace_errors": 0
+  },
+  "independent_reviews": [
+    {
+      "ticket": "35",
+      "reviewer": "stream_impl / gpt-5.6-terra",
+      "verdict": "PASS",
+      "reviewed_sha256": {
+        "ticket-35/telemetry-specification.md": "f4adefd3cde7c10db9651a1b88260614c619e71fe62cde56f791c0d67ef82f72",
+        "ticket-35/telemetry-sources.md": "c1884332b72c52eef96b22bda6270ff2936410f12ea81e041e66409ddfef77a4"
+      },
+      "boundary": "internal document review; no runtime acceptance"
+    },
+    {
+      "ticket": "41",
+      "reviewer": "stream_impl / gpt-5.6-terra",
+      "verdict": "PASS",
+      "reviewed_sha256": {
+        "ticket-41/change-specification.md": "b9ae4bafd8572968060b098d0201520a4ac467bd4a27f21fc6482de78f352316"
+      },
+      "boundary": "internal document review; no runtime acceptance"
+    },
+    {
+      "ticket": "43",
+      "reviewer": "integration_standards / gpt-5.6-luna",
+      "verdict": "PASS",
+      "reviewed_sha256": {
+        "ticket-43/confluence-specification.md": "24d8ceabd07d425010b2770dc74d811992fb2c4540fb3048ebeece08d7e48ede",
+        "ticket-43/source-map.md": "d19d3ed904f58a8adcd1f1544412dc5f1f03232e1fba1aa969e841289b64d000"
+      },
+      "boundary": "internal document review; no runtime acceptance"
+    }
+  ],
+  "root_integration_review": "PASS after source-claim, recipe, undo, receipt and privacy corrections",
+  "code_tests": {
+    "run_this_batch": false,
+    "reason": "documentation-only; no runtime/test code changed",
+    "latest_prior_code_commit": "17037db",
+    "prior_result": {
+      "passed": 794,
+      "skipped": 36
+    },
+    "new_contract_validation": false
+  },
+  "paid_experiments_launched": 0,
+  "historical_provider_charges": "unknown; not zero",
+  "not_run": [
+    "native client/exporter",
+    "intended venue",
+    "Kubernetes actuation and grants",
+    "collector/physical retention",
+    "Confluence tenant grants and draft lifecycle",
+    "human Report adjudication",
+    "provider-blocked C2"
+  ],
+  "artifacts_sha256": {
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "8240c9376b399d65e8eb192f6810d0b4faaa7e0accd3c9dc907255cebfe3dfa9",
+    ".scratch/many-alerts-one-incident/reviews/telemetry-change-reference-integration.md": "0eabdc1727c8caf8f0161b0d4400c34a488e369107e0865b5a85d1cbbc824fc7",
+    ".scratch/many-alerts-one-incident/reviews/ticket-35/telemetry-sources.md": "c1884332b72c52eef96b22bda6270ff2936410f12ea81e041e66409ddfef77a4",
+    ".scratch/many-alerts-one-incident/reviews/ticket-35/telemetry-specification.md": "f4adefd3cde7c10db9651a1b88260614c619e71fe62cde56f791c0d67ef82f72",
+    ".scratch/many-alerts-one-incident/reviews/ticket-41/change-specification.md": "b9ae4bafd8572968060b098d0201520a4ac467bd4a27f21fc6482de78f352316",
+    ".scratch/many-alerts-one-incident/reviews/ticket-41/recipe-source-check.md": "1382c2b55bc86c8df8d5b23039b57d1345f0489c16c6a56ae1111af40a1c5bd2",
+    ".scratch/many-alerts-one-incident/reviews/ticket-43/confluence-specification.md": "e857b8f345f07f58369ea495d942e9610aac4cabc73208f6a7758eeb94195d87",
+    ".scratch/many-alerts-one-incident/reviews/ticket-43/source-map.md": "d19d3ed904f58a8adcd1f1544412dc5f1f03232e1fba1aa969e841289b64d000",
+    ".scratch/many-alerts-one-incident/issues/35-run-telemetry-integration-and-acceptance.md": "2ee27f1f3aa100f439b478242cea9dd6f9a0039797c389d767549a51476abd50",
+    ".scratch/many-alerts-one-incident/issues/41-change-coordinator-and-retrieval-specification.md": "09610884c76841ff4f1a07f7f331c510f643231a358df0b72eada56e364230cc",
+    ".scratch/many-alerts-one-incident/issues/43-confluence-scope-approval-and-draft-integration.md": "29ad85eb12180cda984a319a2f54ce96626f8f6c8bb5f577b83cc54a0a4cece0"
+  },
+  "root_post_review_delta": "Removed one blank line at EOF from ticket-43 specification; content unchanged. Independent review hashes retain exact reviewed bytes."
+}

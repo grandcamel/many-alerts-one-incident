@@ -23,3 +23,12 @@ Coordinate interfaces with tickets 32/36/37/39 without circular specification de
 ## Accepted audience input from ticket 34
 
 ADR 0018 renders distinct draft/reference identities with approval/version provenance, incomplete writes and immediate revocation state. Its pinned historical snapshots never restore current approval or serve withdrawn references. Expose only safe read-only projection fields to the operator view; mutation/curator controls remain separate.
+
+## Specification progress, 2026-09-22
+
+The [proposed implementation contract](../reviews/ticket-43/confluence-specification.md)
+records the operation, identity, persistence, bounds and acceptance requirements.
+See the [cross-ticket integration review](../reviews/telemetry-change-reference-integration.md).
+Accepted ADR policy is separate from proposed implementation choices and current
+public documentation from intended-venue or tenant evidence. The ticket remains
+open for unresolved inputs and final integration; no runtime acceptance is claimed.
