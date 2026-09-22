@@ -93,3 +93,13 @@ separate registered/active/revoked/service/scope/generation lease checks. No
 server transport, route authorization, native client compatibility or deployed
 request acceptance is implied. Server TLS/receipt, route policies and durable
 Receiver/accounting remain subsequent work; this planning ticket stays open.
+
+The [seventh local unit](../reviews/forwarder-server-tls/outcome.md) adds fixed
+TLS listeners with exclusive configured-context ownership, exact SNI, a shared
+accept/handshake deadline and explicit closeout state. Real local fixed-port
+exclusivity and client/listener/parser composition pass; deadline-clipped idle
+accept polling corrects observed Darwin shutdown behavior. Independent review
+passes; focused tests report 49 passed and the full suite 1239 passed, 36 skipped.
+The operator still owns context/key custody; production HTTP collection, route
+policy and dispatch coordination remain separate work. This planning ticket
+stays open, with native and deployment acceptance gates unchanged.

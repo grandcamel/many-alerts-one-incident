@@ -170,6 +170,48 @@ Tests use real local TLS handshakes and synthetic certificates. A test adapter
 asserts the selected fixed destination before connecting to an ephemeral fixture
 port; this does not qualify actual fixed-port listener binding or native clients.
 
+## Fixed service TLS listeners
+
+`FixedTLSListener(service, context=...)` adopts a trusted operator-supplied
+server SSL context. The operator loads its certificate/key first, then transfers
+exclusive ownership: the context must not be reused or mutated afterwards.
+Duplicate adoption and TLS key logging are rejected. The constructor starts no
+listener, loads no files and does not prove certificate custody or freshness.
+Certificate CA, identity and lifetime validation still belongs to the strict
+client/readiness probe.
+
+The listener configures TLS 1.2 or newer and HTTP/1.1 ALPN. Its SNI callback rejects
+missing or mismatched service names with an unrecognized-name alert. Python's
+[SSL context reference](https://docs.python.org/3.13/library/ssl.html#ssl.SSLContext.sni_callback)
+describes SNI callbacks and TLS configuration. Client certificates are not used
+for request authentication; the request sentinel and scope checks remain required.
+
+`open()` binds only the selected profile's fixed IPv4 loopback port, with backlog
+four and no address/port reuse or fallback. Opening is one-shot, including after
+failure or close. `accept(timeout=1.0)` admits at most one caller and uses one
+finite deadline (at most ten seconds) across waiting and TLS handshake. Idle
+accept polls at most 0.1 seconds at a time, clipped to the remaining deadline,
+so terminal shutdown can be observed on systems where socket close does not
+promptly wake a blocked accept. Handshake failure receives no automatic retry.
+All owned sockets are non-inheritable.
+
+`close()` interrupts the listening socket and an in-flight handshake, while
+preserving the caller's ownership of previously returned connections. It returns
+`unknown` while accept is exiting; a later call may observe `closed`. Failed
+socket cleanup retains its handle for safe retry and permanently latches
+`unknown`, denying subsequent accepts. Cleanup and raw-to-TLS ownership transfer
+are serialized. The caller owns worker joins and returned socket closure; Python
+and OS stalls are not a hard real-time shutdown guarantee.
+
+Local tests cover real TLS for all five services, strict-client and parser
+composition, exact/missing/wrong SNI, HTTP/1.1 ALPN, stalled/plaintext peers and
+shutdown interruption. Handshake fixtures assert the fixed address selection
+before redirecting to ephemeral ports. A separate test binds each actual fixed
+port and verifies exclusive occupancy without fallback. These observations do
+not qualify deployed namespace isolation or native client configuration. Fixture
+request collection uses a known byte length; production bounded HTTP receipt and
+response handling still need implementation.
+
 ## Common HTTP request structure
 
 `parse_request(data, service, allowed_query_keys=frozenset(),
@@ -210,7 +252,7 @@ coordinate lease checks with dispatch and revocation. A complete-buffer parser
 cannot detect bytes that arrive later or establish deployed transport behavior.
 The existing launcher is not wired to it.
 
-The next integration units are fixed server-side TLS listeners and
+The next integration units are bounded HTTP receipt/response handling and
 request-aware service policies, followed by durable admission and the guarded
 launcher. Real provider/tenant operations, native execution and deployment remain
 gated by their own acceptance evidence. Local module tests cannot replace that
@@ -219,5 +261,5 @@ evidence or human Report adjudication.
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py
 ```

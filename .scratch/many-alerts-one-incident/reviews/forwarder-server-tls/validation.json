@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_FIXED_SERVICE_TLS_LISTENER",
+  "baseline_commit": "6e3f005fa9f418d98a4dc9e1320926610a4e9698",
+  "focused_tests": {
+    "passed": 49,
+    "unit": 30,
+    "integration": 19,
+    "seconds": 1.76,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-server-tls/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "exit_code": 0,
+    "passed": 1239,
+    "skipped": 36,
+    "seconds": 138.37,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-server-tls/full-suite.txt"
+  },
+  "early_failure": {
+    "failed": 1,
+    "passed": 17,
+    "seconds": 5.85,
+    "scope": "root real TLS integration suite",
+    "disposition": "Darwin close did not promptly wake idle accept; added original-deadline-clipped polling, retained and strengthened shutdown assertion"
+  },
+  "independent_review": {
+    "verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "model": "gpt-5.6-terra",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-server-tls/review.md",
+    "execution_evidence_owner": "root"
+  },
+  "ruff": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "observed_platform": "Darwin Python 3.13.7 OpenSSL 3.0.16",
+  "observed_scope": [
+    "Actual fixed IPv4 loopback port bind and exclusive occupancy for five services",
+    "Real local TLS handshakes on asserted fixed-destination adapters redirected to ephemeral ports",
+    "Local strict TLS client/listener/HTTP parser composition with known-length fixture collection",
+    "Finite accept/handshake, concurrent close and cleanup ownership fault tests"
+  ],
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_server_tls.py": "3d38ffbeb8d3bd2f9d2c25aa752a94b2e0fcee0ecf6c3ddfc25342b40924e37a",
+    "tests/test_forwarder_server_tls.py": "c9ed8e45676b1e147159c4516fb1f85e643292ddb7dbe7ea743118b3dca756dd",
+    "tests/test_forwarder_server_tls_integration.py": "9e9f1416606e5c4fc7112ee3e4c3c9d9fc633fc2f4c3db3f0da7e875411394a6",
+    "docs/forwarder-control.md": "8b6ae930448c442b125815d9b663eaad138a8b74f08bd9e12337f98dbaae002d",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "3f3c976691e60cbcae3bd9c821fcada579059796128e5f560d7ae60ea87bb89d",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "f60064b6495822abe2085b385fca936b24b4d8fa2380dc90771d90d546468f76",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-server-tls/implementation-plan.md": "9d88cbbda6755b13189b8deb47fb9753232500162916bdb2e54d1882461ff8cf",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-server-tls/review.md": "e81dc0269cb07119fda8ae035482b2efa79171a869377d9d81c2537930d51625",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-server-tls/outcome.md": "286d8564e25ce09fe7fa2ddd0c401fd7894612c2fdf7f951ed68c5694ab608c2",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-server-tls/focused-tests.txt": "01b2c458b6c4ea164a931477b46161c439a41acba08329189472dc059123f95b",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-server-tls/full-suite.txt": "697a746f28980e1cb3178e3b34f813a83456c96c2fd47a9e59f96476a90a4db1"
+  },
+  "dependency_hashes": {
+    "grafana_jsm_sandbox/forwarder_services.py": "819c3657db8c052065488a16eee6966729f14939dd9a5c1c819394cb3ce3dc91",
+    "grafana_jsm_sandbox/forwarder_tls.py": "a4b4b7d94253c9eab986846593e128bc9e8e2fc32bff22f482771ca236314a1a",
+    "grafana_jsm_sandbox/forwarder_http.py": "8ea326995573a737c25f2766479fc5854cd327c72ce12fc88e1367f0632d0b24",
+    "tests/test_forwarder_tls_integration.py": "2d363b2662e507677f1db6270e40cf4d03e269fb39d282d1930655bf3d9cf73f"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Production bounded HTTP receipt/response and per-route policy",
+    "Atomic lease/revocation/dispatch coordination",
+    "Native ClientProfile compatibility",
+    "Operator TLS context freshness, deployed certificate/key custody and immutable use",
+    "Deployed UID/mount/route/network namespace isolation",
+    "Provider/tenant/native execution",
+    "Durable Receiver/recovery/accounting",
+    "Paid cumulative exposure and experiment admission",
+    "Human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}
