@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_COMMON_HTTP_REQUEST_BOUNDARY",
+  "baseline_commit": "4e1b2067b42e99e7bf088e3bf5d6715358f084d8",
+  "focused_tests": {
+    "passed": 104,
+    "seconds": 0.27,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "exit_code": 0,
+    "passed": 1190,
+    "skipped": 36,
+    "seconds": 145.25,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-http/full-suite.txt"
+  },
+  "early_failure": {
+    "failed": 1,
+    "passed": 51,
+    "scope": "root adversarial suite before opaque-body newline fix",
+    "disposition": "Moved newline validation to request line and headers; final full suite includes correction and regression coverage"
+  },
+  "independent_review": {
+    "verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "model": "gpt-5.6-terra",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-http/review.md",
+    "execution_evidence_owner": "root"
+  },
+  "ruff": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "observed_scope": "Pure complete-buffer parser and in-process lease composition on Darwin; no HTTP transport implemented",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_http.py": "8ea326995573a737c25f2766479fc5854cd327c72ce12fc88e1367f0632d0b24",
+    "tests/test_forwarder_http.py": "60d5be41ee276816a36d46936e138f523ea34f985ce9a7116809fbfa3e8dee1f",
+    "tests/test_forwarder_http_adversarial.py": "183cd34452cb1d14ef0fb566302e02e76f5041aa7391f575c00446b777830ff5",
+    "docs/forwarder-control.md": "bd8ebe41dba973b563be7a898b56919b5bd160164f4ace81be6bf41ad80bb525",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "d9caf26ec52c5398c0e92b461456d9cf5e5c21650395670d509e76df78b879b9",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "943da8f3ad42368eb6aa0fc77714cc41d28e4b3a3fa9093a5c891720ba48566c",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http/implementation-plan.md": "f96843dbb59365135c0bed24c7f25f6b71ea8d243f36f80aa00865af93ef9b38",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http/review.md": "2af542544ce2301c30ea62db88312115080c203f38436d8b76f8defdb2ef0eb0",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http/outcome.md": "7fbd05c3a16062363b1385e027578b0d29d8cbe24bdb3610d09d4aa77f34edb1",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http/focused-tests.txt": "3d7c0a0a8834939f0fc0a9bbd036c2927c462cce8611314dc4c8c3f7f6fc02d1",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-http/full-suite.txt": "a59c04d50dec51a89a45d865f905b6c472ddf568ccd1dfb1091039a244d43e4a"
+  },
+  "dependency_hashes": {
+    "grafana_jsm_sandbox/forwarder_services.py": "819c3657db8c052065488a16eee6966729f14939dd9a5c1c819394cb3ce3dc91",
+    "grafana_jsm_sandbox/forwarder_leases.py": "14b50bf283f183178efffd562b6900623ab769ca94cf892ead21bf6710262655"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Server TLS and bounded collection/transport deadlines",
+    "Per-route body/query policy and atomic dispatch authorization",
+    "Native ClientProfile compatibility",
+    "Fixed-port binding and deployed credential/OS isolation",
+    "Provider/tenant or native client execution",
+    "Durable Receiver/recovery/accounting",
+    "Paid cumulative exposure and experiment admission",
+    "Human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

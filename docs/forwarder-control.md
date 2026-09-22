@@ -170,6 +170,46 @@ Tests use real local TLS handshakes and synthetic certificates. A test adapter
 asserts the selected fixed destination before connecting to an ephemeral fixture
 port; this does not qualify actual fixed-port listener binding or native clients.
 
+## Common HTTP request structure
+
+`parse_request(data, service, allowed_query_keys=frozenset(),
+accept="application/json")` validates one complete byte buffer. It accepts
+HTTP/1.1 origin-form requests using the deliberately narrow local profile in
+`forwarder_http`. The parser rejects ambiguous framing and path aliases, drawing
+on the message syntax in [RFC 9112](https://www.rfc-editor.org/rfc/rfc9112.html)
+and URI grammar in [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986.html). This
+profile is stricter than general HTTP syntax; native client compatibility still
+requires separate evidence.
+
+The request line including CRLF is at most 2 KiB; headers after that line,
+including the final blank CRLF, are at most 16 KiB and 64 fields; the body is at
+most 256 KiB. GET permits no body, absent length or canonical zero. POST, PUT,
+PATCH and DELETE require an exact canonical Content-Length and application/json
+Content-Type. The body is preserved as bytes; route-specific JSON validation is
+still required. Any captured bytes beyond the declared body are rejected.
+
+Host must match the selected service DNS and fixed port. Authorization and Accept
+are required. The narrow header allowlist also permits Content-Length,
+Content-Type and an optional User-Agent, which is discarded. Every duplicate or
+unrecognized header fails closed. The expected Accept and query-key allowlist
+are trusted route configuration, never caller-requested authority. Queries are
+denied by default. Values require separate operation-specific validation; decoded
+query delimiters remain values and must be safely encoded if reconstructed.
+
+Jira and Confluence use canonical Basic credentials with user `run` and the lease
+sentinel as password. The other services use canonical Bearer sentinels. Each
+sentinel must encode exactly 32 bytes as unpadded base64url, including canonical
+pad bits. The immutable result excludes path, query, body and sentinel from its
+representation and retains no raw headers. Parsing only extracts the token;
+the current generation, lease, service and scope must still be checked.
+
+This module opens no sockets and grants no dispatch or readiness authority. A
+future server must bound receipt while collecting the buffer, enforce TLS and
+absolute deadlines, close after one request, select an authorized route, and
+coordinate lease checks with dispatch and revocation. A complete-buffer parser
+cannot detect bytes that arrive later or establish deployed transport behavior.
+The existing launcher is not wired to it.
+
 The next integration units are fixed server-side TLS listeners and
 request-aware service policies, followed by durable admission and the guarded
 launcher. Real provider/tenant operations, native execution and deployment remain
@@ -179,5 +219,5 @@ evidence or human Report adjudication.
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py
 ```

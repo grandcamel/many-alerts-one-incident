@@ -83,3 +83,13 @@ TLS fixtures use an asserted destination adapter to ephemeral ports; they do
 not qualify deployed fixed-port listeners, native clients or credential custody.
 Server TLS/request policies and durable Receiver/accounting remain next. This
 planning ticket stays open and no native/provider/deployment admission changes.
+
+The [sixth local unit](../reviews/forwarder-http/outcome.md) adds the common HTTP
+complete-buffer parser: strict framing and sizes, fixed Host/Accept, canonical
+Basic/Bearer sentinels, path ambiguity rejection and query-key allowlists.
+Independent source/test review passes. Focused tests report 104 passed; the full
+suite reports 1190 passed and 36 skipped. Local composition tests preserve the
+separate registered/active/revoked/service/scope/generation lease checks. No
+server transport, route authorization, native client compatibility or deployed
+request acceptance is implied. Server TLS/receipt, route policies and durable
+Receiver/accounting remain subsequent work; this planning ticket stays open.
