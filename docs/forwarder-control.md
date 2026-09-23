@@ -483,13 +483,94 @@ composition with the lease registry and receipt ledger. No lease resolution,
 dispatch, upstream serialization, credential, tenant ID, native client or
 deployment is qualified.
 
-The next integration units are lease, permit and upstream coupling with durable
-admission and the guarded launcher. Real provider/tenant operations, native
-execution and deployment remain gated by their own acceptance evidence. Local
-module tests cannot replace that evidence or human Report adjudication.
+## Dispatch admission, write fence and the one-request exchange
+
+`forwarder_dispatch.DispatchGate(registry=..., ledger=...)` is the dispatch
+authority for one Forwarder generation. It permanently claims exactly one lease
+registry and one receipt ledger with the same generation; a second gate over
+either object is refused. It never calls a mutating registry method: only
+`ForwarderControl` mutates the registry, and only the gate and `send_response`
+write the ledger. One gate lock is held across each authorizing lease check and
+the ledger transition it justifies, with no I/O or injected code in between
+except the three monotonic clocks, which must share one domain. Lock order is the
+control lock, then the gate lock, then the registry lock; the gate lock also
+precedes the ledger lock, and neither inner lock calls outward.
+
+There are two linearization points. `admit` runs the lease check with the stored
+record generation and moves the ledger entry to `connecting`; `begin_write` runs
+the final lease check and moves it to `dispatched` immediately before the first
+possible upstream write. Every retirement (revoke, control EOF, owner
+replacement, hold, expiry and heartbeat loss) is ordered with these checks under
+the registry lock. After a retirement or gate shutdown returns, no later admit or
+write fence succeeds for that lease. An admitted request stopped at the fence is
+finalized `FAILED` with zero application bytes; a request whose fence preceded
+the retirement may still complete and is delivered. The consume-at-admit,
+re-verify-at-fence rule for future AuthorizeDispatch permits is decided but not
+implemented; permit routes are denied at both slots.
+
+`install_scope` installs a Receiver scope manifest only after
+`require_manifest_binding` and exact comparison with the registry record, and
+indexes it by a keyed HMAC of service and sentinel; the raw sentinel is not kept.
+Entries are count- and byte-bounded and age out after 310 seconds. It has no
+production caller until manifest delivery over control exists. Handles,
+admissions and scope entries are authenticated by identity.
+
+Deadlines share one clock domain. The inbound handler deadline is `started + 40`;
+every reserved receipt is clipped to the lease expiry; upstream work ends one
+second earlier, leaving margin to finalize and deliver before the ledger sweep.
+Admission requires at least two seconds of budget and the fence at least half a
+second of write budget. The connect deadline is at most five seconds and the
+write deadline at most ten, both clipped to the exchange deadline. The precheck
+denial alone keeps the unclipped handler deadline, because the lease may already
+have expired.
+
+A flight whose deadline passes is marked overdue by the next gate call that ticks
+the gate clock (there is no timer), rather than deleted: its abort callable then fires
+once outside the gate lock, it keeps its capacity slot, and `closeout` reports
+`overdue` (to be treated as unknown) until its owner returns. A connector that
+ignores both its deadline and its abort holds that slot until it returns; the
+client sees EOF, and deadlines are not hard real-time.
+`closeout(lease_id)` reports `open`, `draining`, `overdue`, `quiescent` or
+`unknown` from in-process registry, ledger and gate observations only; it is not
+yet a control reply. A held gate (clock fault or clock-domain mismatch) closes
+every new request without bytes; a closed gate after `shutdown` answers with
+receipt-backed 403 denials. Shutdown aborts channels already attached to admitted
+or writing flights without holding the registry; a connect in progress is not
+interrupted and is then denied at the fence. The intended supervisor order is
+control service stop, then gate shutdown, then listener close.
+
+`forwarder_exchange.serve_request` serves one request on an accepted inbound TLS
+socket: sized request collection, sentinel resolution, lease precheck, route
+policy, a connector-prepared request digest (never the version-1 route digest),
+reservation, admission, connect, write fence, send, receive, response policy,
+finalization and receipt-gated delivery. No response byte is sent without a
+recorded receipt. Parse, sentinel, capacity, held-gate, expired-deadline and
+internal failures close without response bytes; those before reservation leave no
+receipt, while a deadline after reservation leaves the ledger's swept `abandoned`
+receipt.
+`serve_one` binds the receipt service to the accepting listener and closes the
+connection after the response. The upstream is an injected connector; source
+ships none, so `upstream=None` yields a 403. The two existing-module changes are
+additive: `receive_request_sized` returns the exact inbound byte count, and
+`FixedTLSListener.service` exposes the bound service.
+
+Deterministic, adversarial, real-thread race and real-local-TLS tests with fake
+connectors cover admission and fence ordering against every retirement cause,
+overdue and shutdown behavior, capacity, forgeries, error chains, event order and
+receipt mapping. No real upstream connection, connector contract, credential,
+AuthorizeDispatch permit, manifest delivery, control closeout, worker supervisor,
+readiness wiring, durable journal, native client or deployment is qualified.
+`FAILED` is truthful only if a connector's `connect` writes no application bytes,
+and ledger clock divergence is detected only partially.
+
+The next integration units are the fixed-origin upstream connector (13b), then
+control framing, durable admission and the guarded launcher. Real provider/tenant
+operations, native execution and deployment remain gated by their own acceptance
+evidence. Local module tests cannot replace that evidence or human Report
+adjudication.
 
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py tests/test_forwarder_dispatch.py tests/test_forwarder_dispatch_seams.py tests/test_forwarder_dispatch_races.py tests/test_forwarder_dispatch_adversarial.py tests/test_forwarder_exchange.py tests/test_forwarder_exchange_integration.py tests/test_forwarder_exchange_adversarial.py
 ```

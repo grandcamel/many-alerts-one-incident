@@ -139,9 +139,9 @@ def _collect_head(connection: ssl.SSLSocket, deadline: float,
     return bytes(captured[:end]), bytes(captured[end:]), previous
 
 
-def receive_request(connection: ssl.SSLSocket, service: str, *, deadline: float,
-                    allowed_query_keys: frozenset[str] = frozenset(),
-                    accept: str = "application/json") -> ParsedRequest:
+def _receive(connection: ssl.SSLSocket, service: str, *, deadline: float,
+            allowed_query_keys: frozenset[str] = frozenset(),
+            accept: str = "application/json") -> tuple[ParsedRequest, int]:
     """Collect one bounded request under the caller's absolute handler deadline."""
     secured = _claim_and_validate(connection)
     now = _clock()
@@ -157,6 +157,7 @@ def receive_request(connection: ssl.SSLSocket, service: str, *, deadline: float,
     succeeded = False
     primary_failure = False
     result: ParsedRequest | None = None
+    byte_count = 0
     observed = now
     try:
         previous_timeout = secured.gettimeout()
@@ -191,6 +192,7 @@ def receive_request(connection: ssl.SSLSocket, service: str, *, deadline: float,
             allowed_query_keys=allowed_query_keys,
             accept=accept,
         )
+        byte_count = len(captured)
         _unused, observed = _remaining(absolute_deadline, observed)
         succeeded = True
     except HTTPReceiveError:
@@ -212,4 +214,30 @@ def receive_request(connection: ssl.SSLSocket, service: str, *, deadline: float,
     if result is None:
         _fail("receive_failed")
     _remaining(absolute_deadline, observed)
-    return result
+    return result, byte_count
+
+
+def receive_request(connection: ssl.SSLSocket, service: str, *, deadline: float,
+                    allowed_query_keys: frozenset[str] = frozenset(),
+                    accept: str = "application/json") -> ParsedRequest:
+    """Collect one bounded request under the caller's absolute handler deadline."""
+    return _receive(
+        connection,
+        service,
+        deadline=deadline,
+        allowed_query_keys=allowed_query_keys,
+        accept=accept,
+    )[0]
+
+
+def receive_request_sized(connection: ssl.SSLSocket, service: str, *, deadline: float,
+                          allowed_query_keys: frozenset[str] = frozenset(),
+                          accept: str = "application/json") -> tuple[ParsedRequest, int]:
+    """Collect one bounded request and also report its exact inbound wire byte count."""
+    return _receive(
+        connection,
+        service,
+        deadline=deadline,
+        allowed_query_keys=allowed_query_keys,
+        accept=accept,
+    )

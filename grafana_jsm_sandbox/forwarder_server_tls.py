@@ -112,6 +112,11 @@ class FixedTLSListener:
         self._state_lock = threading.RLock()
         self._accept_gate = threading.Lock()
 
+    @property
+    def service(self) -> str:
+        """The bound service name; read-only."""
+        return self._service
+
     def open(self) -> None:
         """Bind the sole fixed loopback socket.  Opening is one-shot."""
         with self._state_lock:

@@ -153,3 +153,13 @@ returned scope. Mutations, projections, continuations and every non-Jira route
 remain unavailable with named missing inputs. Independent review passes; the full
 suite reports 2627 passed, 36 skipped. Lease/permit/upstream coupling and durable
 Receiver/accounting remain subsequent work. This planning ticket stays open.
+
+The [thirteenth local unit (13a)](../reviews/forwarder-dispatch/outcome.md) adds
+the atomic dispatch gate and one-request exchange. Admission and a pre-write
+fence each pair the final lease check with its ledger transition under one lock,
+so revocation, expiry, heartbeat loss, hold or shutdown atomically prevents new
+dispatch while already written requests may complete. In-flight and overdue
+dispatches remain observable for closeout. Independent review passes; the full
+suite reports 2919 passed, 36 skipped. The real upstream connector (13b), control
+framing, permits and durable Receiver/accounting remain subsequent work. This
+planning ticket stays open.

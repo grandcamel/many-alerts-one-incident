@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-23",
+  "status": "PASS_LOCAL_ATOMIC_DISPATCH_GATE_AND_ONE_REQUEST_EXCHANGE",
+  "baseline_commit": "edd3ad5",
+  "unit_tests": {
+    "passed": 292,
+    "repeated_runs": 3
+  },
+  "focused_tests": {
+    "passed": 2045,
+    "seconds": 82.27,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 2919,
+    "skipped": 36,
+    "seconds": 149.58,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/full-suite.txt"
+  },
+  "existing_tests_byte_identical": true,
+  "design": {
+    "designs": 3,
+    "judges": 2,
+    "critic_issues_resolved": 20,
+    "root_reconciled_against": "edd3ad5"
+  },
+  "review": {
+    "workflow_rounds": 3,
+    "confirmed": 32,
+    "fixed_by_workflow": 22,
+    "root_source_fixes": 3,
+    "test_gaps_closed": 7,
+    "gap_mutations_confirmed": 11,
+    "final_verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "addendum_verdict": "PASS",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "final_mutants": 38,
+    "final_killed": 35,
+    "final_equivalent": 2,
+    "post_review_test_gap_closed": "install_scope sentinel-to-lease binding (mutation killed; re-verified by reviewer)",
+    "implementation_models": "claude-sonnet-5 workers and testers; claude-opus-5-5 designers, judges, lens reviewers and fixer; claude-sonnet-5 verifiers",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/review.md"
+  },
+  "size": {
+    "forwarder_dispatch_lines": 1042,
+    "statement_lines_approx": 854,
+    "target": 850,
+    "forwarder_exchange_lines": 531,
+    "target_exchange": 450,
+    "assessment": "design content, not bloat"
+  },
+  "ruff": "PASS",
+  "line_length": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_dispatch.py": "d74de44ee934e92658f6115cf7610e873ee04a903ca172abd7e981f97320b6c2",
+    "grafana_jsm_sandbox/forwarder_exchange.py": "7461484cc0b1afc88eebdbd941095eb0ed3fe25758c1427f817f4588ea5f810a",
+    "grafana_jsm_sandbox/forwarder_http_receive.py": "80a9dada1bc2f36fb01d2e9c0f5edb80dbf0f6297bead2745ff92137cf8cf806",
+    "grafana_jsm_sandbox/forwarder_server_tls.py": "ebe58ace2489d38759b1ffe4b852e02ec69749c51368f315c1ca513abcdade7e",
+    "tests/test_forwarder_dispatch.py": "c8088861eb409feeda4d23bcf0ee26cde95ce72ff4768c1f7c7d9fb7a2767740",
+    "tests/test_forwarder_dispatch_seams.py": "9c9e6cde1a3ca381c6f36efef75806c2552735ce00a71fb0177a3aab7d49fbfe",
+    "tests/test_forwarder_exchange.py": "6c8db23af3d13f577854e88d9f9f9e36107971b6202ff4ea32d70919ca2d0ea8",
+    "tests/test_forwarder_exchange_integration.py": "1b5fb6ffecbb662ed7adda792aa8713dda58fcd0f3eb9e2c4889ee4ae3d4ffb1",
+    "tests/test_forwarder_dispatch_races.py": "763231362bdcfd6133e1cfdbd44b49fe126aa926511b4c67717718f842d42ad4",
+    "tests/test_forwarder_dispatch_adversarial.py": "9efd998dda5fb8fc209004bf2980a25063e4747e1b89ff9213c085f44e711987",
+    "tests/test_forwarder_exchange_adversarial.py": "aa47575fb557b3981e805a6580daa72dc80f84d8ece78fdcd2c63d506d870556",
+    "docs/forwarder-control.md": "87244c95a69c512a48b2ec5ffc89f3eed920dbd7eade00442e996d26ed5d6009",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "cb3d222046452bad657679d6e6271eff3cecd93650a12637cc1a02100ee23f5b",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "d26a4ae6f5444945eaf7cef30e148ce124faeb5e1217c8f784032d1717347d12",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/implementation-plan.md": "d5d6ab4ec26114a52050994eea076e9e523e03ef69b67175affbd6c8f35a355a",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/review.md": "0609634b037aaff0215a9d347f7aef316dd0cd4a65da4ee4bd144ca3d4896ea2",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/outcome.md": "a9e984a69dbfb66591a9dbbe7554190c548d715370cfbbc6e39bd4d68551bd39",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/focused-tests.txt": "9dfd717d8b5ff754bc24bb4172d0ef2dd2fa824216c7a8443f9b17297141fb9e",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/full-suite.txt": "3593374266dc98cc8184cf705cfa3ba208f1ea68e93515701563f72de318e813",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/implementation-plan.md": "f788220515add29b25fe569dc0c4e14ce90dd2bba8e13f5d67713498107343a1"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "observed_scope": [
+    "Exclusive gate over one registry and ledger with admission and write-fence linearization points",
+    "Record-verified HMAC-indexed scope store with count/byte bounds and retention",
+    "Overdue flights, lazy abort, closeout drain states and shutdown without registry mutation",
+    "Receipt-gated one-request exchange with injected fake connectors over real local inbound TLS",
+    "Additive receive_request_sized and FixedTLSListener.service seams"
+  ],
+  "not_qualified": [
+    "Real upstream connection, connector contract, credential and v2 digest",
+    "AuthorizeDispatch permits, manifest delivery and control-level closeout",
+    "Worker supervisor, readiness wiring, PARTIAL, durable journal, SSE and non-Jira routes",
+    "Hard real-time deadlines and connectors ignoring both deadline and abort",
+    "Native clients, deployment, paid exposure and human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

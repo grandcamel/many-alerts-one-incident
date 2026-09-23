@@ -39,10 +39,11 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **2627 passed, 36 skipped**, including 1753 focused
+- Latest code validation: **2919 passed, 36 skipped**, including focused
   service, lease, control, listener, supervisor, TLS, HTTP, receipt, response-send,
-  JSON and route-policy tests plus existing regressions.
-  The [route-policy outcome](reviews/forwarder-routes/outcome.md),
+  JSON, route-policy, dispatch-gate and exchange tests plus existing regressions.
+  The [dispatch-gate outcome](reviews/forwarder-dispatch/outcome.md),
+  [route-policy outcome](reviews/forwarder-routes/outcome.md),
   [receipt and response-send outcome](reviews/forwarder-receipts/outcome.md),
   [TLS response collection outcome](reviews/forwarder-response-receive/outcome.md),
   [HTTP response outcome](reviews/forwarder-http-response/outcome.md),
@@ -203,13 +204,25 @@ full suite reports 2627 passed, 36 skipped. The reviewed
 13a: the atomic dispatch gate, write fence and one-request exchange with an
 injected upstream, followed by the fixed-origin upstream connector (13b).
 
+The [thirteenth application unit (13a)](reviews/forwarder-dispatch/outcome.md)
+adds the atomic dispatch gate and one-request exchange. Lease checks and ledger
+transitions share one gate lock at admission and at a write fence before the
+first upstream write, so no admission or write begins after an ordered
+retirement or shutdown. Scope entries install only after registry-record
+verification; overdue flights keep their slot and fire one abort; closeout
+reports in-process drain state. Only receipt-backed bytes reach the client, and
+no upstream connector ships in source. Two existing modules gained additive
+seams. Independent review passes; the full suite reports 2919 passed, 36 skipped.
+The reviewed [upstream plan](reviews/forwarder-upstream/implementation-plan.md)
+defines 13b, the synthetic fixed-origin connector and v2 request digest.
+
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts, receipt-gated response send, strict JSON and read-only Jira route policy complete; next add the atomic dispatch gate and one-request exchange (13a), the fixed-origin upstream connector (13b), then durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts, receipt-gated response send, strict JSON, read-only Jira route policy, atomic dispatch gate and one-request exchange complete; next add the synthetic fixed-origin upstream connector (13b), then control framing and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets
