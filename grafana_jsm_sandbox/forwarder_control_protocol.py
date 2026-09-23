@@ -1,7 +1,9 @@
 """Bounded JSON frames for the authenticated Forwarder control socket.
 
 The control session owns authentication and command semantics.  This module only
-serializes one deliberately small, self-contained frame at a time.
+serializes one deliberately small, self-contained frame at a time.  Exactly one
+opaque attachment kind, a Receiver scope manifest, may follow a schema-valid gated
+registration header, and its length is declared twice and must match.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from typing import Any
 
 MAX_FRAME_BYTES = 8192
 FRAME_TIMEOUT_SECONDS = 10.0
+MAX_ATTACHMENT_BYTES = 16_384
 
 _MAX_OBJECT_DEPTH = 4
 _MAX_KEY_BYTES = 64
@@ -76,6 +79,49 @@ def send_frame(sock: socket.socket, payload: dict, *, timeout: float = FRAME_TIM
     try:
         _send_exact(sock, struct.pack("!I", len(body)) + body, deadline)
         _check_deadline(deadline)
+    finally:
+        _restore_timeout(sock, previous_timeout)
+
+
+def send_attachment(
+    sock: socket.socket, data: bytes, *, timeout: float = FRAME_TIMEOUT_SECONDS
+) -> None:
+    """Send one length-prefixed opaque attachment before the deadline."""
+    if type(data) is not bytes or len(data) == 0:
+        raise ControlProtocolError("invalid_payload")
+    if len(data) > MAX_ATTACHMENT_BYTES:
+        raise ControlProtocolError("oversize_frame")
+
+    deadline = _deadline(timeout)
+    previous_timeout = _socket_timeout(sock)
+    try:
+        _send_exact(sock, struct.pack("!I", len(data)) + data, deadline)
+        _check_deadline(deadline)
+    finally:
+        _restore_timeout(sock, previous_timeout)
+
+
+def recv_attachment(
+    sock: socket.socket, *, length: int, timeout: float = FRAME_TIMEOUT_SECONDS
+) -> bytes:
+    """Receive exactly one length-prefixed opaque attachment before the deadline."""
+    if type(length) is not int or not 1 <= length <= MAX_ATTACHMENT_BYTES:
+        raise ControlProtocolError("invalid_attachment_length")
+
+    deadline = _deadline(timeout)
+    previous_timeout = _socket_timeout(sock)
+    try:
+        header = _recv_exact(sock, 4, deadline, allow_clean_eof=False)
+        declared = struct.unpack("!I", header)[0]
+        if declared == 0:
+            raise ControlProtocolError("invalid_length")
+        if declared > MAX_ATTACHMENT_BYTES:
+            raise ControlProtocolError("oversize_frame")
+        if declared != length:
+            raise ControlProtocolError("attachment_mismatch")
+        body = _recv_exact(sock, length, deadline, allow_clean_eof=False)
+        _check_deadline(deadline)
+        return body
     finally:
         _restore_timeout(sock, previous_timeout)
 

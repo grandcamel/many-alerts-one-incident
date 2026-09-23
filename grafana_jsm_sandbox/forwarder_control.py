@@ -2,7 +2,10 @@
 
 The caller owns listener/mount provisioning and exclusive ownership of the
 registry. This module never loads credentials, starts a listener or grants a
-network dispatch permit. Only the authenticated Register reply carries a sentinel.
+network dispatch permit. An optional ``DispatchGate`` adds scope manifest
+delivery and lease closeout; either mode refuses Register for a service with
+no scope type. Only an authenticated Register or ``register_scoped`` reply
+carries a sentinel.
 """
 
 from __future__ import annotations
@@ -17,7 +20,13 @@ import sys
 import threading
 from dataclasses import dataclass
 
-from .forwarder_control_protocol import ControlProtocolError, recv_frame, send_frame
+from . import forwarder_control_scope as scope
+from .forwarder_control_protocol import (
+    ControlProtocolError,
+    recv_attachment,
+    recv_frame,
+    send_frame,
+)
 from .forwarder_leases import LeaseError, LeaseRegistry
 
 MAX_CONNECTIONS = 4
@@ -29,6 +38,14 @@ _PARAMETERS = {
     "activate": {"lease_id", "launch_at"},
     "revoke": {"lease_id", "reason"},
     "heartbeat": set(),
+}
+_GATED_PARAMETERS = {
+    "register": _PARAMETERS["register"],        # refused with scope_required
+    "register_scoped": set(scope.REGISTER_SCOPED_PARAMETERS),
+    "activate": _PARAMETERS["activate"],
+    "revoke": _PARAMETERS["revoke"],
+    "heartbeat": set(),
+    "closeout": set(scope.CLOSEOUT_PARAMETERS),
 }
 _GRANT_FIELDS = ("generation", "lease_id", "run_id", "attempt_id", "receiver_boot_id",
                  "service", "scope_digest", "expires_at", "sentinel")
@@ -175,10 +192,17 @@ def authenticate_receiver(
 
 
 class ForwarderControl:
-    """Own one registry's authenticated controller session and bounded connections."""
+    """Own one registry's authenticated controller session and bounded connections.
+
+    An optional ``gate=`` pairs a ``DispatchGate`` with the registry, replacing
+    Register with gated ``register_scoped`` manifest delivery and adding a
+    ``closeout`` command; both modes refuse Register for an unscoped service.
+    Only a Register or ``register_scoped`` reply to the authenticated peer
+    carries a sentinel.
+    """
 
     def __init__(self, registry: LeaseRegistry, *, receiver_uid: int,
-                 control_secret: bytes, timeout: float = 10.0):
+                 control_secret: bytes, timeout: float = 10.0, gate=None):
         _configuration(control_secret, receiver_uid, timeout)
         if not isinstance(registry, LeaseRegistry):
             raise ControlProtocolError("invalid_registry")
@@ -191,6 +215,8 @@ class ForwarderControl:
         self._owner: _Owner | None = None
         self._connections: set[socket.socket] = set()
         self._closed = False
+        self._gate = None if gate is None else scope.require_gate(gate, registry)
+        self._commands = _PARAMETERS if self._gate is None else _GATED_PARAMETERS
 
     def shutdown(self) -> None:
         """Permanently hold authority and interrupt every admitted connection.
@@ -210,8 +236,11 @@ class ForwarderControl:
         """Serve and close an accepted socket; return fixed nonsecret diagnostics.
 
         A malformed or rejected command terminates the session. ``commands``
-        counts schema-valid commands submitted to the registry, including a
-        rejected registry operation. Closeout is unknown if disconnect failed.
+        counts schema-valid commands admitted past the owner fence, including
+        a rejected registry operation or scope install. A gated ``closeout``
+        also counts, although it makes no registry call. A Register refused
+        with ``scope_required`` or ``scope_type_unavailable`` does not count.
+        Closeout is unknown if disconnect failed.
         """
         rejection = None
         with self._lock:
@@ -273,25 +302,66 @@ class ForwarderControl:
                 request = recv_frame(sock, timeout=self._timeout)
                 _keys(request, {"op", "seq", "params"})
                 operation, sequence = request["op"], request["seq"]
-                if type(operation) is not str or operation not in _PARAMETERS:
+                if type(operation) is not str or operation not in self._commands:
                     operation, sequence = "error", None
                     raise ControlProtocolError("unknown_operation")
                 if type(sequence) is not int or sequence != expected_sequence:
                     sequence = None
                     raise ControlProtocolError("invalid_sequence")
+                if self._gate is not None and operation == "register":
+                    raise ControlProtocolError("scope_required")
                 params = request["params"]
-                _keys(params, _PARAMETERS[operation])
+                _keys(params, self._commands[operation])
+                registry_operation, registry_params, manifest = operation, params, None
+                if operation == "register":                  # reached only in gateless mode
+                    scope.refuse_unscoped(params["service"])  # scope_type_unavailable
+                elif operation == "register_scoped":
+                    length = scope.manifest_length(params)
+                    data = recv_attachment(sock, length=length,
+                                           timeout=min(self._timeout, scope.ATTACHMENT_SECONDS))
+                    manifest = scope.bound_manifest(data, params)
+                    registry_operation = "register"
+                    registry_params = scope.registry_parameters(params)
+                elif operation == "closeout":
+                    _id(params["lease_id"])                  # invalid_identity
+                    registry_operation = None
                 with self._lock:
                     if self._closed:
                         raise ControlProtocolError("control_closed")
                     if self._owner is not owner:
                         raise ControlProtocolError("session_replaced")
                     commands += 1
-                    result = getattr(self._registry, operation)(
-                        receiver_boot_id=boot, generation=generation, **params
-                    )
-                    fields = _GRANT_FIELDS if operation == "register" else _RECEIPT_FIELDS
-                    projection = {key: getattr(result, key) for key in fields}
+                    if registry_operation is None:
+                        projection = {}
+                    else:
+                        result = getattr(self._registry, registry_operation)(
+                            receiver_boot_id=boot, generation=generation, **registry_params
+                        )
+                        is_register = registry_operation == "register"
+                        fields = _GRANT_FIELDS if is_register else _RECEIPT_FIELDS
+                        projection = {key: getattr(result, key) for key in fields}
+                if manifest is not None:
+                    installed_at = scope.install(self._gate, result, manifest)
+                    with self._lock:                          # post-install fence, no gate call
+                        if self._closed:
+                            raise ControlProtocolError("control_closed")
+                        if self._owner is not owner:
+                            raise ControlProtocolError("session_replaced")
+                    projection["installed_at"] = installed_at
+                elif self._gate is not None and operation in ("revoke", "closeout"):
+                    try:
+                        observed = scope.observe_closeout(self._gate, params["lease_id"],
+                                                           after_revoke=operation == "revoke")
+                    except Exception:
+                        self._registry.hold()                 # a refusal is an uncertain closeout
+                        raise
+                    if operation == "revoke":
+                        projection.update(
+                            revoked_at=result.observed_at,
+                            closeout_state=observed["closeout_state"], closeout=observed,
+                        )
+                    else:
+                        projection = observed
                 # No diagnostic copy of this payload is retained. A Register
                 # grant includes its sentinel solely for the authenticated peer.
                 send_frame(sock, {"op": operation, "seq": sequence, "ok": True,

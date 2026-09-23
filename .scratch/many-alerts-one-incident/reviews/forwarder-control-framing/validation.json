@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-23",
+  "status": "PASS_LOCAL_SCOPE_DELIVERY_AND_CONTROL_CLOSEOUT",
+  "baseline_commit": "74b10e8",
+  "unit_tests": {
+    "new": 142,
+    "control_files_passed": 165,
+    "repeated_runs": 3
+  },
+  "focused_tests": {
+    "passed": 2626,
+    "seconds": 101.79,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-control-framing/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 3500,
+    "skipped": 36,
+    "seconds": 177.21,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-control-framing/full-suite.txt"
+  },
+  "existing_tests_byte_identical": true,
+  "existing_modules_changed": [
+    "grafana_jsm_sandbox/forwarder_control.py",
+    "grafana_jsm_sandbox/forwarder_control_protocol.py (additive)"
+  ],
+  "design": {
+    "designs": 3,
+    "judges": 2,
+    "critic_issues_resolved": 13,
+    "root_reconciled_against": "74b10e8"
+  },
+  "review": {
+    "orchestration": "individual agents (Workflow tool not opted into this session)",
+    "rounds": 1,
+    "lens_reviewers": [
+      "contract",
+      "concurrency_fencing",
+      "fail_closed_custody",
+      "test_adequacy"
+    ],
+    "confirmed_source_defects": 1,
+    "root_source_fixes": 1,
+    "round1_targeted_mutants": 11,
+    "round1_targeted_killed": 11,
+    "test_gaps_closed": 6,
+    "gap_mutations_confirmed": 9,
+    "final_verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "final_mutants": 28,
+    "final_killed": 22,
+    "final_equivalent": 2,
+    "final_survivors_unreachable": 3,
+    "post_review_test_gaps_closed": [
+      "scope_required before schema (M04)",
+      "INSTALL_ERROR_CODES table (M13, M15, M16)"
+    ],
+    "post_review_mutations_confirmed": 4,
+    "post_review_source_changes": [
+      "removed unused SCOPED_GRANT_EXTRA_FIELDS and REVOKE_EXTRA_FIELDS"
+    ],
+    "post_review_doc_corrections": 6,
+    "deviations": [
+      "controller cases split across three test files",
+      "SCOPED_GRANT_EXTRA_FIELDS and REVOKE_EXTRA_FIELDS dropped as unused",
+      "MAX_TIME_INT and _valid_time added (round-1 fix)"
+    ],
+    "implementation_models": "claude-sonnet-5 implementers, testers and gap agent; claude-opus-5-5 lens reviewers and final reviewer",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-control-framing/review.md",
+    "addendum_verdict": "PASS"
+  },
+  "size": {
+    "forwarder_control_scope_lines": 285,
+    "forwarder_control_delta": "+83/-13 including docstrings (plan: about 55)",
+    "forwarder_control_protocol_delta": "+47/-1"
+  },
+  "ruff": "PASS",
+  "line_length": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_control_scope.py": "1cda5cccf796363a5e2db1cb69fd6f20941160d9a408ef7b22ecd6191197f3ef",
+    "grafana_jsm_sandbox/forwarder_control.py": "984dd90b8ba73863ab87398548a592689543d61599652ba8fd9770862fd4569e",
+    "grafana_jsm_sandbox/forwarder_control_protocol.py": "6cf62daa5ac723714e565a33b96ecdc66d66a49e7850e9b398d27eca11130470",
+    "tests/test_forwarder_control_attachment.py": "a8857aad44ce570a229e870283d0146743d25c355024e56f4a49e78d7645c9af",
+    "tests/test_forwarder_control_scope.py": "25c326226a75d3919d702dbb9acf69c22dd18d42def5c44693de24f072e0851b",
+    "tests/test_forwarder_control_gate.py": "b825296a78b69b02f49077aa64cd473d96dca3373bab37f5efb41063eadf09e2",
+    "tests/test_forwarder_control_gate_closeout.py": "67be26783d491ecc18b683e1cff9788a90389066d79e3168c5b65d298143149c",
+    "tests/test_forwarder_control_gate_races.py": "be4bc5fc6e714ded460f6236ea7bcf61b7cc0cef25c4897f0cafe830372a57a7",
+    "docs/forwarder-control.md": "a8015d1a7bf3ed029b0c2c205a7ee43fd6236f84e3f822b15549b7e7cb19af3a",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "50399b8cd961df0bf23f9640a911eb8d2786543a9a046dbb951ad26dfce62f66",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "8166c096ba96138a0710e52e0812f48825b05aecfe313dc76b26c256f884969b",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control-framing/implementation-plan.md": "2a7dcf392ea3678eeeb2da4182bcd283610165d913e2ad692ca5b34088a00857",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control-framing/review.md": "5e3b29356525d476f366a8ba621ef28a1a9fca9cb75556bc5e2c6a01da1e71a5",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control-framing/outcome.md": "c9dbe8794c87e073eb33b116533c9c5fb0116a8745a0d1bc010271b1138fc252",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control-framing/focused-tests.txt": "af7803b57984aac9c2b05404c1c026452956d6698698526d67c2f50a96b6f34d",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-control-framing/full-suite.txt": "cfbfcfc5ef53cbc831d6c118dd14a7a22a30138f088143e175decf2171274362"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "observed_scope": [
+    "Unscoped-service Register refusal in both controller modes",
+    "Bounded opaque attachment codec with double-declared length",
+    "Gated register_scoped: validation before mutation, install outside the control lock, post-install owner fence",
+    "Revoke closeout reply and closeout command with hold-before-error on every uncertain observation",
+    "Lock-order, replacement, shutdown, custody and pathname-socket integration tests"
+  ],
+  "not_qualified": [
+    "AuthorizeDispatch permits, Ready and non-Jira scope types",
+    "Receiver control client, heartbeat scheduling, polling policy and scope-capacity bound",
+    "Gate-side overdue hold, durable closeout evidence and restart reconciliation",
+    "Linux peer credentials and deployed UID, mount, kernel or secret isolation",
+    "Native clients, deployment, paid exposure and human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

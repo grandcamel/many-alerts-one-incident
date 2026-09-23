@@ -174,3 +174,14 @@ suite reports 3358 passed, 36 skipped. The real origin, CA issuer, credential
 loading and custody, and real Jira compatibility stay unqualified. Control
 framing, permits and durable Receiver/accounting remain subsequent work. This
 planning ticket stays open.
+
+The [fourteenth local unit](../reviews/forwarder-control-framing/outcome.md)
+delivers Receiver scope manifests and lease closeout over the authenticated
+control connection (spec L122, L162-163, L221-243). Registration is refused for
+services without a scope type. Gated scoped registration validates the manifest
+before any mutation and fences the owner again after installation, so a session
+replaced or closed during installation never writes the sentinel. Revoke and closeout replies expose
+`draining` and `quiescent`, and every uncertain closeout holds the registry.
+Independent review passes; the full suite reports 3500 passed, 36 skipped. The
+Receiver client, AuthorizeDispatch permits, Ready, the durable journal and
+deployment remain subsequent work. This planning ticket stays open.

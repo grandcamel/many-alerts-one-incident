@@ -59,7 +59,11 @@ is never transmitted. A successful registration response intentionally delivers
 the lease sentinel over that authenticated channel; diagnostics do not retain it.
 
 Commands are limited to registration, activation, revocation and heartbeat.
-Exact parameter sets and increasing sequence numbers prevent extra control
+Every controller refuses registration for a service without a scope type (only
+Jira has one). A controller given a dispatch gate replaces registration with
+scoped registration, which carries one attachment of at most 16 KiB within two
+seconds, and adds a closeout command (see "Scope delivery and control
+closeout"). Exact parameter sets and increasing sequence numbers prevent extra control
 fields from overriding session identity. Frames are length-prefixed UTF-8 JSON,
 limited to 8 KiB, four object levels and bounded scalar fields. Each frame uses
 one absolute deadline, at most ten seconds in this controller. Malformed frames,
@@ -70,7 +74,12 @@ connection's leases, including when the Receiver boot ID is unchanged. Old
 commands and finalizers cannot act on a replacement owner. EOF, timeout, failed
 response or rejected commands release authority before any error response is
 written. If closeout fails, `LeaseRegistry.hold()` permanently denies authority
-without reconstructing a clock; recovery needs a fresh registry generation.
+without reconstructing a clock; recovery needs a fresh registry generation. A
+post-install fence stops a session replaced or closed during scope installation
+from writing a scoped grant. As with Register, a replacement or shutdown after
+that fence can still let the reply reach the old peer; the replacement revokes
+that lease, or the shutdown holds the registry. An uncertain closeout
+observed by any session holds the registry.
 
 At most four accepted connections execute per controller. Unauthenticated peers
 can occupy these slots until their bounded frame deadlines. The caller must
@@ -494,7 +503,10 @@ write the ledger. One gate lock is held across each authorizing lease check and
 the ledger transition it justifies, with no I/O or injected code in between
 except the three monotonic clocks, which must share one domain. Lock order is the
 control lock, then the gate lock, then the registry lock; the gate lock also
-precedes the ledger lock, and neither inner lock calls outward.
+precedes the ledger lock, and neither inner lock calls outward. The control lock
+is never held across a `DispatchGate` call, and control's closeout holds call
+`LeaseRegistry.hold()` with the control lock released, taking only the registry
+lock.
 
 There are two linearization points. `admit` runs the lease check with the stored
 record generation and moves the ledger entry to `connecting`; `begin_write` runs
@@ -511,8 +523,9 @@ implemented; permit routes are denied at both slots.
 `install_scope` installs a Receiver scope manifest only after
 `require_manifest_binding` and exact comparison with the registry record, and
 indexes it by a keyed HMAC of service and sentinel; the raw sentinel is not kept.
-Entries are count- and byte-bounded and age out after 310 seconds. It has no
-production caller until manifest delivery over control exists. Handles,
+Entries are count- and byte-bounded and age out after 310 seconds. Its caller is
+gated scoped registration over control (see "Scope delivery and control
+closeout"). Handles,
 admissions and scope entries are authenticated by identity.
 
 Deadlines share one clock domain. The inbound handler deadline is `started + 40`;
@@ -531,8 +544,9 @@ once outside the gate lock, it keeps its capacity slot, and `closeout` reports
 ignores both its deadline and its abort holds that slot until it returns; the
 client sees EOF, and deadlines are not hard real-time.
 `closeout(lease_id)` reports `open`, `draining`, `overdue`, `quiescent` or
-`unknown` from in-process registry, ledger and gate observations only; it is not
-yet a control reply. A held gate (clock fault or clock-domain mismatch) closes
+`unknown` from in-process registry, ledger and gate observations only; gated
+control presents it in Revoke and closeout replies (see "Scope delivery and
+control closeout"). A held gate (clock fault or clock-domain mismatch) closes
 every new request without bytes; a closed gate after `shutdown` answers with
 receipt-backed 403 denials. Shutdown aborts channels already attached to admitted
 or writing flights without holding the registry; a connect in progress is not
@@ -558,8 +572,8 @@ Deterministic, adversarial, real-thread race and real-local-TLS tests with fake
 connectors cover admission and fence ordering against every retirement cause,
 overdue and shutdown behavior, capacity, forgeries, error chains, event order and
 receipt mapping. No real upstream connection, connector contract, credential,
-AuthorizeDispatch permit, manifest delivery, control closeout, worker supervisor,
-readiness wiring, durable journal, native client or deployment is qualified.
+AuthorizeDispatch permit, worker supervisor, readiness wiring, durable journal,
+native client or deployment is qualified.
 `FAILED` is truthful only if a connector's `connect` writes no application bytes,
 and ledger clock divergence is detected only partially.
 
@@ -574,8 +588,8 @@ in memory by tests. The `synthetic-only.v1` policy accepts only an RFC 6761
 passes the shape checks is refused with `endpoint_unqualified`. Real origins,
 address stability, IPv6 and the CA issuer remain the spec's unresolved
 decisions, so production stays unavailable until they are reviewed. Source
-performs no DNS, proxy, environment, file or mount read, and it rejects loopback, link-local, multicast, reserved and unspecified
-addresses. Local tests cannot show that a documentation address is unroutable
+performs no DNS, proxy, environment, file or mount read, and it rejects
+loopback, link-local, multicast, reserved and unspecified addresses. Local tests cannot show that a documentation address is unroutable
 on another network; the absence of a production caller is the guarantee.
 
 Each connect builds a fresh client context: explicit `cadata` as the only trust
@@ -630,14 +644,97 @@ strict-flag controls, and composition through `serve_one` with revocation at the
 fence. No real Jira site, real credential, CA custody, deployment or native client
 is qualified.
 
-The next integration units are control framing (manifest delivery, closeout
-replies and unscoped Register refusal), then durable admission and the guarded
-launcher. Real provider/tenant operations, native execution and deployment remain
-gated by their own acceptance evidence. Local module tests cannot replace that
+## Scope delivery and control closeout
+
+`ForwarderControl(..., gate=gate)` pairs the controller with the
+`DispatchGate` of its registry's generation. `forwarder_control_scope` checks
+the exact types and generation equality; exclusive ownership stays a caller
+precondition. Without a gate, `register` for a profiled service without a scope
+type fails with `scope_type_unavailable` before the owner fence and any registry
+call; only Jira has a scope type. A gated controller refuses every plain
+`register` with `scope_required`, refuses `register_scoped` for such a service
+with `scope_type_unavailable` before reading any attachment byte, and adds two
+commands on the same authenticated connection. Without a gate, the commands,
+replies and codes are otherwise unchanged.
+
+`register_scoped` carries the Register parameters plus `manifest_bytes` in one
+JSON header, followed immediately by one attachment: a four-byte big-endian length
+and the canonical `ScopeManifest` bytes, 1 to 16,384 bytes. The two declared
+lengths must match before any body byte is read, and the attachment has its own
+deadline of at most two seconds. The service, the length, the canonical parse and
+the manifest's binding to service, run, attempt and scope digest are all checked
+before the registry changes. The lease is then registered behind the owner
+fence, the gate installs the scope with the control lock released, and a
+post-install owner fence runs before the reply. Only that reply carries the
+sentinel, together with `installed_at`. A failure after registration ends the
+session, which revokes all of its leases, or holds the registry if that release
+fails, before the error frame. A replacement or shutdown during installation is
+caught by the post-install fence, so that session never writes the scoped grant.
+A replacement or shutdown after the fence can still let the reply reach the old
+peer, as with Register, but the replacement revokes that lease and a shutdown
+holds the registry. An entry installed for an already retired lease is inert. An
+exact replay returns the same grant and `installed_at`.
+
+In gated mode a Revoke reply keeps the committed receipt and adds `revoked_at`,
+`closeout_state` and a nested `closeout` observation. `ok:true` means the lease is
+retired and its closeout is `draining` or `quiescent` with no overdue flight.
+The `closeout` command returns the same observation for any lease ID of the
+generation and spends no authority, although the gate call's registry snapshot
+and clock tick can retire expired or heartbeat-late leases, prune scope entries,
+mark flights overdue and run their aborts before the reply. The
+observation fields are `generation`, `lease_id`, `lease_state`,
+`closeout_state`, the counts `pending`, `in_flight`, `overdue` and `uncertain`,
+`drain_deadline` and `observed_at`.
+
+Every uncertain observation holds the registry before the error frame, and the
+command fails:
+- `closeout_overdue`: any overdue flight, including one of an `open` lease;
+- `closeout_unknown`: the gate call failed, or the state is `unknown` after a
+  revoke or for a lease the Forwarder still knows;
+- `closeout_inconsistent`: a wrong type, an out-of-range or non-finite value, or
+  incoherent states (including a lease state other than `revoked` or `pruned`
+  after a revoke).
+
+The hold is terminal for the generation, and new sessions get `registry_held`.
+A session replaced after its command's owner fence can still hold the
+generation its successor uses; that is the only cross-owner effect, and it only
+removes authority. The only unheld `unknown` is a `closeout` answer for an ID the Forwarder has no
+record of. Lease state `pruned` means the registry record aged out while the
+scope entry remains; after the entry's 310 seconds the answer is `unknown`.
+
+The Receiver obligations are:
+- keep the five-second heartbeat cadence, because a `register_scoped` can take
+  about twelve seconds to read and fifteen seconds without a heartbeat revoke
+  the session's leases, and write the attachment immediately after the header;
+- compute the drain budget as `drain_deadline - observed_at` from one reply,
+  valid only while the gate and ledger share one clock domain;
+- record every `closeout_*` error, a Revoke that failed that way and any
+  `unknown` as UNKNOWN;
+- use `closeout`, not Revoke, for leases it believes are already retired, and
+  after EOF or replacement poll `closeout` on a new session before treating any
+  lease as quiescent;
+- read closeout within 310 seconds, and keep scope-store use within 2 MiB and
+  1,024 entries over any 310-second window, retired leases included.
+
+The control lock is never held across a gate call or the attachment read, and
+the holds added here take only the registry lock. Gateless mode still registers
+Jira without a scope, so it cannot create a dispatchable lease over control; the
+launcher unit must require `gate=`. Deterministic, real-thread race, socketpair
+and pathname-socket tests cover framing, refusal order, installation, replay,
+both replacement windows, shutdown, holds, custody and lock ownership. No
+AuthorizeDispatch permit, Ready reply, Receiver client, durable closeout
+evidence, gate-side overdue hold, Linux peer validation or deployment is
+qualified.
+
+The next integration units are the durable Receiver journal and recovery
+(ticket 37), accounting (ticket 38), then AuthorizeDispatch permits, a worker
+supervisor with readiness, and the guarded launcher. Real provider/tenant
+operations, native execution and deployment remain gated by their own
+acceptance evidence. Local module tests cannot replace that
 evidence or human Report adjudication.
 
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py tests/test_forwarder_dispatch.py tests/test_forwarder_dispatch_seams.py tests/test_forwarder_dispatch_races.py tests/test_forwarder_dispatch_adversarial.py tests/test_forwarder_exchange.py tests/test_forwarder_exchange_integration.py tests/test_forwarder_exchange_adversarial.py tests/test_forwarder_upstream.py tests/test_forwarder_upstream_integration.py tests/test_forwarder_upstream_adversarial.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py tests/test_forwarder_dispatch.py tests/test_forwarder_dispatch_seams.py tests/test_forwarder_dispatch_races.py tests/test_forwarder_dispatch_adversarial.py tests/test_forwarder_exchange.py tests/test_forwarder_exchange_integration.py tests/test_forwarder_exchange_adversarial.py tests/test_forwarder_upstream.py tests/test_forwarder_upstream_integration.py tests/test_forwarder_upstream_adversarial.py tests/test_forwarder_control_attachment.py tests/test_forwarder_control_scope.py tests/test_forwarder_control_gate.py tests/test_forwarder_control_gate_closeout.py tests/test_forwarder_control_gate_races.py
 ```
