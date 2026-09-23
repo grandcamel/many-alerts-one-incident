@@ -143,3 +143,13 @@ review workflows, a root delivery-seam redesign and a final hash-bound review
 pass; the full suite reports 2063 passed, 36 skipped. Upstream connection, lease
 and permit coupling, route policy and durable Receiver/accounting remain
 subsequent work. This planning ticket stays open.
+
+The [twelfth local unit](../reviews/forwarder-routes/outcome.md) adds strict JSON
+and request-aware Jira route policy for the two read shapes whose inputs are
+resolved: registered issue read and first-page open-candidate search. Scope
+manifests bind to the lease digest, selections stay within them, upstream
+requests are rebuilt from trusted values, and response validation checks
+returned scope. Mutations, projections, continuations and every non-Jira route
+remain unavailable with named missing inputs. Independent review passes; the full
+suite reports 2627 passed, 36 skipped. Lease/permit/upstream coupling and durable
+Receiver/accounting remain subsequent work. This planning ticket stays open.

@@ -425,14 +425,71 @@ response collector with synthetic in-memory upstream responses. No upstream
 connection, lease check, route policy, dispatch permit, durable journal, native
 client or deployment is qualified by these tests.
 
-The next integration units are request-aware service policies, then lease,
-permit and upstream coupling with durable admission and the guarded launcher.
-Real provider/tenant operations, native execution and deployment remain gated by
-their own acceptance evidence. Local module tests cannot replace that evidence
-or human Report adjudication.
+## Strict JSON and read-only Jira route policy
+
+`forwarder_json.parse_json(data, max_bytes=..., numbers="integer")` accepts only
+strict UTF-8 RFC 8259 JSON without a byte-order mark, comments or non-JSON
+whitespace. It limits depth to 16, arrays to 256 items and each key or string to
+16 KiB after UTF-8 encoding. It rejects duplicate keys after unescaping, U+0000,
+lone surrogates and non-finite numbers. Integer mode accepts integers within
+2^53-1 only; finite mode, used only for upstream responses, keeps fractional
+lexemes as `JSONDecimal` text and never converts them to floats. A linear
+prescan bounds depth before the standard decoder runs. `canonical_json` emits a
+sorted, whitespace-free RFC 8785 subset and `tagged_digest` domain-separates
+SHA-256 digests. Error handlers only record fixed codes; a fresh error is raised
+outside every handler, so raised errors carry no caller input in their arguments
+or exception chain. An exception already active in the caller's own handler still
+attaches as context, and traceback frame locals remain outside that guarantee.
+
+`forwarder_routes.RoutePolicy(jira=JiraVenuePolicy(...))` turns one parsed
+request and a Receiver `ScopeManifest` into a `RoutedRequest` or a closed
+`RoutePolicyError`. Only `jira.issue.get` (manifest-registered issues) and the
+first page of `jira.search` are matchable, and both are marked `partial`. The
+other 23 catalog routes are unavailable, each with named missing inputs such as
+tenant field IDs, dispatch permits, projection, continuation tracking or Eyes
+schemas. No readiness fact is true yet.
+
+The operator `JiraVenuePolicy` supplies project and issue-type IDs, a closed
+system-field allowlist (no custom, comment, user-identity or description
+fields), search templates with one quoted `{label}` placeholder and open status
+category keys. Its canonical bytes produce `policy_digest`. The manifest binds
+service, Run, attempt, rehearsal, revision, routes, policy digest, registered
+issues and search labels; its digest is exactly the lease `scope_digest`.
+`require_manifest_binding` compares manifest identity with a grant before a
+future store installs it. Caller path and body values only select within the
+manifest: issue selectors resolve by exact ID or key, and search JQL must match
+exactly one template and manifest label. The upstream request is rebuilt from
+manifest, policy and template values plus the caller's `maxResults` integer,
+bounded by the policy cap; the caller's JQL, query spelling, headers and sentinel
+never reach it. Its version-1 `request_digest` binds
+service, route, policy and scope digests, method, target and body digest, but
+not an upstream origin, so it may never satisfy a dispatch permit. Denials carry
+a constant per-route denial digest and a receipt reason (`request_rejected` or
+`route_denied`).
+
+`check_response` validates an issued `RoutedRequest`'s response without
+projection. Only status 200 can pass. Issue responses must return the selected
+ID/key and configured project and type; search responses must stay within the
+requested count, carry the selected label, configured identity, unique numeric
+IDs and an open status category. Every other result becomes
+`response_policy_rejected` and the fixed 502. Passing responses still carry
+upstream `self`, avatar and icon URLs, no 30-minute window check, no completeness
+claim and no error-status visibility.
+
+Both modules open no socket, read no clock and never read the sentinel.
+Deterministic and adversarial tests cover golden digests, strict JSON edge cases,
+exception chains, AST import and handler rules, smuggling attempts and
+composition with the lease registry and receipt ledger. No lease resolution,
+dispatch, upstream serialization, credential, tenant ID, native client or
+deployment is qualified.
+
+The next integration units are lease, permit and upstream coupling with durable
+admission and the guarded launcher. Real provider/tenant operations, native
+execution and deployment remain gated by their own acceptance evidence. Local
+module tests cannot replace that evidence or human Report adjudication.
 
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py
 ```

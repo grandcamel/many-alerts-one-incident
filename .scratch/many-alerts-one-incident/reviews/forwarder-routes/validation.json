@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-23",
+  "status": "PASS_LOCAL_STRICT_JSON_AND_READ_ONLY_JIRA_ROUTE_POLICY",
+  "baseline_commit": "31dfee4",
+  "unit_tests": {
+    "passed": 564,
+    "repeated_runs": 3
+  },
+  "focused_tests": {
+    "passed": 1753,
+    "seconds": 63.69,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-routes/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 2627,
+    "skipped": 36,
+    "seconds": 134.19,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-routes/full-suite.txt"
+  },
+  "design": {
+    "designs": 3,
+    "judges": 2,
+    "critic_issues_resolved": 16
+  },
+  "review": {
+    "workflow_rounds": 3,
+    "confirmed": 54,
+    "fixed_by_workflow": 28,
+    "size_deviation_recorded": 1,
+    "test_gaps_closed": 25,
+    "gap_mutations_confirmed": 6,
+    "final_verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "final_reviewer_checks": {
+      "golden_vectors_recomputed_independently": true,
+      "fuzzed_requests": 50000,
+      "mutants": 84,
+      "killed": 82
+    },
+    "implementation_models": "claude-sonnet-5 workers and testers; claude-opus-5-5 designers, judges and lens reviewers; claude-sonnet-5 verifiers",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-routes/review.md"
+  },
+  "size": {
+    "forwarder_json_lines": 321,
+    "target": 300,
+    "forwarder_routes_lines": 1044,
+    "target_routes": 750,
+    "assessment": "spec-mandated catalog, validators and digests"
+  },
+  "ruff": "PASS",
+  "line_length": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_json.py": "134c774a6ec4abd82c09631a294c745a79e3c68505cba5bb70fcfaaee5d8e9a3",
+    "grafana_jsm_sandbox/forwarder_routes.py": "5105668d7b747dcfc7b8d371ddae60e163a2368ce606e5bf69b2e78499cdc83a",
+    "tests/test_forwarder_json.py": "4032711c3d3a4698dfb4d6daacb29bb8e211c3ea2cdce28df15999c6bc41c184",
+    "tests/test_forwarder_json_adversarial.py": "981618f7da9cabad08f0c504ce753332f08425a965ef50c8878c356c198c7d92",
+    "tests/test_forwarder_routes.py": "368e7095c55e6dddef5a4867ad0bc4c1bc38154f669d128bf37254f3d1e58eb6",
+    "tests/test_forwarder_routes_adversarial.py": "48c5db6f50a52eef7d285c5fa230e7cace3391adab244b2bb5feb26b3c0df78c",
+    "docs/forwarder-control.md": "a16a51fb6bb3e289d49d4f54b1bdffb679d3dca90bb9271680c573e1f3c22230",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "718d5d85604cc287787a00a5d84e9ae23606f7f060ca0a5d1f4c77df838d1612",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "58a9f1b1138c0216b9a878973e28313446aca5334d36b5bf619a27a6e461717f",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-routes/implementation-plan.md": "c49e8f3ad031f263097d59b431fb3b28eb3f8ed5544d4e90709294147c9d25a1",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-routes/review.md": "1a9c291a4c3eec3ae4cdc715fe4f2c5636e7bb2e5a9d361043e3f3f85a224469",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-routes/outcome.md": "22ebcdfb18a0c98074db670cac2f0aaca02f6e30c12edf8b8d19126ebc76288c",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-routes/focused-tests.txt": "40bad058eb6975600a54439af306bd5fe1bdf2c244fd7abf8345955e5af3975a",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-routes/full-suite.txt": "8320e1e5fa39738678b9cac2091649d10604e9d56227c46ed87c2f55989d3d1b",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-dispatch/implementation-plan.md": "d5d6ab4ec26114a52050994eea076e9e523e03ef69b67175affbd6c8f35a355a"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "observed_scope": [
+    "Strict bounded RFC 8259 JSON, canonical encoding and domain-separated digests",
+    "Operator Jira policy and Receiver scope manifests bound to the lease scope digest",
+    "Two partial read routes with manifest-scoped selection and trusted upstream rebuild",
+    "Status-200-only response scope validation mapped to committed receipt reasons"
+  ],
+  "not_qualified": [
+    "Sentinel store, lease/permit/dispatch coupling and upstream origin binding",
+    "Credentials, tenant IDs/templates and real Jira response compatibility",
+    "Mutation, projection, continuation, SSE and non-Jira routes",
+    "Native clients, readiness wiring and deployment",
+    "Paid cumulative exposure and human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}
