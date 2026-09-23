@@ -563,14 +563,81 @@ readiness wiring, durable journal, native client or deployment is qualified.
 `FAILED` is truthful only if a connector's `connect` writes no application bytes,
 and ledger clock divergence is detected only partially.
 
-The next integration units are the fixed-origin upstream connector (13b), then
-control framing, durable admission and the guarded launcher. Real provider/tenant
-operations, native execution and deployment remain gated by their own acceptance
-evidence. Local module tests cannot replace that evidence or human Report
-adjudication.
+## Synthetic fixed-origin upstream connector
+
+`forwarder_upstream.JiraUpstreamConnector(endpoint=..., credential=...)` is the
+trusted connector for `jira.issue.get` and `jira.search`. It has no production
+caller. `UpstreamEndpoint` is an operator configuration shape (service, revision,
+host, IPv4 address literal, port, public CA bundle and credential ID) filled only
+in memory by tests. The `synthetic-only.v1` policy accepts only an RFC 6761
+`.invalid` host on an RFC 5737 documentation address; any other endpoint that
+passes the shape checks is refused with `endpoint_unqualified`. Real origins,
+address stability, IPv6 and the CA issuer remain the spec's unresolved
+decisions, so production stays unavailable until they are reviewed. Source
+performs no DNS, proxy, environment, file or mount read, and it rejects loopback, link-local, multicast, reserved and unspecified
+addresses. Local tests cannot show that a documentation address is unroutable
+on another network; the absence of a production caller is the guarantee.
+
+Each connect builds a fresh client context: explicit `cadata` as the only trust
+source, TLS 1.2 or newer, required certificates and hostname checks without
+common-name fallback, strict X.509 verification, no compression, renegotiation or
+tickets, and HTTP/1.1 ALPN. Its options, flags, trust-store count and trusted
+certificate digests are read back at runtime before use. After the handshake the
+connector checks the version, ALPN, compression, session reuse and that a peer
+certificate was presented. Unlike the local listener policy, upstream
+verification accepts wildcard and long-lived public leaves; pinning is a
+deferred issuer decision. The process-level OpenSSL configuration is not
+attested.
+
+`BasicCredential` binds a synthetic user and token to `jira`/`basic`. It is
+redacted in every representation, cannot be pickled, copied, subclassed or
+re-initialized, and can be claimed by only one connector. Within Python, the
+encoded header is copied only into the channel's send buffer, which is zeroed
+after the write (OpenSSL record buffers are outside this claim), and the channel
+drops its reference after sending or aborting. Code inside the process can
+still read the credential object's slot, and no credential loader exists.
+
+`prepare(routed)` is pure. It re-verifies the route shape and the unit-12 version-1
+digest, then returns a version-2 request digest that binds the endpoint digest
+(including trust digests) and the Host authority. It never returns the version-1
+digest and refuses, at prepare time, any request whose canonical wire would
+exceed the 2 KiB request-line, 16 KiB head or 256 KiB body bound. The wire
+contains exactly the request line, `Host`, `Authorization`, `Accept`,
+`Accept-Encoding: identity`, `Content-Type` and `Content-Length` for bodies, and
+`Connection: close`; `Accept-Encoding` and `Connection` are upstream-only
+additions beyond the spec's reconstructed header list. No caller header,
+sentinel or inbound Host reaches it.
+
+`connect` refuses the version-1 digest, another route's or endpoint's digest, a
+second connect for the same admission and any deadline beyond the admission's
+connect deadline, all before creating a socket. It then opens TCP and completes
+TLS within five seconds and writes no application bytes. The returned channel
+sends the request at most once, when 13a calls `send` after its write fence, in
+chunks of at most 16 KiB within ten seconds; receives one response through
+`receive_response`; and maps failures to `connect_failed`, `upstream_tls_failed`,
+`write_failed`, `receive_failed` or `deadline` for 13a's receipt mapping. `abort`
+is idempotent and non-blocking and shuts the socket down beneath its TLS object,
+so a later write fails rather than falling back to plaintext; `close` during
+active I/O is deferred until that I/O ends. Nothing is retried, and redirects
+never reach the caller.
+
+Deterministic tests cover endpoint and credential validation, context read-back,
+golden digests and wire bytes, pre-socket refusals and channel state. Real local
+TLS tests use a synthetic upstream that records every raw byte behind an
+asserting address adapter with DNS tripwires. They show zero application bytes on
+connect failures and aborts, byte-exact canonical requests, the trust matrix with
+strict-flag controls, and composition through `serve_one` with revocation at the
+fence. No real Jira site, real credential, CA custody, deployment or native client
+is qualified.
+
+The next integration units are control framing (manifest delivery, closeout
+replies and unscoped Register refusal), then durable admission and the guarded
+launcher. Real provider/tenant operations, native execution and deployment remain
+gated by their own acceptance evidence. Local module tests cannot replace that
+evidence or human Report adjudication.
 
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py tests/test_forwarder_dispatch.py tests/test_forwarder_dispatch_seams.py tests/test_forwarder_dispatch_races.py tests/test_forwarder_dispatch_adversarial.py tests/test_forwarder_exchange.py tests/test_forwarder_exchange_integration.py tests/test_forwarder_exchange_adversarial.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py tests/test_forwarder_dispatch.py tests/test_forwarder_dispatch_seams.py tests/test_forwarder_dispatch_races.py tests/test_forwarder_dispatch_adversarial.py tests/test_forwarder_exchange.py tests/test_forwarder_exchange_integration.py tests/test_forwarder_exchange_adversarial.py tests/test_forwarder_upstream.py tests/test_forwarder_upstream_integration.py tests/test_forwarder_upstream_adversarial.py
 ```

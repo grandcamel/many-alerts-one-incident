@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-23",
+  "status": "PASS_LOCAL_SYNTHETIC_FIXED_ORIGIN_UPSTREAM_CONNECTOR",
+  "baseline_commit": "c1869a2",
+  "unit_tests": {
+    "passed": 439,
+    "repeated_runs": 3,
+    "loopback_guard": "NON_LOOPBACK_ATTEMPTS []"
+  },
+  "focused_tests": {
+    "passed": 2484,
+    "seconds": 97.68,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 3358,
+    "skipped": 36,
+    "seconds": 172.84,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/full-suite.txt"
+  },
+  "existing_tests_byte_identical": true,
+  "existing_modules_unchanged": true,
+  "design": {
+    "designs": 3,
+    "judges": 2,
+    "critic_issues_resolved": 15,
+    "root_reconciled_against": "c1869a2"
+  },
+  "review": {
+    "workflow_agents": 56,
+    "workflow_rounds": 3,
+    "confirmed": 33,
+    "fixed_by_workflow": 25,
+    "root_source_fixes": 1,
+    "round3_test_gaps_closed": 8,
+    "round3_gap_tests_added": 23,
+    "round3_gap_mutations_confirmed": 8,
+    "final_verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "final_mutants": 42,
+    "final_killed": 40,
+    "goldens_recomputed_independently": true,
+    "post_review_source_hardenings": [
+      "S1 BasicCredential re-initialization refused",
+      "S2 endpoint JSON string encoder printable-ASCII guard"
+    ],
+    "post_review_test_gaps_closed": [
+      "S1",
+      "S2",
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5"
+    ],
+    "post_review_mutations_confirmed": 7,
+    "post_review_doc_corrections": 6,
+    "addendum_verdict": "PASS",
+    "implementation_models": "claude-sonnet-5 implementers, testers, verifiers and gap agents; claude-opus-5-5 designers, judges, lens reviewers, fixer and final reviewer",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/review.md"
+  },
+  "size": {
+    "forwarder_upstream_lines": 1385,
+    "ast_statements_approx": 793,
+    "target": 950,
+    "assessment": "design content, not bloat (plan-mandated surface; about 55 behavior-neutral foldable lines left as reviewed)"
+  },
+  "ruff": "PASS",
+  "line_length": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_upstream.py": "fa0d834fc3c0f1f92ebb28635e97f0ead91176c436b3ef68848bf9e68702c7ab",
+    "tests/test_forwarder_upstream.py": "c2bd5c6f7669f6c4623037654e8eededd9b590442cf571bd1354561039c64e75",
+    "tests/test_forwarder_upstream_integration.py": "ebb1ae496d1a680c623a688fac183229c560a3da04b9547b09df65d88156064c",
+    "tests/test_forwarder_upstream_adversarial.py": "640f739a9f4a24e128869fb77add5553eb3119b7c8d4692f0d00c27131150ca8",
+    "docs/forwarder-control.md": "9402f600d8808a5185b9e37a612f22b92875ecd4562f5e53e55e07edeae96ade",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "bbbc2bf658de677240b49af3886677f4113563a09c2a977a6223fe055ab04b50",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "847eb39f40f1dd13b83644b3582b41ac4393da0e7d5ec7fc81d32097c6920a1e",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/implementation-plan.md": "fe3322c5a4eb094a04a937e6222eefab4072b3354d32fcad5598b180bb901827",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/review.md": "7e0e96d6027597ca2ab91bfbdb33b46024e13f36c0309714ee1fee0c362d6415",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/outcome.md": "22272f5dd4edda9782b829c28f854b58b2321ba4f2a3740db2316f45a24c0f30",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/focused-tests.txt": "afe8034483c5449da2b9c336b7c8e0a4454c8bea414766dd9c28ea8fa78833ca",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-upstream/full-suite.txt": "c167467066de636c941b557f754dc6ebadba88a7bf53448d4696cb416119179a"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "observed_scope": [
+    "Synthetic-only fixed-origin Jira connector with no production caller and four production locks",
+    "Fresh explicit-trust TLS context per connect with runtime read-back and post-handshake checks",
+    "Redacted claim-once Basic credential with zeroed send buffer",
+    "Pure request digest v2 bound to endpoint, trust and Host authority; canonical upstream wire",
+    "Pre-socket refusals, zero-byte connect, single post-fence send and abort without plaintext fallback over real local TLS"
+  ],
+  "not_qualified": [
+    "Real Jira compatibility, tenant or provider calls",
+    "Real origin, address stability, IPv6, CA issuer, rotation and revocation",
+    "Credential loading and custody on disk, by UID or mount, or in Python memory",
+    "Process-level OpenSSL configuration and C-level resolver behavior",
+    "Supervisor wiring, readiness, permits, PARTIAL, SSE and non-Jira connectors",
+    "Native clients, deployment, paid exposure and human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

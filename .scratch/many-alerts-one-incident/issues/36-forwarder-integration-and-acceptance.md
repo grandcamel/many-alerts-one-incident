@@ -163,3 +163,14 @@ dispatches remain observable for closeout. Independent review passes; the full
 suite reports 2919 passed, 36 skipped. The real upstream connector (13b), control
 framing, permits and durable Receiver/accounting remain subsequent work. This
 planning ticket stays open.
+
+The [second half of the thirteenth local unit (13b)](../reviews/forwarder-upstream/outcome.md)
+adds the synthetic fixed-origin Jira upstream connector and request digest v2.
+It has no production caller and accepts only `.invalid` hosts on documentation
+addresses. Strict explicit-trust TLS, zero-byte connects, a single post-fence
+send, and aborts without plaintext fallback are shown against a local synthetic
+upstream; tests connect only to loopback. Independent review passes; the full
+suite reports 3358 passed, 36 skipped. The real origin, CA issuer, credential
+loading and custody, and real Jira compatibility stay unqualified. Control
+framing, permits and durable Receiver/accounting remain subsequent work. This
+planning ticket stays open.

@@ -35,6 +35,8 @@
 
 If the committed 13a code differs from any of these, root reconciles this plan before implementation starts.
 
+Root reconciliation, 2026-09-23, against 13a commit `c1869a2`: the committed modules export every name above with the listed fields, flags (`Admission` frozen, `eq=False`, no slots, weak-referenceable), constants (5.0, 10.0, 20.0), `UPSTREAM_ERROR_CODES` and protocol signatures, and `serve_request` maps E10, E13 and E14 as stated.
+
 **Protected state.**
 - The four protected dirty files keep their hashes: issue 19, `planning-frontier-2026-09-18.md`, and the two ticket-19 `c2-ingestion-*` files.
 - Ticket 19 C2 is out of scope.
