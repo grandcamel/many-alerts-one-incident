@@ -39,9 +39,11 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **1432 passed, 36 skipped**, including 558 service,
-  lease, control, listener, supervisor, TLS and HTTP boundary tests plus existing regressions.
-  The [TLS response collection outcome](reviews/forwarder-response-receive/outcome.md),
+- Latest code validation: **2063 passed, 36 skipped**, including 1189 focused
+  service, lease, control, listener, supervisor, TLS, HTTP, receipt and response-send
+  tests plus existing regressions.
+  The [receipt and response-send outcome](reviews/forwarder-receipts/outcome.md),
+  [TLS response collection outcome](reviews/forwarder-response-receive/outcome.md),
   [HTTP response outcome](reviews/forwarder-http-response/outcome.md),
   [bounded HTTP receipt outcome](reviews/forwarder-http-receive/outcome.md),
   [server TLS outcome](reviews/forwarder-server-tls/outcome.md),
@@ -177,13 +179,25 @@ new deterministic and real TLS tests); the full suite passes with 1432 passed,
 send or receipt creation is added. Forwarding with receipt-before-send and route
 policy remain next, followed by durable Receiver/recovery/accounting.
 
+The [eleventh application unit](reviews/forwarder-receipts/outcome.md) adds a
+bounded sanitized receipt ledger and receipt-gated client response send. Explicit
+reserve/connect/dispatch/finalize transitions separate NOT_DISPATCHED, FAILED,
+DISPATCHED_UNKNOWN, PARTIAL and TRANSPORT_CONFIRMED. Capacity is checked before
+any upstream connection. A client write requires a ledger claim whose digest
+matches the private receipt record. Two orchestrated review workflows, a root
+redesign of the delivery seam and a final hash-bound review pass. The full suite
+passes with 2063 passed, 36 skipped. No upstream connection, lease check, route
+policy, permit or durable journal is added. The reviewed
+[route-policy plan](reviews/forwarder-routes/implementation-plan.md) is the next
+unit, followed by lease/permit/upstream coupling and durable Receiver/accounting.
+
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection and non-streaming response codec complete; next add response forwarding with receipts, request policies and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts and receipt-gated response send complete; next add request route policy, then lease/permit/upstream coupling and durable Receiver/accounting integration | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets

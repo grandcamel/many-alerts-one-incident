@@ -133,3 +133,13 @@ Independent review and 137 focused tests pass; the full suite reports
 upstreams or native clients. Receipt-before-send forwarding, route policies and
 durable Receiver/accounting remain subsequent work. This planning ticket stays
 open under the separate local implementation authority.
+
+The [eleventh local unit](../reviews/forwarder-receipts/outcome.md) adds the
+sanitized receipt ledger and receipt-gated client response send. Explicit
+dispatch transitions distinguish the specification's five receipt states.
+Capacity failure occurs before any upstream connection. Delivery requires a
+locked ledger claim whose digest matches the private receipt record. Independent
+review workflows, a root delivery-seam redesign and a final hash-bound review
+pass; the full suite reports 2063 passed, 36 skipped. Upstream connection, lease
+and permit coupling, route policy and durable Receiver/accounting remain
+subsequent work. This planning ticket stays open.

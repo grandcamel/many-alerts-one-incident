@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "status": "PASS_LOCAL_RECEIPTS_AND_RECEIPT_GATED_SEND",
+  "baseline_commit": "b7285cb30f0da421218644ece08296d422d482ba",
+  "unit_tests": {
+    "passed": 631,
+    "consecutive_runs": 3,
+    "seconds": 7.55
+  },
+  "focused_tests": {
+    "passed": 1189,
+    "seconds": 61.03,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-receipts/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 2063,
+    "skipped": 36,
+    "seconds": 131.68,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/forwarder-receipts/full-suite.txt"
+  },
+  "review": {
+    "workflows": [
+      {
+        "name": "forwarder-receipts-unit",
+        "rounds": 4,
+        "confirmed": 55,
+        "fixed": 47,
+        "superseded_by_root_redesign": 8
+      },
+      {
+        "name": "forwarder-receipts-redesign-review",
+        "rounds": 3,
+        "confirmed": 13,
+        "fixed": 9,
+        "test_gaps_closed_by_root": 4
+      }
+    ],
+    "root_mutation_checks": {
+      "mutants": 5,
+      "killed": 5
+    },
+    "final_verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "implementation_models": "claude-sonnet-5 workers; claude-opus-5-5 lens reviewers; claude-sonnet-5 verifiers",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/forwarder-receipts/review.md"
+  },
+  "ruff": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/forwarder_receipts.py": "bfc2c5a3c3ecc2e8259b0ff62fb6ae83903d40639f7983cbda595b9c4b8b3a34",
+    "grafana_jsm_sandbox/forwarder_response_send.py": "0b5eb8b4127223a8d5112128e864404aad5a1a14e5255e53b091e14ac8c71391",
+    "tests/test_forwarder_receipts.py": "d05cf7fda8f566ee7a3b875747cbc5a05dcd99003056cbcc3a044eb74c81250d",
+    "tests/test_forwarder_receipts_adversarial.py": "9a54b629cccad0f4402327860942952040c557b6c111abfbb4bf527afc330959",
+    "tests/test_forwarder_response_send.py": "d3f8ba9227829a842fe61e3f6faaf149b7f290c490105335914e946f8cd6b25f",
+    "tests/test_forwarder_response_send_integration.py": "1b49add52579cde34fd048b62db3e85a4b46799c22c85eb80d666c3d79142908",
+    "docs/forwarder-control.md": "404a74b413b603613ff822e768dcaf801a4741aad637c17c905d2845ab50d5b8",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "8f7cd5a6653ee2c926f9cb6526d7c123000fb77e0762958e36fb93f6b2acb715",
+    ".scratch/many-alerts-one-incident/issues/36-forwarder-integration-and-acceptance.md": "985b7968dff681c6c4592d29a9c1dc386e88074350f170d0d222ed04a83a7959",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-receipts/implementation-plan.md": "b744d617510a1a8895da3d35a070197d1a7c913bf205e030f7ad3b915d18c9ee",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-receipts/review.md": "a1bc815ed695af0a36f55168c4b0f09c41a27667d16262324c3011bf4cce3ba1",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-receipts/outcome.md": "1595184a505bdf6ab7d4d915093261e28ad6ef6b990dfdd2af8634950bbf7d73",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-receipts/focused-tests.txt": "fc75489b6b8d3c2227f626e89b0ee8132e91787113a869928bc14cb1c8ede313",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-receipts/full-suite.txt": "ae5d21b8324bc0236f4bd6a3ffff94f5c59344ac26b3b8fcf3a57546c38b99ae",
+    ".scratch/many-alerts-one-incident/reviews/forwarder-routes/implementation-plan.md": "c49e8f3ad031f263097d59b431fb3b28eb3f8ed5544d4e90709294147c9d25a1"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "observed_scope": [
+    "Bounded sanitized receipt ledger with explicit dispatch transitions and closed reasons",
+    "Capacity before upstream connection, worst-case byte charge, abandonment, retention and clock hold",
+    "Identity-authenticated reservations, receipts and delivery claims with a ledger-private record",
+    "Receipt-gated, timed, chunked client response send over real local TLS fixtures"
+  ],
+  "not_qualified": [
+    "Upstream connection, lease check, route policy and dispatch permit coupling",
+    "Durable Receiver journal, recovery and accounting",
+    "SSE, native clients and real upstream compatibility",
+    "Actual credentials, provider/tenant/native execution or deployment",
+    "Paid cumulative exposure and human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

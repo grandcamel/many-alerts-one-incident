@@ -362,14 +362,77 @@ Real local TLS fixtures exercise fragmented responses, opaque bytes, no-body
 statuses, invalid heads, captured extras, stalled input and EOF. They do not
 qualify a real upstream, native client, credential boundary or deployment.
 
-The next integration units are response forwarding with receipt-before-send and
-request-aware service policies, followed by durable admission and the guarded
-launcher. Real provider/tenant operations, native execution and deployment remain
-gated by their own acceptance evidence. Local module tests cannot replace that
-evidence or human Report adjudication.
+## Sanitized receipts and receipt-gated response send
+
+`forwarder_receipts.ReceiptLedger(generation=..., clock=...)` records one
+sanitized `ForwarderReceipt` per handled request before any response bytes are
+returned. A handler calls `reserve` before opening an upstream connection,
+`begin_connect` immediately before opening it, `begin_dispatch` immediately
+before the first possible upstream write, and `finalize` once the outcome is
+known. These explicit transitions are the seam for later lease, permit and
+upstream units; this module opens no connection and checks no lease or route.
+
+Dispatch states follow the ticket-36 receipt vocabulary. A reservation that never
+began connecting can only become `NOT_DISPATCHED`. After `begin_connect` (where a
+future dispatch permit is consumed) it becomes `FAILED` when the connection
+attempt failed before any write, or `DISPATCHED_UNKNOWN`. After `begin_dispatch`
+it becomes `DISPATCHED_UNKNOWN`, `PARTIAL` or `TRANSPORT_CONFIRMED`. Each state
+accepts a closed set of reasons. Every non-`ok` reason names one fixed local JSON
+response (400, 403, 502, 503 or 504) containing no caller data. `ok` returns the
+complete upstream response, and `response_policy_rejected` records the upstream
+digest and status class while returning a fixed 502.
+
+Receipts carry lease, attempt, optional operation, service, route and request
+digest correlation, dispatch state, reason, optional status class and upstream
+digest/body length, the digest and length of the exact client bytes, and
+monotonic start/completion times. They exclude URLs, headers, sentinels,
+credentials and bodies. A receipt is dispatch correlation, not effect
+confirmation, billing evidence or a durable journal record.
+
+The ledger retains at most 2,048 entries and 2 MiB. Each reservation is charged
+the canonical size of its worst-case finalized snapshot record, at most 8 KiB,
+so later finalization and delivery cannot exceed the charge. Capacity failure
+occurs at `reserve`, before any upstream connection; the owner then closes
+without response bytes because no receipt-less send path exists. Entries are
+never evicted to admit another. Finalized entries age out 310 seconds after
+completion. An unfinalized entry whose handler deadline (at most 40 seconds)
+passes is finalized as `abandoned`: `NOT_DISPATCHED` if it never began
+connecting, otherwise `DISPATCHED_UNKNOWN`, stamped at its deadline. A clock
+exception, invalid value or regression permanently holds the ledger; snapshots
+remain readable. Reservations, receipts and delivery claims are authenticated by
+object identity. The ledger keeps a private copy of each receipt, and retention,
+snapshots and delivery checks never read the caller's instance.
+
+`forwarder_response_send.send_response(connection, ledger, receipt, response,
+deadline=...)` permanently claims a server-side TLS 1.2+ socket, serializes the
+response and asks the ledger to claim delivery for that digest. The ledger
+compares it with its private record under its lock, so different bytes send
+nothing and claim nothing. Delivery is one-use per receipt and per socket. Writes
+use chunks of at most 16 KiB, each bounded by ten seconds and the caller's
+absolute deadline, without retry. The outcome is recorded as `sent`, `not_sent`
+(no send began) or `send_unknown` (with the accepted byte count), and the prior
+timeout is restored. Primary failures and interruptions propagate unchanged;
+after a complete send, an unrecorded outcome raises `delivery_unrecorded`, then a
+failed restore raises `timeout_restore_failed`. An asynchronous interruption
+between the ledger's claim and its return leaves that delivery `sending` until
+retention. `sent` means the local TLS layer accepted every byte, not that the
+client read them. The caller owns and closes the socket and binds the receipt's
+service to its listener.
+
+Deterministic tests use injected clocks and fake sockets; real local TLS tests
+compose the fixed listener, strict client, request collector, ledger, sender and
+response collector with synthetic in-memory upstream responses. No upstream
+connection, lease check, route policy, dispatch permit, durable journal, native
+client or deployment is qualified by these tests.
+
+The next integration units are request-aware service policies, then lease,
+permit and upstream coupling with durable admission and the guarded launcher.
+Real provider/tenant operations, native execution and deployment remain gated by
+their own acceptance evidence. Local module tests cannot replace that evidence
+or human Report adjudication.
 
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py
+pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py
 ```
