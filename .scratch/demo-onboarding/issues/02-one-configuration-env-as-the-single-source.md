@@ -191,3 +191,7 @@ from `.claude/settings.json`:
 
 The trade-off: with the key removed, a bare jira-as in the repo tree is unrestricted by project
 unless the shell sets `JIRA_ALLOWED_PROJECTS`.
+
+## Comments
+
+2026-09-23: The owner approved the proposed settings change, and it was applied through the update-config skill. `allowed_projects` is removed from `.claude/settings.json`, and `permissions.deny` gains `Read(./.env)` and `Edit(./.env)`; an `Edit` rule covers every file-writing tool, and a `Write(path)` rule is never matched. Claude sessions in this repo can no longer read or change the `.env` that holds the tokens.
