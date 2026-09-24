@@ -9,8 +9,8 @@ provider or OPS acceptance. For local admission-only replay, see
 For the presenter, to be followed cold. The demo is one Alert's lifetime: traffic stops, Grafana
 fires, a Run opens an Incident; Grafana repeats, a Run adds a trend and moves it on; traffic
 returns, Grafana resolves, a Run completes it. About four minutes from the one action to the
-Incident leaving the queue, three Runs, about $0.50 (measured on Fable 5.1; Runs now default
-to Opus 5, not yet re-measured).
+Incident leaving the queue, three Runs, about $1.15 on Opus 5, the default (measured
+2026-09-24; it was about $0.50 on Fable 5.1).
 
 Vocabulary is [CONTEXT.md](../CONTEXT.md). Every command below is run from the repo root, in a
 shell that has Docker and `jira-as`, with the demo set up as the README's Quickstart leaves it:
@@ -244,8 +244,9 @@ The alternative is to project a filter instead of the queue, which needs no dele
 ## The demo, step by step
 
 Times are from the one action, measured in the rehearsal this runbook was written from (the
-record is at the bottom), on Grafana 12.3.1 and Runs on Fable 5.1; on the pinned Grafana 13 and
-Opus 5 they are still to be measured, so take them from your own `verify --live`. Grafana's
+record is at the bottom), on Grafana 12.3.1 and Runs on Fable 5.1. A `verify --live` on the pinned
+Grafana 13.2.1 with Runs on Opus 5 (2026-09-24) ran a little faster: Firing 52s after the stop,
+the Incident 38s later, the whole lifecycle 3m18s. Your own `verify --live` gives your laptop's figures. Grafana's
 parts add up: the rate window empties, then the thirty-second pending period, then the next
 ten-second evaluation. The waits are real and worth narrating rather than filling.
 
@@ -354,8 +355,8 @@ and never Closes.
 
 Honest small print, if it comes up: the Description's Dashboard and Panel lines are empty
 because the rule is linked to no dashboard; the repeat's value is the same zero as the first
-Firing, so the trend reads `unchanged`; a lifecycle is three Runs and about fifty cents (on Fable 5.1;
-Opus 5, now the default, is not yet re-measured).
+Firing, so the trend reads `unchanged`; a lifecycle is three Runs and about $1.15 on Opus 5, the
+default (about fifty cents on Fable 5.1).
 
 ## Fallback: the replay
 

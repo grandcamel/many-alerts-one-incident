@@ -225,8 +225,8 @@ local container?
 
 Why: a Run authenticates with the token `claude setup-token` prints, and its only permissions
 are the allow list the Receiver passes on its command line. Each Run asks for `RUN_MODEL`,
-`claude-opus-5` unless `.env` names another. A lifecycle was three Runs and about $0.47 when
-measured on Fable 5.1; on Opus 5 it is still to be measured.
+`claude-opus-5` unless `.env` names another. A lifecycle is three Runs and about $1.15 on
+Opus 5 (measured 2026-09-24), plus about $0.12 for one `doctor --with-model`.
 
 How the repo notices: `doctor`'s `env` layer names this request when `.env` holds no Claude
 token. `doctor --with-model` starts one short, real Run in the container and names it when an

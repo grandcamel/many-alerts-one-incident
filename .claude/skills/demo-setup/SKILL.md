@@ -38,6 +38,20 @@ Docker Compose on the engineer's laptop: Kubernetes, kind and chapter two are no
 - **Your shell forgets.** An `export` or `source` in one command is gone by the next. Every
   prefix this skill sets up (a virtualenv's Python or PATH in stage 2, the corporate CA in
   stage 3) is written in front of each command it applies to, every time.
+- **A blocked command is the engineer's to allow.** In auto mode, Claude Code may refuse a
+  command because it reaches the engineer's Jira with their credential. The 2026-09-24
+  rehearsal saw this happen to a read-only `reset --dry-run`. Never route around a refusal with
+  another command or tool. Name the blocked command and say why this stage needs it, then offer
+  two ways on:
+  - They approve it when prompted.
+  - They add allow rules for the read-only commands to their own git-ignored
+    `settings.local.json`, beside the repo's `.claude/settings.json`:
+    `Bash(python3 -m grafana_jsm_sandbox.doctor *)`,
+    `Bash(python3 -m grafana_jsm_sandbox.configure *)` and
+    `Bash(python3 -m grafana_jsm_sandbox.reset --dry-run)`.
+
+  Leave `verify` and the real `reset` without allow rules, so that each Jira write also stops at
+  a permission prompt.
 - **Tell the engineer where you are** in one line at the start of each stage.
 
 ## Resuming
