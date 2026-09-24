@@ -1,14 +1,17 @@
-"""Resetting OPS and the traffic before a demo, so the Incidents queue starts empty.
+"""Resetting the demo's project and the traffic before a demo, so the Incidents queue starts empty.
 
-Rehearsals leave Incidents behind. This takes every *open* OPS Incident that a
-Run created — the ones carrying a Fingerprint label — out of the Incidents
-queue, and starts the synthetic traffic so that Grafana's rule is Normal when
-the audience arrives:
+Rehearsals leave Incidents behind. This takes every *open* Incident in the
+demo's project that a Run created — the ones carrying a Fingerprint label — out
+of the Incidents queue, and starts the synthetic traffic so that Grafana's rule
+is Normal when the audience arrives:
 
     python3 -m grafana_jsm_sandbox.reset
 
-It runs on the laptop with a `jira-as` credential in the shell, like the
-end-to-end check, and never through a Run. The exit it takes is the only clean
+It runs on the laptop, like the end-to-end check, and never through a Run. The
+project and the Jira credential come from `.env`, the file compose hands the
+container, and `jira-as` is started with an environment built from it alone
+(`demo_config`), so a shell configured for another site or project changes
+nothing. The exit it takes is the only clean
 one on this workflow (ADR 0004): `Resolve` with a resolution, then `Close`.
 `Cancel` would leave the Incident in the queue for good, because `Canceled`
 carries no resolution and the queue is `resolution = Unresolved`. An open
@@ -21,15 +24,25 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
-OPEN_INCIDENTS = "project = OPS AND issuetype = Incident AND statusCategory != Done"
-"""Everything a Run could still act on, whoever opened it."""
+from grafana_jsm_sandbox.demo_config import (
+    ENV_FILE,
+    ConfigurationError,
+    DemoProject,
+    jira_as_environment,
+    read_env_file,
+)
+
+OPEN_INCIDENTS = 'project = "{key}" AND issuetype = Incident AND statusCategory != Done'
+"""Everything a Run could still act on, whoever opened it. The key is quoted so that one
+which is also a JQL word still reads as a key."""
 
 STUCK_INCIDENTS = (
-    "project = OPS AND issuetype = Incident AND statusCategory = Done AND resolution = Unresolved"
+    'project = "{key}" AND issuetype = Incident AND statusCategory = Done'
+    " AND resolution = Unresolved"
 )
 """Done by status but still in the Incidents queue, which filters on resolution, with no
 transition left that could set one (ADR 0004). Only deleting them empties the queue."""
@@ -84,12 +97,11 @@ class Outcome:
         return not self.left and not self.skipped and not self.stuck
 
 
-def reset(jira_as: JiraAs | None = None, compose: Compose | None = None) -> Outcome:
-    """Empty the Incidents queue of every Run-created Incident, then start the traffic."""
-    jira_as = run_jira_as if jira_as is None else jira_as
+def reset(project_key: str, jira_as: JiraAs, compose: Compose | None = None) -> Outcome:
+    """Empty the project's Incidents queue of every Run-created Incident, then start the traffic."""
     compose = run_compose if compose is None else compose
     outcome = Outcome()
-    for issue in search(jira_as, OPEN_INCIDENTS):
+    for issue in search(jira_as, OPEN_INCIDENTS.format(key=project_key)):
         key = issue["key"]
         if not any(label.startswith(FINGERPRINT_PREFIX) for label in issue["fields"]["labels"]):
             outcome.skipped.append(key)
@@ -97,7 +109,7 @@ def reset(jira_as: JiraAs | None = None, compose: Compose | None = None) -> Outc
             outcome.closed.append(key)
         else:
             outcome.left.append(key)
-    stuck = [issue["key"] for issue in search(jira_as, STUCK_INCIDENTS)]
+    stuck = [issue["key"] for issue in search(jira_as, STUCK_INCIDENTS.format(key=project_key))]
     compose("start", TRAFFIC_SERVICE)
     return Outcome(outcome.closed, outcome.left, outcome.skipped, stuck, traffic_started=True)
 
@@ -132,14 +144,28 @@ def search(jira_as: JiraAs, jql: str) -> list[dict]:
     return json.loads(answer).get("issues", [])
 
 
-def run_jira_as(*arguments: str) -> str:
-    """The real `jira-as`, with the credential this shell holds."""
-    answer = subprocess.run(
-        [JIRA_AS, *arguments], capture_output=True, text=True, timeout=120, check=False
-    )
-    if answer.returncode != 0:
-        raise RuntimeError(f"{JIRA_AS} {' '.join(arguments)} failed: {answer.stderr.strip()}")
-    return answer.stdout
+def jira_as_with(environment: Mapping[str, str]) -> JiraAs:
+    """The real `jira-as`, started with `environment` and nothing of this shell's own.
+
+    `environment` is `demo_config.jira_as_environment`'s: the credential and the
+    project from `.env`, which is what keeps the reset on the demo's project.
+    """
+    environment = dict(environment)
+
+    def run_jira_as(*arguments: str) -> str:
+        answer = subprocess.run(
+            [JIRA_AS, *arguments],
+            env=environment,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        if answer.returncode != 0:
+            raise RuntimeError(f"{JIRA_AS} {' '.join(arguments)} failed: {answer.stderr.strip()}")
+        return answer.stdout
+
+    return run_jira_as
 
 
 def run_compose(*arguments: str) -> None:
@@ -147,12 +173,21 @@ def run_compose(*arguments: str) -> None:
     subprocess.run(["docker", "compose", *arguments], cwd=REPOSITORY, check=True, timeout=120)
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(
+    argv: list[str] | None = None, env_file: Path = ENV_FILE, compose: Compose | None = None
+) -> int:
     argv = sys.argv[1:] if argv is None else argv
     if argv:
         print("usage: python3 -m grafana_jsm_sandbox.reset", file=sys.stderr)
         return 2
-    outcome = reset()
+    try:
+        values = read_env_file(env_file)
+        environment = jira_as_environment(values)
+        project = DemoProject.from_environment(values)
+    except ConfigurationError as failure:
+        print(failure, file=sys.stderr)
+        return 1
+    outcome = reset(project.key, jira_as_with(environment), compose)
     for key in outcome.closed:
         print(f"{key}: completed with resolution {RESOLUTION} and closed")
     for key in outcome.left:

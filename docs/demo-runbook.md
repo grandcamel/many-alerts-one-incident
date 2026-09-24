@@ -12,7 +12,8 @@ returns, Grafana resolves, a Run completes it. About four minutes from the one a
 Incident leaving the queue, three Runs, about $0.50.
 
 Vocabulary is [CONTEXT.md](../CONTEXT.md). Every command below is run from the repo root, in a
-shell that has the Jira credential (`JIRA_SITE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`) and Docker.
+shell that has Docker and `jira-as`, with `.env` filled in: the reset and the end-to-end check
+take the Jira credential and the project key (`DEMO_PROJECT_KEY`) from it, not from the shell.
 
 ## The screen
 
@@ -188,6 +189,10 @@ empty now.
 jira-as api call deleteIssue --issueIdOrKey OPS-n
 ```
 
+Unlike the reset, this is your own shell's `jira-as`, with whatever site and credential it is
+configured with, so check that it points at the demo's site before deleting anything. Run from
+inside this repo, the committed `.claude/settings.json` also refuses any key but `OPS`.
+
 The alternative is to project a filter instead of the queue, which needs no deletion:
 `project = OPS AND issuetype = Incident AND statusCategory != Done ORDER BY created DESC`.
 
@@ -233,8 +238,10 @@ and the denial is printed on a `[DENIED]` line in the log window (ADR 0003). Sho
 line:
 
 ```bash
-python3 -m grafana_jsm_sandbox.run_command skill runs
+python3 -m grafana_jsm_sandbox.run_command skill runs <KEY>
 ```
+
+with the project's key for `<KEY>`.
 
 The live Runs have so far never tried anything off the list, so the log has shown no denial.
 The recorded Transcript in the repo has one, from a Run that was asked to `ls /etc`; render it
@@ -327,9 +334,10 @@ replay while Grafana is still Firing and posting.
 python3 -m grafana_jsm_sandbox.reset
 ```
 
-It finds every open OPS Incident carrying an `fp-` label, takes each out of the queue the only
-clean way this workflow has, `Resolve` with resolution Done and then `Close`, leaves a comment
-saying the reset did it, and then starts the traffic service so that the rule returns to Normal.
+It finds every open Incident carrying an `fp-` label in the project `.env` names, takes each
+out of the queue the only clean way this workflow has, `Resolve` with resolution Done and then
+`Close`, leaves a comment saying the reset did it, and then starts the traffic service so that
+the rule returns to Normal.
 It prints what it did per key and ends with `queue is empty` and exit 0, or names what it left:
 an `fp-` Incident with no road to Completed from where it is (`Pending`, which only a human
 uses), an open Incident with no `fp-` label, which is not a Run's and is not touched, or a done

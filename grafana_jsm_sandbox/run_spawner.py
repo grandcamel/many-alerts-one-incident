@@ -50,6 +50,20 @@ because the Forwarder swaps the sentinel for that account's real token on every 
 the limit on a Run's site-wide reach is the Skill it follows and that account's own Jira
 permissions, and the account the demo runs as should hold no more than the demo needs."""
 
+ALLOWED_PROJECTS_VARIABLE = "JIRA_ALLOWED_PROJECTS"
+"""The one Jira project a Run may name, the demo's own. jira-as refuses a call that names any
+other project literally, as a project argument, in an issue key or in a JQL `project` clause,
+before it sends anything; a `deleteIssue PROD-1` from a Run is refused in the Run, not left to
+the account's permissions (the 2026-09-23 audit, F7). The variable wins over any
+`allowed_projects` in a jira-as settings file (jira_as/config_manager.py:211-216 in 2.0.0).
+
+It is jira-as's own defence in depth and not a boundary: by its own account it checks literal
+references and does not evaluate JQL or authorize HTTP. The Forwarder still forwards whatever
+path a Run's request names, so what bounds a Run's writes is still its tool allow list (ADR
+0003), the Skill and the account's own permissions. With it set, jira-as also takes a label like
+`fp-1234` in JQL for an issue key and refuses it, which a Fingerprint that happens to hold no
+letter a-f would trip."""
+
 TRUST_STORE_VARIABLES = (
     "SSL_CERT_FILE",
     "REQUESTS_CA_BUNDLE",
@@ -109,6 +123,7 @@ class RunSpawner:
     forwarder: Forwarder
     anthropic_token: str
     jira_email: str
+    project_key: str
     timeout: float = RUN_TIMEOUT
     path: str = field(default_factory=lambda: os.environ.get("PATH", os.defpath))
     trust_store: Mapping[str, str] = field(default_factory=trust_store_from_environment)
@@ -167,9 +182,10 @@ class RunSpawner:
         """Everything the Run's process gets, and it is built here rather than inherited.
 
         The Jira variables are the ones jira-as reads, so a Run needs no patching
-        to talk to the Forwarder — it only ever holds the sentinel. HOME is not
-        among them: the Claude CLI falls back to the account's home directory,
-        and leaving it out keeps the list short enough to read aloud. The trust
+        to talk to the Forwarder — it only ever holds the sentinel — and it may name
+        the demo's project and no other. HOME is not among them: the Claude CLI
+        falls back to the account's home directory, and leaving it out keeps the
+        list short enough to read aloud. The trust
         store is the one thing carried over from the Receiver's own environment,
         and only when the Receiver has one.
         """
@@ -179,6 +195,7 @@ class RunSpawner:
             ENVIRONMENT_VARIABLES["site_url"]: self.forwarder.url,
             ENVIRONMENT_VARIABLES["email"]: self.jira_email,
             ENVIRONMENT_VARIABLES["api_token"]: sentinel,
+            ALLOWED_PROJECTS_VARIABLE: self.project_key,
             SITE_OPERATIONS_VARIABLE: "true",
             "PATH": self.path,
         }

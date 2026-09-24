@@ -16,6 +16,7 @@ same rule title, same labels.
 
 from __future__ import annotations
 
+import functools
 import json
 from urllib.parse import urlencode
 
@@ -26,9 +27,6 @@ from tests.conftest import compose, firing_notification, http_request, needs_the
 
 GRAFANA_HOST_PORT_VARIABLE = "GRAFANA_HOST_PORT"
 """What moves Grafana off a taken 3000 on the laptop; its port in the container stays 3000."""
-
-GRAFANA = laptop_url(GRAFANA_HOST_PORT_VARIABLE, 3000)
-"""Grafana on the laptop, where compose publishes it: anonymous admin, no login form."""
 
 RECEIVER_ON_THE_NETWORK = "http://demo:8080/notification"
 """The Receiver as Grafana must name it: by compose service name, not localhost."""
@@ -148,16 +146,27 @@ def test_the_fixtures_describe_the_alert_grafana_is_provisioned_to_send(contact_
 def grafana(path: str, data: dict[str, str] | None = None) -> dict | list:
     """One request at Grafana's API, JSON in and out. A POST when `data` is given."""
     if data is None:
-        answer = http_request(GRAFANA + path)
+        answer = http_request(grafana_url() + path)
     else:
         answer = http_request(
-            GRAFANA + path,
+            grafana_url() + path,
             method="POST",
             data=urlencode(data).encode(),
             content_type="application/x-www-form-urlencoded",
         )
     assert answer.status == 200, f"{path} answered {answer.status}: {answer.body[:200]!r}"
     return json.loads(answer.body)
+
+
+@functools.cache
+def grafana_url() -> str:
+    """Grafana on the laptop, where compose publishes it: anonymous admin, no login form.
+
+    Worked out on first use rather than at import, because it reads `.env`: every
+    suite collects this module, and a skipped check must never open that file, nor
+    fail collection over a line in it.
+    """
+    return laptop_url(GRAFANA_HOST_PORT_VARIABLE, 3000)
 
 
 def seconds(duration: str) -> int:

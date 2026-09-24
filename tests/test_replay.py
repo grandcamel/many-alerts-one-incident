@@ -8,11 +8,14 @@ same way it drives the container's one during a demo.
 from __future__ import annotations
 
 import json
+import runpy
 import time
+from pathlib import Path
 
 import pytest
 
-from grafana_jsm_sandbox.replay import SEQUENCE, default_receiver, replay
+from grafana_jsm_sandbox.demo_config import compose_environment
+from grafana_jsm_sandbox.replay import SEQUENCE, default_receiver, main, replay
 from tests.conftest import FIXTURES
 
 
@@ -77,3 +80,49 @@ def test_an_empty_value_means_compose_s_default_as_it_does_for_compose():
 )
 def test_the_laptop_reaches_the_address_compose_binds(address, url):
     assert default_receiver({"BIND_ADDRESS": address}) == url
+
+
+# --- Where compose publishes it when only .env moved it (step 02 of demo-onboarding) ---
+
+
+def test_a_port_moved_only_in_env_is_followed(tmp_path):
+    """Compose interpolates the published port from `.env`, so the replay reads it there too."""
+    env_file = tmp_path / ".env"
+    env_file.write_text("RECEIVER_HOST_PORT=18080\n")
+
+    assert default_receiver(compose_environment(env_file, {})) == "http://127.0.0.1:18080"
+
+
+def test_the_shell_moves_it_over_env_as_it_does_for_compose(tmp_path):
+    env_file = tmp_path / ".env"
+    env_file.write_text("RECEIVER_HOST_PORT=18080\n")
+    shell = {"RECEIVER_HOST_PORT": "28080"}
+
+    assert default_receiver(compose_environment(env_file, shell)) == "http://127.0.0.1:28080"
+
+
+def test_an_env_file_compose_would_refuse_stops_the_replay_by_line(monkeypatch, tmp_path, capsys):
+    """Without `--receiver` the default is read from `.env`; one compose cannot read either
+    is said once, naming its line, rather than as a traceback."""
+    env_file = tmp_path / ".env"
+    env_file.write_text("RECEIVER_HOST_PORT='18080\n")
+    monkeypatch.setattr(
+        "grafana_jsm_sandbox.replay.compose_environment",
+        lambda: compose_environment(env_file, {}),
+    )
+
+    assert main(["--pause", "0"]) == 1
+    assert f"{env_file}:1: RECEIVER_HOST_PORT" in capsys.readouterr().err
+
+
+def test_collecting_the_opt_in_grafana_checks_never_reads_env(monkeypatch):
+    """Every suite collects `test_grafana`, skipped or not, so working out where compose
+    published Grafana waits for a check that runs: a skipped one must not open `.env`, and a
+    line in it compose would refuse must not stop the whole suite at collection."""
+
+    def refuse():
+        raise AssertionError("the Grafana checks read .env while being collected")
+
+    monkeypatch.setattr("grafana_jsm_sandbox.replay.compose_environment", refuse)
+
+    runpy.run_path(str(Path(__file__).with_name("test_grafana.py")))

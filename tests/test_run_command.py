@@ -18,11 +18,12 @@ from grafana_jsm_sandbox.run_command import SKILL_FILE, build_run_command, main
 
 SKILL_DIRECTORY = Path("/srv/skill")
 RUNS_DIRECTORY = Path("/srv/runs")
+PROJECT_KEY = "SANDBOX"
 
 
 @pytest.fixture
 def command() -> list[str]:
-    return build_run_command(SKILL_DIRECTORY, RUNS_DIRECTORY)
+    return build_run_command(SKILL_DIRECTORY, RUNS_DIRECTORY, PROJECT_KEY)
 
 
 def value_of(command: list[str], flag: str) -> str:
@@ -91,9 +92,15 @@ def test_the_prompt_is_the_last_argument_and_is_not_a_flag(command):
     assert NOTIFICATION_FILENAME in prompt
 
 
+def test_the_prompt_names_the_demo_s_project_and_not_ops(command):
+    prompt = command[-1]
+    assert PROJECT_KEY in prompt
+    assert "OPS" not in prompt
+
+
 def test_a_relative_skill_directory_is_made_absolute(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    command = build_run_command(Path("skill"), RUNS_DIRECTORY)
+    command = build_run_command(Path("skill"), RUNS_DIRECTORY, PROJECT_KEY)
     assert value_of(command, "--add-dir") == str(tmp_path / "skill")
 
 
@@ -110,13 +117,17 @@ def test_every_read_rule_names_an_absolute_path(command):
 def test_a_relative_runs_directory_is_made_absolute_in_its_read_rule(tmp_path, monkeypatch):
     """The Receiver's default runs directory is relative to where it was started."""
     monkeypatch.chdir(tmp_path)
-    command = build_run_command(SKILL_DIRECTORY, Path("runs"))
+    command = build_run_command(SKILL_DIRECTORY, Path("runs"), PROJECT_KEY)
     assert f"Read(/{tmp_path.resolve()}/runs/**)" in values_of(command, "--allowedTools")
 
 
-def test_printed_by_hand_it_needs_both_directories(capsys):
+def test_printed_by_hand_it_needs_both_directories_and_the_project(capsys):
     assert main(["skill"]) == 2
     assert "<runs-directory>" in capsys.readouterr().err
+    assert main(["/srv/skill", "/srv/runs"]) == 2
+    assert "<project-key>" in capsys.readouterr().err
 
-    assert main(["/srv/skill", "/srv/runs"]) == 0
-    assert "'Read(//srv/runs/**)'" in capsys.readouterr().out
+    assert main(["/srv/skill", "/srv/runs", "SANDBOX"]) == 0
+    printed = capsys.readouterr().out
+    assert "'Read(//srv/runs/**)'" in printed
+    assert "SANDBOX" in printed

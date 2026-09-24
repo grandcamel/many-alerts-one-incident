@@ -8,9 +8,9 @@ denials show up in its Transcript where an audience can read them.
 
 The Receiver builds this command line for each Run in ticket 05. Print it to
 run one by hand, which is how the skill was verified against the real OPS
-project:
+project, naming the skill, the runs directory and the demo's project key:
 
-    python3 -m grafana_jsm_sandbox.run_command skill runs
+    python3 -m grafana_jsm_sandbox.run_command skill runs OPS
 """
 
 from __future__ import annotations
@@ -47,8 +47,9 @@ not reach for one — the skill never needs one."""
 
 PROMPT = (
     f"Read the skill, then handle every Alert in {NOTIFICATION_FILENAME} as it says. "
-    "Finish with one line per Alert saying what changed in OPS."
+    "Finish with one line per Alert saying what changed in {project_key}."
 )
+"""What a Run is asked to do, naming the demo's project, which is `DEMO_PROJECT_KEY`."""
 
 
 def allowed_tools(skill_directory: Path, runs_directory: Path) -> tuple[str, ...]:
@@ -73,13 +74,16 @@ def read_rule(directory: Path) -> str:
     return f"Read(/{directory}/**)"
 
 
-def build_run_command(skill_directory: Path | str, runs_directory: Path | str) -> list[str]:
+def build_run_command(
+    skill_directory: Path | str, runs_directory: Path | str, project_key: str
+) -> list[str]:
     """The argv that starts one Run, to be executed in the Run's working directory.
 
     `skill_directory` is the directory mounted into the container that holds the
     skill, and `runs_directory` the parent of every Run's working directory. Both
     are made absolute, because a Run's working directory is not this process's,
     `--add-dir` is resolved from the Run's, and a Read rule names an absolute path.
+    `project_key` is the demo's project, which the prompt names.
     """
     skill_directory = Path(skill_directory).resolve()
     tools = allowed_tools(skill_directory, Path(runs_directory).resolve())
@@ -101,20 +105,21 @@ def build_run_command(skill_directory: Path | str, runs_directory: Path | str) -
             skill=skill_directory / SKILL_FILE,
             tools=", ".join(tools),
         ),
-        PROMPT,
+        PROMPT.format(project_key=project_key),
     ]
 
 
 def main(argv: list[str] | None = None) -> int:
     """Print the command line, ready to paste into a Run's working directory."""
     argv = sys.argv[1:] if argv is None else argv
-    if len(argv) != 2:
+    if len(argv) != 3:
         print(
-            "usage: python3 -m grafana_jsm_sandbox.run_command <skill-directory> <runs-directory>",
+            "usage: python3 -m grafana_jsm_sandbox.run_command"
+            " <skill-directory> <runs-directory> <project-key>",
             file=sys.stderr,
         )
         return 2
-    print(shlex.join(build_run_command(argv[0], argv[1])))
+    print(shlex.join(build_run_command(argv[0], argv[1], argv[2])))
     return 0
 
 

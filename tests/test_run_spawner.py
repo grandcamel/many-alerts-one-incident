@@ -19,6 +19,7 @@ import pytest
 from grafana_jsm_sandbox.notification import NOTIFICATION_FILENAME
 from grafana_jsm_sandbox.receiver import Receiver, Run
 from grafana_jsm_sandbox.run_spawner import (
+    ALLOWED_PROJECTS_VARIABLE,
     ANTHROPIC_TOKEN_VARIABLE,
     SITE_OPERATIONS_VARIABLE,
     TRUST_STORE_VARIABLES,
@@ -35,6 +36,9 @@ from tests.conftest import (
 
 ANTHROPIC_TOKEN = "an-anthropic-oauth-token-no-forwarder-can-hide"
 
+PROJECT_KEY = "SANDBOX"
+"""The demo's project, as `DEMO_PROJECT_KEY` names it: deliberately not OPS."""
+
 ENVIRONMENT_FILE = "environment.json"
 """Where a stand-in Run writes the environment it was started with."""
 
@@ -47,6 +51,7 @@ A_RUNS_VARIABLES = {
     "JIRA_EMAIL",
     "JIRA_SITE_URL",
     "JIRA_API_TOKEN",
+    ALLOWED_PROJECTS_VARIABLE,
     SITE_OPERATIONS_VARIABLE,
     "PATH",
 }
@@ -128,6 +133,7 @@ def spawner_for(command: list[str], forwarder, **overrides) -> RunSpawner:
         forwarder=forwarder,
         anthropic_token=ANTHROPIC_TOKEN,
         jira_email=REAL_EMAIL,
+        project_key=PROJECT_KEY,
         **overrides,
     )
 
@@ -210,6 +216,13 @@ def test_the_run_can_read_jiras_clock(forwarder, run):
     spawner_for(_program(DUMP_ENVIRONMENT), forwarder)(run)
 
     assert environment_of(run)[SITE_OPERATIONS_VARIABLE] == "true"
+
+
+def test_the_run_may_name_the_demo_s_project_and_no_other(forwarder, run):
+    """jira-as refuses a call naming any other project before it is sent (audit F7)."""
+    spawner_for(_program(DUMP_ENVIRONMENT), forwarder)(run)
+
+    assert environment_of(run)[ALLOWED_PROJECTS_VARIABLE] == PROJECT_KEY
 
 
 def test_each_run_gets_its_own_sentinel(forwarder, tmp_path):

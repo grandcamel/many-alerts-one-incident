@@ -8,7 +8,7 @@ the end-to-end check uses.
     python3 -m grafana_jsm_sandbox.replay --pause 30
 
 Without `--receiver` it posts where compose publishes the Receiver on this
-laptop, `127.0.0.1:8080` unless the shell moves it (`laptop_url`).
+laptop, `127.0.0.1:8080` unless `.env` or the shell moves it (`laptop_url`).
 
 The Receiver runs Notifications one at a time in arrival order, so the pause is
 about pacing what an audience sees, not about keeping the Runs apart.
@@ -18,12 +18,14 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
+import sys
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Mapping
 from pathlib import Path
+
+from grafana_jsm_sandbox.demo_config import ConfigurationError, compose_environment
 
 logger = logging.getLogger(__name__)
 
@@ -68,10 +70,9 @@ def laptop_url(
 
     Read from the variables compose interpolates the published ports from, with
     compose's own defaults, so moving the Receiver off a taken 8080 moves this with
-    it. Compose also reads them from `.env`; this reads only the shell, so a port
-    moved in `.env` alone needs `--receiver`.
+    it. By default those are compose's own: `.env`, with the shell over it.
     """
-    environment = os.environ if environment is None else environment
+    environment = compose_environment() if environment is None else environment
     address = environment.get(BIND_ADDRESS_VARIABLE, "").strip() or DEFAULT_BIND_ADDRESS
     if address in WILDCARD_ADDRESSES:
         address = "localhost"
@@ -127,7 +128,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     arguments = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    statuses = replay(arguments.receiver, arguments.pause)
+    try:
+        receiver_url = arguments.receiver or default_receiver()
+    except ConfigurationError as failure:
+        # Only a `.env` compose would refuse too gets here, and it names the line.
+        print(failure, file=sys.stderr)
+        return 1
+    statuses = replay(receiver_url, arguments.pause)
     return 0 if all(status == 202 for status in statuses) else 1
 
 
