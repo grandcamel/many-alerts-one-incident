@@ -2,7 +2,7 @@
 
 The flags here are the demo's permission boundary (ADR 0003): a Run is started
 in a mode where anything outside the allow list is denied without a prompt, and
-the allow list is jira-as and reading under two absolute directories. These tests
+the allow list is jira-as and reading under one absolute directory. These tests
 are what stops a later change from quietly widening that, which no other test in
 this repo would notice.
 """
@@ -14,16 +14,22 @@ from pathlib import Path
 import pytest
 
 from grafana_jsm_sandbox.notification import NOTIFICATION_FILENAME
-from grafana_jsm_sandbox.run_command import SKILL_FILE, build_run_command, main
+from grafana_jsm_sandbox.run_command import (
+    SKILL_FILE,
+    build_run_command,
+    main,
+    rendered_skill_directory,
+)
 
-SKILL_DIRECTORY = Path("/srv/skill")
 RUNS_DIRECTORY = Path("/srv/runs")
+RENDERED_SKILL_DIRECTORY = Path("/srv/runs/.skill")
+"""Where the Receiver renders the Skill at startup: inside the runs directory."""
 PROJECT_KEY = "SANDBOX"
 
 
 @pytest.fixture
 def command() -> list[str]:
-    return build_run_command(SKILL_DIRECTORY, RUNS_DIRECTORY, PROJECT_KEY)
+    return build_run_command(RUNS_DIRECTORY, PROJECT_KEY)
 
 
 def value_of(command: list[str], flag: str) -> str:
@@ -53,11 +59,11 @@ def test_anything_outside_the_allow_list_is_denied_without_a_prompt(command):
     assert value_of(command, "--permission-mode") == "dontAsk"
 
 
-def test_the_run_may_execute_jira_as_and_read_two_directories_and_nothing_else(command):
+def test_the_run_may_execute_jira_as_and_read_the_runs_directory_and_nothing_else(command):
+    """One Read rule: the runs directory holds the Notification and the rendered Skill both."""
     assert values_of(command, "--allowedTools") == [
         "Bash(jira-as *)",
         "Read(//srv/runs/**)",
-        "Read(//srv/skill/**)",
     ]
     assert "--dangerously-skip-permissions" not in command
     assert "--allow-dangerously-skip-permissions" not in command
@@ -69,14 +75,25 @@ def test_the_transcript_is_stream_json_one_run_event_per_line(command):
     assert "--verbose" in command, "stream-json in print mode needs --verbose"
 
 
-def test_the_run_can_reach_the_mounted_skill_directory(command):
-    assert value_of(command, "--add-dir") == str(SKILL_DIRECTORY)
+def test_the_rendered_skill_is_inside_the_runs_directory():
+    assert rendered_skill_directory(RUNS_DIRECTORY) == RENDERED_SKILL_DIRECTORY
+
+
+def test_the_run_can_reach_the_rendered_skill_and_not_the_template(command):
+    """The template in the repo still carries `{{PROJECT_KEY}}`; a Run is given the rendering."""
+    assert value_of(command, "--add-dir") == str(RENDERED_SKILL_DIRECTORY)
+    assert all("/skill" not in tool for tool in values_of(command, "--allowedTools"))
+
+
+def test_the_rendered_skill_is_under_the_one_read_rule(command):
+    [rule] = [tool for tool in values_of(command, "--allowedTools") if tool.startswith("Read")]
+    assert f"Read(/{RENDERED_SKILL_DIRECTORY.parent}/**)" == rule
 
 
 def test_the_system_prompt_appendix_names_the_notification_and_the_skill(command):
     appendix = value_of(command, "--append-system-prompt")
     assert NOTIFICATION_FILENAME in appendix
-    assert str(SKILL_DIRECTORY / SKILL_FILE) in appendix
+    assert str(RENDERED_SKILL_DIRECTORY / SKILL_FILE) in appendix
 
 
 def test_the_run_is_told_the_same_allow_list_that_is_enforced_on_it(command):
@@ -98,10 +115,12 @@ def test_the_prompt_names_the_demo_s_project_and_not_ops(command):
     assert "OPS" not in prompt
 
 
-def test_a_relative_skill_directory_is_made_absolute(tmp_path, monkeypatch):
+def test_a_relative_runs_directory_puts_the_rendered_skill_at_an_absolute_path(
+    tmp_path, monkeypatch
+):
     monkeypatch.chdir(tmp_path)
-    command = build_run_command(Path("skill"), RUNS_DIRECTORY, PROJECT_KEY)
-    assert value_of(command, "--add-dir") == str(tmp_path / "skill")
+    command = build_run_command(Path("runs"), PROJECT_KEY)
+    assert value_of(command, "--add-dir") == str(tmp_path.resolve() / "runs" / ".skill")
 
 
 def test_every_read_rule_names_an_absolute_path(command):
@@ -117,17 +136,18 @@ def test_every_read_rule_names_an_absolute_path(command):
 def test_a_relative_runs_directory_is_made_absolute_in_its_read_rule(tmp_path, monkeypatch):
     """The Receiver's default runs directory is relative to where it was started."""
     monkeypatch.chdir(tmp_path)
-    command = build_run_command(SKILL_DIRECTORY, Path("runs"), PROJECT_KEY)
+    command = build_run_command(Path("runs"), PROJECT_KEY)
     assert f"Read(/{tmp_path.resolve()}/runs/**)" in values_of(command, "--allowedTools")
 
 
-def test_printed_by_hand_it_needs_both_directories_and_the_project(capsys):
-    assert main(["skill"]) == 2
-    assert "<runs-directory>" in capsys.readouterr().err
-    assert main(["/srv/skill", "/srv/runs"]) == 2
+def test_printed_by_hand_it_needs_the_runs_directory_and_the_project(capsys):
+    assert main(["/srv/runs"]) == 2
     assert "<project-key>" in capsys.readouterr().err
+    assert main(["/srv/skill", "/srv/runs", "SANDBOX"]) == 2
+    assert "<runs-directory>" in capsys.readouterr().err
 
-    assert main(["/srv/skill", "/srv/runs", "SANDBOX"]) == 0
+    assert main(["/srv/runs", "SANDBOX"]) == 0
     printed = capsys.readouterr().out
     assert "'Read(//srv/runs/**)'" in printed
+    assert "/srv/runs/.skill" in printed
     assert "SANDBOX" in printed

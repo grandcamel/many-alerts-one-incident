@@ -42,6 +42,7 @@ from grafana_jsm_sandbox.replay import (
     RECEIVER_HOST_PORT_VARIABLE,
     default_receiver,
 )
+from grafana_jsm_sandbox.run_command import SKILL_FILE, rendered_skill_directory
 from grafana_jsm_sandbox.run_spawner import ANTHROPIC_TOKEN_VARIABLE, TRUST_STORE_VARIABLES
 from tests.conftest import REPOSITORY, compose, needs_the_stack_up
 
@@ -404,6 +405,16 @@ class TestAStackThatIsUp:
         assert read.returncode != 0, "the Receiver's environment is readable by the Run user"
         assert "Permission denied" in read.stderr
         assert not read.stdout
+
+    def test_the_run_s_skill_is_rendered_for_the_configured_project(self):
+        """What a Run reads, rendered from .env at this start (step 03 of demo-onboarding)."""
+        key = compose("exec", "-T", DEMO_SERVICE, "printenv", PROJECT_KEY_VARIABLE).stdout.strip()
+        skill = rendered_skill_directory(runs_directory()) / SKILL_FILE
+        read = compose("exec", "-T", DEMO_SERVICE, "cat", str(skill))
+
+        assert read.returncode == 0, read.stderr
+        assert f"project = {key} AND issuetype = Incident" in read.stdout
+        assert "{{" not in read.stdout
 
     def test_a_run_would_find_the_tools_it_is_allowed_to_use(self):
         for tool in ("claude", "jira-as"):
@@ -900,6 +911,17 @@ def test_exactly_the_three_scratch_directories_are_writable_and_none_outlives_th
     else (story 19). No volume either, so a restart starts clean."""
     assert set(tmpfs_mounts(DEMO_SERVICE)) == set(scratch_directories())
     assert "volumes" not in service(DEMO_SERVICE)
+
+
+def test_the_run_s_skill_is_rendered_onto_a_tmpfs_from_a_template_on_the_read_only_root():
+    """The template is baked into the image; what a Run reads is rendered from .env at every
+    start into the runs directory, which no restart keeps (step 03 of demo-onboarding)."""
+    mounts = [Path(mount) for mount in tmpfs_mounts(DEMO_SERVICE)]
+    rendered = rendered_skill_directory(runs_directory())
+    template = Path(environment_set_by(DOCKERFILE)[SKILL_DIRECTORY_VARIABLE][1])
+
+    assert any(rendered.is_relative_to(mount) for mount in mounts)
+    assert not any(template.is_relative_to(mount) for mount in mounts)
 
 
 def test_the_runs_directory_and_the_home_belong_to_the_run_user():

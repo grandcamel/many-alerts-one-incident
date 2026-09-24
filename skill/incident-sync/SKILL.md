@@ -1,6 +1,6 @@
 ---
 name: incident-sync
-description: Turn one Grafana Notification into Incident activity in the Jira OPS project.
+description: Turn one Grafana Notification into Incident activity in the Jira {{PROJECT_KEY}} project.
 ---
 
 # One Notification, one Incident lifecycle
@@ -23,14 +23,14 @@ the ADF form below instead.
 
 | Fact | Value |
 | --- | --- |
-| Project | `OPS` |
+| Project | `{{PROJECT_KEY}}` |
 | Issue type | `Incident` |
 | Fingerprint label | `fp-<fingerprint>` — nothing else identifies an Incident |
-| Severity field | `customfield_10085`, one of `Sev-1`, `Sev-2`, `Sev-3` |
-| Urgency field | `customfield_10079`, one of `Critical`, `High`, `Medium` |
-| Source field | `customfield_10096`, always `Monitoring systems` |
+| Severity field | {{SEVERITY_FIELD}} |
+| Urgency field | {{URGENCY_FIELD}} |
+| Source field | {{SOURCE_FIELD}} |
 
-Never set `Sev-0`. Never touch Major incident (`customfield_10083`). Never use the
+Never set `Sev-0`. Never touch {{MAJOR_INCIDENT}}. Never use the
 statuses `Pending`, `Closed` or `Canceled` — a human owns those.
 
 ## Step 1 — find the Match
@@ -38,7 +38,7 @@ statuses `Pending`, `Closed` or `Canceled` — a human owns those.
 The Match is the one open Incident carrying this Alert's Fingerprint label:
 
 ```bash
-jira-as search jql 'project = OPS AND issuetype = Incident AND labels = "fp-<fingerprint>" AND statusCategory != Done'
+jira-as search jql 'project = {{PROJECT_KEY}} AND issuetype = Incident AND labels = "fp-<fingerprint>" AND statusCategory != Done'
 ```
 
 `Found 0 issue(s)` means there is no Match. Otherwise the table's `Key` column is
@@ -69,15 +69,18 @@ Map the Alert onto the fields:
 - **Urgency** — follows Severity: `Sev-1` → `Critical`, `Sev-2` → `High`,
   `Sev-3` → `Medium`.
 - **Component** — the `service` label, but only if a component of that exact name
-  already exists on OPS. Check with
-  `jira-as -o json api call getProjectComponents --projectIdOrKey OPS`. If it is
+  already exists on {{PROJECT_KEY}}. Check with
+  `jira-as -o json api call getProjectComponents --projectIdOrKey {{PROJECT_KEY}}`. If it is
   not there, leave the component off entirely. An unknown service must not fail
   the create.
 - **Label** — `fp-<fingerprint>`, and no other label.
 
 ```bash
-jira-as issue create -p OPS -t Incident -s '<summary>' --labels 'fp-<fingerprint>' --custom-fields '{"customfield_10085": {"value": "Sev-1"}, "customfield_10079": {"value": "Critical"}, "customfield_10096": {"value": "Monitoring systems"}, "description": <description>}'
+jira-as issue create -p {{PROJECT_KEY}} -t Incident -s '<summary>' --labels 'fp-<fingerprint>' --custom-fields '{{CUSTOM_FIELDS}}'
 ```
+
+That sets exactly the fields [the project](#the-project) gives an id for. A field
+it says this project lacks stays off: never look for its id, never guess one.
 
 Add `--components '<service>'` only when that component exists. The Incident is
 created in `Open`; do not transition it on the first Firing.

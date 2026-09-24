@@ -34,8 +34,14 @@ every site, so bookmark the address the day before rather than typing it live.
 Reload the queue and the Grafana list by hand when the log says a Run has finished. Neither
 refreshes fast enough on its own to be trusted during the demo.
 
-Have two more tabs ready but not shown: [`skill/incident-sync/SKILL.md`](../skill/incident-sync/SKILL.md)
-in an editor, and the Incident itself once it exists (click it in the queue), for the comments.
+Have two more tabs ready but not shown: the Skill exactly as a Run reads it, rendered for your
+project when the container started, and the Incident itself once it exists (click it in the
+queue), for the comments. The Skill is not the template in the repo, which carries placeholders;
+print the rendering into its own terminal tab:
+
+```bash
+docker compose exec -T demo cat /app/runs/.skill/incident-sync/SKILL.md
+```
 
 ## On the work laptop: the corporate CA
 
@@ -233,12 +239,12 @@ available. Each has one thing on screen to point at.
 
 **The Run can only run jira-as.** A Run is headless Claude Code in print mode with
 `--permission-mode dontAsk` and an allow list of exactly two tools: `Bash(jira-as *)`, and `Read`
-of the runs directory and the skill and nothing else. Anything else is denied without a prompt,
-and the denial is printed on a `[DENIED]` line in the log window (ADR 0003). Show the command
-line:
+of the runs directory, which holds the Notification and the rendered Skill, and nothing else.
+Anything else is denied without a prompt, and the denial is printed on a `[DENIED]` line in the
+log window (ADR 0003). Show the command line:
 
 ```bash
-python3 -m grafana_jsm_sandbox.run_command skill runs <KEY>
+python3 -m grafana_jsm_sandbox.run_command runs <KEY>
 ```
 
 with the project's key for `<KEY>`.

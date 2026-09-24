@@ -67,8 +67,9 @@ One headless Claude invocation, started by the Receiver to handle Alerts from on
 _Avoid_: harness, agent, session, job
 
 **Skill**:
-The one file in this repo, copied into the image, that tells a Run the OPS facts and how to
-act on an Alert. A Run reads it and nothing else instructs it.
+The one file that tells a Run the demo project's facts and how to act on an Alert. The repo
+holds it as a template, copied into the image; the Receiver renders it from `.env` at every
+start, and a Run reads that rendering, never the template. Nothing else instructs a Run.
 _Avoid_: prompt, playbook, instructions, runbook
 
 **Forwarder**:
