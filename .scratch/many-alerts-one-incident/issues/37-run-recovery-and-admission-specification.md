@@ -42,7 +42,14 @@ setting, limit and v1 semantic in it is a proposal awaiting ratification. Unit
 record, the digest-chained record envelope, and a store that acknowledges only
 after the COMMIT and the anchor sync. Verified integrity failures persist as
 durable holds; transient failures never do. Independent review passes; the
-full suite reports 3799 passed, 38 skipped. The admission transaction (15b),
-Receiver integration, Run and effect records, accounting, reset and
-reconstruction remain open, as do venue durability and isolation from Runs.
-This ticket stays open.
+full suite reports 3799 passed, 38 skipped.
+
+Unit [15b](../reviews/recovery-journal/outcome-15b.md) adds the pure reducer
+(ticket-31 dedupe, pending reduction, capacity and restart decisions, and
+identical replay) and the shell. The shell's open verifies the whole chain,
+adopts at most one unanchored commit and persists every verified integrity
+failure; its admission receipt follows the COMMIT and the anchor sync. Crash
+images cover the in-scope windows of spec L249-253. Independent review passes;
+the full suite reports 4012 passed, 38 skipped. Receiver integration, Run and
+effect records, accounting, reset and reconstruction remain open, as do venue
+durability and isolation from Runs. This ticket stays open.

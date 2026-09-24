@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-23",
+  "status": "PASS_LOCAL_RECOVERY_JOURNAL_REDUCER_AND_SHELL",
+  "unit": "15b (second part of unit 15)",
+  "baseline_commit": "f68c9aa",
+  "unit_tests": {
+    "passed": 213,
+    "repeated_runs": 2
+  },
+  "focused_tests": {
+    "passed": 689,
+    "skipped": 2,
+    "seconds": 68.34,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/recovery-journal/focused-tests-15b.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 4012,
+    "skipped": 38,
+    "seconds": 237.36,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/recovery-journal/full-suite-15b.txt"
+  },
+  "existing_tests_byte_identical": true,
+  "existing_modules_changed": [],
+  "review": {
+    "orchestration": "individual agents (Workflow tool not opted into this session)",
+    "tester_source_bugs": 2,
+    "round1_lenses": [
+      "contract",
+      "durability_concurrency",
+      "fail_closed_custody",
+      "test_adequacy"
+    ],
+    "round1_source_findings_fixed": 8,
+    "fixer_tests_failing_on_pre_fix_sources": 25,
+    "gap_agent_1_mutants_killed": 13,
+    "final_verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "final_mutants": 32,
+    "final_killed": 16,
+    "final_equivalent": 1,
+    "post_review_source_fixes": [
+      "mono clock above MAX_SEQ is journal_clock_invalid",
+      "state/hold/dispatch_holds read under the journal lock"
+    ],
+    "post_review_doc_corrections": 3,
+    "gap_agent_2_mutants_killed": 17,
+    "addendum_verdict": "PASS",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "implementation_models": "claude-sonnet-5 implementers, testers and gap agents; claude-opus-5-5 lens reviewers, fixer and final reviewer",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/recovery-journal/review-15b.md"
+  },
+  "size": {
+    "journal_reducer_lines": 767,
+    "recovery_journal_lines": 635,
+    "targets": "about 350 (reducer) and 270 (shell)",
+    "assessment": "content plus verbose style; about 70-90 reducer and 50-60 shell lines foldable; refactor deferred"
+  },
+  "ruff": "PASS",
+  "line_length": "PASS (sources)",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/journal_reducer.py": "5dd861447478c7cd737ddaeef71da397ef2f234f84afefc32310e47d5ab3c459",
+    "grafana_jsm_sandbox/recovery_journal.py": "d01980d00e7943bfb836671e3a610f48f8ac03fca18b54159339331bb11166f5",
+    "tests/test_journal_reducer.py": "f8a860e6c4e228ad34901cc5398d81da04c466203ae462c0fc3b53f0a52406ab",
+    "tests/test_recovery_journal.py": "90120ac3c5e45f9e3ed86bc95d6d3fd6bf2623e5d641091987357a65c9541cd0",
+    "tests/test_recovery_journal_crash.py": "867b09a91ce0fdee883627e2b93b16470318819ee476d42034278525706a653b",
+    "tests/test_recovery_journal_adversarial.py": "9d4f2cbc43ae6d37439347e9e5e58cb1d9977d5b7a885bfd77f4e7c7acbafb6f",
+    "tests/data/recovery_journal_v1_golden.jsonl": "b49d72ed086c51c2b68b94e602f5f7d805b34694693422a6fa75bb521a5d619c",
+    "docs/recovery-journal.md": "9cfebd039dd6db00bbed956e0a4fcfdb9c257ba7e8171341d2d16ee607aabb6f",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "0600d60fe2b970ccd4960a79c4ecb587ce9f2a15d8f3b05630ce92b14452a7c9",
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "ccc5a46c2997fff19787d8f8b5f83d52d6ee9e5df4c445d8c723f86a79e61343",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/implementation-plan.md": "1f1b756c2505503f4574e05404014ded85fe45cb84fe67672dc5727e6001d458",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/review-15b.md": "a1afd7345d819188d3c3f7895822c2fbd46d080b28000f0cedd1a0265f5d6187",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/outcome-15b.md": "1f4f843d45e8eeae05a300c457b3f237857cb12ec3588f084d352a1022122256",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/focused-tests-15b.txt": "44d1c40bc7dedfe28f568d7789105fe88a61c356d20cc5f6b75aba0fd68c3b1f",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/full-suite-15b.txt": "e25e779b614213d983132266ab9a3dc36028a2850d321d017914cc781fe4c974"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Receiver integration, ingress sanitization and HTTP mapping",
+    "Run, spawn, effect and terminal records; ticket-38 accounting; operator actions; reset",
+    "pending consumption and dispatch-hold clearing; retention and reconstruction",
+    "device flush honesty, venue durability, Linux behavior, isolation from Runs",
+    "consistent rollback or same-uid forgery detection; ratification of v1 semantics"
+  ],
+  "publication": "LOCAL_ONLY"
+}

@@ -6,9 +6,11 @@ may acknowledge a Notification. This document describes what exists in source
 today. It is not wired into the Receiver: `receiver.py` still acknowledges
 without a durable record, and nothing here dispatches a Run.
 
-The journal is built in layers. The record, source and store layers exist now.
-The pure reducer, the journal shell (`create`, `open`, `admit`, holds and the
-snapshot), the admission semantics and the crash matrix are the next unit.
+The journal is built in layers: `journal_source` (the sanitized source record),
+`journal_records` (the record envelope), `journal_store` (SQLite and the
+anchor), `journal_reducer` (a pure fold that makes every decision) and
+`recovery_journal` (the shell: `create`, `open`, `admit`, holds and the
+snapshot).
 
 Every limit, field name, code string and storage setting below is a proposed
 routine choice under review (ticket-37 specification L341-347). The
@@ -42,8 +44,7 @@ lists the ones that freeze into v1 records and need ratification.
 **Operator rules.** `create` is explicit, and the code never deletes a file.
 Recovering from a failed create means removing the journal's files by hand.
 Back up the whole directory, because recent commits may live only in the WAL.
-Never edit the files; inspect a live journal only through the (next unit's)
-snapshot.
+Never edit the files; inspect a live journal only through its snapshot.
 
 ## Settings and what a commit proves
 
@@ -107,9 +108,10 @@ Open classifies what it finds:
 
 - **Verified physical failures are durable recovery holds**: a digest, chain or
   column mismatch; SQLite corruption; two rows with one `event_id`; a DDL or
-  format mismatch. The journal shell (next unit) persists the verdict into both
-  anchor slots before closing SQLite, and also checks the head against the
-  anchor. Once held, the writer refuses any hold-free slot and any different
+  format mismatch; replay contradictions; a head below the anchor, more than one
+  commit beyond it, or disagreeing with the anchored record. The journal shell
+  persists the verdict into both anchor slots before closing SQLite, and
+  completes a half-written hold on the next open. Once held, the writer refuses any hold-free slot and any different
   verdict, and every later open reads the hold from the anchor without opening
   SQLite. A missing or invalid anchor cannot carry a verdict; it is left
   unchanged, and every open re-derives the hold from those bytes.
@@ -152,19 +154,126 @@ holds a raw HTTP body, prompt, tool body, credential or Ground truth. Strings
 are limited to closed grammars; numbers compare by value, so `100`, `100.0` and
 `1e2` are equal.
 
+## The journal shell
+
+`create_recovery_journal(directory, ...)` writes genesis, with the bounds that
+every later open uses. Any refusal before a file is written (bad bounds, clock
+or ID factory, or a genesis record that fails verification) raises
+`journal_argument` and leaves the directory empty; `journal_create_failed` means
+files may exist and must be removed by hand. `open_recovery_journal(directory,
+...)` verifies the whole chain and replays every commit through the reducer
+before it applies anything. It adopts an anchor that lags the database by at
+most one commit, re-anchors that commit, and then commits a `restart_recovery`
+record. Anything else is held. Once the store is open, every open returns a
+handle, and a held handle only reports; a missing, locked, misplaced, wrongly
+permissioned or unsupported journal, or a bad argument, raises `JournalError`
+instead.
+
+`admit(source)` runs under one lock. It validates the source, stamps it with
+the injected clocks, mints IDs, plans the decision in the pure reducer, verifies
+the planned records exactly as replay would, commits them, and only then
+applies them to memory and returns an `AdmissionReceipt`. Only that receipt may
+permit an acknowledgement. A capacity refusal writes at most one `capacity_hold`
+per code and raises the capacity code; nothing is evicted. Clock faults, bad or
+duplicated IDs and write failures latch a process hold and raise its code;
+a failed append leaves the in-memory projection unchanged.
+
+`snapshot()` has a fixed, nonsecret shape and is JSON-encodable. While the
+journal is held, its projection fields are null and `pending()` is empty.
+`anchor.lag_at_open` is the head's `commit_seq` minus the anchor's at open
+(negative when truncated), or null when open stopped before comparing them.
+
+## Admission semantics
+
+The dedupe key covers one Notification's sorted `(fingerprint, status,
+values)` list, with numbers compared by value. It is compared with the latest
+**admitted** key of the same source group (ticket 31):
+
+- a different key is admitted, or `pending_reduced` when it replaces a waiting
+  entry for one of its Fingerprints;
+- an identical key is `suppressed`, unless the arrival or its baseline was
+  truncated (`truncated_alerts` not 0, including null);
+- a suppressed repeat never moves the baseline, and never settles, deletes or
+  downgrades an obligation.
+
+Pending keeps the latest arrival per Fingerprint together with every superseded
+admission identity. A suppressed repeat changes pending only when another
+group holds the entry for one of its Fingerprints: it reclaims that entry, and
+it never creates one. In the spec's failed A / new B / A example, B and then A
+each differ from the latest admitted tuple, so each is recorded (as
+`pending_reduced`, replacing the waiting entry), and a further A is suppressed.
+After any restart, every decision carries the `restart_recovery` dispatch hold.
+
+Consequence for the legacy replay fixtures: `notification-firing-repeat.json`
+carries the same group and tuple as `notification-firing.json`, so once the
+journal is wired in, the repeat is suppressed.
+
+## Holds
+
+- **Recovery holds** are durable (see "Anchor and durable verdicts"):
+  `journal_truncated`, `journal_anchor_missing`, `journal_anchor_invalid`,
+  `journal_anchor_conflict`, `journal_identity_mismatch`,
+  `journal_schema_invalid`, `journal_corrupt`, `journal_record_invalid`,
+  `journal_chain_broken`, `journal_tail_unverified`, `journal_replay_mismatch`
+  and `journal_event_conflict`.
+- **Process holds** are never persisted and clear on reopen:
+  `journal_open_failed`, `journal_schema_unsupported`, `journal_write_failed`,
+  `journal_clock_invalid`, `journal_divergence` and `journal_capacity_recovery`.
+- **Dispatch holds** leave admission running: `restart_recovery` after every
+  open, and one capacity code per exhausted bound. Nothing clears them yet.
+
+Every code is retryable backpressure for the later Receiver integration, except
+`source_invalid`, which is a caller bug.
+
+## Crash windows
+
+| Window | Next open |
+| --- | --- |
+| Before the commit is durable | ready; the arrival was never recorded, so a retry is admitted |
+| Commit durable, anchor not yet written, torn or reverted | ready at lag 1: re-anchored, then `restart_recovery`; a retry is suppressed |
+| Anchor synced, before the receipt | ready; a retry is suppressed |
+| Write or sync failure while running | process hold now; the next open verifies and adopts at most one commit |
+| During open's re-anchor or restart commit | ready, with lag at most one |
+| During hold persistence | held; the next open completes the hold |
+| Storage loses acknowledged commits, or a row is damaged or forged | a recovery hold, persisted (a missing or invalid anchor is re-derived instead); database and WAL untouched; a typed failure on a verified row is a process hold |
+| Consistent rollback of every file, or a same-uid forger | ready; undetectable (non-claim) |
+
+Run intent, spawn, effect and terminal windows belong to later units.
+
+## Bounds
+
+Proposed v1 limits: 10,000 admissions per generation (suppressed arrivals
+count), 1,024 pending Fingerprints, 112 MiB of ordinary records within a
+128 MiB total with a 16 MiB recovery reserve, 16 KiB per record, and 32 alerts,
+64 values and 4 KiB per source record. Each is checked before writing. Tests
+may lower the bounds at create time; genesis records them. Nothing is ever
+deleted: there is no UPDATE or DELETE, no retention and no compaction. Open time
+grows with the journal, on the order of 1.5-2 ms per admission pair on the
+development Mac, and nothing is admitted during open.
+
 ## Tests
 
-Local deterministic, real-SQLite and real-sync tests cover the record,
-source and store layers: canonical encoding and goldens, every validator's
-fixed codes, file custody, locking, settings read-back, the anchor codec,
-sync ordering and fail-closed sync failure, open-time classification, hold
-persistence and stickiness, and evidence preservation. They run on macOS; the
-Linux sync primitive is skipped there.
+Local deterministic, real-SQLite and real-sync tests cover every layer:
+- canonical encoding and goldens, and every validator's fixed codes;
+- file custody, locking, settings read-back and the anchor codec;
+- sync ordering and fail-closed sync failure;
+- open-time classification, and hold persistence and stickiness;
+- the ticket-31 fixture scenarios and a property test against an independent
+  reference model;
+- crash images for every detectable window above, including two-crash cases,
+  torn WAL frames, stale restores and a SIGKILL loop, plus a test that pins
+  the consistent-rollback non-claim;
+- a golden journal that later units must keep replaying;
+- a mutation matrix and custody checks.
+
+They run on macOS; the Linux sync primitive is skipped there.
 
 ```sh
-pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py
+pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py
 ```
 
-No Receiver integration, dispatch, run, effect, accounting, reset or
-reconstruction behavior is implemented or qualified. Venue durability, device
-flush honesty, Linux behavior and isolation from Runs are not qualified.
+No Receiver integration, raw Notification ingress, dispatch, Run, effect,
+accounting, operator action, reset, retention or reconstruction is implemented
+or qualified. Venue durability, device flush honesty, Linux behavior and
+isolation of the journal from Runs are not qualified, and every v1 semantic
+above still awaits ratification.

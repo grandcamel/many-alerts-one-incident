@@ -50,6 +50,15 @@ With about 1,950 lines in the lower layers alone, the "Size" rule applies, and t
 
 The store deliberately leaves commit framing and replay (`journal_tail_unverified`, `journal_replay_mismatch`) to 15b.
 
+**15b contract refinements from review.** These supersede the text below where they differ:
+- `create` refuses with `journal_argument` for any failure before a file is written: bad bounds, clock or ID factory, or a genesis record that fails verification. Genesis is now verified before the store writes it. `journal_create_failed` means files may exist.
+- At open, a `finish_open` failure is the process hold `journal_open_failed`, and a failed boot-ID mint is the process hold `journal_divergence`. Step 13.4 covers only re-anchor and restart-commit failures.
+- An emptied events table is `journal_truncated`.
+- Open calls `persist_hold` for every recovery finding, which completes a half-written hold. `persisted` means the newest anchor slot carries the code.
+- While held, including holds latched after a ready open, the snapshot's projection fields are null and `pending()` is empty.
+- `anchor.lag_at_open` is the head's `commit_seq` minus the anchor's at open (negative when truncated), or null when open stopped earlier.
+- Genesis must be at generation 1 (`replay_generation`).
+
 ## Why this unit
 
 Spec L193-196 makes the admission commit the first ordering point: "In one durable transaction append admission, its latest-admitted baseline update, and a dedupe decision. Commit before the Receiver acknowledges". ADR12 L27 says "Admission that cannot be durably recorded must not be acknowledged as successful". Today the Receiver acknowledges with no durable record at all.
