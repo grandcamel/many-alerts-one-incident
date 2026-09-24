@@ -28,8 +28,10 @@ does; right column is what the audience believes.
 | Right: **OPS Incidents queue** | `https://<your-site>.atlassian.net/jira/servicedesk/projects/OPS/queues/custom/<queue-id>` | The Incident appearing, changing status, and leaving |
 | Hidden: **presenter shell** | a second terminal, repo root | The two commands the presenter types. Keep it out of the projected area or the audience reads ahead |
 
-`<your-site>` and `<queue-id>` are yours to fill in: open the OPS project's **Queues**, click
-**Incidents**, and the address bar has both. The queue id is that queue's own and differs on
+`<your-site>` and `<queue-id>` are yours to fill in: `python3 -m grafana_jsm_sandbox.configure`
+prints the address and `--write` keeps it in `.env` as `DEMO_QUEUE_URL`, or open the OPS
+project's **Queues**, click **Incidents**, and the address bar has both. Open it once to check
+it lands on the queue. The queue id is that queue's own and differs on
 every site, so bookmark the address the day before rather than typing it live.
 
 Reload the queue and the Grafana list by hand when the log says a Run has finished. Neither

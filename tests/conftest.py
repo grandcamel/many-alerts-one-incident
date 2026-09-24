@@ -41,6 +41,7 @@ BASIC_DEMO_OPTION = "--basic-demo"
 BASIC_DEMO_TESTS = frozenset(
     {
         "test_basic_demo.py",
+        "test_configure.py",
         "test_container.py",
         "test_demo_config.py",
         "test_end_to_end.py",
