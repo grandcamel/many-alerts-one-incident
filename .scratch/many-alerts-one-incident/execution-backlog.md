@@ -39,11 +39,12 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **4786 passed, 38 skipped**, including focused
+- Latest code validation: **4939 passed, 39 skipped**, including focused
   service, lease, control, listener, supervisor, TLS, HTTP, receipt, response-send,
   JSON, route-policy, dispatch-gate, exchange, upstream-connector,
   control-framing, recovery-journal and ingress tests plus existing regressions.
-  The [journal front-door extensions 17a outcome](reviews/receiver-journal/outcome-17a.md),
+  The [journaled front door 17b outcome](reviews/receiver-journal/outcome-17b.md),
+  [journal front-door extensions 17a outcome](reviews/receiver-journal/outcome-17a.md),
   [ingress sanitizer outcome](reviews/journal-ingress/outcome.md),
   [recovery journal 15b outcome](reviews/recovery-journal/outcome-15b.md),
   [recovery journal 15a outcome](reviews/recovery-journal/outcome-15a.md),
@@ -292,7 +293,13 @@ the legacy demo path and its tests stay unchanged. It is split in two.
   - A verify-only inspect that never writes, and never creates a WAL.
 
   An older binary meets the new records as a process hold, never persisted. Independent review passes; the full suite reports 4786 passed, 38 skipped.
-- **17b** is next: the body spool, the journaled admission-only HTTP front door and the operator CLI.
+- **[17b](reviews/receiver-journal/outcome-17b.md)** adds the body spool, the
+  journaled admission-only HTTP front door and the operator CLI. Exact bodies
+  are synced before admission and the 202. Independent hash-bound review and
+  mutation regressions pass; the full suite reports 4939 passed, 39 skipped.
+  No Run starts. The next dependency is the ticket-38 reservation seam:
+  begin with a pure accounting policy prerequisite, then durable reservation
+  integration before Run lifecycle; no no-reservation dispatch is inferred.
 
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
@@ -300,7 +307,7 @@ the legacy demo path and its tests stay unchanged. It is split in two.
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts, receipt-gated response send, strict JSON, read-only Jira route policy, atomic dispatch gate, one-request exchange, synthetic fixed-origin upstream connector and control framing (scoped registration, closeout replies) complete; ticket-37 recovery journal (records, store, reducer and admission shell; 15a and 15b) and the raw ingress sanitizer (16) complete; Receiver integration of the journal with operator resume, opt-in: journal extensions (17a: refusal records, resume at open, verify-only inspect) complete, next 17b (body spool, journaled admission-only front door, operator CLI), then Run/effect records and recovery, ticket-38 accounting, then AuthorizeDispatch permits, a worker supervisor with readiness and the guarded launcher | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts, receipt-gated response send, strict JSON, read-only Jira route policy, atomic dispatch gate, one-request exchange, synthetic fixed-origin upstream connector and control framing (scoped registration, closeout replies) complete; ticket-37 recovery journal (records, store, reducer and admission shell; 15a and 15b) and the raw ingress sanitizer (16) complete; Receiver integration of the journal with operator resume, opt-in: journal extensions (17a: refusal records, resume at open, verify-only inspect) complete; 17b (body spool, journaled admission-only front door, operator CLI) complete; next the pure ticket-38 accounting policy prerequisite and durable reservation integration, then Run/effect records and recovery, remaining accounting, then AuthorizeDispatch permits, a worker supervisor with readiness and the guarded launcher | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets

@@ -3,16 +3,17 @@
 The recovery journal is the Receiver-owned durable record that ticket 37
 requires: admissions, dedupe decisions and holds, committed before the Receiver
 may acknowledge a Notification. This document describes what exists in source
-today. It is not wired into the Receiver: `receiver.py` still acknowledges
-without a durable record, and nothing here dispatches a Run.
+today. The opt-in `journaled_receiver` durably spools and admits before a 202.
+The legacy `receiver.py` still acknowledges without a durable record. The
+journaled command starts no Run and creates no Incident.
 
 The journal is built in layers: `journal_source` (the sanitized source record),
 `journal_records` (the record envelope), `journal_store` (SQLite and the
 anchor), `journal_reducer` (a pure fold that makes every decision) and
 `recovery_journal` (the shell: `create`, `open`, `admit`, holds and the
-snapshot). Unit 17a adds three journal-level pieces for the later journaled
-front door: durable ingress refusal records, operator resume at open, and a
-verify-only inspect. The front door itself does not exist yet.
+snapshot). Unit 17a adds durable ingress refusal records, operator resume at
+open and verify-only inspect. Unit 17b connects them through `journal_spool`,
+`journaled_receiver` and the `journal_operator` CLI.
 
 Every limit, field name, code string and storage setting below is a proposed
 routine choice under review (ticket-37 specification L341-347). The
@@ -219,8 +220,9 @@ each differ from the latest admitted tuple, so each is recorded (as
 After any restart, every decision carries the `restart_recovery` dispatch hold.
 
 Consequence for the legacy replay fixtures: `notification-firing-repeat.json`
-carries the same group and tuple as `notification-firing.json`, so once the
-journal is wired in, the repeat is suppressed.
+carries the same group and tuple as `notification-firing.json`, so the
+journaled front door suppresses the repeat. The legacy replay still starts
+three Runs and reads no journal state.
 
 ## Holds
 
@@ -237,8 +239,8 @@ journal is wired in, the repeat is suppressed.
   open, and one capacity code per exhausted bound. An operator resume at open
   clears `restart_recovery`; the capacity holds stay.
 
-Every code `admit` raises is retryable backpressure for the later Receiver
-integration, except `source_invalid`, which is a caller bug. The unit-17a codes
+The journaled front door maps every code `admit` raises to 503 with
+`Retry-After: 10`, except `source_invalid` (500), which is a caller bug. The unit-17a codes
 are not backpressure: `refusal_invalid` and `resume_invalid` are caller errors,
 and `resume_stale` means inspect again.
 
@@ -368,7 +370,7 @@ development Mac, and nothing is admitted during open.
 
 `journal_ingress.sanitize_notification(body)` turns one raw Grafana
 Notification body into either an admissible `SourceRecord` or a refusal. It is
-pure and is not yet called by the Receiver.
+pure and is called by the journaled front door after bounded body receipt.
 
 **What is read.** It reads only `groupKey`, `truncatedAlerts` and, per alert,
 `fingerprint`, `status`, `values` and `startsAt`. Every other field, including
@@ -408,8 +410,8 @@ is unchanged, and only this module passes the keyword.
 | 422 (lost real data) | `ingress_json_unsupported`, `ingress_group_key_unsupported`, `ingress_ref_id_unsupported`, `ingress_too_many_alerts`, `ingress_too_many_values`, `ingress_record_too_large` |
 | 500 | `ingress_divergence` |
 
-The HTTP classes are a proposal for the later Receiver integration, and
-response bodies must carry only the code.
+The journaled front door sends these HTTP classes with code-only response
+bodies. Grafana's handling of them remains unqualified.
 
 **Refusal summary.** A refusal has a summary of nine keys, with no HTTP status.
 Member-level 422 refusals name up to 32 members, Resolved first, with counts
@@ -417,12 +419,174 @@ and an omitted count. `refused_group` gives a key that stays stable across
 Grafana's resends. `refusal_to_json` validates internal consistency and a
 4 KiB bound. `oversize_refusal(declared_length)` refuses from a
 `Content-Length` header without reading the body. `record_refusal` can persist
-a summary (see "Refusal records"), but no Receiver calls it or the sanitizer
-yet.
+a summary (see "Refusal records"); the front door attempts that write before
+sending the refusal. A recording failure counts `unrecorded` and does not
+change the HTTP class.
 
 **Not claimed.** Grafana's real wire bytes (the captures store re-encoded
-bodies), Grafana's retry and resend behaviour after a refusal, and the Receiver
-integration.
+bodies) and Grafana's retry and resend behaviour after a refusal.
+
+## Front door (journaled, admission-only)
+
+Opt in explicitly; the default demo command and its environment are unchanged:
+
+```sh
+python3 -m grafana_jsm_sandbox.journal_operator create --state-dir /path/to/S
+python3 -m grafana_jsm_sandbox.journaled_receiver --state-dir /path/to/S --runs-directory /path/to/runs
+```
+
+`S` contains `journal/` and `spool/`; all three directories are private to the
+owner (created 0700). `S` may not be a symlink. Its resolved path and the
+resolved runs directory must not contain each other. Use the actual legacy
+`RUNS_DIRECTORY` as `--runs-directory` when both commands are used. Both paths
+are printed at startup, followed by the admission-only notice. The command
+reads no environment variable. It defaults to `127.0.0.1:8080`; Grafana in a
+container cannot reach that listener without deliberate network configuration
+and a reachable bind address such as `--host 0.0.0.0`.
+
+Creation refuses an existing state path. It syncs the parent after creating
+`S`, then `S` after both children exist, before journal genesis. The journal
+performs three explicit full syncs (plus SQLite's own commit synchronization).
+A failed create leaves evidence in place; nothing was acknowledged. Inspect
+that incomplete layout before removing it by hand and creating a fresh one.
+The serving command creates none of these directories. It binds before opening
+the journal, so a bind failure cannot append a restart record.
+
+**Spool.** Each body is a 0600 regular file named by its exact `body_digest`.
+For a new body, the order is temporary write, full file sync, close, rename,
+full directory sync, journal admission and anchor sync, then 202. An entry from
+an earlier boot must pass ownership, mode, single-link, size and digest checks;
+its directory is synced before reuse. Verified entries are cached within one
+boot. Any write/sync/close failure latches the spool; a short write is refused
+without retry. Conflicts also latch it. Later requests get `spool_broken`
+until restart and verification. There is no deletion path.
+
+The default limits are 256 MiB of digest-named entries and 20,000 directory
+entries; temporaries and unexpected names count toward the entry limit. A full
+spool refuses a new body but can reuse an existing verified one. After a durable
+`capacity_admissions` hold, the front door refuses before spooling. Other
+capacity refusals can leave orphans. Inspect verifies referenced entries and
+orphans and reports at most 32 names in each finding list, with complete counts.
+
+**HTTP order.** Only `POST /notification` and `GET /health` are served.
+Errors contain one ASCII code and fixed reason phrases, with no reflected
+caller text. The first applicable row answers:
+
+| Condition | Response | Body handling / effect |
+| --- | --- | --- |
+| 32 open connections | immediate close, no response or handler thread | connection refusal counted |
+| malformed protocol | stdlib status 400/414/431/501/505, mapped fixed code | close; protocol error counted |
+| unknown route | 404 `not_found` | close if body framing is present; otherwise normal keep-alive |
+| 8 Notification requests in flight | 503 `busy`, `Retry-After: 1` | no body read; close |
+| opening, held or closed journal; latched spool | 503 `journal_opening`, `journal_held`, `journal_closed` or `spool_broken`, `Retry-After: 10` | no body read; close |
+| Transfer-Encoding or missing Content-Length | 411 `http_length_required` | close |
+| duplicate, invalid or out-of-range length | 400 `http_content_length_invalid` | close |
+| length above 262,144 | 413 `ingress_too_large` | no body read; attempt refusal record; close |
+| body EOF or deadline | 400 `http_body_incomplete`, best effort | close; no admission |
+| sanitizer refusal | ingress 400/422/500 class and code | attempt refusal record; consumed body permits keep-alive |
+| capacity precheck, spool error or admission error | 503 and code, `Retry-After: 10` | consumed body permits keep-alive; `source_invalid` is 500 |
+| unexpected exception | 500 `receiver_error`, best effort | close; log exception type only |
+| durable receipt | 202 JSON | spool durable before journal admission before response |
+
+Every request has one ten-second monotonic read deadline across idle wait,
+request line, headers and body; a byte trickle cannot extend it. Keep-alive
+gets a fresh deadline for its next request. Responses get a separate bounded
+write timeout. Requests asking for `Connection: close` and nonpersistent
+HTTP/1.0 requests stay nonpersistent. GET bodies and wrong-route POST bodies
+are not drained; their connections close to prevent body bytes from becoming
+a second request. A consumed refusal can share a connection with a later
+request. There is no TLS, authentication or per-peer quota. These limits bound
+work; a peer occupying all slots can still deny availability.
+
+The receipt contains exactly `admission_id`, `arrival_seq`, `commit_seq`,
+`decision`, `dispatch_holds`, `result` and `run: "not_dispatched"`. A 202 means
+that the Notification is durably admitted and retained, not that a Run starts.
+
+**Health.** `GET /health` returns JSON with `Cache-Control: no-store`. Its top
+level has `mode`, `runs`, `journal`, `resume`, `refusals`, `http` and `spool`:
+- `mode` is `journaled-admission-only`; `runs` is `not_dispatched`.
+- `journal` reports state, hold, dispatch-hold codes, head commit sequence,
+  admission count and pending-Fingerprint count; projection fields are null
+  unless ready. No Fingerprints, pending entries, digests or tokens appear.
+- `resume.this_boot` is `resumed`, `not_requested` or `not_applied`.
+- `refusals` reports recorded/limit/reserve and per-code outcomes this boot,
+  including front-door `unrecorded` counts.
+- `http` reports framing, deadline, busy and connection-refusal counters,
+  in-flight/open-connection gauges, protocol errors, backpressure, admission
+  results and dropped-start-time counts.
+- `spool` reports state/code, bytes/entries and their limits, writes and full
+  refusals this boot.
+
+Health is 200 iff the journal is ready and the spool is not latched, otherwise
+503. Capacity holds and `spool_full` do not turn it red; inspect those fields
+when deciding whether another body can be admitted.
+
+**Operator commands and runbook.** `journal_operator` prints one JSON object.
+Create exits 0, 1 on refusal (`error` key), or 2 for usage. Inspect exits:
+
+| Exit | Meaning |
+| --- | --- |
+| 0 | ready journal and consistent spool; valid orphans are allowed |
+| 1 | held journal |
+| 2 | usage |
+| 3 | journal locked; stop the front door first |
+| 4 | another open error, including missing journal or spool custody failure |
+| 5 | ready journal but missing/mismatched referenced body or mismatched orphan |
+| 6 | unverified, `wal_absent` |
+
+The serving command exits 0 for Ctrl-C, 1 for a refused start, and 2 for usage.
+A refused resume releases the listener. A stale token writes nothing on a
+WAL-present image. The token and operator label confer no authentication.
+
+1. Create `S`, then serve it with the correct runs-directory placement check.
+2. Send local replay Notifications to the printed URL. The journaled fixture
+   sequence yields admitted, suppressed and pending-reduced receipts, with
+   `decision: held` after an ordinary start. No Run or Incident is created.
+3. Stop, then run `journal_operator inspect --state-dir /path/to/S`. Inspect
+   appends nothing and creates no WAL; an absent lock is its only permitted
+   new file. It reports pending work, recent refusals and the spool survey.
+4. If inspect is ready and the image is unchanged, restart with
+   `--resume-token TOKEN --operator NAME` (optional `--reason TOKEN`). The
+   restart and resume commits precede admission; only `restart_recovery`
+   clears. Every later restart holds dispatch again. Still no Run starts.
+5. If inspect says unverified, start once, stop and inspect again. If that
+   start is held on `/health`, its hold code is the verdict; repeating inspect
+   does not repair it.
+6. Refusals keep their HTTP class even when recording fails. Inspect shows
+   the flood-limited durable summaries, with Resolved members first. Capacity
+   holds cannot be cleared for this state directory in this unit. Preserve
+   it as evidence and explicitly create a new state directory when needed.
+7. For a mismatched orphan, stop and move it out of the spool by hand,
+   preserving it as evidence. A later arrival can write the correct body.
+   A missing or mismatched referenced body represents acknowledged data loss:
+   preserve the state for recovery; replacing the state does not settle that
+   obligation.
+8. The unchanged legacy demo command remains separate; its Notifications are
+   not journaled.
+
+**Front-door crash windows.** These supplement the journal windows above:
+
+| Window | Surviving evidence / next action |
+| --- | --- |
+| W1: during request receipt | no admission; retry anew |
+| W2: temporary written before rename | temporary retained and counted |
+| W3: renamed before directory sync | surviving entry verified and directory synced on reuse |
+| W4: spool durable before admission | orphan; retry can reuse it |
+| W5: admission committed before anchor sync | at most lag 1; adopt, re-anchor, restart hold; retry suppressed |
+| W6: anchor synced before 202 | acknowledged state exists though sender lost ACK; retry suppressed |
+| W7: after 202 | referenced body and pending work retained; restart holds |
+| W8: capacity refusal after spooling | orphan plus at most one capacity hold per code; admission-capacity precheck prevents later spools |
+| W9: refusal not durable | retry can record it |
+| W10: refusal durable before 4xx | retry coalesces |
+| W11: restart committed before resume | old token stale; inspect again |
+| W12: resume committed before anchor sync | adopt at lag 1, then a new restart holds again |
+| W13: stale token | unchanged WAL-present image; WAL-absent full-size DB may gain an empty WAL |
+| W14: during inspect | no journal mutation; kernel releases lock |
+| W15: spool write/sync/close fails | latched until restart; temporary or orphan retained |
+
+Local crash injection and SIGKILL are not power-loss qualification. No Linux
+no-read response behavior, Grafana retry policy, device flush honesty, deployed
+storage, same-uid isolation, paid Run, provider or tenant behavior is qualified.
 
 ## Tests
 
@@ -449,11 +613,11 @@ Local deterministic, real-SQLite and real-sync tests cover every layer:
 They run on macOS; the Linux sync primitive is skipped there.
 
 ```sh
-pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py tests/test_journal_ingress.py tests/test_journal_ingress_corpus.py tests/test_journal_ingress_adversarial.py tests/test_forwarder_json_string_cap.py tests/test_journal_front_door_records.py tests/test_recovery_journal_front_door.py
+pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py tests/test_journal_ingress.py tests/test_journal_ingress_corpus.py tests/test_journal_ingress_adversarial.py tests/test_forwarder_json_string_cap.py tests/test_journal_front_door_records.py tests/test_recovery_journal_front_door.py tests/test_journal_spool.py tests/test_journaled_receiver.py tests/test_journal_operator.py tests/test_journaled_receiver_crash.py tests/test_journaled_legacy_identity.py
 ```
 
-No Receiver integration, HTTP front door, body spool, dispatch, Run, effect,
-accounting, reset, retention or reconstruction is implemented or qualified.
+Receiver integration is opt-in and admission-only. Dispatch, Runs, effects,
+accounting, reset, retention and reconstruction remain unimplemented here.
 The only operator action is resume at open; cancel, retry, abandon, capacity
 clear and any online operator channel are not implemented. Venue durability,
 device flush honesty, Linux behavior, isolation of the journal from Runs, and

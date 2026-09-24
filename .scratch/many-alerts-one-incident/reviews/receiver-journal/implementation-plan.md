@@ -865,3 +865,79 @@ Numbered U17-P1 to U17-P18 to avoid clashing with P1-P27, R1-R7 and U16-P1 to U1
   - **Clock code at resume (F2-7).** A monotonic-clock regression at the resume step is `journal_clock_invalid`.
   - **Exports.** `journal_records.__all__` gains 12 names, `journal_reducer.__all__` 7 and `recovery_journal.__all__` 5.
   - **Byte coupling.** The largest summary v1 can hold is 2,866 bytes, well under the 4,096-byte check. The coupling is therefore under 1 MiB per generation, not the 1.3 MiB estimated under "Journal extensions".
+- **17a committed** as `c3e4f3a`, with a full suite of 4786 passed, 38 skipped. That is 17b's baseline, and the three journal modules stay byte-identical to it unless a confirmed 17b finding needs a change. The 17b step 7 note still holds: `record_refusal` raises `journal_held` or `journal_closed` before it reads the summary. The front door counts `unrecorded` and sends the refusal's class anyway.
+
+### 17b root reconciliation (Codex continuation, against `c3e4f3a`)
+
+- The 17a source modules, existing tests and both goldens remain byte-identical
+  to `c3e4f3a`; the legacy identity list remains byte-identical to `b931610`.
+  The four protected dirty artifacts retain the handoff hashes. Review probes
+  run outside the repository. There is no push or external execution.
+- The allowlists are ceilings, not required import sets: L3 now checks subsets.
+  Its environment/import checks cover aliased from-imports and function-local
+  package imports; admission-only pins also ban OS process creation. Nine
+  injected violations survived the old checks and fail the repaired checks.
+- O8 distinguishes commands: inspect of an uninitialized journal is exit 4,
+  as the inspect table requires; serving it is exit 1 with a create hint.
+  An absent journal directory is `journal_path_invalid` in the unchanged store;
+  an existing empty journal directory is `journal_missing`. Neither creates it.
+- The phrase "four journal syncs" in O1 and the create tables is corrected to
+  **three explicit full-sync calls**: directory after schema/genesis COMMIT,
+  anchor slot, directory after anchor. SQLite also synchronizes its COMMIT;
+  those internal syncs are not calls to `journal_store._full_sync`. The source
+  `_create_files` and the real-sync O1 test agree. Parent and state directory
+  syncs remain before genesis, with both child directories present at state sync.
+- Existing `create_spool` paths map to `spool_path_invalid`, already in the
+  closed set; no `spool_exists` code is introduced. Create refusals use the
+  JSON `error` key, journal inspect errors use `code`, and spool inspect errors
+  use `spool_error`; all are one JSON object. These command-specific shapes
+  are retained and documented.
+- Python 3.13 ignores a header line without a colon instead of sending a
+  protocol error. H15 pins absence of its canary on every surface; it does
+  not claim that this case increments `protocol_errors`. Other malformed
+  protocol cases still pin their exact mapped body and counter.
+- Flushed startup prints are retained for pipes. Startup now explicitly says
+  no Run starts and reports the restart dispatch hold. The root-added test
+  first failed against the inherited source. Missing-state refusal gets the
+  required create hint. CLI custody checks the original state path before
+  resolution, so it cannot bypass the direct API's symlink refusal.
+- `unrecorded` belongs to the front-door counter because it observes a failed
+  refusal-record attempt; the journal produces only its four normal outcomes.
+- Confirmed durability fixes: a short or zero spool write now latches
+  `spool_write_failed` with no retry/sync/rename; descriptor-close failure is
+  translated and latched without retry; nonblocking entry open lets store and
+  survey reject a FIFO before it can block. Temporary evidence stays in place.
+- HTTP correction to step 0: a wrong-route POST with body framing closes
+  without draining; GET with body framing also closes. Keeping such a socket
+  alive misread the unread body as the next request. Bodyless route responses
+  and completely consumed requests retain normal keep-alive. All response
+  paths honor a caller's `Connection: close` and HTTP/1.0 nonpersistence.
+- Step 9b now captures the exception type in its except clause, then logs
+  only that type after releasing the in-flight slot. Looking up `sys.exc_info`
+  afterwards lost it and always printed `unknown`.
+- Size is accepted as a reviewed deviation: 17b's inherited three-module
+  source was 1,385 lines, versus 775 estimated. The previously recorded split
+  separated 17a from 17b as required. The front door contains the HTTP handler,
+  deadline reader, bounded server, metrics and lifecycle under one contract;
+  extracting new modules now would expand import contracts without reducing
+  behavior. Final source line counts and review acceptance are recorded in
+  `validation-17b.json`; the legacy and journal boundaries remain unchanged.
+- Final review also found the operator create command resolving a dangling
+  symlink before its existing-path check. It now passes the original path;
+  create refuses without creating the symlink target. This preserves the
+  explicit-create contract rather than adding an implicit repair path.
+- The final mutation sweep removed the front-door `unrecorded` increment and
+  survived the inherited HTTP tests. New 400/422/413 cases pin the unchanged
+  refusal class, fixed logged journal code, unchanged head/spool and per-code
+  `unrecorded` count when recording raises.
+- H7 now includes the specified Darwin-only full-fixture POST to a held
+  journal. H18 separates portable header-only and Darwin-only full-body
+  opening cases. H17 drops the response only at the post-commit receipt seam
+  and waits for that observation before retrying, eliminating a scheduling
+  race between two arrivals.
+- The first broad focused run exposed four crash-test failures caused by
+  selecting a file descriptor before reading already-buffered child stdout.
+  Operator and crash tests now share an unbuffered, deadline-bounded line
+  reader. This is a test-harness repair; the server's flushed mode/hold lines
+  remain required. The repaired six crash cases and create-symlink regression
+  pass together (7 passed, guarded).

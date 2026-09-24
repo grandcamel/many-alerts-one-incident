@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-24",
+  "status": "PASS_LOCAL_JOURNALED_ADMISSION_FRONT_DOOR",
+  "unit": "17b",
+  "baseline_commit": "c3e4f3ac95563912c5f82cb59a33e8d9f28ca5a7",
+  "legacy_identity_baseline": "b931610",
+  "baseline_full_suite": {
+    "passed": 4786,
+    "skipped": 38
+  },
+  "runtime": {
+    "python": "3.13.7",
+    "sqlite": "3.50.4",
+    "platform": "darwin"
+  },
+  "focused_tests": {
+    "command": "python3 /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider <22 files listed in static/gate record>",
+    "passed": 1645,
+    "skipped": 30,
+    "seconds": 348.21,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/receiver-journal/focused-tests-17b.txt",
+    "non_loopback_attempts": [],
+    "guard_scope": "pytest interpreter; child scripts independently reviewed for loopback-only operations"
+  },
+  "full_suite": {
+    "command": "env -u DEMO_END_TO_END -u DEMO_CONTAINER pytest -q -p no:cacheprovider",
+    "passed": 4939,
+    "skipped": 39,
+    "seconds": 372.18,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/receiver-journal/full-suite-17b.txt"
+  },
+  "skips": {
+    "baseline_count": 38,
+    "additional": [
+      {
+        "nodeid": "tests/test_journal_spool.py::test_s8_full_sync_linux_calls_os_fsync",
+        "reason": "linux fsync variant",
+        "platform": "darwin"
+      }
+    ],
+    "other_platform_only": [
+      "H7 full-body no-read503 Darwin only",
+      "H18 full-body no-read503 Darwin only"
+    ]
+  },
+  "existing_tests_byte_identical": true,
+  "existing_modules_changed": [],
+  "journal_17a_identity_diff_empty": true,
+  "legacy_identity_diff_empty": true,
+  "size": {
+    "source_lines": {
+      "grafana_jsm_sandbox/journal_spool.py": 434,
+      "grafana_jsm_sandbox/journaled_receiver.py": 835,
+      "grafana_jsm_sandbox/journal_operator.py": 167
+    },
+    "total": 1436,
+    "assessment": "accepted by independent Standards and final reviewers; 17a/17b split honored"
+  },
+  "review": {
+    "final_verdict": "ACCEPTED_LOCAL_SOURCE_AND_SYNTHETIC",
+    "findings_closed": 5,
+    "final_reviewer": "fresh independent Codex subagent",
+    "final_reviewer_tests": {
+      "passed": 155,
+      "skipped": 1,
+      "seconds": 65.07,
+      "repository_passes": 153,
+      "independent_probes": 2
+    },
+    "mutation_sweeps": {
+      "identity_old_survivors_now_killed": 9,
+      "deletion_mutants_killed": 4,
+      "standards_mutants": 7,
+      "standards_survivors_closed": 4,
+      "final_reviewer_mutants": 4,
+      "final_reviewer_survivors_closed": 1
+    },
+    "reviewed_hashes": {
+      "grafana_jsm_sandbox/journal_spool.py": "aeb915736edeb3545b880c5d4bcde0db1b91946c5cd927c4f92c0168555e12ac",
+      "grafana_jsm_sandbox/journaled_receiver.py": "070209fdfa1bda30940f077e62d7a2de997c25feb25b76f0db54e9354a732699",
+      "grafana_jsm_sandbox/journal_operator.py": "c51a5116a961841c4d2a6010f6ae52e58789f1d6ef3c2ff6d819cfe5016c008f",
+      "tests/test_journal_spool.py": "9ddd1656664f1b9f0c3bfcfe056e15c892775407916d5a41bcc589ea106b5550",
+      "tests/test_journaled_receiver.py": "1a4e533473313c49264bb5c3f4b4d8cfe0717b0e2bdb6c41fcd6adfcfbd9b90d",
+      "tests/test_journal_operator.py": "5652fbe98e9fce1c644fba624c13b22b66e17d7629831b49f2f9a1e44dad2752",
+      "tests/test_journaled_receiver_crash.py": "68a1b21f4c10b44ee54dcbef45a7e0d3879da5cb134e23024d5b514ed090ef13",
+      "tests/test_journaled_legacy_identity.py": "0afb3ed884dc4bedf34c4a8780d2864bceae893dab778ef73dbf3ac75f18fce0",
+      "docs/recovery-journal.md": "f1a022103afa2ff48644360996b7565660cbaa9c36612763bf3c017ae5a9f00a",
+      ".scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan.md": "6e29d944474dc1f72b59ec6d8061fde8064eff2e40f4e4be6293872873b1a809"
+    },
+    "artifact": ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-17b.md"
+  },
+  "ruff": "PASS",
+  "line_length": "PASS",
+  "whitespace": "PASS",
+  "no_coverage_file": true,
+  "artifacts": {
+    "grafana_jsm_sandbox/journal_spool.py": "aeb915736edeb3545b880c5d4bcde0db1b91946c5cd927c4f92c0168555e12ac",
+    "grafana_jsm_sandbox/journaled_receiver.py": "070209fdfa1bda30940f077e62d7a2de997c25feb25b76f0db54e9354a732699",
+    "grafana_jsm_sandbox/journal_operator.py": "c51a5116a961841c4d2a6010f6ae52e58789f1d6ef3c2ff6d819cfe5016c008f",
+    "tests/test_journal_spool.py": "9ddd1656664f1b9f0c3bfcfe056e15c892775407916d5a41bcc589ea106b5550",
+    "tests/test_journaled_receiver.py": "1a4e533473313c49264bb5c3f4b4d8cfe0717b0e2bdb6c41fcd6adfcfbd9b90d",
+    "tests/test_journal_operator.py": "5652fbe98e9fce1c644fba624c13b22b66e17d7629831b49f2f9a1e44dad2752",
+    "tests/test_journaled_receiver_crash.py": "68a1b21f4c10b44ee54dcbef45a7e0d3879da5cb134e23024d5b514ed090ef13",
+    "tests/test_journaled_legacy_identity.py": "0afb3ed884dc4bedf34c4a8780d2864bceae893dab778ef73dbf3ac75f18fce0",
+    "docs/recovery-journal.md": "f1a022103afa2ff48644360996b7565660cbaa9c36612763bf3c017ae5a9f00a",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "5ad61ade7ff51da283c2ce43fa711268af00403d0e7ef892c1f35d7164af841c",
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "becb74012e11a762d4546795d04226cda27296233c76d8772c2ab010aca23482",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan.md": "6e29d944474dc1f72b59ec6d8061fde8064eff2e40f4e4be6293872873b1a809",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-17b.md": "571dfb166b89c70c793e794e43f7876161920faf085cc92e28c1c44da34e9c87",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/outcome-17b.md": "8a578e7454b46ccdb929bfd9725aa3ce35facf5c3215e28526988e4a0c7c17fd",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-evidence-17b.txt": "30ec7a2d1f7e900ca37569029a6b24e559f69f667bc28e3de7163a74d7138b20",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/static-checks-17b.txt": "5bf5eccc876dae6c43b1ed1db674bd53af3ba24e16a74de0e15d8e470aa2ee1a",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/focused-tests-17b.txt": "cbb1f468fd838d10de807c829127b42d35a1ea0e284e423e1538db5363ccfe91",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/full-suite-17b.txt": "dbe3afe12f354054b8434f4938f1bc30fba3f50e18d58843d8263414653e8f49"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Run dispatch/lifecycle/effects/accounting",
+    "reset/retention/reconstruction/online operator control",
+    "real Grafana retries/status handling",
+    "Linux no-read delivery",
+    "device power loss/flush honesty and deployed storage",
+    "same-uid isolation/operator authentication",
+    "native client/provider/tenant/paid execution",
+    "human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

@@ -1,0 +1,51 @@
+== ruff
+All checks passed!
+ruff_exit=0
+== ruff E501 (sources)
+All checks passed!
+e501_exit=0
+== diff --check
+diffcheck_exit=0
+== tracked changes vs c3e4f3a
+ .../issues/19-mcp-grafana-behind-the-sentinel.md   |   6 +
+ .../reviews/planning-frontier-2026-09-18.md        |   6 +
+ .../receiver-journal/implementation-plan.md        |  76 ++++++++
+ docs/recovery-journal.md                           | 202 +++++++++++++++++++--
+ 4 files changed, 271 insertions(+), 19 deletions(-)
+== legacy identity vs b931610 (must be empty)
+legacy_exit=0
+== tests and journal modules vs c3e4f3a (must be empty)
+journal17a_exit=0
+== fixed ports in new tests (must be empty)
+fixedport_grep_exit=1
+== status
+ M .scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md
+ M .scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md
+ M .scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan.md
+ M docs/recovery-journal.md
+?? .scratch/many-alerts-one-incident/reviews/receiver-journal/panel/
+?? .scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md
+?? .scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md
+?? grafana_jsm_sandbox/journal_operator.py
+?? grafana_jsm_sandbox/journal_spool.py
+?? grafana_jsm_sandbox/journaled_receiver.py
+?? tests/test_journal_operator.py
+?? tests/test_journal_spool.py
+?? tests/test_journaled_legacy_identity.py
+?? tests/test_journaled_receiver.py
+?? tests/test_journaled_receiver_crash.py
+== protected hashes
+685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec  .scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md
+ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f  .scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md
+94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f  .scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md
+8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336  .scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md
+== sizes
+     434 grafana_jsm_sandbox/journal_spool.py
+     835 grafana_jsm_sandbox/journaled_receiver.py
+     167 grafana_jsm_sandbox/journal_operator.py
+     806 tests/test_journal_spool.py
+    1302 tests/test_journaled_receiver.py
+     641 tests/test_journal_operator.py
+     438 tests/test_journaled_receiver_crash.py
+     334 tests/test_journaled_legacy_identity.py
+    4957 total

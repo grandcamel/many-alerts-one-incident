@@ -72,3 +72,24 @@ Replay re-derives every field of both new records. The full suite reports
 4786 passed, 38 skipped. The body spool, the journaled front door (unit 17b),
 Run and effect records, accounting, reset and reconstruction remain open. This
 ticket stays open.
+
+## Local implementation progress, 2026-09-24: unit 17b
+
+Unit [17b](../reviews/receiver-journal/outcome-17b.md) completes the opt-in
+admission front door, body spool and operator CLI. File and directory sync
+precede journal admission, which precedes the 202. Bounded HTTP handling
+records refusal summaries and reports health; verify-only inspect surveys
+spool consistency, and startup resume remains tied to the inspected head.
+The separate command starts no Run. Legacy modules, existing tests and the
+17a journal modules/goldens remain unchanged.
+
+Independent source/test review, mutation regressions and fresh hash-bound
+review pass. Focused: 1645 passed, 30 skipped with the loopback guard clean.
+Full suite: 4939 passed, 39 skipped. [Validation](../reviews/receiver-journal/validation-17b.json)
+records hashes and limits. No provider, tenant, native-client, paid or deployment
+qualification is claimed, and nothing is pushed.
+
+Run/effect lifecycle still requires the durable ticket-38 reservation seam.
+The next design starts with a pure accounting-policy prerequisite, without
+launch authority or a no-reservation profile. Accounting, reset, retention,
+reconstruction and other operator controls remain open. This ticket stays open.

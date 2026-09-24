@@ -1,0 +1,1115 @@
+Review transcript copies below have trailing whitespace removed for repository storage.
+FILE/SHA256 headers identify the original, unnormalized evidence files.
+
+FILE gates/focused17b.txt
+SHA256 ad0666755b6ab99407dd506c0af2f1877c9c208db5cdbcb45ae0dea34091cd66
+.....................................s.................................. [  4%]
+............................................FFF..F...................... [  8%]
+........................................................................ [ 12%]
+........................................................................ [ 17%]
+........................................................................ [ 21%]
+........................................................................ [ 25%]
+........................................................................ [ 30%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+........................................................................ [ 43%]
+........................................................................ [ 47%]
+........................................................................ [ 51%]
+........................................................................ [ 56%]
+........................................................................ [ 60%]
+........................................................................ [ 64%]
+........................................................................ [ 69%]
+........................................s............................... [ 73%]
+........................................................................ [ 77%]
+...........s............................................................ [ 81%]
+........................................................................ [ 86%]
+.................ssss........ssssssssss...........ssss.......sssssssss.. [ 90%]
+........................................................................ [ 94%]
+........................................................................ [ 99%]
+.............                                                            [100%]
+=================================== FAILURES ===================================
+________ test_c1_crash_after_spool_store_before_admit_leaves_an_orphan _________
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c1_crash_after_spool_stor0')
+
+    def test_c1_crash_after_spool_store_before_admit_leaves_an_orphan(tmp_path):
+        directory = tmp_path / "S"
+        runs_dir = tmp_path / "runs"
+        jo.create_state(directory)
+        body = (FIXTURES / "notification-firing.json").read_bytes()
+        digest = ji.body_digest(body)
+
+>       _run_http_crash_case(
+            patch_module="journal_spool", patch_class="JournalSpool", patch_method="store",
+            crash_at=1, state_dir=directory, runs_dir=runs_dir, body=body,
+        )
+
+tests/test_journaled_receiver_crash.py:243:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+patch_module = 'journal_spool', patch_class = 'JournalSpool'
+patch_method = 'store', crash_at = 1
+state_dir = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c1_crash_after_spool_stor0/S')
+runs_dir = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c1_crash_after_spool_stor0/runs')
+body = b'{\n  "receiver": "demo-receiver",\n  "status": "firing",\n  "alerts": [\n    {\n      "status": "firing",\n      "la...e-rate-zero&matcher=instance%3Drolldice%3A8082&matcher=service%3Drolldice&matcher=severity%3Dcritical&orgId=1\\n"\n}\n'
+
+    def _run_http_crash_case(
+        *, patch_module: str, patch_class: str, patch_method: str, crash_at: int, state_dir: Path,
+        runs_dir: Path, body: bytes,
+    ) -> None:
+        """C1-C3: the crash fires while handling one real POST.
+
+        ``crash_at`` is the seam's call count at the moment of the crash, and it
+        is *not* always 1: every ``start()`` already commits one
+        ``restart_recovery`` through ``JournalStore.append`` before any POST is
+        possible (confirmed against the actual listener: the append seam's first
+        call happens at open, never at a POST), so a case that shares that seam
+        with the restart commit -- C2 and C3, both on ``JournalStore.append`` --
+        must crash on the *second* call, not the first. C1's seam
+        (``JournalSpool.store``) is never touched during open, so its crash is
+        still the first and only call.
+        """
+        proc = _run_crash_child(
+            patch_module=patch_module, patch_class=patch_class, patch_method=patch_method,
+            crash_at=crash_at, state_dir=state_dir, runs_dir=runs_dir,
+        )
+        try:
+            _lines, listening = _wait_for_listening_line(proc, time.monotonic() + 10)
+>           assert listening is not None, "child never printed its listening line"
+E           AssertionError: child never printed its listening line
+E           assert None is not None
+
+tests/test_journaled_receiver_crash.py:224: AssertionError
+____ test_c2_crash_after_append_before_the_202_leaves_the_admission_durable ____
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c2_crash_after_append_bef0')
+
+    def test_c2_crash_after_append_before_the_202_leaves_the_admission_durable(tmp_path):
+        directory = tmp_path / "S"
+        runs_dir = tmp_path / "runs"
+        jo.create_state(directory)
+        body = (FIXTURES / "notification-firing.json").read_bytes()
+        digest = ji.body_digest(body)
+
+>       _run_http_crash_case(
+            patch_module="journal_store", patch_class="JournalStore", patch_method="append",
+            crash_at=2, state_dir=directory, runs_dir=runs_dir, body=body,
+        )
+
+tests/test_journaled_receiver_crash.py:278:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+patch_module = 'journal_store', patch_class = 'JournalStore'
+patch_method = 'append', crash_at = 2
+state_dir = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c2_crash_after_append_bef0/S')
+runs_dir = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c2_crash_after_append_bef0/runs')
+body = b'{\n  "receiver": "demo-receiver",\n  "status": "firing",\n  "alerts": [\n    {\n      "status": "firing",\n      "la...e-rate-zero&matcher=instance%3Drolldice%3A8082&matcher=service%3Drolldice&matcher=severity%3Dcritical&orgId=1\\n"\n}\n'
+
+    def _run_http_crash_case(
+        *, patch_module: str, patch_class: str, patch_method: str, crash_at: int, state_dir: Path,
+        runs_dir: Path, body: bytes,
+    ) -> None:
+        """C1-C3: the crash fires while handling one real POST.
+
+        ``crash_at`` is the seam's call count at the moment of the crash, and it
+        is *not* always 1: every ``start()`` already commits one
+        ``restart_recovery`` through ``JournalStore.append`` before any POST is
+        possible (confirmed against the actual listener: the append seam's first
+        call happens at open, never at a POST), so a case that shares that seam
+        with the restart commit -- C2 and C3, both on ``JournalStore.append`` --
+        must crash on the *second* call, not the first. C1's seam
+        (``JournalSpool.store``) is never touched during open, so its crash is
+        still the first and only call.
+        """
+        proc = _run_crash_child(
+            patch_module=patch_module, patch_class=patch_class, patch_method=patch_method,
+            crash_at=crash_at, state_dir=state_dir, runs_dir=runs_dir,
+        )
+        try:
+            _lines, listening = _wait_for_listening_line(proc, time.monotonic() + 10)
+>           assert listening is not None, "child never printed its listening line"
+E           AssertionError: child never printed its listening line
+E           assert None is not None
+
+tests/test_journaled_receiver_crash.py:224: AssertionError
+___ test_c3_crash_after_the_refusal_commit_before_the_4xx_leaves_one_record ____
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c3_crash_after_the_refusa0')
+
+    def test_c3_crash_after_the_refusal_commit_before_the_4xx_leaves_one_record(tmp_path):
+        directory = tmp_path / "S"
+        runs_dir = tmp_path / "runs"
+        jo.create_state(directory)
+        body = b"not json"  # ingress_json_invalid: refused before any admission is possible
+
+>       _run_http_crash_case(
+            patch_module="journal_store", patch_class="JournalStore", patch_method="append",
+            crash_at=2, state_dir=directory, runs_dir=runs_dir, body=body,
+        )
+
+tests/test_journaled_receiver_crash.py:314:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+patch_module = 'journal_store', patch_class = 'JournalStore'
+patch_method = 'append', crash_at = 2
+state_dir = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c3_crash_after_the_refusa0/S')
+runs_dir = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c3_crash_after_the_refusa0/runs')
+body = b'not json'
+
+    def _run_http_crash_case(
+        *, patch_module: str, patch_class: str, patch_method: str, crash_at: int, state_dir: Path,
+        runs_dir: Path, body: bytes,
+    ) -> None:
+        """C1-C3: the crash fires while handling one real POST.
+
+        ``crash_at`` is the seam's call count at the moment of the crash, and it
+        is *not* always 1: every ``start()`` already commits one
+        ``restart_recovery`` through ``JournalStore.append`` before any POST is
+        possible (confirmed against the actual listener: the append seam's first
+        call happens at open, never at a POST), so a case that shares that seam
+        with the restart commit -- C2 and C3, both on ``JournalStore.append`` --
+        must crash on the *second* call, not the first. C1's seam
+        (``JournalSpool.store``) is never touched during open, so its crash is
+        still the first and only call.
+        """
+        proc = _run_crash_child(
+            patch_module=patch_module, patch_class=patch_class, patch_method=patch_method,
+            crash_at=crash_at, state_dir=state_dir, runs_dir=runs_dir,
+        )
+        try:
+            _lines, listening = _wait_for_listening_line(proc, time.monotonic() + 10)
+>           assert listening is not None, "child never printed its listening line"
+E           AssertionError: child never printed its listening line
+E           assert None is not None
+
+tests/test_journaled_receiver_crash.py:224: AssertionError
+_____________________ test_c6_sigkill_loop_five_iterations _____________________
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c6_sigkill_loop_five_iter0')
+
+    def test_c6_sigkill_loop_five_iterations(tmp_path):
+>       _run_c6(tmp_path)
+
+tests/test_journaled_receiver_crash.py:464:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2935/test_c6_sigkill_loop_five_iter0')
+seed = 20260924
+
+    def _run_c6(tmp_path: Path, *, seed: int = 20260924) -> None:
+        print(f"\n[c6] seed={seed}")
+        rng = random.Random(seed)
+        directory = tmp_path / "S"
+        runs_dir = tmp_path / "runs"
+        jo.create_state(directory)
+
+        acknowledged: set[str] = set()
+        counter = {"n": 0}
+        resume_token: str | None = None
+
+        for iteration in range(5):
+            extra_args = () if resume_token is None else (
+                "--resume-token", resume_token, "--operator", "c6-tester",
+            )
+            proc = _spawn_journaled_receiver_main(directory, runs_dir, extra_args)
+            posted_ok: list[str] = []
+            try:
+                _lines, listening = _wait_for_listening_line(proc, time.monotonic() + 10)
+>               assert listening is not None, f"iteration {iteration}: child never listened"
+E               AssertionError: iteration 0: child never listened
+E               assert None is not None
+
+tests/test_journaled_receiver_crash.py:430: AssertionError
+----------------------------- Captured stdout call -----------------------------
+
+[c6] seed=20260924
+=========================== short test summary info ============================
+FAILED tests/test_journaled_receiver_crash.py::test_c1_crash_after_spool_store_before_admit_leaves_an_orphan
+FAILED tests/test_journaled_receiver_crash.py::test_c2_crash_after_append_before_the_202_leaves_the_admission_durable
+FAILED tests/test_journaled_receiver_crash.py::test_c3_crash_after_the_refusal_commit_before_the_4xx_leaves_one_record
+FAILED tests/test_journaled_receiver_crash.py::test_c6_sigkill_loop_five_iterations
+4 failed, 1635 passed, 30 skipped in 263.56s (0:04:23)
+NON_LOOPBACK_ATTEMPTS []
+exit=1
+
+
+FILE gates/full17b.txt
+SHA256 c276ddaef07fc8e72347f90618cb12c9ef698b528a1731af6eef6bdd3f725b60
+............................ssss........ssssssssss...........ssss....... [  1%]
+ssssssssss.............................................................. [  2%]
+........................................................................ [  4%]
+........................................................................ [  5%]
+........................................................................ [  7%]
+........................................................................ [  8%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+........................................................................ [ 20%]
+........................................................................ [ 21%]
+........................................................................ [ 23%]
+........................................................................ [ 24%]
+........................................................................ [ 26%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 30%]
+........................................................................ [ 31%]
+........................................................................ [ 33%]
+........................................................................ [ 34%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 52%]
+........................................................................ [ 53%]
+........................................................................ [ 54%]
+.........................................ssssssss....................... [ 56%]
+........................................................................ [ 57%]
+........................................................................ [ 59%]
+........................................................................ [ 60%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 65%]
+........................................................................ [ 66%]
+........................................................................ [ 67%]
+........................................................................ [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 72%]
+........................................................................ [ 73%]
+........................s.....................................s......... [ 75%]
+........................................................................ [ 76%]
+.................................s...................................... [ 78%]
+........................................................................ [ 79%]
+........................................................................ [ 81%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 88%]
+........................................................................ [ 89%]
+........................................................................ [ 91%]
+........................................................................ [ 92%]
+........................................................................ [ 94%]
+........................................................................ [ 95%]
+........................................................................ [ 96%]
+........................................................................ [ 98%]
+........................................................................ [ 99%]
+.........                                                                [100%]
+4938 passed, 39 skipped in 593.68s (0:09:53)
+exit=0
+
+
+FILE root/identity-startup-red.txt
+SHA256 b7a4392539242ec80e20aeca5ccc9be3b02870d362f2333db540b683d036f784
+..........................F.....                                         [100%]
+=================================== FAILURES ===================================
+___ test_o6_prints_resolved_directories_before_listening_and_sigint_exits_0 ____
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2906/test_o6_prints_resolved_direct0')
+
+    def test_o6_prints_resolved_directories_before_listening_and_sigint_exits_0(tmp_path):
+        directory = tmp_path / "S"
+        runs_directory = tmp_path / "runs"
+        jo.create_state(directory)
+
+        proc = _spawn_journaled_receiver(directory, runs_directory)
+        try:
+            lines, listening = _wait_for_listening_line(proc, time.monotonic() + 10)
+            assert listening is not None, "child never printed its listening line"
+            assert any(str(directory) in line for line in lines)
+            assert any(str(runs_directory) in line for line in lines)
+>           assert "journaled admission-only mode: Notifications are recorded durably; " \
+                "no Run is started" in lines
+E               AssertionError: assert 'journaled admission-only mode: Notifications are recorded durably; no Run is started' in ['state directory: /private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2906/test_o6...r/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2906/test_o6_prints_resolved_direct0/runs']
+
+tests/test_journal_operator.py:441: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_journal_operator.py::test_o6_prints_resolved_directories_before_listening_and_sigint_exits_0
+1 failed, 31 passed, 12 deselected in 6.85s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE root/http-cli-red.txt
+SHA256 d3b468f2465d9394f8242a340693eba62f8a1a3a87d6796c02877885e2c3a507
+FFFFF.F.FF                                                               [100%]
+=================================== FAILURES ===================================
+_____________ test_h13_unread_body_closes_connection[POST-/other] ______________
+
+front_door = <grafana_jsm_sandbox.journaled_receiver.JournaledReceiver object at 0x10eacbcb0>
+method = 'POST', target = '/other'
+
+    @pytest.mark.parametrize("method,target", [("POST", "/other"), ("GET", "/health")])
+    def test_h13_unread_body_closes_connection(front_door, method, target):
+        with _raw_socket(front_door) as sock:
+            status, headers, _body = _exchange(sock, _raw_request(
+                method, target, [("Host", "localhost"), ("Content-Length", "4")], b"DATA",
+            ))
+            assert status == (404 if method == "POST" else 200)
+>           assert _header(headers, "Connection") == "close"
+E           AssertionError: assert None == 'close'
+E            +  where None = _header({'Server': 'BaseHTTP/0.6 Python/3.13.7', 'Date': 'Thu, 24 Sep 2026 20:21:58 GMT', 'Content-Type': 'text/plain; charset=utf-8', 'Content-Length': '9'}, 'Connection')
+
+tests/test_journaled_receiver.py:238: AssertionError
+_____________ test_h13_unread_body_closes_connection[GET-/health] ______________
+
+front_door = <grafana_jsm_sandbox.journaled_receiver.JournaledReceiver object at 0x10f6b7c50>
+method = 'GET', target = '/health'
+
+    @pytest.mark.parametrize("method,target", [("POST", "/other"), ("GET", "/health")])
+    def test_h13_unread_body_closes_connection(front_door, method, target):
+        with _raw_socket(front_door) as sock:
+            status, headers, _body = _exchange(sock, _raw_request(
+                method, target, [("Host", "localhost"), ("Content-Length", "4")], b"DATA",
+            ))
+            assert status == (404 if method == "POST" else 200)
+>           assert _header(headers, "Connection") == "close"
+E           AssertionError: assert None == 'close'
+E            +  where None = _header({'Server': 'BaseHTTP/0.6 Python/3.13.7', 'Date': 'Thu, 24 Sep 2026 20:21:59 GMT', 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...}, 'Connection')
+
+tests/test_journaled_receiver.py:238: AssertionError
+____________ test_h13_explicit_connection_close_is_honored[health] _____________
+
+front_door = <grafana_jsm_sandbox.journaled_receiver.JournaledReceiver object at 0x10f6b7ed0>
+kind = 'health'
+
+    @pytest.mark.parametrize("kind", ["health", "receipt", "refusal"])
+    def test_h13_explicit_connection_close_is_honored(front_door, kind):
+        body = b"" if kind == "health" else (
+            _valid_body("close") if kind == "receipt" else b"not-json"
+        )
+        with _raw_socket(front_door) as sock:
+            status, headers, _body = _exchange(sock, _raw_request(
+                "GET" if kind == "health" else "POST",
+                "/health" if kind == "health" else "/notification",
+                [("Host", "localhost"), ("Connection", "close"),
+                 ("Content-Length", str(len(body)))], body,
+            ))
+            assert status == {"health": 200, "receipt": 202, "refusal": 400}[kind]
+>           assert _header(headers, "Connection") == "close"
+E           AssertionError: assert None == 'close'
+E            +  where None = _header({'Server': 'BaseHTTP/0.6 Python/3.13.7', 'Date': 'Thu, 24 Sep 2026 20:22:00 GMT', 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...}, 'Connection')
+
+tests/test_journaled_receiver.py:254: AssertionError
+____________ test_h13_explicit_connection_close_is_honored[receipt] ____________
+
+front_door = <grafana_jsm_sandbox.journaled_receiver.JournaledReceiver object at 0x10eaf5940>
+kind = 'receipt'
+
+    @pytest.mark.parametrize("kind", ["health", "receipt", "refusal"])
+    def test_h13_explicit_connection_close_is_honored(front_door, kind):
+        body = b"" if kind == "health" else (
+            _valid_body("close") if kind == "receipt" else b"not-json"
+        )
+        with _raw_socket(front_door) as sock:
+            status, headers, _body = _exchange(sock, _raw_request(
+                "GET" if kind == "health" else "POST",
+                "/health" if kind == "health" else "/notification",
+                [("Host", "localhost"), ("Connection", "close"),
+                 ("Content-Length", str(len(body)))], body,
+            ))
+            assert status == {"health": 200, "receipt": 202, "refusal": 400}[kind]
+>           assert _header(headers, "Connection") == "close"
+E           AssertionError: assert None == 'close'
+E            +  where None = _header({'Server': 'BaseHTTP/0.6 Python/3.13.7', 'Date': 'Thu, 24 Sep 2026 20:22:01 GMT', 'Content-Type': 'application/json', 'Content-Length': '198'}, 'Connection')
+
+tests/test_journaled_receiver.py:254: AssertionError
+____________ test_h13_explicit_connection_close_is_honored[refusal] ____________
+
+front_door = <grafana_jsm_sandbox.journaled_receiver.JournaledReceiver object at 0x10f669940>
+kind = 'refusal'
+
+    @pytest.mark.parametrize("kind", ["health", "receipt", "refusal"])
+    def test_h13_explicit_connection_close_is_honored(front_door, kind):
+        body = b"" if kind == "health" else (
+            _valid_body("close") if kind == "receipt" else b"not-json"
+        )
+        with _raw_socket(front_door) as sock:
+            status, headers, _body = _exchange(sock, _raw_request(
+                "GET" if kind == "health" else "POST",
+                "/health" if kind == "health" else "/notification",
+                [("Host", "localhost"), ("Connection", "close"),
+                 ("Content-Length", str(len(body)))], body,
+            ))
+            assert status == {"health": 200, "receipt": 202, "refusal": 400}[kind]
+>           assert _header(headers, "Connection") == "close"
+E           AssertionError: assert None == 'close'
+E            +  where None = _header({'Server': 'BaseHTTP/0.6 Python/3.13.7', 'Date': 'Thu, 24 Sep 2026 20:22:01 GMT', 'Content-Type': 'text/plain; charset=utf-8', 'Content-Length': '20'}, 'Connection')
+
+tests/test_journaled_receiver.py:254: AssertionError
+_________________ test_h15_unexpected_exception_logs_type_only _________________
+
+front_door = <grafana_jsm_sandbox.journaled_receiver.JournaledReceiver object at 0x10f559bf0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10f66a8b0>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x10eacbcb0>
+
+    def test_h15_unexpected_exception_logs_type_only(front_door, monkeypatch, caplog):
+        def failed(_body):
+            raise ValueError(_DATA_CANARY)
+
+        monkeypatch.setattr(jrecv, "sanitize_notification", failed)
+        assert post_notification(front_door, _valid_body("exception-type")).status == 500
+>       assert "notification handling failed: ValueError" in caplog.text
+E       AssertionError: assert 'notification handling failed: ValueError' in 'ERROR    grafana_jsm_sandbox.journaled_receiver:journaled_receiver.py:496 notification handling failed: unknown\n'
+E        +  where 'ERROR    grafana_jsm_sandbox.journaled_receiver:journaled_receiver.py:496 notification handling failed: unknown\n' = <_pytest.logging.LogCaptureFixture object at 0x10eacbcb0>.text
+
+tests/test_journaled_receiver.py:274: AssertionError
+------------------------------ Captured log call -------------------------------
+ERROR    grafana_jsm_sandbox.journaled_receiver:journaled_receiver.py:496 notification handling failed: unknown
+___ test_o6_prints_resolved_directories_before_listening_and_sigint_exits_0 ____
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2910/test_o6_prints_resolved_direct0')
+
+    def test_o6_prints_resolved_directories_before_listening_and_sigint_exits_0(tmp_path):
+        directory = tmp_path / "S"
+        runs_directory = tmp_path / "runs"
+        jo.create_state(directory)
+
+        proc = _spawn_journaled_receiver(directory, runs_directory)
+        try:
+            lines, listening = _wait_for_listening_line(proc, time.monotonic() + 10)
+            assert listening is not None, "child never printed its listening line"
+            assert any(str(directory) in line for line in lines)
+            assert any(str(runs_directory) in line for line in lines)
+>           assert "journaled admission-only mode: Notifications are recorded durably; " \
+                "no Run is started" in lines
+E               AssertionError: assert 'journaled admission-only mode: Notifications are recorded durably; no Run is started' in ['state directory: /private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2910/test_o6...r/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2910/test_o6_prints_resolved_direct0/runs']
+
+tests/test_journal_operator.py:441: AssertionError
+___________ test_o6_main_refuses_symlink_state_before_journal_access ___________
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2910/test_o6_main_refuses_symlink_s0')
+capsys = <_pytest.capture.CaptureFixture object at 0x10ec17230>
+
+    def test_o6_main_refuses_symlink_state_before_journal_access(tmp_path, capsys):
+        directory = tmp_path / "S"
+        jo.create_state(directory)
+        alias = tmp_path / "alias"
+        alias.symlink_to(directory, target_is_directory=True)
+        before = _tree_snapshot(directory)
+        assert jreceiver.main([
+            "--state-dir", str(alias), "--runs-directory", str(tmp_path / "runs"),
+            "--port", "0", "--resume-token", "0" * 64, "--operator", "tester",
+        ]) == 1
+>       assert "state_path_invalid" in capsys.readouterr().err
+E       AssertionError: assert 'state_path_invalid' in 'refused to start: resume_stale\n'
+E        +  where 'refused to start: resume_stale\n' = CaptureResult(out='state directory: /private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/py...n/T/pytest-of-jasonkrueger/pytest-2910/test_o6_main_refuses_symlink_s0/runs\n', err='refused to start: resume_stale\n').err
+E        +    where CaptureResult(out='state directory: /private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/py...n/T/pytest-of-jasonkrueger/pytest-2910/test_o6_main_refuses_symlink_s0/runs\n', err='refused to start: resume_stale\n') = readouterr()
+E        +      where readouterr = <_pytest.capture.CaptureFixture object at 0x10ec17230>.readouterr
+
+tests/test_journal_operator.py:545: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_journaled_receiver.py::test_h13_unread_body_closes_connection[POST-/other]
+FAILED tests/test_journaled_receiver.py::test_h13_unread_body_closes_connection[GET-/health]
+FAILED tests/test_journaled_receiver.py::test_h13_explicit_connection_close_is_honored[health]
+FAILED tests/test_journaled_receiver.py::test_h13_explicit_connection_close_is_honored[receipt]
+FAILED tests/test_journaled_receiver.py::test_h13_explicit_connection_close_is_honored[refusal]
+FAILED tests/test_journaled_receiver.py::test_h15_unexpected_exception_logs_type_only
+FAILED tests/test_journal_operator.py::test_o6_prints_resolved_directories_before_listening_and_sigint_exits_0
+FAILED tests/test_journal_operator.py::test_o6_main_refuses_symlink_state_before_journal_access
+8 failed, 2 passed, 54 deselected in 9.42s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE root/http-cli-green.txt
+SHA256 bf8eb7dcd44579f6b2d4fbac2ffddf8ebe0db030c7da82583ebd6e76230326ad
+........................................................................ [ 80%]
+..................                                                       [100%]
+90 passed in 30.34s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE root/identity-mutants.json
+SHA256 a1dbb6be44842fa77be2069cac15d7a5cfa2f7f2a066b1686a9d56e77674f8f1
+[
+  {
+    "mutant": "legacy-relative",
+    "before_exit": 0,
+    "after_exit": 1
+  },
+  {
+    "mutant": "environment-getenv",
+    "before_exit": 0,
+    "after_exit": 1
+  },
+  {
+    "mutant": "environment-getenvb",
+    "before_exit": 0,
+    "after_exit": 1
+  },
+  {
+    "mutant": "environment-environ",
+    "before_exit": 0,
+    "after_exit": 1
+  },
+  {
+    "mutant": "environment-environb",
+    "before_exit": 0,
+    "after_exit": 1
+  },
+  {
+    "mutant": "process-fork",
+    "before_exit": 0,
+    "after_exit": 1
+  },
+  {
+    "mutant": "process-execl",
+    "before_exit": 0,
+    "after_exit": 1
+  },
+  {
+    "mutant": "process-spawnv",
+    "before_exit": 0,
+    "after_exit": 1
+  },
+  {
+    "mutant": "process-posix_spawn",
+    "before_exit": 0,
+    "after_exit": 1
+  }
+]
+
+
+FILE root/create-symlink-red.txt
+SHA256 9810c10a27b9fff00cf62ad4fa520d9d4604358d5936238d08f66a4a33b65ceb
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_o1_create_refuses_dangling_symlink_without_creating_target ________
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2937/test_o1_create_refuses_danglin0')
+capsys = <_pytest.capture.CaptureFixture object at 0x10f6abcb0>
+
+    def test_o1_create_refuses_dangling_symlink_without_creating_target(tmp_path, capsys):
+        target = tmp_path / "absent-target"
+        alias = tmp_path / "S"
+        alias.symlink_to(target, target_is_directory=True)
+        code, report, _err = _run_main(["create", "--state-dir", str(alias)], capsys)
+>       assert code == 1
+E       assert 0 == 1
+
+tests/test_journal_operator.py:194: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_journal_operator.py::test_o1_create_refuses_dangling_symlink_without_creating_target
+1 failed, 21 deselected in 2.71s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE root/final-repair-green.txt
+SHA256 356ce836ad24ac4952462e659aa1908f17e0a7a941ced483272574b14f9ac85e
+.......                                                                  [100%]
+7 passed, 21 deselected in 12.86s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE root/final-gaps-green.txt
+SHA256 8096fe858265b1c0e4451741b9b9a898ea96b1595e14c0b31d1e95a63a858969
+.........                                                                [100%]
+9 passed, 44 deselected in 5.31s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE standards/review.md
+SHA256 c7096357128611124b28cfcc4c12e2b608684e53845dfc8f9975e1570df0b1af
+# Standards review: unit 17b
+
+Read-only independent review of new source/test files against c3e4f3a and the receiver-journal implementation plan. Sources: CLAUDE.md, global CLAUDE.md, CONTEXT.md, ADR0012, and plan. Repository files were not edited.
+
+## Findings
+
+1. **Medium: non-regular spool entries can hang custody validation.** `journal_spool.py:102` opens an entry read-only before `fstat` establishes regular-file custody. A 0600 FIFO under a valid digest blocks both `store` and `survey_spool`; HTTP body deadlines do not interrupt filesystem opens. Plan store step 4 requires a regular file and mismatch refusal. Two subprocess probes timed out after 2s. Spec reviewer owns repair. Evidence: [fifo-red.txt](fifo-red.txt), [probe](scratch/tests/test_standards_probe.py).
+
+2. **Medium test gap: no-deletion guarantee misses two modules.** Plan S9 requires the AST ban in all three new modules. `tests/test_journal_spool.py:85` reads only `journal_spool`. Appending an unused `path.unlink()` helper to both `journaled_receiver` and `journal_operator` survived all five relevant suites: **123 passed, 1 skipped** (known exact-import-equality cases excluded). Spec reviewer owns expansion. Evidence: [deletion-mutant-survives.txt](deletion-mutant-survives.txt). Mutation helpers remain at the ends of those scratch-copy source files.
+
+3. **Low: exception-type logging loses the caught exception.** `journaled_receiver.py:496` calls `sys.exc_info()` after `do_POST` has left its exception handler, so every caught error is logged as `unknown`. Plan HTTP step 9b requires the type name. Injected `LookupError` produced 500 safely, but the added type-log assertion failed. Preserve only the type name by assignment inside `except`. Root owns repair. Evidence: [exception-type-red.txt](exception-type-red.txt), appended scratch `test_unexpected_error_logs_exception_type`.
+
+All three probe runs report `NON_LOOPBACK_ATTEMPTS []`. These are synthetic local proofs, not live/provider acceptance.
+
+## Size and smell judgment
+
+Accept ~813 receiver lines as a recorded estimate deviation: the 17a/17b split already honored the plan's source-unit split rule; this module's sections implement one cohesive front-door contract. Minor response-writing duplication is a judgment call, not a blocking standards violation. No additional smell-baseline blocker found. Known identity-lens items 1–6 were left to root. CLI `Path.resolve()` bypass of symlink-S custody was separately forwarded for spec adjudication.
+
+
+FILE standards/mutation-summary.md
+SHA256 160742560c3a96c6378cc3b56cc2c8d4ba5fb5d9d10d6374c6ceb04f83a1c281
+# Front-door/operator mutation adequacy sweep
+
+Synthetic, outside-repository scratch-only validation. Copied current package, tests, pyproject, fixtures, and ticket-14 captures. Removed all `__pycache__` directories before each mutant. Test commands use the loopback guard; every run ended with `NON_LOOPBACK_ATTEMPTS []`.
+
+| Mutant | Existing relevant tests | New regression |
+|---|---|---|
+| Arm deadline once per connection | survived | deadline_once-gap-red.txt: 1 failed |
+| Skip connection-slot release when thread start fails | survived | connection_start_failure_leak-gap-red.txt: 1 failed |
+| Skip in-flight semaphore release after unexpected error | survived | inflight_exception_leak-gap-red.txt: 1 failed |
+| Ignore spool latch when computing health readiness | killed | not needed |
+| Send premature 202 before journal.admit | killed | not needed |
+| Return inspect exit 0 for inconsistent spool | killed | not needed |
+| Sync state directory before creating child directories | survived | state_sync_before_children-gap-red.txt: 1 failed |
+
+The four added regressions pass on the unmutated snapshot: `sweep/gaps-green.txt` shows **4 passed, 64 deselected**. Their exact appendable code is `receiver-gap-tests.txt` and `operator-gap-tests.txt`. The current implementation already implements these four rules correctly; this is test coverage repair, not a source defect.
+
+Definitions and targeted commands: `sweep/results.json`; source hashes: `sweep/baseline-hashes.json`. Drivers: `run_sweep.py`, `prove_gaps.py`. Logs: `sweep/*.txt`. One preliminary in-flight mutant referred to a stale local variable; it was discarded, corrected to `failed_type`, rerun, and only the corrected run is recorded in results.json and its final log.
+
+The earlier S9 deletion-ban mutant separately survived **123 passed, 1 skipped**; the spec reviewer owns its test repair. Guarded focused runs only; no full suite, live endpoint, tenant/provider action, or publication acceptance is claimed.
+
+
+FILE standards/sweep/results.json
+SHA256 acd916e0fce7aa1bae759f6b83708659a717c0b21c548183c3deccba7963f6d5
+[
+  {
+    "mutant": "deadline_once",
+    "returncode": 0,
+    "file": "journaled_receiver",
+    "old": "        self.deadline = time.monotonic() + self.server.front_door._request_deadline",
+    "new": "        if not hasattr(self, \"deadline\"):\n            self.deadline = time.monotonic() + self.server.front_door._request_deadline",
+    "test": "tests/test_journaled_receiver.py",
+    "selection": "h14 or h13"
+  },
+  {
+    "mutant": "connection_start_failure_leak",
+    "returncode": 0,
+    "file": "journaled_receiver",
+    "old": "            if not started:\n                self._release_connection_slot()",
+    "new": "            if not started:\n                pass",
+    "test": "tests/test_journaled_receiver.py",
+    "selection": "h11"
+  },
+  {
+    "mutant": "inflight_exception_leak",
+    "returncode": 0,
+    "file": "journaled_receiver",
+    "old": "            front_door._in_flight.release()",
+    "new": "            if failed_type is None:\n                front_door._in_flight.release()",
+    "test": "tests/test_journaled_receiver.py",
+    "selection": "h11 or h15"
+  },
+  {
+    "mutant": "health_ignores_spool_latch",
+    "returncode": 1,
+    "file": "journaled_receiver",
+    "old": "ready = journal_json[\"state\"] == \"ready\" and spool_json[\"state\"] != \"broken\"",
+    "new": "ready = journal_json[\"state\"] == \"ready\"",
+    "test": "tests/test_journaled_receiver.py",
+    "selection": "h10 or h19"
+  },
+  {
+    "mutant": "receipt_before_admit",
+    "returncode": 1,
+    "file": "journaled_receiver",
+    "old": "            receipt = journal.admit(source)",
+    "new": "            self._respond(202, \"premature\")\n            receipt = journal.admit(source)",
+    "test": "tests/test_journaled_receiver.py",
+    "selection": "h2 or h20"
+  },
+  {
+    "mutant": "operator_exit5_to0",
+    "returncode": 1,
+    "file": "journal_operator",
+    "old": "return (5 if inconsistent else 0), report",
+    "new": "return (0 if inconsistent else 0), report",
+    "test": "tests/test_journal_operator.py",
+    "selection": "o5"
+  },
+  {
+    "mutant": "state_sync_before_children",
+    "returncode": 0,
+    "file": "journal_operator",
+    "old": "    create_spool(state_directory / \"spool\")\n    _mkdir(state_directory / \"journal\")\n    sync_directory(state_directory)",
+    "new": "    sync_directory(state_directory)\n    create_spool(state_directory / \"spool\")\n    _mkdir(state_directory / \"journal\")",
+    "test": "tests/test_journal_operator.py",
+    "selection": "o1"
+  }
+]
+
+
+FILE spec/report.md
+SHA256 2e5678c12da2a96d38cd022dc893a7c19f367449705d802257b3dcd80af94b24
+# Unit 17b Spec review and bounded spool repair
+
+Baseline c3e4f3a; review covered the three new production modules and five new tests against receiver-journal/implementation-plan.md. No protected or legacy file was edited. Later root instruction authorized repair of journal_spool.py and test_journal_spool.py only; both changes are complete. Other findings remain root-owned.
+
+## Findings (original line numbers)
+
+1. **P1, repaired: unchecked short writes acknowledge a truncated body.** journal_spool.py:354 ignored os.write's byte count. Plan L213 requires “each admitted Notification's exact bytes,” and L253 requires write before sync/rename. Fault injection wrote 3 of 30 bytes, yet store returned written, cached the digest and stayed unlatched. A zero-byte write behaved likewise. The repair fails closed after any short write, keeps the temporary, skips sync/rename and latches spool_write_failed. It makes no retry.
+2. **P2, repaired: close failures escape without latching.** journal_spool.py:115,150,359 called os.close outside error translation. Plan L254: “Any OSError or sync failure latches spool_write_failed.” Three probes cover closing a temporary, the directory after rename, and an existing entry. Each originally escaped raw OSError. A single-close helper now translates failures; store latches, and no descriptor close is retried.
+3. **P2, repaired: FIFO entry hangs custody verification.** journal_spool.py:98 opened a FIFO with blocking O_RDONLY before fstat could reject it. Plan L252 requires a regular file and L258 applies the same checks to survey. Both store and survey waited for an external writer, rather than refusing. O_NONBLOCK now permits immediate fstat rejection; content evidence is retained.
+4. **P2, root-owned: unread body on 404 corrupts keep-alive.** journaled_receiver.py:315-319 replies to POST /other without reading its body or closing. Plan L436 says “404 not_found | keep-alive.” Sending DATA as that body, then GET /health, yielded 404 then 501 because DATAGET became the method. Closing undrained routes requires a plan reconciliation.
+5. **P2, root-owned: responses override the client's close decision.** journaled_receiver.py:456,470,487 force close_connection=False on common responses. A GET /health with Connection: close returned 200 but remained open (bounded recv timed out). The promised keep-alive path must retain the stdlib's HTTP-version and connection-close decisions.
+6. **P2 test gap, repaired: S9 no-deletion scan omitted two modules.** Plan L602 requires all three; the original test read only journal_spool. Standards' deletion helper mutant survived 123 tests. The expanded test checks all three modules and imported aliases. Both direct path.unlink and from os import unlink as erase mutants are killed in journaled_receiver and journal_operator.
+
+## Evidence and limits
+
+- Initial independent probes: `probes-red.txt` (6 failing probes across findings 1-5); source `test_spec_probes.py`.
+- Vertical spool red/green evidence: `short-write-{red,green}.txt` (2 cases), `close-{red,green}.txt` (3), `fifo-{red,green}.txt` (2).
+- Final spool suite: `spool-green.txt`: **46 passed, 1 skipped** (the declared Linux sync branch on Darwin). Every run ended `NON_LOOPBACK_ATTEMPTS []`.
+- Mutant kills: `deletion-mutant-killed.txt` and `deletion-alias-mutant-killed.txt`, each **2 failed, 1 passed**, with no non-loopback attempts. Mutants existed only under `spec/scratch/`; no destructive helper was executed.
+- `ruff check` and E501 check passed for the two owned files.
+- Exact changes relative to the initial untracked files: `spool-source.diff`, `spool-tests.diff`; initial copies `journal_spool-before.py`, `test_journal_spool-before.py`.
+- Full suite/HTTP fixes/final hash-bound review: root-owned, **NOT RUN by this reviewer**. No commit, credential read, provider/tenant call, or publication.
+
+
+FILE spec/short-write-red.txt
+SHA256 2f401165a31e82e0eac5842fb5ced7906477e42795bc9e26969eeff7cf530a6e
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________________ test_s1_short_write_leaves_temp_and_latches[0] ________________
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2908/test_s1_short_write_leaves_tem0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10bdaa9e0>
+written = 0
+
+    @pytest.mark.parametrize("written", [0, 3])
+    def test_s1_short_write_leaves_temp_and_latches(tmp_path, monkeypatch, written):
+        directory = new_spool_dir(tmp_path)
+        spool = journal_spool.JournalSpool.open(directory)
+        body = b"S1 complete body must be retained"
+        digest = body_digest(body)
+        real_write = os.write
+        writes = []
+
+        def short_write(fd, content):
+            writes.append(len(content))
+            return real_write(fd, content[:written])
+
+        monkeypatch.setattr(os, "write", short_write)
+>       with pytest.raises(journal_spool.SpoolError) as excinfo:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE SpoolError
+
+tests/test_journal_spool.py:221: Failed
+________________ test_s1_short_write_leaves_temp_and_latches[3] ________________
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2908/test_s1_short_write_leaves_tem1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10bdaa3f0>
+written = 3
+
+    @pytest.mark.parametrize("written", [0, 3])
+    def test_s1_short_write_leaves_temp_and_latches(tmp_path, monkeypatch, written):
+        directory = new_spool_dir(tmp_path)
+        spool = journal_spool.JournalSpool.open(directory)
+        body = b"S1 complete body must be retained"
+        digest = body_digest(body)
+        real_write = os.write
+        writes = []
+
+        def short_write(fd, content):
+            writes.append(len(content))
+            return real_write(fd, content[:written])
+
+        monkeypatch.setattr(os, "write", short_write)
+>       with pytest.raises(journal_spool.SpoolError) as excinfo:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE SpoolError
+
+tests/test_journal_spool.py:221: Failed
+=========================== short test summary info ============================
+FAILED tests/test_journal_spool.py::test_s1_short_write_leaves_temp_and_latches[0]
+FAILED tests/test_journal_spool.py::test_s1_short_write_leaves_temp_and_latches[3]
+2 failed, 38 deselected in 0.70s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE spec/close-red.txt
+SHA256 ee732d4442698679b0adcabea717c77f25a03c25eaabb65bab77b35b38384a36
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_____ test_s4_close_failure_is_coded_and_latches_without_retry[temporary] ______
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2913/test_s4_close_failure_is_coded0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10db22b10>
+stage = 'temporary'
+
+    @pytest.mark.parametrize("stage", ["temporary", "directory", "existing"])
+    def test_s4_close_failure_is_coded_and_latches_without_retry(tmp_path, monkeypatch, stage):
+        directory = new_spool_dir(tmp_path)
+        body = b"S4 close failure body"
+        digest = body_digest(body)
+        if stage == "existing":
+            journal_spool.JournalSpool.open(directory).store(body, digest)
+        spool = journal_spool.JournalSpool.open(directory)
+        real_close = os.close
+        failed_closes = []
+
+        def fail_close(fd):
+            is_directory = stat.S_ISDIR(os.fstat(fd).st_mode)
+            real_close(fd)
+            if is_directory == (stage == "directory"):
+                failed_closes.append(fd)
+                raise OSError(errno.EIO, "close failure canary")
+
+        monkeypatch.setattr(os, "close", fail_close)
+        with pytest.raises(journal_spool.SpoolError) as excinfo:
+>           spool.store(body, digest)
+
+tests/test_journal_spool.py:257:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+grafana_jsm_sandbox/journal_spool.py:307: in store
+    return self._store_locked(body, digest)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grafana_jsm_sandbox/journal_spool.py:317: in _store_locked
+    return self._write_new(path, body, digest)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grafana_jsm_sandbox/journal_spool.py:363: in _write_new
+    os.close(fd)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fd = 11
+
+    def fail_close(fd):
+        is_directory = stat.S_ISDIR(os.fstat(fd).st_mode)
+        real_close(fd)
+        if is_directory == (stage == "directory"):
+            failed_closes.append(fd)
+>           raise OSError(errno.EIO, "close failure canary")
+E           OSError: [Errno 5] close failure canary
+
+tests/test_journal_spool.py:253: OSError
+_____ test_s4_close_failure_is_coded_and_latches_without_retry[directory] ______
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2913/test_s4_close_failure_is_coded1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10db22520>
+stage = 'directory'
+
+    @pytest.mark.parametrize("stage", ["temporary", "directory", "existing"])
+    def test_s4_close_failure_is_coded_and_latches_without_retry(tmp_path, monkeypatch, stage):
+        directory = new_spool_dir(tmp_path)
+        body = b"S4 close failure body"
+        digest = body_digest(body)
+        if stage == "existing":
+            journal_spool.JournalSpool.open(directory).store(body, digest)
+        spool = journal_spool.JournalSpool.open(directory)
+        real_close = os.close
+        failed_closes = []
+
+        def fail_close(fd):
+            is_directory = stat.S_ISDIR(os.fstat(fd).st_mode)
+            real_close(fd)
+            if is_directory == (stage == "directory"):
+                failed_closes.append(fd)
+                raise OSError(errno.EIO, "close failure canary")
+
+        monkeypatch.setattr(os, "close", fail_close)
+        with pytest.raises(journal_spool.SpoolError) as excinfo:
+>           spool.store(body, digest)
+
+tests/test_journal_spool.py:257:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+grafana_jsm_sandbox/journal_spool.py:307: in store
+    return self._store_locked(body, digest)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grafana_jsm_sandbox/journal_spool.py:317: in _store_locked
+    return self._write_new(path, body, digest)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grafana_jsm_sandbox/journal_spool.py:371: in _write_new
+    sync_directory(self.directory)
+grafana_jsm_sandbox/journal_spool.py:150: in sync_directory
+    os.close(fd)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fd = 11
+
+    def fail_close(fd):
+        is_directory = stat.S_ISDIR(os.fstat(fd).st_mode)
+        real_close(fd)
+        if is_directory == (stage == "directory"):
+            failed_closes.append(fd)
+>           raise OSError(errno.EIO, "close failure canary")
+E           OSError: [Errno 5] close failure canary
+
+tests/test_journal_spool.py:253: OSError
+______ test_s4_close_failure_is_coded_and_latches_without_retry[existing] ______
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2913/test_s4_close_failure_is_coded2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10dade8d0>
+stage = 'existing'
+
+    @pytest.mark.parametrize("stage", ["temporary", "directory", "existing"])
+    def test_s4_close_failure_is_coded_and_latches_without_retry(tmp_path, monkeypatch, stage):
+        directory = new_spool_dir(tmp_path)
+        body = b"S4 close failure body"
+        digest = body_digest(body)
+        if stage == "existing":
+            journal_spool.JournalSpool.open(directory).store(body, digest)
+        spool = journal_spool.JournalSpool.open(directory)
+        real_close = os.close
+        failed_closes = []
+
+        def fail_close(fd):
+            is_directory = stat.S_ISDIR(os.fstat(fd).st_mode)
+            real_close(fd)
+            if is_directory == (stage == "directory"):
+                failed_closes.append(fd)
+                raise OSError(errno.EIO, "close failure canary")
+
+        monkeypatch.setattr(os, "close", fail_close)
+        with pytest.raises(journal_spool.SpoolError) as excinfo:
+>           spool.store(body, digest)
+
+tests/test_journal_spool.py:257:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+grafana_jsm_sandbox/journal_spool.py:307: in store
+    return self._store_locked(body, digest)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grafana_jsm_sandbox/journal_spool.py:316: in _store_locked
+    return self._verify_existing(path, digest)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grafana_jsm_sandbox/journal_spool.py:320: in _verify_existing
+    ok, _size = _verify_entry(path, digest)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grafana_jsm_sandbox/journal_spool.py:115: in _verify_entry
+    os.close(fd)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fd = 11
+
+    def fail_close(fd):
+        is_directory = stat.S_ISDIR(os.fstat(fd).st_mode)
+        real_close(fd)
+        if is_directory == (stage == "directory"):
+            failed_closes.append(fd)
+>           raise OSError(errno.EIO, "close failure canary")
+E           OSError: [Errno 5] close failure canary
+
+tests/test_journal_spool.py:253: OSError
+=========================== short test summary info ============================
+FAILED tests/test_journal_spool.py::test_s4_close_failure_is_coded_and_latches_without_retry[temporary]
+FAILED tests/test_journal_spool.py::test_s4_close_failure_is_coded_and_latches_without_retry[directory]
+FAILED tests/test_journal_spool.py::test_s4_close_failure_is_coded_and_latches_without_retry[existing]
+3 failed, 40 deselected in 0.76s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE spec/fifo-red.txt
+SHA256 c12302b493aad15f03eb8940fe66b23e3eff7a5d79bca39fa385c8e75ac1484d
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+______ test_s6_fifo_entry_is_rejected_without_waiting_for_a_writer[store] ______
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2916/test_s6_fifo_entry_is_rejected0')
+operation = 'store'
+
+    @pytest.mark.parametrize("operation", ["store", "survey"])
+    def test_s6_fifo_entry_is_rejected_without_waiting_for_a_writer(tmp_path, operation):
+        directory = new_spool_dir(tmp_path)
+        body = b"S6 FIFO is never a body"
+        digest = body_digest(body)
+        entry = directory / digest
+        os.mkfifo(entry, 0o600)
+        spool = journal_spool.JournalSpool.open(directory)
+        done = threading.Event()
+        outcomes = []
+
+        def inspect_entry():
+            try:
+                if operation == "store":
+                    outcomes.append(spool.store(body, digest))
+                else:
+                    outcomes.append(journal_spool.survey_spool(directory, frozenset()))
+            except journal_spool.SpoolError as error:
+                outcomes.append(error.code)
+            finally:
+                done.set()
+
+        worker = threading.Thread(target=inspect_entry, daemon=True)
+        worker.start()
+        completed = done.wait(2)
+        try:
+>           assert completed, "custody check blocked opening a FIFO"
+E           AssertionError: custody check blocked opening a FIFO
+E           assert False
+
+tests/test_journal_spool.py:530: AssertionError
+_____ test_s6_fifo_entry_is_rejected_without_waiting_for_a_writer[survey] ______
+
+tmp_path = PosixPath('/private/var/folders/2j/zwtjg6x92gn0lpf42kyx2tc40000gn/T/pytest-of-jasonkrueger/pytest-2916/test_s6_fifo_entry_is_rejected1')
+operation = 'survey'
+
+    @pytest.mark.parametrize("operation", ["store", "survey"])
+    def test_s6_fifo_entry_is_rejected_without_waiting_for_a_writer(tmp_path, operation):
+        directory = new_spool_dir(tmp_path)
+        body = b"S6 FIFO is never a body"
+        digest = body_digest(body)
+        entry = directory / digest
+        os.mkfifo(entry, 0o600)
+        spool = journal_spool.JournalSpool.open(directory)
+        done = threading.Event()
+        outcomes = []
+
+        def inspect_entry():
+            try:
+                if operation == "store":
+                    outcomes.append(spool.store(body, digest))
+                else:
+                    outcomes.append(journal_spool.survey_spool(directory, frozenset()))
+            except journal_spool.SpoolError as error:
+                outcomes.append(error.code)
+            finally:
+                done.set()
+
+        worker = threading.Thread(target=inspect_entry, daemon=True)
+        worker.start()
+        completed = done.wait(2)
+        try:
+>           assert completed, "custody check blocked opening a FIFO"
+E           AssertionError: custody check blocked opening a FIFO
+E           assert False
+
+tests/test_journal_spool.py:530: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_journal_spool.py::test_s6_fifo_entry_is_rejected_without_waiting_for_a_writer[store]
+FAILED tests/test_journal_spool.py::test_s6_fifo_entry_is_rejected_without_waiting_for_a_writer[survey]
+2 failed, 43 deselected in 4.51s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE spec/spool-green.txt
+SHA256 c81d82be0c8feee87518991fc06029e9b3fcbf573c22e2b3af300d5bd015bfd3
+.....................................s.........                          [100%]
+46 passed, 1 skipped in 1.03s
+NON_LOOPBACK_ATTEMPTS []
+
+
+FILE final/review-initial.md
+SHA256 005b3e069aefbecfd9ba9023bd1247a3fdb028eb5e8f1de8366e8e688ec92f8c
+# Unit 17b independent final review, initial pass
+
+2026-09-24. Review is read-only with respect to the repository. Initial byte identities are in `hashes-before.txt`; the copies reviewed and mutated are outside the repository in `scratch/`. Scope is the three new source modules, five new test files, the authoritative implementation plan including 17b reconciliation, and every recovery-journal documentation sentence relevant to 17b. Source modules and tests were read line by line. The local code-review skill's standards/spec checklist was consulted; no further agents were delegated. No credentials, providers, tenant services or external endpoints were used.
+
+## Findings requiring closure
+
+1. **F17b-1, medium, source** — `journal_operator.py:132` resolves the operator's state path before `create_state`, bypassing its refusal of existing paths when that path is a dangling symlink. `create --state-dir existing-link` follows the link, writes a fresh real target with genesis, and returns 0. The result also cannot be served through the supplied link because the front door correctly rejects that link. Preserve the original path through creation, and add a CLI regression asserting exit 1, `state_exists`, symlink retained, target absent. Independent failing evidence: `create-symlink-probe.txt` (1 failed, clean guard). Root subsequently reports this repaired; addendum required.
+2. **F17b-2, medium, test** — the crash test `_readline_before` mixes `select` on a descriptor with buffered `TextIOWrapper.readline`. A single read can buffer a later startup line; a subsequent select then waits for bytes already in userspace and falsely reports no listener. A two-line pipe burst reproduces this deterministically, in `crash-readline-probe.txt` (1 failed, clean guard). Root independently encountered four failed crash tests and reports replacing the helper with the operator tests' unbuffered reader. Addendum required.
+3. **F17b-3, medium, test adequacy** — deleting the HTTP `unrecorded` counter update survives the entire 48-test HTTP suite. The plan explicitly requires refusal-record failures to retain HTTP class and appear as per-code `unrecorded` counts. Add an injected `JournalError` test covering status/body, health count, logging without diagnostics, and absence of admission/spool. The implemented behavior looks correct; the contract was unguarded. Independent evidence: `M4_unrecorded.txt` (48 passed, clean guard).
+4. **F17b-4, low, test plan gap** — H7 lacks its explicitly specified darwin-only full-body urllib POST against a held journal. The raw-socket headers-only case proves no body is required; it does not prove the response reaches a client that has sent the body. Add the specified case or reconcile the deferral explicitly. H18 already posts a complete body while opening.
+5. **F17b-5, low, test determinism** — H17 closes its client immediately after sending and retries without observing the original admission. Concurrent handlers can acquire the spool/journal lock in reverse order, in which case the retry legitimately reports `admitted` instead of the assertion's `suppressed`. Follow the plan's response seam: drop the response after `admit` has returned and synchronize that observation before retrying.
+
+## Independent mutation sweep
+
+The runner is `run_mutants.py`, exact results in `mutants.json`. Package, tests, pyproject, fixtures and ticket-14 captures were copied physically outside the repository. Every mutation starts with cleared `__pycache__`, gets its own pytest process through the supplied loopback guard and a 90-second process bound, and restores the original source in a finally block.
+
+- M1, bypass existing-entry content digest verification: killed, 3 failed / 43 passed / 1 skipped.
+- M2, omit mismatched orphans from inspect exit-5 decision: killed, 1 failed.
+- M3, ignore latched spool in the health status: killed, 1 failed.
+- M4, omit failed-refusal `unrecorded` counting: survived, 48 passed. Requires F17b-3 regression and rerun.
+
+Every run ended `NON_LOOPBACK_ATTEMPTS []`. The guard controls connections in the pytest interpreter; this review also read the child-process test scripts, which bind only explicit loopback ephemeral listeners and create no external clients. These are local synthetic and filesystem/socket tests, not deployment or device power-loss evidence.
+
+## Contract and documentation assessment
+
+Beyond the findings, source matches the reconciled HTTP ordering, framing, no-read refusal paths, seven-key receipt, public health shape and ready/nonlatched 200 rule. File synchronization, close, rename and directory synchronization precede admission; admission precedes receipt. Failures latch with fixed codes and preserve temp/orphan evidence. Existing spool entries receive custody/digest checks and one directory sync per boot; within-boot caching is a declared same-uid non-isolation boundary. The new FIFO nonblocking open, short-write rejection, close-error translation, keep-alive fixes and captured exception type are correct on inspection. Resume startup releases its listener on refusal, opening precedes admission, and no Run machinery is imported. The three-sync reconciliation matches the existing journal create implementation.
+
+The added docs accurately describe the opt-in admission-only mode, explicit state layout, durable ordering, HTTP/health fields, CLI exits, crash windows and non-claims, subject to F17b-1. No live provider, Grafana retry, Linux no-read, power-loss, authentication or same-uid isolation claim is promoted. The inherited plan still contains original four-sync estimates and other original text; its appended reconciliation expressly supersedes those statements, so they are not independent source defects.
+
+Current source size is 1,436 lines (434 spool, 835 HTTP/front-door, 167 operator). Accepted as a deviation from the 775-line estimate: the prior 17a/17b split satisfies the split decision, responsibilities remain local, and an extraction would change the pinned import surface without reducing behavioral complexity. No additional module extraction is required for acceptance.
+
+## Initial verdict
+
+**NOT YET ACCEPTED**: close F17b-1 through F17b-5, prove M4 is killed, re-read changed bytes and bind final hashes. Full static/focused/full-suite and legacy/protected identity gates are root-owned and must independently pass after all repairs. No commit or external qualification is authorized by this review alone.
