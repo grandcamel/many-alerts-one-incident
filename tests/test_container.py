@@ -29,6 +29,8 @@ import yaml
 from grafana_jsm_sandbox.__main__ import (
     HOST_VARIABLE,
     PORT_VARIABLE,
+    RUN_BUDGET_VARIABLE,
+    RUN_MODEL_VARIABLE,
     RUN_TIMEOUT_VARIABLE,
     RUNS_DIRECTORY_VARIABLE,
     SKILL_DIRECTORY_VARIABLE,
@@ -93,8 +95,27 @@ SETTINGS_VARIABLES = (
     RUNS_DIRECTORY_VARIABLE,
     SKILL_DIRECTORY_VARIABLE,
     RUN_TIMEOUT_VARIABLE,
+    RUN_MODEL_VARIABLE,
+    RUN_BUDGET_VARIABLE,
 )
 """Every variable the process reads at all, which is what the example must list."""
+
+LGTM_IMAGE_VARIABLE = "LGTM_IMAGE"
+"""Compose's knob for pulling the pinned Grafana stack from somewhere else, such as a mirror."""
+
+LGTM_REPOSITORY = "grafana/otel-lgtm"
+LGTM_TAG = "0.33.0"
+LGTM_INDEX_DIGEST = "sha256:475319e883b66594d1a2f22ef168c2459802bb94548e6f25d9782bd5f5c19a3a"
+"""What the laptop's `latest` was on 2026-09-23, not a release the demo is recorded as
+rehearsed on: its multi-platform index (linux/amd64, linux/arm64) is, by `docker buildx
+imagetools inspect`, the one tagged 0.33.0, and it carries Grafana 13.2.1 (step 06 of
+demo-onboarding)."""
+
+PINNED_REFERENCE = re.compile(
+    r"(?P<name>[^\s@]+?):(?P<tag>\w[\w.-]{0,127})(?:@sha256:[0-9a-f]{64})?"
+)
+"""An image reference with an explicit tag, and optionally a digest after it. The name may
+carry a registry's port, so the tag is the last colon's, not the first's."""
 
 
 def env_example() -> dict[str, str]:
@@ -391,6 +412,24 @@ class TestAStackThatIsUp:
 
         assert answered.returncode == 0, answered.stderr
 
+    def test_the_healthcheck_itself_passes_and_holds_no_environment(self):
+        """The compose healthcheck's own command, run the way Docker runs it, and the same
+        probe asked what environment it holds."""
+        check = service(DEMO_SERVICE)["healthcheck"]["test"]
+        passed = compose("exec", "-T", DEMO_SERVICE, *check[1:])
+        environ = compose(
+            "exec",
+            "-T",
+            DEMO_SERVICE,
+            *HEALTHCHECK_PROBE,
+            "-c",
+            "import sys; sys.stdout.write(repr(open('/proc/self/environ', 'rb').read()))",
+        )
+
+        assert passed.returncode == 0, passed.stderr
+        assert environ.returncode == 0, environ.stderr
+        assert environ.stdout == "b''", "the probe was handed an environment"
+
     def test_the_receiver_runs_as_a_user_who_is_not_root(self):
         who = compose("exec", "-T", DEMO_SERVICE, "id", "-u")
 
@@ -584,15 +623,83 @@ def test_explicit_entrypoint_command_passes_through_without_onboarding(tmp_path)
     }
 
 
+HEALTHCHECK_PROBE = ("env", "-i", "/usr/bin/python3")
+"""How the healthcheck starts: `env -i` with no environment, then Python by its full path,
+since nothing is left to search a PATH with. Both are in the image: `command -v env python3`
+in a throwaway container of it answers `/usr/bin/env` and `/usr/bin/python3` (step 06)."""
+
+
 def test_the_healthcheck_needs_nothing_the_image_does_not_carry():
     """Compose must report the container healthy for the right reason (story 21): the slim
     image has no curl, so the check is Python's standard library asking the health endpoint."""
     check = service(DEMO_SERVICE)["healthcheck"]["test"]
 
     assert check[0] == "CMD"
-    assert check[1] in TOOLS_THE_IMAGE_CARRIES, f"{check[1]} is not in the image"
+    assert Path(check[3]).name in TOOLS_THE_IMAGE_CARRIES, f"{check[3]} is not in the image"
     assert "curl" not in " ".join(check)
     assert f"http://localhost:{RECEIVER_PORT}/health" in " ".join(check)
+
+
+def test_the_healthcheck_starts_with_an_empty_environment():
+    """Docker hands every process it execs into the container the whole container
+    environment, the real Jira token included, as the Runs' uid and dumpable; the
+    healthcheck is one every ten seconds. Through `env -i`, its Python holds nothing
+    in /proc/<pid>/environ (ADR 0002's amendment)."""
+    check = service(DEMO_SERVICE)["healthcheck"]["test"]
+
+    assert tuple(check[1:4]) == HEALTHCHECK_PROBE
+    assert check[4] == "-c"
+    assert len(check) == 6, "the probe is one Python statement and nothing after it"
+
+
+# --- The images compose pulls are pinned (step 06 of demo-onboarding) ---
+
+
+def pulled_images(environment: Mapping[str, str] | None = None) -> dict[str, str]:
+    """Every service's image that compose pulls rather than builds, as compose resolves it.
+
+    A service with `build:` names the image it builds on this laptop, and its tag is
+    only that local name: nothing is pulled by it."""
+    return {
+        name: interpolated(definition["image"], environment or {})
+        for name, definition in COMPOSE["services"].items()
+        if "build" not in definition
+    }
+
+
+def test_the_grafana_stack_is_pinned_by_tag_and_index_digest():
+    """`latest` moved weekly, and with the rule's noDataState at OK a drifted metric would
+    leave the Alert silently never firing (audit F12)."""
+    assert pulled_images()[LGTM_SERVICE] == f"{LGTM_REPOSITORY}:{LGTM_TAG}@{LGTM_INDEX_DIGEST}"
+
+
+def test_a_mirror_can_stand_in_for_the_pinned_grafana_stack():
+    mirror = f"registry.example.invalid/{LGTM_REPOSITORY}:{LGTM_TAG}@{LGTM_INDEX_DIGEST}"
+
+    assert pulled_images({LGTM_IMAGE_VARIABLE: mirror})[LGTM_SERVICE] == mirror
+    assert LGTM_IMAGE_VARIABLE in ENV_EXAMPLE.read_text()
+
+
+@pytest.mark.parametrize("name", sorted(pulled_images()))
+def test_no_pulled_image_is_latest_or_untagged(name):
+    """An untagged reference is `latest` by another name."""
+    reference = pulled_images()[name]
+
+    assert ":latest" not in reference
+    matched = PINNED_REFERENCE.fullmatch(reference)
+    assert matched, f"{name} pulls {reference!r}, which names no tag"
+    assert matched["tag"] != "latest"
+
+
+def test_no_pulled_image_anywhere_in_the_compose_file_is_latest():
+    """Read as text too, so an image added under a new key is not missed by the parse."""
+    for line in COMPOSE_FILE.read_text().splitlines():
+        if line.strip().startswith("image:") and ":latest" in line:
+            image = line.split("image:", 1)[1].strip()
+            assert any(
+                definition.get("image") == image and "build" in definition
+                for definition in COMPOSE["services"].values()
+            ), f"{image} is pulled as latest"
 
 
 # The image, asked directly (opt-in, like the rest of TestAStackThatIsUp).

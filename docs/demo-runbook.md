@@ -9,7 +9,8 @@ provider or OPS acceptance. For local admission-only replay, see
 For the presenter, to be followed cold. The demo is one Alert's lifetime: traffic stops, Grafana
 fires, a Run opens an Incident; Grafana repeats, a Run adds a trend and moves it on; traffic
 returns, Grafana resolves, a Run completes it. About four minutes from the one action to the
-Incident leaving the queue, three Runs, about $0.50.
+Incident leaving the queue, three Runs, about $0.50 (measured on Fable 5.1; Runs now default
+to Opus 5, not yet re-measured).
 
 Vocabulary is [CONTEXT.md](../CONTEXT.md). Every command below is run from the repo root, in a
 shell that has Docker and `jira-as`, with `.env` filled in: the reset and the end-to-end check
@@ -320,7 +321,8 @@ and never Closes.
 
 Honest small print, if it comes up: the Description's Dashboard and Panel lines are empty
 because the rule is linked to no dashboard; the repeat's value is the same zero as the first
-Firing, so the trend reads `unchanged`; a lifecycle is three Runs and about fifty cents.
+Firing, so the trend reads `unchanged`; a lifecycle is three Runs and about fifty cents (on Fable 5.1;
+Opus 5, now the default, is not yet re-measured).
 
 ## Fallback: the replay
 

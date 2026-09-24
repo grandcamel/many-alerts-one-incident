@@ -13,6 +13,9 @@ reads its Skill from `<runs directory>/.skill`, so use a runs directory a
 Receiver has started with, such as laptop mode's `runs`:
 
     python3 -m grafana_jsm_sandbox.run_command runs <KEY>
+
+Printed by hand, it names the default model and no budget, whatever `.env` sets;
+the Receiver passes `RUN_MODEL` and `RUN_BUDGET_USD` through its settings.
 """
 
 from __future__ import annotations
@@ -41,6 +44,11 @@ JIRA_AS = "Bash(jira-as *)"
 
 OUTPUT_FORMAT = "stream-json"
 """The Transcript: one Run event per line, rendered into the log as it arrives."""
+
+DEFAULT_MODEL = "claude-opus-5"
+"""The model a Run asks for unless `RUN_MODEL` names another. Named on every command line
+rather than left to Claude Code, whose own default follows the account and the release, so
+the Run an audience watches is the model the presenter chose and the log said at startup."""
 
 SYSTEM_PROMPT_APPENDIX = """\
 You are a Run: one headless invocation handling exactly one Grafana Notification.
@@ -84,7 +92,12 @@ def read_rule(directory: Path) -> str:
     return f"Read(/{directory}/**)"
 
 
-def build_run_command(runs_directory: Path | str, project_key: str) -> list[str]:
+def build_run_command(
+    runs_directory: Path | str,
+    project_key: str,
+    model: str = DEFAULT_MODEL,
+    budget_usd: float | None = None,
+) -> list[str]:
     """The argv that starts one Run, to be executed in the Run's working directory.
 
     `runs_directory` is the parent of every Run's working directory, and holds the
@@ -92,13 +105,22 @@ def build_run_command(runs_directory: Path | str, project_key: str) -> list[str]
     because a Run's working directory is not this process's, `--add-dir` is
     resolved from the Run's, and a Read rule names an absolute path. `project_key`
     is the demo's project, which the prompt names.
+
+    `model` is always passed. `budget_usd`, when given, is Claude Code's own cap on
+    what one Run may spend (`--max-budget-usd`, print mode only): a Run that reaches
+    it stops with `error_max_budget_usd`, which the log formatter's hint names. With
+    none, a Run is bounded only by its timeout.
     """
     runs_directory = Path(runs_directory).resolve()
     skill_directory = rendered_skill_directory(runs_directory)
     tools = allowed_tools(runs_directory)
+    budget = [] if budget_usd is None else ["--max-budget-usd", str(budget_usd)]
     return [
         CLAUDE,
         "--print",
+        "--model",
+        model,
+        *budget,
         "--permission-mode",
         PERMISSION_MODE,
         "--allowedTools",

@@ -547,6 +547,14 @@ def test_a_known_cause_gets_its_hint_under_the_failure(fields, hint):
     assert lines[1:] == [f"[hint]   {hint}"]
 
 
+@pytest.mark.parametrize(
+    ("hint", "variable"), [(HINT_MODEL, "RUN_MODEL"), (HINT_BUDGET, "RUN_BUDGET_USD")]
+)
+def test_the_model_and_budget_hints_name_the_knob_that_changes_them(hint, variable):
+    """Both come from `.env` (step 06 of demo-onboarding), so the hint says which line."""
+    assert variable in hint
+
+
 def test_an_unknown_cause_gets_no_hint_rather_than_a_wrong_one():
     event = result_event(is_error=True, terminal_reason="api_error", result="API Error: 500")
 

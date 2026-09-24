@@ -28,7 +28,13 @@
 
 services:
   lgtm:
-    image: grafana/otel-lgtm:latest
+    # Pinned by tag and by the digest of its multi-platform index (linux/amd64 and
+    # linux/arm64) to the release `latest` was on the owner's laptop on 2026-09-23,
+    # because `latest` moves every week or so, and with the rule's noDataState at
+    # OK a metric that drifted would leave the Alert silently never firing.
+    # LGTM_IMAGE, in the shell or .env, names another, such as the same image in an
+    # internal mirror.
+    image: ${LGTM_IMAGE:-grafana/otel-lgtm:0.33.0@sha256:475319e883b66594d1a2f22ef168c2459802bb94548e6f25d9782bd5f5c19a3a}
     ports:
       # Grafana, which is what the audience watches. OTLP stays on the network,
       # where rolldice exports to it; nothing on the laptop needs it.
@@ -92,11 +98,18 @@ services:
     mem_limit: 2g
     cpus: 2
     # Python's standard library, because the image carries no curl: compose must
-    # report the container healthy for the right reason.
+    # report the container healthy for the right reason. Started through `env -i`
+    # with an empty environment: Docker hands every process it execs here the
+    # container's whole environment, real Jira token included, as the Runs' own
+    # uid and dumpable, and this one starts every ten seconds. `env` holds it only
+    # until it execs Python, whose /proc/<pid>/environ is then empty (ADR 0002's
+    # amendment). Hence Python's full path: there is no PATH left to search.
     healthcheck:
       test:
         - CMD
-        - python3
+        - env
+        - -i
+        - /usr/bin/python3
         - -c
         - import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=4)
       interval: 10s

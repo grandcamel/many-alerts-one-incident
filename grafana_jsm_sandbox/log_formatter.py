@@ -380,11 +380,12 @@ HINT_RATE_LIMIT = (
 )
 HINT_MODEL = (
     "this Claude seat cannot use the model the Run asked for: ask the Claude org owner to "
-    "allow it, or run a model the seat has"
+    "allow it, or set RUN_MODEL in .env to a model the seat has and recreate the container "
+    "with `docker compose up -d demo`"
 )
 HINT_BUDGET = (
-    "the Run reached its spending cap before it finished: its transcript.jsonl shows "
-    "what it spent it on"
+    "the Run reached its spending cap (RUN_BUDGET_USD) before it finished: its "
+    "transcript.jsonl shows what it spent it on"
 )
 
 
