@@ -439,9 +439,12 @@ client or deployment is qualified by these tests.
 `forwarder_json.parse_json(data, max_bytes=..., numbers="integer")` accepts only
 strict UTF-8 RFC 8259 JSON without a byte-order mark, comments or non-JSON
 whitespace. It limits depth to 16, arrays to 256 items and each key or string to
-16 KiB after UTF-8 encoding. It rejects duplicate keys after unescaping, U+0000,
+16 KiB after UTF-8 encoding; only the Receiver's raw-ingress sanitizer raises that
+string limit, through the `max_string_bytes` keyword, and no Forwarder path passes
+it. It rejects duplicate keys after unescaping, U+0000,
 lone surrogates and non-finite numbers. Integer mode accepts integers within
-2^53-1 only; finite mode, used only for upstream responses, keeps fractional
+2^53-1 only; finite mode, used for upstream responses and the Receiver's ingress
+sanitizer, keeps fractional
 lexemes as `JSONDecimal` text and never converts them to floats. A linear
 prescan bounds depth before the standard decoder runs. `canonical_json` emits a
 sorted, whitespace-free RFC 8785 subset and `tagged_digest` domain-separates

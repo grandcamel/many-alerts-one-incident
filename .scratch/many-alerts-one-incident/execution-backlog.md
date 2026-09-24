@@ -1,6 +1,6 @@
 # Execution backlog
 
-Updated 2026-09-23. This is the current work queue; the [map](map.md) preserves
+Updated 2026-09-24. This is the current work queue; the [map](map.md) preserves
 historical decisions and measurements. Accepted ADRs take precedence over old
 measurements or proposed specifications. Ticket counts are workflow status,
 not a percentage of the finished product.
@@ -39,11 +39,12 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **4012 passed, 38 skipped**, including focused
+- Latest code validation: **4443 passed, 38 skipped**, including focused
   service, lease, control, listener, supervisor, TLS, HTTP, receipt, response-send,
   JSON, route-policy, dispatch-gate, exchange, upstream-connector,
-  control-framing and recovery-journal tests plus existing regressions.
-  The [recovery journal 15b outcome](reviews/recovery-journal/outcome-15b.md),
+  control-framing, recovery-journal and ingress tests plus existing regressions.
+  The [ingress sanitizer outcome](reviews/journal-ingress/outcome.md),
+  [recovery journal 15b outcome](reviews/recovery-journal/outcome-15b.md),
   [recovery journal 15a outcome](reviews/recovery-journal/outcome-15a.md),
   [control-framing outcome](reviews/forwarder-control-framing/outcome.md),
   [upstream connector outcome](reviews/forwarder-upstream/outcome.md),
@@ -269,13 +270,26 @@ including two-crash cases and a SIGKILL loop. Independent review passes; the
 full suite reports 4012 passed, 38 skipped. The journal is not yet wired into
 the Receiver.
 
+The [sixteenth application unit](reviews/journal-ingress/outcome.md) adds the
+raw Notification ingress sanitizer. It is pure and turns one Grafana body into a
+journal `SourceRecord` or a closed-code refusal. It reads only the fields dedupe
+needs and drops the rest, including the templated `message`. Every 400-class
+check runs before any member-level 422-class check. Each member-level 422
+("lost real data") names up to 32 members, Resolved first, in a validated
+summary with no HTTP status. An
+additive `max_string_bytes` keyword on `parse_json` raises the alert ceiling
+from 19 to 28 two-value alerts. All 115 captures admit. Independent review
+passes; the full suite reports 4443 passed, 38 skipped. The next unit is
+Receiver integration, which ships with operator resume, because otherwise the
+restart dispatch hold is never cleared.
+
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts, receipt-gated response send, strict JSON, read-only Jira route policy, atomic dispatch gate, one-request exchange, synthetic fixed-origin upstream connector and control framing (scoped registration, closeout replies) complete; ticket-37 recovery journal (records, store, reducer and admission shell; 15a and 15b) complete; next Receiver integration of the journal (ingress sanitization, admission before the 202), then Run/effect records and recovery, ticket-38 accounting, then AuthorizeDispatch permits, a worker supervisor with readiness and the guarded launcher | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts, receipt-gated response send, strict JSON, read-only Jira route policy, atomic dispatch gate, one-request exchange, synthetic fixed-origin upstream connector and control framing (scoped registration, closeout replies) complete; ticket-37 recovery journal (records, store, reducer and admission shell; 15a and 15b) and the raw ingress sanitizer (16) complete; next Receiver integration of the journal with operator resume (admission before the 202, body spool, refusal persistence), then Run/effect records and recovery, ticket-38 accounting, then AuthorizeDispatch permits, a worker supervisor with readiness and the guarded launcher | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets

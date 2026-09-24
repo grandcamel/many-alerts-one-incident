@@ -52,4 +52,12 @@ failure; its admission receipt follows the COMMIT and the anchor sync. Crash
 images cover the in-scope windows of spec L249-253. Independent review passes;
 the full suite reports 4012 passed, 38 skipped. Receiver integration, Run and
 effect records, accounting, reset and reconstruction remain open, as do venue
-durability and isolation from Runs. This ticket stays open.
+durability and isolation from Runs.
+
+Unit [16](../reviews/journal-ingress/outcome.md) adds the raw ingress
+sanitizer: one Grafana Notification body becomes a journal `SourceRecord` or a
+closed-code refusal. Every 400-class check runs before any member-level 422, and
+each 422 names its lost members, Resolved first. All 115 captures admit, and the
+full suite reports 4443 passed, 38 skipped. Receiver integration with operator
+resume, refusal persistence, Run and effect records, accounting, reset and
+reconstruction remain open. This ticket stays open.

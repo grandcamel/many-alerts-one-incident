@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-24",
+  "status": "PASS_LOCAL_RAW_NOTIFICATION_INGRESS_SANITIZER",
+  "baseline_commit": "1a62de7",
+  "unit_tests": {
+    "passed": 431,
+    "repeated_runs": 2
+  },
+  "focused_tests": {
+    "passed": 1571,
+    "skipped": 0,
+    "seconds": 35.32,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/journal-ingress/focused-tests.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "passed": 4443,
+    "skipped": 38,
+    "seconds": 270.9,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/journal-ingress/full-suite.txt"
+  },
+  "existing_tests_byte_identical": true,
+  "existing_modules_changed": [
+    "grafana_jsm_sandbox/forwarder_json.py (additive max_string_bytes keyword)"
+  ],
+  "design": {
+    "designs": 2,
+    "judge_synthesizer": 1,
+    "critic_issues_resolved": 14,
+    "winner": "strict (40 vs 38)"
+  },
+  "captures": {
+    "admitted": 115,
+    "fixtures_admitted": 3,
+    "alert_ceiling_two_value": 28,
+    "three_value": 21
+  },
+  "review": {
+    "orchestration": "individual agents (Workflow tool not opted into this session)",
+    "tester_source_bugs": 0,
+    "contract_lens_fuzzed_inputs": 29000,
+    "round1_findings": {
+      "source_low": 1,
+      "test_gaps": 7
+    },
+    "root_source_fixes": [
+      "refusal_to_json enforces the plan's code table (groups and alert ranges)"
+    ],
+    "gap_agent_mutants_killed": 19,
+    "final_verdict": "PASS_SOURCE_AND_TEST_REVIEW",
+    "addendum_verdict": "PASS",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "implementation_models": "claude-sonnet-5 implementer, tester and gap agent; claude-opus-5-5 designers, judge-synthesizer, critic, lens reviewers and final reviewer",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/journal-ingress/review.md"
+  },
+  "size": {
+    "journal_ingress_lines": 509,
+    "target": "400-450; split trigger 500",
+    "assessment": "509 lines vs 500 split trigger; reviewer judged a split for 9 lines not worth a new module and re-review; seam deferred to refusal persistence"
+  },
+  "ruff": "PASS",
+  "line_length": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/journal_ingress.py": "83bbc676577a9894dd1ac8c4cf3f3065be5395acdb16fcdcb6e8606a529ab802",
+    "grafana_jsm_sandbox/forwarder_json.py": "50222c40c811c0bd98dfa607dec932f50d5b7ad4b32fccc5b27ee85f7cfbd0df",
+    "tests/test_journal_ingress.py": "4c20c6e66029dfba75207db1573578dd5f9b27bb0e39fafaaf0e0e12c7457c2c",
+    "tests/test_journal_ingress_corpus.py": "63a3b82bfebc1698170107378d696001ad6ad67fb26e3afeea1e2ac835c94790",
+    "tests/test_journal_ingress_adversarial.py": "b9e64d2554988f07bd2ba2fe6fc214f8c6bfd8a09cf43aeb14c4a8ab667ff4f1",
+    "tests/test_forwarder_json_string_cap.py": "c37e54848c91d81a6f253ef2d2cfe4dbbf8b649875c8bbdc72fc50e8d31ae453",
+    "docs/recovery-journal.md": "d12a452de5cce0d36a87a9fe940db0cb36c8c2e66cc734b9ffa7e8cfacc0bc16",
+    "docs/forwarder-control.md": "c570919a3ee1e75e0e83ac87c35f099b955a02f5ba1a276649070a328de30eb7",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "6942a870648a4fc61a5acd9c0c305ba2026e65f734ad18f3ecf7f81ae0cc134c",
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "3562693a8b53ddeb6e1d8cf3118718abb4f1b3040487c7351f8583099689a446",
+    ".scratch/many-alerts-one-incident/reviews/journal-ingress/implementation-plan.md": "e2f047c2651ed3470371367091c93e9b20f3dbc011e59111782573f9189e6f19",
+    ".scratch/many-alerts-one-incident/reviews/journal-ingress/review.md": "83c9151cd6420d9edf27ba5e049fa522d29edaed4a4ea1043bc2d37ef20fdadb",
+    ".scratch/many-alerts-one-incident/reviews/journal-ingress/outcome.md": "693dcf51420f865c29046cb77724a9722449d532c77cad2cef956167d1fc0fe2",
+    ".scratch/many-alerts-one-incident/reviews/journal-ingress/focused-tests.txt": "2816fc572872f0f0d649a35e9adc22aac1834105586aa13871314b697603e655",
+    ".scratch/many-alerts-one-incident/reviews/journal-ingress/full-suite.txt": "4e793d2f3abeef1b1e263092057604509f661d336c4409fe1d3ee1b84d734d0e"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "Receiver integration, HTTP mapping, admission before the 202, body spool",
+    "refusal summary persistence and flood policy; capture provenance",
+    "Grafana wire bytes and retry/resend behaviour after a refusal",
+    "ratification of the proposed mappings, bounds and codes"
+  ],
+  "publication": "LOCAL_ONLY"
+}

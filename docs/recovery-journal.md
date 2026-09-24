@@ -251,6 +251,65 @@ deleted: there is no UPDATE or DELETE, no retention and no compaction. Open time
 grows with the journal, on the order of 1.5-2 ms per admission pair on the
 development Mac, and nothing is admitted during open.
 
+## Ingress
+
+`journal_ingress.sanitize_notification(body)` turns one raw Grafana
+Notification body into either an admissible `SourceRecord` or a refusal. It is
+pure and is not yet called by the Receiver.
+
+**What is read.** It reads only `groupKey`, `truncatedAlerts` and, per alert,
+`fingerprint`, `status`, `values` and `startsAt`. Every other field, including
+Grafana's templated `message`, is parsed under the house parser's rules and
+dropped. Its content never appears in the record, a refusal summary or an
+error, although a parser-level problem in it can still cause a refusal.
+
+**Mapping rules:**
+- Absent `truncatedAlerts` or `values` become null.
+- Numbers go through `canonical_number`, and values are sorted by refId.
+- `startsAt` never causes a refusal. Go's zero time maps to null. An offset time
+  or an invalid date is dropped, and only the member's Fingerprint is listed in
+  `starts_at_dropped`.
+- `body_digest` covers the exact raw bytes.
+- Provenance is `HTTP_PROVENANCE`.
+
+**Checks run in two phases.** Every 400-class check runs over every member
+before any member-level 422-class check, so a member-level 422 means that
+Grafana could have sent the body and v1 cannot represent it. Parser-level
+refusals come first. A parser code that covers any cause Go's encoder can emit
+(a NUL, an integer beyond 2^53-1, any array over 256 items) is
+`ingress_json_unsupported` (422), even for a body that would otherwise fail
+phase 1. The same code also covers causes Go cannot emit, such as a lone
+surrogate or an over-long number.
+
+**Bounds.** Bodies may be up to 256 KiB. Records are limited to 32 alerts, 64
+values and a 4 KiB canonical record. In practice that allows 28 two-value alerts,
+21 three-value alerts or 32 value-free alerts; the captures peak at 4. The parse
+raises `forwarder_json.parse_json`'s new `max_string_bytes` keyword to the body
+bound, because Grafana's `message` passes 16 KiB at about 20 alerts. The default
+is unchanged, and only this module passes the keyword.
+
+| Class (proposal) | Codes |
+| --- | --- |
+| 413 | `ingress_too_large` |
+| 400 | `ingress_json_invalid`, `ingress_shape`, `ingress_group_key`, `ingress_truncated`, `ingress_fingerprint`, `ingress_status`, `ingress_values`, `ingress_duplicate_fingerprint` |
+| 422 (lost real data) | `ingress_json_unsupported`, `ingress_group_key_unsupported`, `ingress_ref_id_unsupported`, `ingress_too_many_alerts`, `ingress_too_many_values`, `ingress_record_too_large` |
+| 500 | `ingress_divergence` |
+
+The HTTP classes are a proposal for the later Receiver integration, and
+response bodies must carry only the code.
+
+**Refusal summary.** A refusal has a summary of nine keys, with no HTTP status.
+Member-level 422 refusals name up to 32 members, Resolved first, with counts
+and an omitted count. `refused_group` gives a key that stays stable across
+Grafana's resends. `refusal_to_json` validates internal consistency and a
+4 KiB bound. `oversize_refusal(declared_length)` refuses from a
+`Content-Length` header without reading the body. Nothing persists a refusal
+yet.
+
+**Not claimed.** Grafana's real wire bytes (the captures store re-encoded
+bodies), Grafana's retry and resend behaviour after a refusal, and the Receiver
+integration.
+
 ## Tests
 
 Local deterministic, real-SQLite and real-sync tests cover every layer:
@@ -269,11 +328,12 @@ Local deterministic, real-SQLite and real-sync tests cover every layer:
 They run on macOS; the Linux sync primitive is skipped there.
 
 ```sh
-pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py
+pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py tests/test_journal_ingress.py tests/test_journal_ingress_corpus.py tests/test_journal_ingress_adversarial.py tests/test_forwarder_json_string_cap.py
 ```
 
-No Receiver integration, raw Notification ingress, dispatch, Run, effect,
+No Receiver integration, ingress refusal persistence, dispatch, Run, effect,
 accounting, operator action, reset, retention or reconstruction is implemented
-or qualified. Venue durability, device flush honesty, Linux behavior and
-isolation of the journal from Runs are not qualified, and every v1 semantic
-above still awaits ratification.
+or qualified. Venue durability, device flush honesty, Linux behavior, isolation
+of the journal from Runs, and Grafana's retry and resend behaviour after a
+refusal are not qualified, and every v1 semantic above still awaits
+ratification.

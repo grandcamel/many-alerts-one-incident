@@ -65,12 +65,14 @@ class JSONDecimal:
     text: str
 
 
-def _check_string(value: str, *, ascii_only: bool, too_long_code: str) -> None:
+def _check_string(
+    value: str, *, ascii_only: bool, too_long_code: str, max_bytes: int = MAX_JSON_STRING_BYTES,
+) -> None:
     if _BAD_CHARACTERS.search(value):
         _fail("json_unicode")
     if ascii_only and any(character < "\x20" or character > "\x7e" for character in value):
         _fail("json_unicode")
-    if len(value.encode("utf-8")) > MAX_JSON_STRING_BYTES:
+    if len(value.encode("utf-8")) > max_bytes:
         _fail(too_long_code)
 
 
@@ -112,7 +114,7 @@ def _prescan_depth(text: str) -> None:
             depth -= 1
 
 
-def _postwalk(root: object, *, ascii_only: bool) -> object:
+def _postwalk(root: object, *, ascii_only: bool, max_string_bytes: int) -> object:
     """Rebuild the parsed document, authoritatively checking depth (root
     container is depth 1), array length, key/string content and
     ``ascii_only``. An iterative walk with an explicit stack, so this also
@@ -130,7 +132,10 @@ def _postwalk(root: object, *, ascii_only: bool) -> object:
                     _fail("json_depth")
                 keys = list(value.keys())
                 for key in keys:
-                    _check_string(key, ascii_only=ascii_only, too_long_code="json_string_too_long")
+                    _check_string(
+                        key, ascii_only=ascii_only, too_long_code="json_string_too_long",
+                        max_bytes=max_string_bytes,
+                    )
                 work.append(("dict", keys))
                 for key in reversed(keys):
                     work.append(("value", value[key], depth + 1))
@@ -143,7 +148,10 @@ def _postwalk(root: object, *, ascii_only: bool) -> object:
                 for element in reversed(value):
                     work.append(("value", element, depth + 1))
             elif kind is str:
-                _check_string(value, ascii_only=ascii_only, too_long_code="json_string_too_long")
+                _check_string(
+                    value, ascii_only=ascii_only, too_long_code="json_string_too_long",
+                    max_bytes=max_string_bytes,
+                )
                 results.append(value)
             elif value is None:
                 results.append(None)
@@ -169,6 +177,7 @@ def _postwalk(root: object, *, ascii_only: bool) -> object:
 
 def parse_json(
     data: object, *, max_bytes: object, numbers: str = "integer", ascii_only: bool = False,
+    max_string_bytes: object = MAX_JSON_STRING_BYTES,
 ) -> object:
     """Parse one bounded, strict JSON document into safe Python values.
 
@@ -176,6 +185,8 @@ def parse_json(
     ``JSONDecimal`` in ``numbers="finite"`` mode); a top-level scalar is
     accepted. Consumers must use ``type(x) is ...``, never ``isinstance`` or
     ``==`` (``True == 1 == 1.0``). Every rejection raises ``JSONPolicyError``.
+    ``max_string_bytes`` bounds each decoded key and string in UTF-8 bytes;
+    only the Receiver's raw-ingress sanitizer raises it.
     """
     if (
         type(data) is not bytes
@@ -183,6 +194,8 @@ def parse_json(
         or not 1 <= max_bytes <= MAX_JSON_DOCUMENT_BYTES
         or numbers not in ("integer", "finite")
         or type(ascii_only) is not bool
+        or type(max_string_bytes) is not int
+        or not 1 <= max_string_bytes <= MAX_JSON_DOCUMENT_BYTES
     ):
         _fail("json_argument")
     if len(data) > max_bytes:
@@ -247,7 +260,7 @@ def parse_json(
     if code is not None:
         raise JSONPolicyError(code) from None
 
-    return _postwalk(parsed, ascii_only=ascii_only)
+    return _postwalk(parsed, ascii_only=ascii_only, max_string_bytes=max_string_bytes)
 
 
 def _canonicalize(value: object, *, depth: int, ascii_only: bool) -> bytes:
