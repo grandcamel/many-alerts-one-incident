@@ -1,0 +1,15 @@
+baseline-hashes.json: 137 hashes unchanged
+protected.json: 4 hashes unchanged
+17b artifact hashes: 18 unchanged
+$ ruff check /Users/jasonkrueger/projects/many-alerts-one-incident/grafana_jsm_sandbox/accounting_policy.py /Users/jasonkrueger/projects/many-alerts-one-incident/tests/test_accounting_policy.py
+All checks passed!
+exit=0
+$ ruff check --select E501 /Users/jasonkrueger/projects/many-alerts-one-incident/grafana_jsm_sandbox/accounting_policy.py /Users/jasonkrueger/projects/many-alerts-one-incident/tests/test_accounting_policy.py
+All checks passed!
+exit=0
+$ git diff --check
+
+exit=0
+Application callers: none (existing source byte-identical; name search empty)
+No .coverage file
+Production source lines: 413

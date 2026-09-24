@@ -1,0 +1,389 @@
+Original FILE/SHA256 headers identify unnormalized source evidence.
+Trailing whitespace is removed in these retained copies.
+FILE plan-critic.md
+SHA256 5614fbf9b08183eb62c0340175ca600332f9be2588a01d8807de56182dcfdbd1
+# Independent plan critique: unit 18a
+
+Verdict: CHANGES REQUIRED before implementation. The evaluation-only boundary is sound; the following three bounded corrections make it concrete. This is a read-only design review, not source/test acceptance. Tests, provider, credentials and runtime operations NOT RUN.
+
+Reviewed baseline: `1d04b7dc1174924de52a8927059f9eb6cbaca3a3`.
+Reviewed plan SHA-256: `f85d424d503d5f78e514deddc918a3d6363d6eabe96e7f30d5e1ca64d0651107`.
+References read: next-accounting-unit-design.md, ticket-38/accounting-specification.md, ADR 0013, and the local handoff authority.
+
+## Required corrections
+
+1. **Stored week shape permits invalid attribution (plan lines 46-56).** Requiring a Monday key, positive 167/168/169-hour interval and the start UTC date equal to the key still admits Monday noon, nonzero seconds, or an interval ending on Tuesday. These are not Monday-midnight New York weeks and can misattribute history into allocation buckets. Preserve the no-recomputation rule, but define the conservative stored representation exactly: exact `date` key (not datetime/subclass), exact UTC datetimes; start/end at hour 04 or 05 with zero minutes/seconds/microseconds; dates respectively key and key+7; permitted duration; same-key identical boundaries; no overlap; reserved_at membership. Require fresh current week agreement. This is structural validation of hypothetical stored input, not historical timezone authenticity; the later adapter must establish provenance. Pin malformed old weeks, not only current ones, in tests.
+
+2. **Retry continuation and the no-relabel claim are underdefined (lines 84-95).** Several ordinary initial Runs are allowed in a lifecycle, but “current chain tip” is not defined when there are several initial roots. A1, A2, retry(A1) and then retry(A2) has one successor per predecessor yet conflicts with one interpretation of the tip rule. Select one exact conservative rule; the simplest subset requires a retry predecessor to be the latest chronological attempt in that lifecycle, preserving same profile/week and reconciliation. Define candidate ordering explicitly (`at >` every historical reserved_at, if candidate is governed by strict history ordering). More fundamentally, the current input has no terminal outcome: it cannot distinguish two legitimate ordinary initial Runs from a failed initial relabeled as another initial before any retry. Either add a small closed hypothetical outcome/continuation fact and derive ordinary-versus-retry eligibility from it, refusing unknown, or narrow the no-relabel claim to validation of declared structural lineage and expressly defer semantic classification to the future trusted adapter. Do not imply that the current fields prove failed work was not relabeled. Test multiple-root predecessor choices and failed/unknown ordinary continuation consistent with the selected rule. Effect reconciliation remains a hypothetical fact and never execution authority.
+
+3. **Journal generation has no type/range contract (lines 102-116).** Equality alone would accept booleans or incompatible values, and the broad UUID paragraph could be misread to cover it. Pin exact `int` in `1..2**31-1`, matching the existing journal generation domain, for snapshot and candidate; compare only after exact validation. Explicitly distinguish UUID experiment/identity fields from numeric generation. Add bool, subclass, zero, negative, overflow and mismatch cases.
+
+## Nonblocking observations
+
+- Inclusive $150/$30 limits, strict lifetime below $50, once-only model weekly/lifetime attribution and dual retry bucket attribution align with the selected design and ADR policy. Settled low/zero actuals retain counts; independent count fixtures avoid infeasible combined boundaries.
+- Refusing cross-week retry is a conservative subset, not evidence that rollover is fully designed. Existing old exposures and holds must continue to participate; the plan states this correctly.
+- The no-initial-after-retry restriction is more conservative than the cited policy requires. Label it as a local subset limitation rather than accepted ADR policy. Ordinary supported-match/update/resolution work after a successfully retried Run otherwise risks being mislabeled a retry by the plan itself.
+- Unknown/conflicted exposures and population return refusal, and the prospective proposal has no durable/execution authority. No widening into storage, provider settlement or ticket-37 dispatch is needed to correct this plan.
+- The 600-line bound is credible only if record/validation breadth remains controlled; honor the pre-coding split review trigger rather than condensing complex validation to fit.
+
+## Acceptance condition
+
+Reconcile these exact contracts in the plan before implementation. A revised plan that fixes week shape and generation and explicitly selects/narrows retry semantics can be approved for local pure implementation. This review establishes no implementation, durable reservation, provider, native, tenant, paid-run or launch acceptance.
+
+## Reconciliation addendum
+
+Verdict: APPROVED_FOR_PURE_IMPLEMENTATION. Re-read the corrected plan, SHA-256 `fc0b61a1a6836a9ab77cc5b4c2c8ac594ae7eef3ddfcc7873cdd725bce1ddca8`. Stored week endpoints now have exact conservative shape; journal generation is an exact bounded integer; retry predecessor is the latest chronological lifecycle attempt; the plan expressly defers semantic no-relabel enforcement to the trusted adapter. Final clarifications pin Week.key to an exact canonical ISO date string (a valid explicit choice instead of the review's suggested date object), require candidate time strictly later than every history row, label the post-retry ordinary-work restriction as a subset limitation, and permit boundary year 1999 for early-2000 input. Those corrections resolve all required findings.
+
+Approval covers the bounded plan only. Source, tests, durable/provider/native/tenant/paid/launch behavior remain NOT RUN by this reviewer. No repository files were edited.
+FILE spec-review.md
+SHA256 d44511df520316222cfa7d4b564b599992f972748b091cdef1eb712410885f0a
+# Unit 18a independent Spec review
+
+Baseline: `1d04b7dc1174924de52a8927059f9eb6cbaca3a3`. Review of new untracked files; no repository edits.
+
+## Initial verdict: CHANGES REQUIRED (1 finding; closed below)
+
+**P2 — Context identities are not reserved against new accounting identities.** Plan requires NonModelCost IDs be “unique and disjoint from attempt/other identities” and Attempt identities be “globally unique across attempts/candidate and identity roles”. `_Accounting.identities` starts empty, so validated experiment, lifecycle and model/auth/venue UUIDs never participate in `_claim_ids` / non-model collision checks. All ten independent probes returned `HypotheticalProposal` when cost_id or candidate.attempt_id equaled one of those context IDs. Seed the context-ID union before processing attempts/costs/candidate, preserving legitimate repeated context references, and add focused regression coverage. Root confirmed this intended interpretation.
+
+No other missing, wrong or unasked behavior found. Conservative cross-week retry and initial-after-retry restrictions, hypothetical completeness, settled-actual substitution, unknown/stale refusal, original-week preservation and the evaluation-only boundary agree with the reviewed plan. No durable/provider acceptance follows.
+
+## Evidence
+
+- Existing focused suite: `python3 -m pytest -q -p no:cacheprovider tests/test_accounting_policy.py`: **108 passed in 0.37s**.
+- Independent probes: `/tmp/maoi-codex-18a/spec/identity-probes.txt`.
+- Runtime storage, provider, tenant, native, concurrency and paid checks: **NOT RUN / outside scope**.
+
+## Hashes captured during initial report assembly (after source/test fix)
+
+The source/test fix landed while this report was being assembled. These are post-fix hashes, not hashes of the pre-fix inputs that produced the 108-pass run and ten accepted-collision probes. No pre-fix hash-bound snapshot was captured by this reviewer. The closure checks below independently bind the repaired source/test bytes.
+
+- `grafana_jsm_sandbox/accounting_policy.py`: `cdb14d136672c730eb4635f0a59e9ae394b2add2c84c7fcfbb6b398ad7c67e9d`
+- `tests/test_accounting_policy.py`: `32fbff1a3d194a9925707082f9eef13c4839ed8655dd6c3644c06afde1e9e9a8`
+- `docs/accounting-policy.md`: `a670db5ff8226883ddb4b3a23bb6843618bc8dfe243f072057e0092cc816fc4b`
+- `.scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18a.md`: `fc0b61a1a6836a9ab77cc5b4c2c8ac594ae7eef3ddfcc7873cdd725bce1ddca8`
+
+## Closure addendum
+
+**ACCEPTED_LOCAL for the pure/synthetic policy scope.** All ten original identity probes now return `Refusal("identity_conflict")`; source seeds the validated experiment, lifecycle and profile UUID union before rows. This closes the one finding. Evidence: `/tmp/maoi-codex-18a/spec/identity-probes-fixed.txt`. No remaining Spec findings.
+
+Updated hashes:
+
+- `grafana_jsm_sandbox/accounting_policy.py`: `cdb14d136672c730eb4635f0a59e9ae394b2add2c84c7fcfbb6b398ad7c67e9d`
+- `tests/test_accounting_policy.py`: `32fbff1a3d194a9925707082f9eef13c4839ed8655dd6c3644c06afde1e9e9a8`
+- `docs/accounting-policy.md`: `a670db5ff8226883ddb4b3a23bb6843618bc8dfe243f072057e0092cc816fc4b`
+
+Independent post-fix focused rerun: **123 passed in 0.47s**, exit 0.
+
+## Final documentation and plan read-back
+
+Re-read the current documentation and plan after root added approved-plan status and the context-union clarification. They accurately describe the implemented collision rule and retain the pure/synthetic boundary. The approved pre-implementation plan hash is explicitly historical; the updated plan is reconciled implementation documentation. No further Spec finding. Source/test hashes remain unchanged from the verified 123-pass closure.
+
+Final read-back SHA-256:
+
+- `grafana_jsm_sandbox/accounting_policy.py`: `cdb14d136672c730eb4635f0a59e9ae394b2add2c84c7fcfbb6b398ad7c67e9d`
+- `tests/test_accounting_policy.py`: `32fbff1a3d194a9925707082f9eef13c4839ed8655dd6c3644c06afde1e9e9a8`
+- `docs/accounting-policy.md`: `cc9e8388a4cd5699183dac27bd0be191eba0f76989e089f75c262ebb476dcbe2`
+- `.scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18a.md`: `59ae70d05897b8f15d0e4bc88277f9dd657280d0e5af65435f8e2d4ec9b896ee`
+FILE standards-review.md
+SHA256 9950834d8c5a2c4888e4543af9f92cc1e2a4e2734ac701ad824d226c89cf35a0
+# Unit 18a Standards review
+
+Verdict: ACCEPTED_LOCAL for pure source/synthetic scope. No actionable documented-standard breaches or baseline-smell findings.
+
+Baseline: `1d04b7dc1174924de52a8927059f9eb6cbaca3a3`; no commits since baseline. Existing tracked source/tests/docs diff is empty. Reviewed new files using `git diff --no-index /dev/null PATH` (expected exit 1). Protected scratch changes were excluded.
+
+Standards sources: CLAUDE.md, CONTEXT.md, pyproject.toml, exact implementation-plan-18a.md and code-review skill smell baseline. Repo-specific evaluation-only/frozen-container design overrides generic data-clump/primitive/domain-model heuristics. The private accounting accumulator keeps related derived sums together; helpers validate exact scalar/container types before comparison or hashing. No blanket catch, mutable output, persistence, credential access or application wiring was found. At 413 source lines it remains below the agreed 600-line threshold.
+
+Read back the Spec review's identity repair: attempt/reservation/Run/lease and cost IDs are now checked against the validated experiment/lifecycle/profile context UUID union. Its 15 regressions are included in the final run; this was not an independently discovered Standards finding.
+
+Independent verification: **123 passed**, no skips, under the loopback guard; `NON_LOOPBACK_ATTEMPTS []`. A separate probe made **969 field substitutions** across all eight input record shapes (including hostile hooks, subclasses and malformed primitives); every case returned a closed Refusal or a valid proposal without unexpected exception. Two extreme-year end-to-end proposals also passed. Evidence: `/tmp/maoi-codex-18a/standards/focused.txt`, `probes.py`, `probes.txt`, `hashes.json`.
+
+The tests exercise meaningful public policy seams and independently worked arithmetic boundaries. Root mutation/full-suite evidence is separate; neither was rerun as part of this review. Durable, concurrency, provider, tenant, native, paid and launch acceptance: **NOT RUN / not established**.
+
+## Reviewed SHA-256
+
+- `grafana_jsm_sandbox/accounting_policy.py`: `cdb14d136672c730eb4635f0a59e9ae394b2add2c84c7fcfbb6b398ad7c67e9d`
+- `tests/test_accounting_policy.py`: `32fbff1a3d194a9925707082f9eef13c4839ed8655dd6c3644c06afde1e9e9a8`
+- `docs/accounting-policy.md`: `cc9e8388a4cd5699183dac27bd0be191eba0f76989e089f75c262ebb476dcbe2`
+- `.scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18a.md`: `59ae70d05897b8f15d0e4bc88277f9dd657280d0e5af65435f8e2d4ec9b896ee`
+FILE final-review.md
+SHA256 f375fe1ccf14b0560a8a7e082f85bf540113e7778a68fff8c7518b1cbf702521
+# Unit 18a independent final review
+
+Verdict: ACCEPTED_LOCAL_PURE_SYNTHETIC
+
+Reviewed 2026-09-24 against baseline `1d04b7dc1174924de52a8927059f9eb6cbaca3a3`. No open findings. This is a fresh read-only source/test/documentation review, not durable, provider, paid, native, tenant, deployment, publication, C2, or runtime admission acceptance. CLAUDE.md and CONTEXT.md were read.
+
+## Hash-bound inputs
+
+- `grafana_jsm_sandbox/accounting_policy.py`: `cdb14d136672c730eb4635f0a59e9ae394b2add2c84c7fcfbb6b398ad7c67e9d`
+- `tests/test_accounting_policy.py`: `32fbff1a3d194a9925707082f9eef13c4839ed8655dd6c3644c06afde1e9e9a8`
+- `docs/accounting-policy.md`: `cc9e8388a4cd5699183dac27bd0be191eba0f76989e089f75c262ebb476dcbe2`
+- `.scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18a.md`: `59ae70d05897b8f15d0e4bc88277f9dd657280d0e5af65435f8e2d4ec9b896ee`
+- `.scratch/many-alerts-one-incident/reviews/receiver-journal/next-accounting-unit-design.md`: `e721e75a257e659881e865da71f9c612f880f1e6c1b2a3e54248cbecf02e66b2`
+- `.scratch/many-alerts-one-incident/reviews/ticket-38/accounting-specification.md`: `88c090f26a265e3139958cdee3b8a2480f9ef334bda6afb2575d405833bed561`
+- `docs/adr/0013-demo-spend-is-metered-reserved-and-qualified.md`: `987ddb7841e300151565bd8cb15ab4713c1ea93690f3b6a15208bcc435a2cbc9`
+
+## Independent verification
+
+- Own bounded focused command: `python3 /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_accounting_policy.py`: 123 passed; `NON_LOOPBACK_ATTEMPTS []`.
+- Copied source, original tests and documentation to `/tmp/maoi-codex-18a/final`; byte-for-byte `cmp` passed before and after probes. Independent tests import the exact scratch source copy.
+- Own bounded scratch command: `python3 /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider /tmp/maoi-codex-18a/final/test_independent.py`: 30 passed; `NON_LOOPBACK_ATTEMPTS []`.
+- Scratch probes cover unrelated current/old-week lifecycle and diagnostic counter breaches, unrelated diagnostic spend breaches, retry exhausting each counter independently, historical boundary overlap versus explicitly unauthenticated timezone shape, all 20 candidate-ID/context-role combinations, and 161 malformed-field/subclass checks. First scratch run had only a mistaken assertion about the number of executed checks (188 versus 161); all behavioral assertions passed. Corrected that scratch bookkeeping assertion and reran successfully.
+- Static inspection confirms 413 source lines, allowed imports only, no application caller, no current-clock/network/process/persistence path, exact type checks before potentially unsafe equality/hash operations, immutable results, fixed refusal codes, and no mutable returned containers.
+- `git diff --name-only 1d04b7dc1174924de52a8927059f9eb6cbaca3a3 -- grafana_jsm_sandbox tests` returned empty. Reviewer made no repository edits or staging changes. Full-suite verification belongs to the root reviewer and was not rerun here.
+
+## Contract and documentation assessment
+
+Money representation, signed-64 overflow refusal, strict lifetime cap, independent inclusive model/bucket caps, complete historical bucket checks, retained counts, settled-actual replacement, non-model isolation, original-week attribution, stale/unknown exposure, strict chronology, latest-tip retry linkage, cross-week refusal and context-disjoint identities conform to the approved plan. Existing tests cover the principal arithmetic mutants; the additional probes independently cover less-direct history/count paths.
+
+Documentation correctly separates accepted ADR policy from proposed U/microdollar/lifetime choices. Completeness, settlement, configuration and effect reconciliation are hypothetical inputs; structural retry checks cannot detect a failed initial semantically relabeled before the first retry. Historical timezone values receive shape validation only. Same-key current values must agree with fresh boundaries. These limitations are explicit rather than overstated guarantees. No proposal is a receipt, reservation, readiness result or launch permit. The durable ticket-38 seam and all external acceptance gates remain unmet.
+
+Independent probe SHA-256: `6e4a02b9cfd658561f30c4013689b6daa24e710b5f6cdde4f940a4f3b8e4c366`.
+FILE spec/identity-probes.txt
+SHA256 d7d091f099588c49da80acd7c41453dc1d81f8e101443e2089c580a6e62da8cd
+cost_id equals lifecycle: HypotheticalProposal
+attempt_id equals lifecycle: HypotheticalProposal
+cost_id equals experiment: HypotheticalProposal
+attempt_id equals experiment: HypotheticalProposal
+cost_id equals model: HypotheticalProposal
+attempt_id equals model: HypotheticalProposal
+cost_id equals auth: HypotheticalProposal
+attempt_id equals auth: HypotheticalProposal
+cost_id equals venue: HypotheticalProposal
+attempt_id equals venue: HypotheticalProposal
+FILE spec/identity-probes-fixed.txt
+SHA256 a7a7f54f34188313ce6849e0162edaefd33fb270b99ae3f7e209674fff318b7b
+cost equals lifecycle: Refusal(code='identity_conflict')
+candidate equals lifecycle: Refusal(code='identity_conflict')
+cost equals experiment: Refusal(code='identity_conflict')
+candidate equals experiment: Refusal(code='identity_conflict')
+cost equals model: Refusal(code='identity_conflict')
+candidate equals model: Refusal(code='identity_conflict')
+cost equals auth: Refusal(code='identity_conflict')
+candidate equals auth: Refusal(code='identity_conflict')
+cost equals venue: Refusal(code='identity_conflict')
+candidate equals venue: Refusal(code='identity_conflict')
+FILE standards/probes.txt
+SHA256 0d2db297a8b90d5cbfff8acc4af0cb6e712c10d4fe427d941de94ddc27b2a009
+969 field substitutions returned only closed Refusal or valid HypotheticalProposal; two extreme-year end-to-end proposals passed.
+FILE standards/probes.py
+SHA256 91984bd05cac15e5a98e499191ee0977b51023eeaa2a2d35d3d4aace8a9e9f6a
+from dataclasses import fields, replace
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
+from pathlib import Path
+import runpy, sys
+sys.path.insert(0, str(Path.cwd()))
+t = runpy.run_path('tests/test_accounting_policy.py')
+ap = t['ap']
+AT = t['AT']
+snapshot, candidate, attempt, bounded, profile, uid = [t[n] for n in ('snapshot', 'candidate', 'attempt', 'bounded', 'profile', 'uid')]
+class Hostile:
+    def __eq__(self, other): raise AssertionError('equality invoked')
+    def __repr__(self): raise AssertionError('repr invoked')
+    def __bool__(self): raise AssertionError('bool invoked')
+    def __hash__(self): raise AssertionError('hash invoked')
+class Substr(str): pass
+class Subint(int): pass
+class Subtuple(tuple): pass
+values = [None, True, False, -1, 0, 1, 2**63, 1.5, float('nan'), Decimal('1'), 'SECRET', [], {}, set(), (), Hostile(), Substr('bounded'), Subint(1), Subtuple(())]
+objects = [snapshot(), candidate(), profile(), snapshot().lifecycles[0], attempt(), bounded(), ap.NonModelCost(uid(800), 'venue', bounded()), ap.week_for(AT)]
+count = 0
+for obj in objects:
+    for field in fields(obj):
+        for value in values:
+            bad = replace(obj, **{field.name: value})
+            s, c = snapshot(), candidate()
+            if type(obj) is ap.Snapshot: s = bad
+            elif type(obj) is ap.Candidate: c = bad
+            elif type(obj) is ap.Profile: s = replace(s, profiles=(bad,))
+            elif type(obj) is ap.Lifecycle: s = replace(s, lifecycles=(bad,))
+            elif type(obj) is ap.Attempt: s = replace(s, attempts=(bad,))
+            elif type(obj) is ap.Exposure: c = replace(c, exposure=bad)
+            elif type(obj) is ap.NonModelCost: s = replace(s, non_model_costs=(bad,))
+            else: s = replace(s, lifecycles=(replace(s.lifecycles[0], week=bad),))
+            result = ap.evaluate_reservation(s,c,at=AT)
+            assert type(result) in (ap.Refusal,ap.HypotheticalProposal)
+            count += 1
+for at in (datetime(2000,1,1,tzinfo=UTC), datetime(9998,12,31,23,59,59,tzinfo=UTC)):
+    week=ap.week_for(at)
+    assert week.start_utc <= at < week.end_utc
+    s=snapshot(as_of=at, lifecycles=(replace(snapshot().lifecycles[0],week=week),))
+    c=candidate(exposure=ap.Exposure('bounded',3_000_000,at+timedelta(seconds=1),None))
+    assert type(ap.evaluate_reservation(s,c,at=at)) is ap.HypotheticalProposal
+print(f'{count} field substitutions returned only closed Refusal or valid HypotheticalProposal; two extreme-year end-to-end proposals passed.')
+FILE final/test_independent.py
+SHA256 6e4a02b9cfd658561f30c4013689b6daa24e710b5f6cdde4f940a4f3b8e4c366
+from dataclasses import replace, fields
+from datetime import datetime, UTC, timedelta
+import accounting_policy as p
+import pytest
+
+AT = datetime(2026, 9, 24, 12, tzinfo=UTC)
+def uid(n): return f'12345678-1234-1234-1234-{n:012x}'
+P = p.Profile(uid(1), uid(2), uid(3))
+W = p.week_for(AT)
+L = p.Lifecycle(uid(4), 'presentation', W, P)
+def exposure(n=3_000_000): return p.Exposure('bounded', n, AT+timedelta(days=1), None)
+def row(n, *, life=L, kind='initial', predecessor=None):
+    return p.Attempt(uid(100+n*4), uid(101+n*4), uid(102+n*4), uid(103+n*4),
+                     life.week.start_utc+timedelta(seconds=n+1), life.week, P, kind,
+                     None if kind=='diagnostic' else life.lifecycle_id, predecessor,
+                     kind=='retry', p.Exposure('settled', 3_000_000, None, 1))
+def snap(rows=(), lives=(L,)):
+    return p.Snapshot(uid(5),1,AT,'hypothetical_complete',(P,),lives,rows,(),())
+def candidate(kind='initial', predecessor=None):
+    return p.Candidate(uid(5),1,uid(800),uid(801),uid(802),uid(803),P,kind,
+                        None if kind=='diagnostic' else L.lifecycle_id, predecessor,
+                        kind=='retry',exposure())
+def ev(s, c=None): return p.evaluate_reservation(s,c or candidate(),at=AT)
+
+@pytest.mark.parametrize('old', [False, True])
+@pytest.mark.parametrize('kind', ['initial','diagnostic'])
+def test_unrelated_historical_counter_breach(old, kind):
+    w=p.week_for(AT-timedelta(days=7)) if old else W
+    l=p.Lifecycle(uid(6),'rehearsal_2',w,P)
+    rows=tuple(row(i,life=l,kind=kind) for i in range(11))
+    code='lifecycle_attempt_limit' if kind=='initial' else 'diagnostic_attempt_limit'
+    assert ev(snap(rows,(l,L))) == p.Refusal(code)
+
+@pytest.mark.parametrize('old',[False, True])
+def test_unrelated_diagnostic_spend_breach(old):
+    l=replace(L,week=p.week_for(AT-timedelta(days=7))) if old else L
+    r=replace(row(0,life=l,kind='diagnostic'),exposure=exposure(30_000_001))
+    assert ev(snap((r,))) == p.Refusal('diagnostic_limit')
+
+def test_retry_candidate_is_eleventh_diagnostic_with_lifecycle_headroom():
+    rows=[row(i,kind='diagnostic') for i in range(10)]
+    rows.append(row(10))
+    assert ev(snap(tuple(rows)), candidate('retry', rows[-1].attempt_id)) == p.Refusal('diagnostic_attempt_limit')
+
+def test_retry_candidate_is_eleventh_lifecycle_with_diagnostic_headroom():
+    rows=tuple(row(i) for i in range(10))
+    assert ev(snap(rows),candidate('retry', rows[-1].attempt_id)) == p.Refusal('lifecycle_attempt_limit')
+
+def test_historical_timezone_shape_is_assumed_not_semantically_verified():
+    old=p.Week('2026-09-14',datetime(2026,9,14,5,tzinfo=UTC),datetime(2026,9,21,5,tzinfo=UTC),'America/New_York')
+    # This week overlaps the fresh current week; refusal is structural.
+    assert ev(snap((),(replace(L,week=old),))) == p.Refusal('invalid_week')
+    older=replace(old,key='2026-09-07',start_utc=datetime(2026,9,7,5,tzinfo=UTC),end_utc=datetime(2026,9,14,5,tzinfo=UTC))
+    assert type(ev(snap((),(replace(L,lifecycle_id=uid(6),week=older),L)))) is p.HypotheticalProposal
+
+def test_record_shapes_and_subclasses_refuse_before_coercion():
+    objects=[snap(), candidate(), P,L,row(0),exposure(),p.NonModelCost(uid(900),'venue',exposure()),W]
+    def wrapped(original,bad):
+        s,c=snap(),candidate()
+        if type(original) is p.Snapshot: s=bad
+        elif type(original) is p.Candidate:c=bad
+        elif type(original) is p.Profile:s=replace(s,profiles=(bad,))
+        elif type(original) is p.Lifecycle:s=replace(s,lifecycles=(bad,))
+        elif type(original) is p.Attempt:s=replace(s,attempts=(bad,))
+        elif type(original) is p.Exposure:c=replace(c,exposure=bad)
+        elif type(original) is p.NonModelCost:s=replace(s,non_model_costs=(bad,))
+        else:s=replace(s,lifecycles=(replace(L,week=bad),))
+        return ev(s,c)
+    checks=0
+    for obj in objects:
+        for f in fields(obj):
+            for value in (object(), [], {}):
+                assert type(wrapped(obj,replace(obj,**{f.name:value}))) is p.Refusal
+                checks+=1
+        sub=type('Subclass',(type(obj),),{})
+        assert type(wrapped(obj,sub(*(getattr(obj,f.name) for f in fields(obj))))) is p.Refusal
+        checks+=1
+    assert checks==161
+
+@pytest.mark.parametrize('field',['attempt_id','reservation_id','run_id','lease_id'])
+@pytest.mark.parametrize('context',[uid(1),uid(2),uid(3),uid(4),uid(5)])
+def test_each_new_identity_role_rejects_each_context_role(field,context):
+    assert ev(snap(),replace(candidate(),**{field:context})) == p.Refusal('identity_conflict')
+FILE cycles.jsonl
+SHA256 21be4f269a6a2109cdb3898725d00abfcaacbb563191fd0a9a069b8c4a1aec47
+{"label": "scalar-red", "expectation": "red", "exit": 2, "log": "/tmp/maoi-codex-18a/scalar-red.txt", "source": {"tests/test_accounting_policy.py": "e4a516e805bdaed25eeb3b78ef348ef925b2f838c0e6a1cdd9cc4b6395edcfc1"}}
+{"label": "scalar-green", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/scalar-green.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "87135878dc6149f611c7f0d877a29fdfdc69bcf94435fbad4694f81c74d0a23c", "tests/test_accounting_policy.py": "e4a516e805bdaed25eeb3b78ef348ef925b2f838c0e6a1cdd9cc4b6395edcfc1"}}
+{"label": "limits-red", "expectation": "red", "exit": 1, "log": "/tmp/maoi-codex-18a/limits-red.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "87135878dc6149f611c7f0d877a29fdfdc69bcf94435fbad4694f81c74d0a23c", "tests/test_accounting_policy.py": "94e0a05603a60f987a8b90f4d1e0594603f816b93ce9374beeb0ede13524bf99"}}
+{"label": "limits-green", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/limits-green.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "b63ca4368ad040fbe7e4b7d4b36d56bdb32dc6ffc95d248c0b9b7c2dbc53da36", "tests/test_accounting_policy.py": "94e0a05603a60f987a8b90f4d1e0594603f816b93ce9374beeb0ede13524bf99"}}
+{"label": "proposal-red", "expectation": "red", "exit": 2, "log": "/tmp/maoi-codex-18a/proposal-red.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "b63ca4368ad040fbe7e4b7d4b36d56bdb32dc6ffc95d248c0b9b7c2dbc53da36", "tests/test_accounting_policy.py": "aed0700c53fb95a6cb7dc131587eb22e43429119072de6e979302330cda7565b"}}
+{"label": "proposal-green", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/proposal-green.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "f9116ae9fc5423c6e4b66a9cca8eb91386df316e6d155d0d29a655238de67766", "tests/test_accounting_policy.py": "aed0700c53fb95a6cb7dc131587eb22e43429119072de6e979302330cda7565b"}}
+{"label": "history-red", "expectation": "red", "exit": 1, "log": "/tmp/maoi-codex-18a/history-red.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "f9116ae9fc5423c6e4b66a9cca8eb91386df316e6d155d0d29a655238de67766", "tests/test_accounting_policy.py": "5e3cf30de540500a0f46d0b32836de8351994b7b9c2bf324c2e6304cc27d55a8"}}
+{"label": "history-green", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/history-green.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "7dd7a195425e0b06db871f3acfdea2070153dba88ae24c0df863c4a7a467e1c7", "tests/test_accounting_policy.py": "5e3cf30de540500a0f46d0b32836de8351994b7b9c2bf324c2e6304cc27d55a8"}}
+{"label": "lineage-red", "expectation": "red", "exit": 1, "log": "/tmp/maoi-codex-18a/lineage-red.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "7dd7a195425e0b06db871f3acfdea2070153dba88ae24c0df863c4a7a467e1c7", "tests/test_accounting_policy.py": "227ffe02c0c628353fc6682bce8c92699e5218c2b71d7234e340a67a216e1c56"}}
+{"label": "lineage-green", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/lineage-green.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "8c762aba9c9f69f7d2f1555960b4c1d7ceded661c48df93567bd6584f29bae58", "tests/test_accounting_policy.py": "227ffe02c0c628353fc6682bce8c92699e5218c2b71d7234e340a67a216e1c56"}}
+{"label": "shapes-check", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/shapes-check.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "8c762aba9c9f69f7d2f1555960b4c1d7ceded661c48df93567bd6584f29bae58", "tests/test_accounting_policy.py": "713d3f590841bec83e594d37ecd83a2f2e699392a9ac61f9046b15ad219f7eac"}}
+{"label": "prereview", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/prereview.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "d0e6645631f4c638356015ca434ad98f6b3577ff7d35185dfcc57eb4a5f34334", "tests/test_accounting_policy.py": "c933be170266921980cdc9f5d0ae7ea6317091889c62e5321811882756cc65ad"}}
+{"label": "context-identity-red", "expectation": "red", "exit": 1, "log": "/tmp/maoi-codex-18a/context-identity-red.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "d0e6645631f4c638356015ca434ad98f6b3577ff7d35185dfcc57eb4a5f34334", "tests/test_accounting_policy.py": "32fbff1a3d194a9925707082f9eef13c4839ed8655dd6c3644c06afde1e9e9a8"}}
+{"label": "context-identity-green", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/context-identity-green.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "cdb14d136672c730eb4635f0a59e9ae394b2add2c84c7fcfbb6b398ad7c67e9d", "tests/test_accounting_policy.py": "32fbff1a3d194a9925707082f9eef13c4839ed8655dd6c3644c06afde1e9e9a8"}}
+{"label": "focused-final", "expectation": "green", "exit": 0, "log": "/tmp/maoi-codex-18a/focused-final.txt", "source": {"grafana_jsm_sandbox/accounting_policy.py": "cdb14d136672c730eb4635f0a59e9ae394b2add2c84c7fcfbb6b398ad7c67e9d", "tests/test_accounting_policy.py": "32fbff1a3d194a9925707082f9eef13c4839ed8655dd6c3644c06afde1e9e9a8"}}
+FILE mutate.py
+SHA256 1cdf06a34acb281fff20702e701a8ae5e670f38817b856dfe89ecfe0c96fd844
+from pathlib import Path
+import hashlib,json,shutil,subprocess
+root=Path.cwd(); scratch=Path('/tmp/maoi-codex-18a/mutations'); scratch.mkdir()
+for name in ('grafana_jsm_sandbox','tests'):
+ shutil.copytree(root/name,scratch/name,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
+shutil.copy2(root/'pyproject.toml',scratch/'pyproject.toml')
+source=(root/'grafana_jsm_sandbox/accounting_policy.py').read_text()
+mutations={
+ 'strict_cap':("('experiment', 49_999_999,", "('experiment', 50_000_000,"),
+ 'u_to_r':('        return upper\n', '        return 3_000_000 if model else upper\n'),
+ 'double_retry_weekly':('self.weeks.get(week.key, 0) + amount)', 'self.weeks.get(week.key, 0) + amount * (2 if row.kind == \'retry\' else 1))'),
+ 'missing_retry_diagnostic':("if row.kind in ('retry', 'diagnostic'):", "if row.kind == 'diagnostic':"),
+ 'unknown_to_zero':("    _require(value.state not in ('unknown', 'conflicted'), 'exposure_unknown')", "    if value.state in ('unknown', 'conflicted'):\n        return 0"),
+ 'drop_attempt_counter':('count + 1)', 'count)'),
+}
+results=[]
+for name,(old,new) in mutations.items():
+ assert old in source,name
+ (scratch/'grafana_jsm_sandbox/accounting_policy.py').write_text(source.replace(old,new))
+ for folder in scratch.rglob('__pycache__'):
+  shutil.rmtree(folder)
+ command=['python3','/tmp/maoi-handoff-codex/maoi-loopback-guard.py','-q','-p','no:cacheprovider','tests/test_accounting_policy.py']
+ run=subprocess.run(command,cwd=scratch,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+ (scratch/(name+'.txt')).write_text(run.stdout+'\nexit='+str(run.returncode)+'\n')
+ assert run.returncode in (0,1),run.stdout
+ result={'name':name,'exit':run.returncode,'killed':run.returncode==1,'log':str(scratch/(name+'.txt'))}
+ results.append(result);print(json.dumps(result),flush=True)
+(scratch/'results.json').write_text(json.dumps(results,indent=2)+'\n')
+assert all(r['killed'] for r in results)
+assert hashlib.sha256((root/'grafana_jsm_sandbox/accounting_policy.py').read_bytes()).hexdigest()==hashlib.sha256(source.encode()).hexdigest()
+FILE mutations-final/results.json
+SHA256 81329afe8bbf8f0eb4fa2b11c753612b99ea1da9ea37d400a6a7114ee4c61653
+[
+  {
+    "name": "strict_cap",
+    "exit": 1,
+    "killed": true,
+    "log": "/tmp/maoi-codex-18a/mutations-final/strict_cap.txt"
+  },
+  {
+    "name": "u_to_r",
+    "exit": 1,
+    "killed": true,
+    "log": "/tmp/maoi-codex-18a/mutations-final/u_to_r.txt"
+  },
+  {
+    "name": "double_retry_weekly",
+    "exit": 1,
+    "killed": true,
+    "log": "/tmp/maoi-codex-18a/mutations-final/double_retry_weekly.txt"
+  },
+  {
+    "name": "missing_retry_diagnostic",
+    "exit": 1,
+    "killed": true,
+    "log": "/tmp/maoi-codex-18a/mutations-final/missing_retry_diagnostic.txt"
+  },
+  {
+    "name": "unknown_to_zero",
+    "exit": 1,
+    "killed": true,
+    "log": "/tmp/maoi-codex-18a/mutations-final/unknown_to_zero.txt"
+  },
+  {
+    "name": "drop_attempt_counter",
+    "exit": 1,
+    "killed": true,
+    "log": "/tmp/maoi-codex-18a/mutations-final/drop_attempt_counter.txt"
+  }
+]
