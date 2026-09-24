@@ -846,6 +846,23 @@ def test_an_id_for_a_field_the_project_lacks_is_a_stop(env_file):
     assert line.level == "FAIL" and "a field the create refuses" in line.message
 
 
+def test_a_field_the_project_lacks_and_env_leaves_empty_only_warns(env_file):
+    """As `configure` says it: the demo runs, and a Run leaves the field off."""
+    jira = DoctorJira()
+    jira.answers["getCreateIssueMetaIssueTypeId"] = {
+        **jira.answers["getCreateIssueMetaIssueTypeId"],
+        "fields": [item for item in jira.fields() if item["name"] != "Source"],
+    }
+    env_file.write_text(env_text(DEMO_SOURCE_FIELD=""))
+
+    lines = doctor.facts(laptop(env_file, jira_as=jira))
+
+    assert not [line for line in lines if line.level == "FAIL"], [l.text for l in lines]
+    source = only(lines, "source")
+    assert source.level == "WARN" and source.ask == ("jira-admin-incident-fields",)
+    assert only(lines, "source in .env").level == "OK"
+
+
 def test_a_major_incident_id_that_differs_only_warns(env_file):
     env_file.write_text(env_text(DEMO_MAJOR_INCIDENT_FIELD="customfield_19998"))
 

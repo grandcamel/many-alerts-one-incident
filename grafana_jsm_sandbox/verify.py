@@ -83,7 +83,7 @@ if sys.version_info < (3, 11):  # noqa: UP036 - pyproject's floor is what this e
     sys.stderr.write(
         "python3 -m grafana_jsm_sandbox.verify needs Python 3.11 or newer, and this is "
         + sys.version.split()[0]
-        + ": run it with a newer python3 (README, Prerequisites)\n"
+        + ": run it with a newer python3 (README, What you need)\n"
     )
     raise SystemExit(2)
 

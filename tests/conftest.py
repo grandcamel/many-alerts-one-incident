@@ -44,6 +44,7 @@ BASIC_DEMO_TESTS = frozenset(
         "test_configure.py",
         "test_container.py",
         "test_demo_config.py",
+        "test_docs.py",
         "test_doctor.py",
         "test_end_to_end.py",
         "test_fixtures.py",

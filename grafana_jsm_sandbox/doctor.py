@@ -64,14 +64,15 @@ Every line it prints is one of these, for a person at a terminal and for the
 setup skill to parse:
 
     [<layer>] OK <check> — <what it found>
-    [<layer>] WARN <check> — <what is off, what that costs, and the fix>
+    [<layer>] WARN <check> — <what is off, what it costs, the fix>[; ask: ...]
     [<layer>] FAIL <check> — <what stops the demo, and the fix>[; ask: docs/admin-requests.md#<anchor> ...]
     not checked: <layer>, ...; an earlier layer failed
     READY | NOT READY: [<layer>] <check> — <what the first FAIL said>
 
 The layers inside the container are `container` and `model`, and the stack layer
-passes their lines on as they are. A FAIL, or a WARN that can turn into one, names
-the admin request that fixes it, always as `docs/admin-requests.md#<anchor>`.
+passes their lines on as they are. A FAIL names the admin request that fixes it,
+and so does a WARN whose cost an admin can take away (images not pulled yet, a
+field the Skill leaves off), always as `docs/admin-requests.md#<anchor>`.
 Each line is one line: whatever a tool said is folded onto it, redacted, and cut
 short. The exit status is 0 when it ends READY, 1 when it ends NOT READY, and 2
 for bad arguments or a Python older than 3.11.
@@ -88,7 +89,7 @@ if sys.version_info < (3, 11):  # noqa: UP036 - pyproject's floor is what this e
     sys.stderr.write(
         "python3 -m grafana_jsm_sandbox.doctor needs Python 3.11 or newer, and this is "
         + sys.version.split()[0]
-        + ": run it with a newer python3 (README, Prerequisites)\n"
+        + ": run it with a newer python3 (README, What you need)\n"
     )
     raise SystemExit(2)
 

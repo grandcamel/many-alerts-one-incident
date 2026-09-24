@@ -1,4 +1,4 @@
-# Demo runbook: Grafana Alert to OPS Incident
+# Demo runbook: Grafana Alert to Incident
 
 **Archived, not executable:** the legacy Receiver/Forwarder and default
 Compose entrypoint now refuse startup under ADRs 0011–0013. The commands
@@ -13,8 +13,10 @@ Incident leaving the queue, three Runs, about $0.50 (measured on Fable 5.1; Runs
 to Opus 5, not yet re-measured).
 
 Vocabulary is [CONTEXT.md](../CONTEXT.md). Every command below is run from the repo root, in a
-shell that has Docker and `jira-as`, with `.env` filled in: the reset and the end-to-end check
-take the Jira credential and the project key (`DEMO_PROJECT_KEY`) from it, not from the shell.
+shell that has Docker and `jira-as`, with the demo set up as the README's Quickstart leaves it:
+`.env` filled in and `configure --write` run. The laptop commands (`doctor`, `verify`, `reset`,
+the replay) take the Jira credential, the project key (`DEMO_PROJECT_KEY`) and the queue's
+address (`DEMO_QUEUE_URL`) from `.env`, not from the shell. `<KEY>` below is your project's key.
 
 ## The screen
 
@@ -25,14 +27,15 @@ does; right column is what the audience believes.
 | --- | --- | --- |
 | Top left: **Grafana** | <http://localhost:3000/alerting/list?search=rolldice> | The one rule, `rolldice request rate is zero`, and its state: Normal, Pending, Firing. No login |
 | Bottom left: **container log** | a terminal running `docker compose logs -f demo` | Every Run as it happens, each line after its time and level: its reasoning, every `jira-as` command in full, every `forwarded` line, any `[DENIED]`, and a `[FAILED]` line with its `[hint]` if a Run fails |
-| Right: **OPS Incidents queue** | `https://<your-site>.atlassian.net/jira/servicedesk/projects/OPS/queues/custom/<queue-id>` | The Incident appearing, changing status, and leaving |
+| Right: **Incidents queue** | `DEMO_QUEUE_URL` from `.env`: `<site>/jira/servicedesk/projects/<KEY>/queues/custom/<queue-id>` | The Incident appearing, changing status, and leaving |
 | Hidden: **presenter shell** | a second terminal, repo root | The two commands the presenter types. Keep it out of the projected area or the audience reads ahead |
 
-`<your-site>` and `<queue-id>` are yours to fill in: `python3 -m grafana_jsm_sandbox.configure`
-prints the address and `--write` keeps it in `.env` as `DEMO_QUEUE_URL`, or open the OPS
-project's **Queues**, click **Incidents**, and the address bar has both. Open it once to check
-it lands on the queue. The queue id is that queue's own and differs on
-every site, so bookmark the address the day before rather than typing it live.
+The queue's address is your site's own: `python3 -m grafana_jsm_sandbox.configure` prints it on
+its `queue` line and `--write` keeps it in `.env` as `DEMO_QUEUE_URL`. When it could not (the
+line says why), open the project's **Queues**, click **Incidents**, and copy the address bar.
+Open the address once to check it lands on the queue, and bookmark it the day before rather
+than typing it live. Grafana is on `GRAFANA_HOST_PORT` and the Receiver on `RECEIVER_HOST_PORT`
+when `.env` moves them off 3000 and 8080.
 
 Reload the queue and the Grafana list by hand when the log says a Run has finished. Neither
 refreshes fast enough on its own to be trusted during the demo.
@@ -43,7 +46,7 @@ queue), for the comments. The Skill is not the template in the repo, which carri
 print the rendering into its own terminal tab:
 
 ```bash
-docker compose exec -T demo cat /app/runs/.skill/incident-sync/SKILL.md
+docker compose exec -T demo env -i /bin/cat /app/runs/.skill/incident-sync/SKILL.md
 ```
 
 ## On the work laptop: the corporate CA
@@ -86,8 +89,8 @@ installs, the Forwarder's calls to Atlassian, a Run's calls to Anthropic, and th
     placeholder and is the same build as on the personal laptop. Export it in the shell rather
     than typing it per command, because the pre-demo check in step 4 reads the same variable.
 
-3. **Tell the shell's own `jira-as` the same.** The reset and the end-to-end check call
-   `jira-as` from this shell, not from the container, and it uses the `requests` library:
+3. **Tell the shell's own `jira-as` the same.** `configure`, `doctor`, `verify` and the reset
+   call `jira-as` from this shell, not from the container, and it uses the `requests` library:
 
     ```bash
     export REQUESTS_CA_BUNDLE=certs/corporate-root.crt
@@ -120,19 +123,30 @@ installs, the Forwarder's calls to Atlassian, a Run's calls to Anthropic, and th
 corporate CA itself; on macOS it reads the system keychain. A pull that fails with `x509:
 certificate signed by unknown authority` is a Docker Desktop setting, not anything here. Pull
 the four images the day before, on any network that lets you, and the build touches Docker Hub
-no further.
+no further. Where Docker Desktop's policy refuses one, the request to forward is
+[Docker admin](admin-requests.md#docker-admin).
+
+## The day before: a full rehearsal
+
+Rehearse one whole lifecycle with the real Alert, unattended, and let it name the stage that did
+not come:
+
+```bash
+python3 -m grafana_jsm_sandbox.verify --live
+```
+
+It stops the traffic, waits for Grafana to fire, watches the Incident be created, commented and
+moved to Work in progress, starts the traffic again and watches it be Completed with a
+resolution, printing each stage with its elapsed time. It ends `VERIFIED` or `NOT VERIFIED:
+<stage> — <why>`, and starts the traffic on the way out whatever happens. Without `--live` it
+replays the canned Notifications instead, which needs no Grafana. Run it the day before, or at
+least well before the fifteen minutes below: it leaves a Completed Incident behind and, live,
+takes the rule through Firing. Then run the reset (step 3 below).
 
 ## Fifteen minutes before: pre-demo checks
 
 Run them in this order. Every one must pass before the audience arrives; none takes more than a
 minute except the first.
-
-`python3 -m grafana_jsm_sandbox.doctor` asks most of these questions in one pass, from the
-laptop's tools through `.env`, Jira and the stack to the running Grafana, and ends `READY` or
-`NOT READY: <first blocker>`. It changes nothing, so the reset below is still a step of its own.
-`python3 -m grafana_jsm_sandbox.verify` (the replay) or `verify --live` rehearses one whole
-lifecycle and names the stage that did not come; run it well before, not in these fifteen
-minutes, because it leaves a Completed Incident behind and, live, takes the rule through Firing.
 
 1. **Stack up.** `docker compose ps` shows four services running and `demo` healthy. If not:
 
@@ -143,14 +157,23 @@ minutes, because it leaves a Completed Incident behind and, live, takes the rule
     A cold build pulls nothing new when the images are already on this machine; it has been
     known to hang for minutes on a Docker Hub pull if they are not. Start early.
 
-2. **Health green.**
+2. **Doctor ready.** One pass from the laptop's tools through `.env`, Jira and the project's
+   fields to the stack, the container's own view and the running Grafana:
+
+    ```bash
+    python3 -m grafana_jsm_sandbox.doctor
+    ```
+
+    It ends `READY`. `NOT READY: <first blocker>` names what failed and its fix, and a FAIL that
+    ends `; ask: docs/admin-requests.md#<anchor>` is one a colleague has to fix, which is not a
+    fifteen-minute job. It changes nothing, so the reset is still a step of its own. The one-line
+    glance, when there is no time for more, is the Receiver's health endpoint, which prints `ok`:
 
     ```bash
     curl -fsS http://localhost:8080/health
     ```
 
-    Prints `ok`. Anything else: `docker compose logs demo` names the variable that is missing
-    from `.env`.
+    (or your `RECEIVER_HOST_PORT` in place of 8080, when `.env` moves it).
 
 3. **Queue empty, traffic flowing.** The reset closes every open Incident a rehearsal left
    behind and starts the traffic service:
@@ -182,8 +205,8 @@ minutes, because it leaves a Completed Incident behind and, live, takes the rule
 
     All pass. On the work laptop, `EXTRA_CA_CERT` must still name the certificate the image
     was built with (see above). The rule check needs the traffic to have been flowing for a
-    minute, so run it after step 3, not before. If a provisioning file was edited since the stack came up, Grafana has
-    not seen it: `docker compose restart lgtm`, wait a minute, rerun.
+    minute, so run it after step 3, not before. If a provisioning file was edited since the
+    stack came up, Grafana has not seen it: `docker compose restart lgtm`, wait a minute, rerun.
 
     A limit check that fails with `Compose <version> did not apply it` means Docker Desktop's
     Compose is older than the key: `pids_limit` needs Compose 2.2, `cpus` needs 2.17, and a
@@ -202,37 +225,37 @@ minutes, because it leaves a Completed Incident behind and, live, takes the rule
 **If the reset names an Incident as stuck.** A `Canceled` or `Closed` Incident with no
 resolution stays in the queue, because the queue filters on resolution and no transition on
 this workflow can give it one afterwards (ADR 0004). Nothing but deletion removes it, one key at
-a time, and the reset never deletes; that is the presenter's call. The six probes from the day
-the workflow was mapped were exactly this and were deleted on 2026-09-15, so the queue starts
-empty now.
+a time, and the reset never deletes; that is the presenter's call. The reset prints the command
+for each such key:
 
 ```bash
-jira-as api call deleteIssue --issueIdOrKey OPS-n --confirm
+jira-as api call deleteIssue --issueIdOrKey <KEY>-n --confirm
 ```
 
 Without `--confirm`, jira-as only shows the request it would send. With it, the deletion is
 permanent: jira-as rates the operation irreversible, and the Incident's history goes with it.
 Unlike the reset, this is your own shell's `jira-as`, with whatever site and credential it is
-configured with, so check that it points at the demo's site before deleting anything. Run from
-inside this repo, the committed `.claude/settings.json` also refuses any key but `OPS`.
+configured with, so check that it points at the demo's site before deleting anything, and that
+the account it uses holds Delete issues on the project.
 
 The alternative is to project a filter instead of the queue, which needs no deletion:
-`project = OPS AND issuetype = Incident AND statusCategory != Done ORDER BY created DESC`.
+`project = <KEY> AND issuetype = Incident AND statusCategory != Done ORDER BY created DESC`.
 
 ## The demo, step by step
 
-Times are from the one action, measured in rehearsal on this laptop (the record is at the
-bottom). Grafana's parts add up: the rate window empties, then the thirty-second pending
-period, then the next ten-second evaluation. The waits are real and worth narrating rather than
-filling.
+Times are from the one action, measured in the rehearsal this runbook was written from (the
+record is at the bottom), on Grafana 12.3.1 and Runs on Fable 5.1; on the pinned Grafana 13 and
+Opus 5 they are still to be measured, so take them from your own `verify --live`. Grafana's
+parts add up: the rate window empties, then the thirty-second pending period, then the next
+ten-second evaluation. The waits are real and worth narrating rather than filling.
 
 | When | Presenter does | Audience sees | Say meanwhile |
 | --- | --- | --- | --- |
 | T+0:00 | In the hidden shell: `docker compose stop traffic` (returns in about a second) | Nothing yet | What just happened: the only synthetic traffic to rolldice stopped. Grafana is about to notice |
 | ~T+0:30 | Nothing | Grafana: **Pending** (reload) | The rule: request rate zero for thirty seconds, evaluated every ten. Point at the log: nothing has happened yet, because nothing has been sent |
 | ~T+1:00 | Nothing | Grafana: **Firing** (reload) | Grafana has now posted one Notification at the Receiver. The Receiver acknowledged it in milliseconds and queued one Run |
-| ~T+1:10 | Nothing | Log: `notification accepted: 1 alert, run ... queued, 0 ahead`, `run ... started`, then `[claude]` lines, then `[tool] Bash: jira-as search jql ...`, then `forwarded GET ... upstream said 200` | Walk the log as it scrolls: it read the Notification, searched OPS for the Fingerprint label, found nothing, is creating. Every `forwarded` line is the Forwarder swapping the sentinel for the real token |
-| ~T+1:35 | Reload the queue | **OPS-n** in the queue, status Open, Sev-2, Source Monitoring systems | Open it. Summary from the alert name and instance; Description with the annotations and the generator link; the `fp-` label; the opening comment with the value. The Run took about 30s |
+| ~T+1:10 | Nothing | Log: `notification accepted: 1 alert, run ... queued, 0 ahead`, `run ... started`, then `[claude]` lines, then `[tool] Bash: jira-as search jql ...`, then `forwarded GET ... upstream said 200` | Walk the log as it scrolls: it read the Notification, searched the project for the Fingerprint label, found nothing, is creating. Every `forwarded` line is the Forwarder swapping the sentinel for the real token |
+| ~T+1:35 | Reload the queue | **<KEY>-n** in the queue, status Open, Sev-1, Urgency Critical, Source Monitoring systems (each only where the project has the field) | Open it. Summary from the alert name and instance; Description with the annotations and the generator link; the `fp-` label; the opening comment with the value. The Run took about 30s |
 | ~T+2:20 | Nothing | Log: second `run ... started` | This is the repeat: the policy resends a Firing Alert every minute. The Run finds the Match this time |
 | ~T+2:45 | Reload the Incident | A trend comment: `Still firing. value=0 (previous value=0, unchanged). Open for 1m..`; status **Work in progress** | The comment reports value, change, time open, all read off Jira's clock. First repeat moves it on; later repeats only comment |
 | ~T+2:50 | In the hidden shell: `docker compose start traffic` | Nothing yet | Traffic is back. Grafana needs one evaluation to see the rate, then sends the Resolved on the next group tick |
@@ -252,8 +275,9 @@ usage credits, a rate limit, the model, the budget), and then `run ... FAILED: <
 403 or 404 from Jira shows as a WARNING `forwarded ... upstream said` line saying what it most
 likely means. Its untrimmed Transcript is at the path its `run ... transcript:` line names, on a
 tmpfs that empties when the demo container stops or is recreated: copy it out with
-`docker compose exec -T demo cat <that path> > transcript.jsonl` before any restart. Fix the cause
-off screen, then switch to the replay below.
+`docker compose exec -T demo env -i /bin/cat <that path> > transcript.jsonl` before any restart
+(the `env -i` keeps the tokens out of the `cat`, as README's "Fetching a Transcript" says). Fix
+the cause off screen, then switch to the replay below.
 
 Do not `stop traffic` again for a second take until Grafana shows Normal and the queue is empty.
 A re-fire deliberately gets a new Incident, which is the chapter two story, not a duplicate.

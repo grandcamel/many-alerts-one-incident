@@ -368,7 +368,9 @@ def test_createmeta_pages_documented_as_results_are_read_too(configure):
     assert said.level("severity") == "OK"
 
 
-def test_an_ambiguous_field_name_is_left_empty_and_names_the_admin_request(configure, env_file):
+def test_an_ambiguous_field_name_is_left_empty_and_warns_naming_the_admin_request(
+    configure, env_file
+):
     jira = FakeJira()
     twin = copy.deepcopy(jira.named("Severity")) | {
         "fieldId": "customfield_10099",
@@ -382,15 +384,17 @@ def test_an_ambiguous_field_name_is_left_empty_and_names_the_admin_request(confi
     said = configure(jira, "--write")
 
     (line,) = said.check("severity")
-    assert line.startswith("FAIL severity: 2 fields are named Severity")
+    assert line.startswith("WARN severity: 2 fields are named Severity")
     assert "customfield_10040, customfield_10099" in line
     assert line.endswith("; ask: docs/admin-requests.md#jira-admin-incident-fields")
     assert read_env_file(env_file)["DEMO_SEVERITY_FIELD"] == ""
-    assert said.code == 1
-    assert said.lines[-1].startswith("NOT READY: severity: ")
+    assert said.code == 0, "the demo runs, its Incidents only lack the field"
+    assert said.lines[-1] == "READY"
 
 
-def test_a_missing_option_value_is_left_empty_and_names_the_admin_request(configure, env_file):
+def test_a_missing_option_value_is_left_empty_and_warns_naming_the_admin_request(
+    configure, env_file
+):
     jira = FakeJira()
     urgency = jira.named("Urgency")
     urgency["allowedValues"] = [v for v in urgency["allowedValues"] if v["value"] != "Medium"]
@@ -398,12 +402,12 @@ def test_a_missing_option_value_is_left_empty_and_names_the_admin_request(config
     said = configure(jira, "--write")
 
     (line,) = said.check("urgency")
-    assert line.startswith("FAIL urgency: Urgency (customfield_10041) does not offer Medium")
+    assert line.startswith("WARN urgency: Urgency (customfield_10041) does not offer Medium")
     assert "DEMO_URGENCY_FIELD is left empty and a Run leaves Urgency off" in line
     assert "jira-admin-incident-fields" in said.asks()
     assert read_env_file(env_file)["DEMO_URGENCY_FIELD"] == ""
     assert read_env_file(env_file)["DEMO_SEVERITY_FIELD"] == "customfield_10040", "the rest stand"
-    assert said.code == 1
+    assert said.code == 0
 
 
 def test_a_disabled_option_is_not_offered(configure):
@@ -414,7 +418,7 @@ def test_a_disabled_option_is_not_offered(configure):
 
     said = configure(jira)
 
-    assert said.level("source") == "FAIL"
+    assert said.level("source") == "WARN"
     assert "does not offer Monitoring systems" in said.check("source")[0]
 
 
@@ -428,8 +432,10 @@ def test_a_field_the_project_lacks_is_empty_so_a_run_leaves_it_off(configure, en
     said = configure(jira, "--write")
 
     (line,) = said.check("source")
-    assert line.startswith("FAIL source: no field named Source on the Incident create screen")
+    assert line.startswith("WARN source: no field named Source on the Incident create screen")
     assert "a Run leaves Source off" in line
+    assert line.endswith("; ask: docs/admin-requests.md#jira-admin-incident-fields")
+    assert said.code == 0 and said.lines[-1] == "READY"
     assert "- DEMO_SOURCE_FIELD=customfield_10042" in said.lines
     assert "+ DEMO_SOURCE_FIELD=" in said.lines
     assert read_env_file(env_file)["DEMO_SOURCE_FIELD"] == ""
@@ -441,7 +447,7 @@ def test_matching_is_by_exact_name(configure):
 
     said = configure(jira)
 
-    assert said.level("severity") == "FAIL"
+    assert said.level("severity") == "WARN"
 
 
 def test_a_field_named_like_ours_that_is_not_a_custom_field_is_not_taken(configure):
@@ -986,7 +992,7 @@ def test_a_refusal_with_no_json_is_folded_onto_one_line_with_a_next_step(configu
     assert 'Traceback (most recent call last): File "x", line 1 KeyError' in line
     assert line.endswith(
         "check that `jira-as --version` is 2.0.x and that .env's DEMO_PROJECT_KEY is the "
-        "project you mean (README, Prerequisites)"
+        "project you mean (README, What you need)"
     )
     for text in said.lines[:-1]:
         assert CHECK_LINE.match(text) or ENV_LINE.match(text) or DIFF_LINE.match(text), text

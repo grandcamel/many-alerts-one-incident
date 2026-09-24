@@ -232,11 +232,14 @@ def jira_as_environment(
     otherwise refuses, such as reading the site's fields or its server info. Both
     variables win over a `.claude/settings.json`: jira-as reads its settings file
     from the first `.claude` directory above its working directory, which in this
-    repo is the committed one allowing only `OPS`, but consults the file's
-    `allowed_projects` and `allow_site_operations` only when the variable is
-    absent (jira_as/config_manager.py:211-216 and 233-238). So the committed file
-    cannot veto a key set here, and the children run wherever the helper was
-    started rather than from a directory outside the repo.
+    repo is the committed one, but consults the file's `allowed_projects` and
+    `allow_site_operations` only when the variable is absent
+    (jira_as/config_manager.py:211-216 and 233-238). The committed file names no
+    project key at all (its jira block only allows site operations, and its
+    permission rules deny a Claude session Read and Edit of `./.env`), and even a
+    settings file that did name one could not veto a key set here. So the
+    children run wherever the helper was started rather than from a directory
+    outside the repo.
 
     PATH and HOME come from the shell, which is where `jira-as` and its cache
     are, and so do the trust-store variables, for a laptop behind an

@@ -27,12 +27,14 @@ a key `.env` lacks is appended under a marked block, and no other line is
 touched, the credential lines among them. A field it cannot pin down, because
 the project lacks it, two fields share its name, or it does not offer a value
 the Skill writes, is written empty, so a Run leaves it off rather than guess.
+That is a WARN, not a FAIL: the demo still runs, its Incidents only lack the
+field, and the line names the request that would add it.
 
 Every line it prints is one of these, for a person at a terminal and for the
 setup skill to parse:
 
     OK   <check>: <what it found>
-    WARN <check>: <what is off, and what that costs the demo>
+    WARN <check>: <what is off, what it costs>[; ask: docs/admin-requests.md#<anchor> ...]
     FAIL <check>: <what stops the demo>[; ask: docs/admin-requests.md#<anchor> ...]
     .env: not checked: <NAME>, ...; left as .env has them
     .env: up to date | .env: <n> change(s) planned; ... | .env: <n> change(s) written; ...
@@ -43,8 +45,10 @@ setup skill to parse:
 Each line is one line: whatever Jira or jira-as said is folded onto it. The
 `not checked` line comes first, and only when the check behind a key could not
 be made, so `.env` could not be compared there; `up to date` is printed only
-when every key was compared and none differs. Only a FAIL names an admin
-request, always as `docs/admin-requests.md#<anchor>`.
+when every key was compared and none differs. A FAIL names the admin request
+that fixes it, and so does the WARN for a Severity, Urgency or Source the Skill
+leaves off, where the request is optional; always as
+`docs/admin-requests.md#<anchor>`.
 
 READY and NOT READY are about the project, not about `.env`: whether `.env`
 already holds what the project said is the `.env:` line's to say, and a READY
@@ -65,7 +69,7 @@ if sys.version_info < (3, 11):  # noqa: UP036 - pyproject's floor is what this e
     sys.stderr.write(
         "python3 -m grafana_jsm_sandbox.configure needs Python 3.11 or newer, and this is "
         + sys.version.split()[0]
-        + ": run it with a newer python3 (README, Prerequisites)\n"
+        + ": run it with a newer python3 (README, What you need)\n"
     )
     raise SystemExit(2)
 
@@ -117,7 +121,8 @@ COMMAND = CONFIGURE
 OK = "OK"
 WARN = "WARN"
 FAIL = "FAIL"
-"""A check's level. Only FAIL stops the demo, and only FAIL names an admin request."""
+"""A check's level. Only FAIL stops the demo. A FAIL names the admin request that fixes it; a
+WARN names one only for a field the Skill leaves off, which an admin could add."""
 
 ADMIN_REQUESTS = "docs/admin-requests.md"
 """Where every request an engineer forwards to an admin is written out, ready to paste."""
@@ -388,7 +393,7 @@ def refused(name: str, failure: JiraRefused) -> Check:
             FAIL,
             name,
             f"jira-as refused the call: {said}; check that `jira-as --version` is 2.0.x and "
-            "that .env's DEMO_PROJECT_KEY is the project you mean (README, Prerequisites)",
+            "that .env's DEMO_PROJECT_KEY is the project you mean (README, What you need)",
         )
     if failure.status == 503 and UNREACHABLE in said:
         return Check(
@@ -608,7 +613,9 @@ def match_field(found: Discovery, site_field: SiteField, fields: list[dict]) -> 
     """The field's id when exactly one field has its name and offers every value; else empty.
 
     Empty is what the Skill reads as "this project lacks it", so a Run leaves the field off
-    instead of writing a value the create would refuse, or into the wrong field.
+    instead of writing a value the create would refuse, or into the wrong field. That
+    costs the Incident the field and nothing else, so it is a WARN naming the optional
+    request. A create screen that requires the field is `check_fields`'s FAIL.
     """
     named = [item for item in fields if item.get("name") == site_field.name]
     left = f"so {site_field.variable} is left empty and a Run leaves {site_field.name} off"
@@ -616,7 +623,7 @@ def match_field(found: Discovery, site_field: SiteField, fields: list[dict]) -> 
         return match_untouched(found, site_field, named)
     if not named:
         found.add(
-            FAIL,
+            WARN,
             site_field.check,
             f"no field named {site_field.name} on the {INCIDENT} create screen, {left}",
             INCIDENT_FIELDS,
@@ -625,7 +632,7 @@ def match_field(found: Discovery, site_field: SiteField, fields: list[dict]) -> 
     if len(named) > 1:
         ids = ", ".join(str(item.get("fieldId")) for item in named)
         found.add(
-            FAIL,
+            WARN,
             site_field.check,
             f"{len(named)} fields are named {site_field.name} on the {INCIDENT} create screen "
             f"({ids}), and which one is meant cannot be told, {left}",
@@ -635,7 +642,7 @@ def match_field(found: Discovery, site_field: SiteField, fields: list[dict]) -> 
     field_id = str(named[0].get("fieldId") or "")
     if not FIELD_ID.fullmatch(field_id):
         found.add(
-            FAIL,
+            WARN,
             site_field.check,
             f"{site_field.name} on the {INCIDENT} create screen is {field_id or 'unnamed'}, "
             f"not a custom field, {left}",
@@ -650,7 +657,7 @@ def match_field(found: Discovery, site_field: SiteField, fields: list[dict]) -> 
     lacking = [option for option in site_field.options if option not in offered]
     if lacking:
         found.add(
-            FAIL,
+            WARN,
             site_field.check,
             f"{site_field.name} ({field_id}) does not offer {', '.join(lacking)}, {left}",
             INCIDENT_FIELDS,
@@ -1092,7 +1099,7 @@ def main(
         found = discover(project.key, environment[SITE_URL_VARIABLE], jira_as)
     except FileNotFoundError:
         print(
-            "jira-as is not on PATH: install the Jira Assistant CLI 2.x (README, Prerequisites)",
+            "jira-as is not on PATH: install the Jira Assistant CLI 2.x (README, What you need)",
             file=sys.stderr,
         )
         return 2
