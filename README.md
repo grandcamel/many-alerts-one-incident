@@ -463,10 +463,19 @@ deletes.
 ## Running the tests
 
 Python 3.11 or newer. The runtime is standard library only; the dev dependencies are pytest
-and PyYAML, which the container checks use to read `docker-compose.yml`.
+and PyYAML, which the container checks use to read `docker-compose.yml`. In a virtualenv,
+`pip install -e '.[dev]'` installs both.
 
 ```bash
 python3 -m pytest
+```
+
+`--basic-demo` runs only the basic demo's tests (chapter one: the Receiver, the Forwarder, the
+Run and the laptop helpers) and never imports chapter two's code; `tests/conftest.py` lists the
+files:
+
+```bash
+python3 -m pytest --basic-demo
 ```
 
 The default run is offline: no Jira, no model, nothing but real HTTP on ephemeral ports and real

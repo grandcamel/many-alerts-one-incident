@@ -55,6 +55,9 @@ SEARCH_BODY_50 = (
 SEARCH_V1_DIGEST = "d416cc8619c619fe09b16796d7b87c515503e74ce6624f3a2d75570ce9d0692e"
 DENIAL_DIGEST_ISSUE_GET = "d25b40c66fc9a150a6337bf0aeb2f8bf783b8b2196511a76577a23a2aa0c14ae"
 
+# ssl names this option only from Python 3.12; on 3.11 it is OpenSSL's documented value.
+OP_LEGACY_SERVER_CONNECT = getattr(ssl, "OP_LEGACY_SERVER_CONNECT", 0x4)
+
 TRUST_STANDIN = ("5c8b39e14dbaa86a0d3aa5655bc6f88015319f5603cd7463ba3820887887b60f",)
 ENDPOINT_DIGEST_443 = "70b8b3d344d69be09c88244ad87b83d3928fae456b0f8ee7c52bb52c788eba21"
 ENDPOINT_DIGEST_8443 = "0360f89d6dd4f5c633bfa490d76129e4a1643746a65503d8ef589803b54b3d69"
@@ -295,6 +298,11 @@ def test_private_constants_are_pinned():
     assert fu._OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION == 0x0004_0000
     assert fu._CHANNEL_SOCKET_TYPE is ssl.SSLSocket
     assert not hasattr(ssl, "OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION")
+
+
+def test_the_legacy_server_connect_fallback_is_the_bit_ssl_names():
+    # On 3.12 and later this proves the 3.11 fallback, 0x4, is the bit ssl itself uses.
+    assert OP_LEGACY_SERVER_CONNECT == 0x4
 
 
 def test_shared_constants_match_their_owning_modules():
@@ -574,7 +582,7 @@ def test_build_context_settings_and_readback(real_ca_pem):
     assert context.options & ssl.OP_NO_RENEGOTIATION
     assert context.options & ssl.OP_NO_TICKET
     assert not context.options & ssl.OP_IGNORE_UNEXPECTED_EOF
-    assert not context.options & ssl.OP_LEGACY_SERVER_CONNECT
+    assert not context.options & OP_LEGACY_SERVER_CONNECT
     assert not context.options & fu._OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION
     assert context.keylog_filename is None
     assert context.post_handshake_auth is False
@@ -631,7 +639,7 @@ def test_verify_context_readback_accepts_a_correct_context():
         {"options": ssl.OP_NO_COMPRESSION | ssl.OP_NO_RENEGOTIATION},  # missing OP_NO_TICKET
         {"options": (
             ssl.OP_NO_COMPRESSION | ssl.OP_NO_RENEGOTIATION | ssl.OP_NO_TICKET
-            | ssl.OP_LEGACY_SERVER_CONNECT
+            | OP_LEGACY_SERVER_CONNECT
         )},
         {"options": (
             ssl.OP_NO_COMPRESSION | ssl.OP_NO_RENEGOTIATION | ssl.OP_NO_TICKET
@@ -721,7 +729,7 @@ _REAL_OPTIONS = ssl.SSLContext.options
 _REAL_MINIMUM_VERSION = ssl.SSLContext.minimum_version
 WEAKENED_READBACKS = {
     "adds-legacy-server-connect": {"options": property(
-        lambda self: _REAL_OPTIONS.__get__(self) | ssl.OP_LEGACY_SERVER_CONNECT,
+        lambda self: _REAL_OPTIONS.__get__(self) | OP_LEGACY_SERVER_CONNECT,
         _REAL_OPTIONS.__set__,
     )},
     "drops-no-ticket": {"options": property(

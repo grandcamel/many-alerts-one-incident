@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pytest
 
+from grafana_jsm_sandbox import replay as replay_module
 from grafana_jsm_sandbox.demo_config import compose_environment
 from grafana_jsm_sandbox.replay import SEQUENCE, default_receiver, main, replay
 from tests.conftest import FIXTURES
@@ -35,14 +36,35 @@ def test_the_sequence_arrives_in_order_and_starts_one_run_each(receiver, spawner
     assert [run.notification for run in spawner.spawned] == canned_sequence
 
 
-def test_the_pause_falls_between_the_notifications_and_not_after_the_last(receiver, spawner):
-    pause = 0.3
+def test_the_pause_falls_between_the_notifications_and_not_after_the_last(
+    receiver, spawner, monkeypatch
+):
+    # The order of posts and pauses, recorded rather than timed: a loaded machine
+    # stretches a wall clock, but it cannot reorder this.
+    happened = []
+    real_post = replay_module.post
+
+    def recording_post(url, notification):
+        happened.append("post")
+        return real_post(url, notification)
+
+    monkeypatch.setattr(replay_module, "post", recording_post)
+
+    replay(receiver.url, pause=30, sleep=lambda seconds: happened.append(("pause", seconds)))
+
+    assert happened == ["post", ("pause", 30), "post", ("pause", 30), "post"]
+    spawner.wait_for_spawns(3)
+
+
+def test_by_default_the_pause_is_really_waited_out(receiver, spawner):
+    # Only a lower bound: load can make a replay slower, never faster. That no
+    # pause follows the last post is the recorded order's job, above.
+    pause = 0.2
     started_at = time.monotonic()
 
     replay(receiver.url, pause=pause)
 
-    elapsed = time.monotonic() - started_at
-    assert 2 * pause <= elapsed < 3 * pause, "one pause between each pair, and none after the last"
+    assert time.monotonic() - started_at >= 2 * pause
     spawner.wait_for_spawns(3)
 
 

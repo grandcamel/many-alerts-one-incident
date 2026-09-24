@@ -22,7 +22,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 
 from grafana_jsm_sandbox.demo_config import ConfigurationError, compose_environment
@@ -87,14 +87,23 @@ def default_receiver(environment: Mapping[str, str] | None = None) -> str:
     return laptop_url(RECEIVER_HOST_PORT_VARIABLE, DEFAULT_RECEIVER_HOST_PORT, environment)
 
 
-def replay(receiver_url: str | None = None, pause: float = DEFAULT_PAUSE) -> list[int]:
-    """Post the canned sequence in order and return what the Receiver answered each time."""
+def replay(
+    receiver_url: str | None = None,
+    pause: float = DEFAULT_PAUSE,
+    *,
+    sleep: Callable[[float], None] = time.sleep,
+) -> list[int]:
+    """Post the canned sequence in order and return what the Receiver answered each time.
+
+    `sleep` is how the pause is waited out. A test hands in its own to see where each
+    pause falls between the posts, which a wall clock on a loaded machine cannot show.
+    """
     receiver_url = default_receiver() if receiver_url is None else receiver_url
     url = receiver_url.rstrip("/") + NOTIFICATION_PATH
     statuses = []
     for index, filename in enumerate(SEQUENCE):
         if index:
-            time.sleep(pause)
+            sleep(pause)
         status = post(url, (FIXTURES / filename).read_bytes())
         logger.info("posted %s, receiver said %s", filename, status)
         statuses.append(status)
