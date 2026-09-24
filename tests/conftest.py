@@ -58,6 +58,7 @@ BASIC_DEMO_TESTS = frozenset(
         "test_run_spawner.py",
         "test_skill_template.py",
         "test_startup.py",
+        "test_verify.py",
     }
 )
 """The test files the basic demo needs, and the only ones `--basic-demo` collects on its own.

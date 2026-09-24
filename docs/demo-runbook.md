@@ -130,6 +130,9 @@ minute except the first.
 `python3 -m grafana_jsm_sandbox.doctor` asks most of these questions in one pass, from the
 laptop's tools through `.env`, Jira and the stack to the running Grafana, and ends `READY` or
 `NOT READY: <first blocker>`. It changes nothing, so the reset below is still a step of its own.
+`python3 -m grafana_jsm_sandbox.verify` (the replay) or `verify --live` rehearses one whole
+lifecycle and names the stage that did not come; run it well before, not in these fifteen
+minutes, because it leaves a Completed Incident behind and, live, takes the rule through Firing.
 
 1. **Stack up.** `docker compose ps` shows four services running and `demo` healthy. If not:
 
@@ -193,8 +196,8 @@ laptop's tools through `.env`, Jira and the stack to the running Grafana, and en
 
 5. **Eyes.** Grafana's list shows the rule **Normal**. The Incidents queue shows nothing a Run
    made. The log's last lines are a `receiver listening` or a finished Run, not a Run in
-   progress. Nothing else is posting at the Receiver: no replay, no end-to-end test in another
-   shell.
+   progress. Nothing else is posting at the Receiver: no replay, no `verify`, no end-to-end test
+   in another shell.
 
 **If the reset names an Incident as stuck.** A `Canceled` or `Closed` Incident with no
 resolution stays in the queue, because the queue filters on resolution and no transition on

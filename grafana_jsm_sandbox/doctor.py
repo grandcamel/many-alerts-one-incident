@@ -1461,18 +1461,25 @@ def series_line(base: str, rule: dict) -> Line:
     return Line(GRAFANA, OK, "series", f"the rule's query matches {len(series)} series")
 
 
-def state_line(base: str, rule: dict) -> Line:
+def rule_states(base: str, uid: object) -> list[str]:
+    """What Grafana last evaluated rule `uid` to, one state per rule with that uid (normally
+    one): `inactive` (Normal), `pending` or `firing`. Empty before its first evaluation, and a
+    rule listed without a state counts as not evaluated. `verify` watches the same."""
     groups = as_list(
         as_dict(as_dict(ask_grafana(base, "/api/prometheus/grafana/api/v1/rules")).get("data")).get(
             "groups"
         )
     )
-    states = [
-        as_dict(evaluated).get("state")
+    return [
+        str(as_dict(evaluated)["state"])
         for group in groups
         for evaluated in as_list(as_dict(group).get("rules"))
-        if as_dict(evaluated).get("uid") == rule.get("uid")
+        if as_dict(evaluated).get("uid") == uid and as_dict(evaluated).get("state") is not None
     ]
+
+
+def state_line(base: str, rule: dict) -> Line:
+    states = rule_states(base, rule.get("uid"))
     if states == ["inactive"]:
         return Line(GRAFANA, OK, "state", "the rule is Normal")
     if not states:
