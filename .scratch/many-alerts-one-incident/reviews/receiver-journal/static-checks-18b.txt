@@ -1,0 +1,20 @@
+Unit 18b static checks, 2026-09-24
+
+ruff check grafana_jsm_sandbox tests
+All checks passed!
+
+awk length > 100 on four new Python files
+No matching lines.
+
+rg trailing whitespace on new source, tests, docs and plans
+No matching lines.
+
+git diff --check
+No errors.
+
+All 17b and 18a validation artifact and protected-dirty SHA-256 maps
+PASS before code commit.
+
+Repository-wide ruff check . is not the code gate: it reports 63 existing
+errors in historical .scratch scripts and the protected panel. Those files
+were not edited or staged. The application source and test tree passes.

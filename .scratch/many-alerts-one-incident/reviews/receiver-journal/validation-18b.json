@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "unit": "18b",
+  "status": "PASS_LOCAL_PURE_SYNTHETIC_ACCOUNTING_TRANSITION",
+  "baseline_commit": "11834600c712cf3f9851a989ed4c8e82fd4d806c",
+  "evidence_scope": "source/static, pure synthetic event transition and replay only",
+  "full_suite": {
+    "passed": 5100,
+    "skipped": 39,
+    "seconds": 348.54,
+    "exit": 0,
+    "command": "env -u DEMO_END_TO_END -u DEMO_CONTAINER pytest -q -p no:cacheprovider"
+  },
+  "focused_suite": {
+    "passed": 161,
+    "exit": 0,
+    "non_loopback_attempts": [],
+    "command": "python3 /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_accounting_events.py tests/test_accounting_transition.py tests/test_accounting_policy.py"
+  },
+  "static_checks": {
+    "ruff_application_and_tests": "PASS",
+    "line_length_new_python": "PASS",
+    "trailing_whitespace": "PASS",
+    "git_diff_check": "PASS",
+    "repository_wide_ruff": "PRE_EXISTING_SCRATCH_ERRORS"
+  },
+  "reviews": {
+    "design_critic": "ACCEPT_LOCAL_PURE_PLAN",
+    "source_review": "NO_REMAINING_P0_P1",
+    "final": "ACCEPT_LOCAL_PURE"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "full_run_inputs": {
+    "grafana_jsm_sandbox/accounting_events.py": "80d5fac6d2bfbe20aa53f12a6e44d2c372ca9b2dfbeac817a49455be6bfbb77d",
+    "grafana_jsm_sandbox/accounting_transition.py": "05c414d35960d7e5197a8ca4191ac16f5899dd95843f19d3cc3a1b4358cbd2d6",
+    "tests/test_accounting_events.py": "7482833b46974e85e6cae3a6b3c0a21affecdf288593a189118745c86e9d235a",
+    "tests/test_accounting_transition.py": "3f4a646e177228bbba06b31377aa8d919df75857aa0055d2928af39711751aee"
+  },
+  "artifacts": {
+    "grafana_jsm_sandbox/accounting_events.py": "80d5fac6d2bfbe20aa53f12a6e44d2c372ca9b2dfbeac817a49455be6bfbb77d",
+    "grafana_jsm_sandbox/accounting_transition.py": "05c414d35960d7e5197a8ca4191ac16f5899dd95843f19d3cc3a1b4358cbd2d6",
+    "tests/test_accounting_events.py": "7482833b46974e85e6cae3a6b3c0a21affecdf288593a189118745c86e9d235a",
+    "tests/test_accounting_transition.py": "3f4a646e177228bbba06b31377aa8d919df75857aa0055d2928af39711751aee",
+    "docs/accounting-transition.md": "1a2b49bc8c0e37a23fd38b4786c3c7c84619e31e76f846fbf05af7f6af7ced4d",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/next-accounting-transition-design.md": "1f41c61f304caa5faee7eaa346af8f5e11cf0973e80d667296359ee0dd9ebad8",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18b.md": "d1df1adec19cc14282e1d4c0ce7a541ad0ce0e167408a0d2758c0aad7dc2c8a3",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-18b.md": "ec3edd1dfd1eeef48951b63c1c69a620aafd9b3acbb917cf607a82e1fac392dc",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/outcome-18b.md": "937c79a3ece2463e3b1e2763bb968e5dd14a26754ec5e8882014cd89cef3ebf0",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/focused-tests-18b.txt": "cdb9c923906325e75146d450bfbd5f413e8a1d02f1ac39587253fdd8e0cd0332",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/full-suite-18b.txt": "4436a572d3c154f713645280ba74afdd781fc29212bc123574fdc54624f84ac1",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/static-checks-18b.txt": "84364e35c510cb26c01ee2c6234189cd5d7a0319a66c893b5a5ec29222db5807"
+  },
+  "not_qualified": [
+    "durable accounting reservation",
+    "trusted opening history or provider coverage",
+    "concurrent writer or cross-store recovery",
+    "Run launch",
+    "native/provider/tenant/venue/paid execution",
+    "human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}
