@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-24",
+  "status": "PASS_LOCAL_RECOVERY_JOURNAL_FRONT_DOOR_EXTENSIONS",
+  "unit": "17a",
+  "baseline_commit": "b931610",
+  "baseline_full_suite": {
+    "passed": 4443,
+    "skipped": 38,
+    "seconds": 236.96
+  },
+  "focused_tests": {
+    "passed": 1492,
+    "skipped": 29,
+    "seconds": 118.83,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/receiver-journal/focused-tests-17a.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q -p no:cacheprovider",
+    "passed": 4786,
+    "skipped": 38,
+    "seconds": 359.84,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/receiver-journal/full-suite-17a.txt"
+  },
+  "existing_tests_byte_identical": true,
+  "existing_modules_changed": [
+    "grafana_jsm_sandbox/journal_records.py",
+    "grafana_jsm_sandbox/journal_reducer.py",
+    "grafana_jsm_sandbox/recovery_journal.py"
+  ],
+  "legacy_identity_diff_empty": true,
+  "size": {
+    "added_lines": {
+      "journal_records.py": 244,
+      "journal_reducer.py": 222,
+      "recovery_journal.py": 472,
+      "total": 938
+    },
+    "split_trigger": 625,
+    "assessment": "938 added source lines against the 625 split trigger, so 17a is committed alone as planned; recovery_journal.py is 1,098 lines, accepted by the final reviewer; the split seam (verify-only inspect into journal_inspect.py) is left for 17b"
+  },
+  "review": {
+    "orchestration": "Workflow wf_bf03fcc5-d45 (implementer, T1 drafter and finalizer, five lenses, verify, fix loop, mutation sweep, gap agent)",
+    "workflow_agents": 75,
+    "residue_agents": 2,
+    "lens_rounds": 3,
+    "round_findings": {
+      "r1": {
+        "raw": 44,
+        "merged": 21,
+        "confirmed": 20
+      },
+      "r2": {
+        "raw": 20,
+        "merged": 14,
+        "confirmed": 14
+      },
+      "r3": {
+        "raw": 18,
+        "merged": 15,
+        "confirmed": 15
+      }
+    },
+    "source_fixes": [
+      "F1-1 members_omitted exact int",
+      "F1-2 inspect report JSON-serializable",
+      "F1-5 inspect pre-check custody via journal_store._check_directory",
+      "F1-18 validator codes record_field",
+      "F2-1 replay re-checks resumable hold",
+      "F2-7 mono regression at resume is journal_clock_invalid"
+    ],
+    "mutation_sweep": {
+      "mutants": 117,
+      "killed": 94,
+      "survived": 23,
+      "important": 22,
+      "closed_by_gap_agent": 22
+    },
+    "residue_items_closed": 10,
+    "final_reviewer_differential_envelopes": 60075,
+    "final_reviewer_old_type_differences": 0,
+    "final_reviewer_mutants": {
+      "total": 41,
+      "killed_before_items": 37,
+      "killed_after_items": 41
+    },
+    "new_tests_in_two_files": 343,
+    "final_verdict": "PASS",
+    "addendum_verdict": "PASS",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "implementation_models": "claude-sonnet-5 implementer, testers, verifiers and gap agent; claude-opus-5-5 designers, judges, synthesizer, critic, lens reviewers, fixer, mutation reviewer and final reviewer",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-17a.md"
+  },
+  "golden": {
+    "file": "tests/data/recovery_journal_v1_front_door_golden.jsonl",
+    "records": 14,
+    "commits": 11,
+    "state_digest": "d582afc458233c80333f9d85d1ca8da49f5de206985f6bdded609a363a174d28",
+    "head_record_digest": "62337c4c304b711c0c5341cdfcd91fe1a07f868e5e98db46b9a53b8c58bb264f",
+    "pending_digest": "c46d5a754d5ab9664e73e9db913e73c772e69c8ae2d0fd808f51886cadf6aae5",
+    "front_door_digest": "b1c826acaa092029b5418cf08990957d8787c497dcf8be8df7122f7d49f48452",
+    "root_recomputed": true
+  },
+  "ruff": "PASS",
+  "line_length": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/journal_records.py": "5c1d7e7b9a29cd15b84a33242af92824b80027ee49bac82f5c4807afbfb86eb6",
+    "grafana_jsm_sandbox/journal_reducer.py": "3ccd4f661ecbbb95e8d542443bb7274be7b1337c3415764907b2ec2c60b080bc",
+    "grafana_jsm_sandbox/recovery_journal.py": "9608c5887d4bf32bccec175db7ac62d030632f0054ce1c00a5f76e4591057bff",
+    "tests/test_journal_front_door_records.py": "856deca4c3ef93a03d32d7e7214212da721d4a8e57c35dff205e99b4320fd79e",
+    "tests/test_recovery_journal_front_door.py": "044b9f42e0bfd0cb3e2aec9e984ec2d59adc0f48caff0cd40c677d68294bef1a",
+    "tests/data/recovery_journal_v1_front_door_golden.jsonl": "1a193ed4bdd9586677c9f08106b72a5137f895fc34034b69162c9d33015447d1",
+    "docs/recovery-journal.md": "42f74109180c8d33e62cdd692ce3516f4638b091a3c19b4ffe1641999d963900",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "0dd117a9bd60cd0a326624d3d81e5cda7a366665fbbe6ef8b366b0e09855c5f9",
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "61d7d3e28592b4dd10982da7c72f04e3f3f678c6b40b6d7b3ef3035259f06e73",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan.md": "c260c65003cf5f392315f65be0e33a68a8e73bad1e7ddb6b57c17f0c45965667",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-17a.md": "fbe8ec1068000692d9b35d868c4e3d494e9e1db2e0bb2eb8b9b2821b9258fd7c",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/outcome-17a.md": "c477a701cbff7ff894a31916fad6771e9f658defa63792145bf428d439aafd96",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/focused-tests-17a.txt": "a336ca349466d547a6c5dc87fe9f2673e0eab6f4731b51e119f3690ac72d839d",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/full-suite-17a.txt": "f4cbad024d322e0fcce5586fc4416cab471d9d51ddf5000c72df1c1e14460ecc"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "the journaled front door, body spool and operator CLI (unit 17b), and any Receiver integration",
+    "dispatch, Runs, effects, accounting, reset, retention and reconstruction",
+    "operator actions other than resume at open; token and operator label are not authentication",
+    "Grafana refusal handling and resend behaviour",
+    "ratification of the new record types, rules, limits and codes"
+  ],
+  "publication": "LOCAL_ONLY"
+}

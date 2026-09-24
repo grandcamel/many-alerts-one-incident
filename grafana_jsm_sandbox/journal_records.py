@@ -46,12 +46,18 @@ V1_BOUND_CEILINGS = MappingProxyType({
 EVENT_TYPES = (
     "journal_genesis", "restart_recovery", "capacity_hold", "admission", "dedupe_decision",
 )
+# The front door's two record types (unit 17). EVENT_TYPES stays the unit-15
+# five-tuple: F3 replays a journal holding only those and asserts the set.
+FRONT_DOOR_EVENT_TYPES = ("ingress_refusal", "operator_action")
+REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
     "restart_recovery": "recovery",
     "capacity_hold": "recovery",
     "admission": "ordinary",
     "dedupe_decision": "ordinary",
+    "ingress_refusal": "ordinary",
+    "operator_action": "recovery",
 })
 
 ACTORS = ("receiver", "spawner", "forwarder", "operator")
@@ -70,6 +76,40 @@ DISPATCH_HOLD_CODES = CAPACITY_CODES + ("restart_recovery",)
 
 RECORD_TAG = "rj.record.v1"
 CONTENT_TAG = "rj.content.v1"
+
+# --- Front-door constants (unit 17), restated because A12 pins the imports:
+# journal_records may not import journal_ingress, so the values it enforces
+# here are independent copies, held in step by parity test A5. ------------
+
+REFUSAL_RULE = "first-per-membership-v1"
+MAX_REFUSAL_RECORDS = 256
+REFUSAL_RESOLVED_RESERVE = 64
+INGRESS_REFUSAL_CODES_V1 = tuple(sorted((
+    "ingress_too_large", "ingress_json_invalid", "ingress_shape", "ingress_group_key",
+    "ingress_truncated", "ingress_fingerprint", "ingress_status", "ingress_values",
+    "ingress_duplicate_fingerprint", "ingress_json_unsupported", "ingress_group_key_unsupported",
+    "ingress_ref_id_unsupported", "ingress_too_many_alerts", "ingress_too_many_values",
+    "ingress_record_too_large", "ingress_divergence",
+)))
+OPERATOR_ACTIONS = ("resume",)
+RESUME_RULE = "resume-at-open-v1"
+RESUMABLE_HOLDS = ("restart_recovery",)
+
+# Private copies of journal_ingress/journal_source vocabulary the strict
+# refusal-summary checker needs; never imported (A12's import pin).
+_MEMBER_CODES = frozenset({
+    "ingress_group_key_unsupported", "ingress_ref_id_unsupported", "ingress_too_many_alerts",
+    "ingress_too_many_values", "ingress_record_too_large",
+})
+_NO_GROUP_CODES = frozenset({
+    "ingress_too_large", "ingress_json_invalid", "ingress_json_unsupported", "ingress_group_key",
+})
+_ALERT_STATUSES = ("firing", "resolved")
+_MAX_ALERTS = 32
+_MAX_REFUSAL_MEMBERS = 32
+_MAX_JSON_ARRAY_ITEMS = 256
+_MAX_REFUSAL_JSON_BYTES = 4_096
+_MAX_INGRESS_BODY_BYTES = 262_144
 
 RECORD_ERROR_CODES = frozenset({
     "record_argument", "record_digest", "record_json", "record_not_canonical",
@@ -284,6 +324,17 @@ _DEDUPE_DATA_KEYS = frozenset({
 _BASELINE_KEYS = frozenset({"admission_id", "complete", "dedupe_key"})
 _SUPERSEDED_ENTRY_KEYS = frozenset({"admission_id", "fingerprint"})
 
+_INGRESS_REFUSAL_DATA_KEYS = frozenset({"rule", "summary", "refusal_key", "refusal_seq"})
+_REFUSAL_SUMMARY_KEYS = frozenset({
+    "alerts", "body_bytes", "body_digest", "code", "members", "members_omitted",
+    "refused_group", "resolved", "source_group",
+})
+_OPERATOR_ACTION_DATA_KEYS = frozenset({
+    "action", "rule", "hold", "since_commit_seq", "inspected", "pending_digest",
+    "operator", "reason",
+})
+_INSPECTED_KEYS = frozenset({"commit_seq", "event_seq", "record_digest"})
+
 
 # The per-type validators below share a handful of two-line "check shape or
 # fail with a fixed code" patterns often enough to earn one-line helpers.
@@ -426,21 +477,191 @@ def _validate_dedupe_decision(ids: object, data: object, event_id: str) -> None:
     _require_bound_int(data["pending_count_after"], 0, MAX_SEQ, "record_field")
 
 
+def _int_in(value: object, low: int, high: int) -> bool:
+    return type(value) is int and low <= value <= high
+
+
+def _refusal_groups_ok(summary: dict) -> bool:
+    """Port of ``journal_ingress._groups_ok`` (A5, A6 pin the parity)."""
+    source_group, refused_group = summary["source_group"], summary["refused_group"]
+    if not all(v is None or _hex64_ok(v) for v in (source_group, refused_group)):
+        return False
+    count = (source_group is not None) + (refused_group is not None)
+    code = summary["code"]
+    if code in _NO_GROUP_CODES:
+        return count == 0
+    if code == "ingress_group_key_unsupported":
+        return source_group is None and refused_group is not None
+    if code in _MEMBER_CODES or (code == "ingress_divergence" and summary["alerts"] is not None):
+        return source_group is not None and refused_group is None
+    if code in ("ingress_shape", "ingress_divergence"):
+        return count <= 1
+    return count == 1
+
+
+def _refusal_members_ok(summary: dict) -> bool:
+    """Port of ``journal_ingress._members_ok`` (A5, A6 pin the parity)."""
+    alerts_count, resolved = summary["alerts"], summary["resolved"]
+    members, omitted, code = summary["members"], summary["members_omitted"], summary["code"]
+    if alerts_count is None:
+        return (
+            resolved is None and type(members) is tuple and not members
+            and omitted == 0 and code not in _MEMBER_CODES
+        )
+    if code not in _MEMBER_CODES and code != "ingress_divergence":
+        return False
+    if not (_int_in(alerts_count, 1, _MAX_JSON_ARRAY_ITEMS) and _int_in(resolved, 0, alerts_count)):
+        return False
+    # The alert-count check runs before the value and record checks.
+    if code == "ingress_too_many_alerts":
+        if alerts_count <= _MAX_ALERTS:
+            return False
+    elif code in (
+        "ingress_too_many_values", "ingress_record_too_large", "ingress_divergence",
+    ) and alerts_count > _MAX_ALERTS:
+        return False
+    if type(members) is not tuple or len(members) != min(alerts_count, _MAX_REFUSAL_MEMBERS):
+        return False
+    if omitted != alerts_count - len(members):
+        return False
+    for member in members:
+        if not (
+            type(member) is tuple and len(member) == 2
+            and type(member[0]) is str and _FINGERPRINT_PATTERN.fullmatch(member[0])
+            and type(member[1]) is str and member[1] in _ALERT_STATUSES
+        ):
+            return False
+    keys = [(member[1] != "resolved", member[0]) for member in members]
+    if any(keys[index] >= keys[index + 1] for index in range(len(keys) - 1)):
+        return False
+    if len({member[0] for member in members}) != len(members):
+        return False
+    listed_resolved = sum(1 for member in members if member[1] == "resolved")
+    return listed_resolved == min(resolved, len(members))
+
+
+def _check_refusal_summary(value: object) -> None:
+    """Strict refusal-summary checker (critic 4): the v1 convention only,
+    ``members`` a tuple of 2-tuples. Called at seal and at decode alike.
+    """
+    if not _exact_keys_ok(value, _REFUSAL_SUMMARY_KEYS):
+        _fail_record("record_field")
+    code = value["code"]
+    if type(code) is not str or code not in INGRESS_REFUSAL_CODES_V1:
+        _fail_record("record_field")
+    # refusal_to_json's own type gate: the member checks below only compare
+    # values, and a bool there would pass them yet change the refusal key.
+    if type(value["members_omitted"]) is not int:
+        _fail_record("record_field")
+    if code == "ingress_too_large":
+        body_ok = (
+            _int_in(value["body_bytes"], _MAX_INGRESS_BODY_BYTES + 1, MAX_SEQ)
+            and value["body_digest"] is None
+        )
+    else:
+        body_ok = (
+            _int_in(value["body_bytes"], 0, _MAX_INGRESS_BODY_BYTES)
+            and _hex64_ok(value["body_digest"])
+        )
+    if not body_ok:
+        _fail_record("record_field")
+    if not _refusal_groups_ok(value):
+        _fail_record("record_field")
+    if not _refusal_members_ok(value):
+        _fail_record("record_field")
+    json_code: str | None = None
+    try:
+        encoded = canonical_json(value, ascii_only=True)
+    except JSONPolicyError:
+        json_code = "record_field"
+    if json_code is not None:
+        _fail_record(json_code)
+    if len(encoded) > _MAX_REFUSAL_JSON_BYTES:
+        _fail_record("record_field")
+
+
+def refusal_summary_data(summary: object) -> dict:
+    """The normalizer (critic 4): accepts ``members`` as a list or tuple of
+    lists or tuples (``refusal_to_json``'s own output shape), rebuilds a new
+    dict with tuples, checks it strictly, and returns it. Called only by
+    ``RecoveryJournal.record_refusal`` before sealing, so the sealed
+    ``Record.data`` equals what a normalized, already-tupled summary decodes
+    to (J2-OF-7).
+    """
+    if type(summary) is not dict or summary.keys() != _REFUSAL_SUMMARY_KEYS:
+        _fail_record("record_field")
+    members = summary["members"]
+    if type(members) is not list and type(members) is not tuple:
+        _fail_record("record_field")
+    normalized_members = []
+    for member in members:
+        if (type(member) is not list and type(member) is not tuple) or len(member) != 2:
+            _fail_record("record_field")
+        normalized_members.append((member[0], member[1]))
+    normalized = dict(summary, members=tuple(normalized_members))
+    _check_refusal_summary(normalized)
+    return normalized
+
+
+def _validate_ingress_refusal(ids: object, data: object, event_id: str) -> None:
+    _require_empty_ids(ids)
+    if type(data) is not dict or "rule" not in data:
+        _fail_record("record_field")
+    _require_literal(data["rule"], REFUSAL_RULE, "record_unsupported")
+    _require_keys(data, _INGRESS_REFUSAL_DATA_KEYS)
+    _check_refusal_summary(data["summary"])
+    _require_hex64(data["refusal_key"])
+    _require_bound_int(data["refusal_seq"], 1, MAX_REFUSAL_RECORDS, "record_field")
+
+
+def _validate_operator_action(ids: object, data: object, event_id: str) -> None:
+    _require_empty_ids(ids)
+    if type(data) is not dict or "rule" not in data:
+        _fail_record("record_field")
+    _require_literal(data["rule"], RESUME_RULE, "record_unsupported")
+    _require_keys(data, _OPERATOR_ACTION_DATA_KEYS)
+    _require_enum(data["action"], OPERATOR_ACTIONS)
+    _require_enum(data["hold"], RESUMABLE_HOLDS)
+    _require_bound_int(data["since_commit_seq"], 2, MAX_SEQ, "record_field")
+    inspected = _require_keys(data["inspected"], _INSPECTED_KEYS)
+    _require_bound_int(inspected["commit_seq"], 1, MAX_SEQ, "record_field")
+    _require_bound_int(inspected["event_seq"], 1, MAX_SEQ, "record_field")
+    _require_hex64(inspected["record_digest"])
+    _require_hex64(data["pending_digest"])
+    # The ID grammar, but as data fields: record_field, not validate_id's record_id.
+    for key in ("operator", "reason"):
+        if type(data[key]) is not str or not _ID_PATTERN.fullmatch(data[key]):
+            _fail_record("record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
-    "journal_genesis": _validate_journal_genesis,
-    "restart_recovery": _validate_restart_recovery,
-    "capacity_hold": _validate_capacity_hold,
-    "admission": _validate_admission,
-    "dedupe_decision": _validate_dedupe_decision,
+    ("journal_genesis", 1): _validate_journal_genesis,
+    ("restart_recovery", 1): _validate_restart_recovery,
+    ("capacity_hold", 1): _validate_capacity_hold,
+    ("admission", 1): _validate_admission,
+    ("dedupe_decision", 1): _validate_dedupe_decision,
+    ("ingress_refusal", 1): _validate_ingress_refusal,
+    ("operator_action", 1): _validate_operator_action,
 })
+TYPE_ACTORS = MappingProxyType({
+    ("journal_genesis", 1): "receiver",
+    ("restart_recovery", 1): "receiver",
+    ("capacity_hold", 1): "receiver",
+    ("admission", 1): "receiver",
+    ("dedupe_decision", 1): "receiver",
+    ("ingress_refusal", 1): "receiver",
+    ("operator_action", 1): "operator",
+})
+SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
 
 def _validate_envelope(envelope: object) -> None:
     if type(envelope) is not dict or envelope.keys() != _ENVELOPE_KEYS:
         _fail_record("record_field")
-    if type(envelope["schema_version"]) is not int:
+    schema_version = envelope["schema_version"]
+    if type(schema_version) is not int:
         _fail_record("record_type")
-    if envelope["schema_version"] != SCHEMA_VERSION:
+    if schema_version not in SCHEMA_VERSIONS:
         _fail_record("record_unsupported")
     _require_bound_int(envelope["journal_generation"], 1, MAX_GENERATION, "record_field")
     event_id = validate_id(envelope["event_id"])
@@ -453,10 +674,11 @@ def _validate_envelope(envelope: object) -> None:
     if not 0 <= commit_index < commit_size:
         _fail_record("record_field")
     event_type = envelope["event_type"]
-    if type(event_type) is not str or event_type not in EVENT_TYPES:
+    type_key = (event_type, schema_version)
+    if type(event_type) is not str or type_key not in _TYPE_VALIDATORS:
         _fail_record("record_unsupported")
     actor = envelope["actor"]
-    if type(actor) is not str or actor not in ACTORS or actor != "receiver":
+    if type(actor) is not str or actor not in ACTORS or actor != TYPE_ACTORS[type_key]:
         _fail_record("record_field")
     validate_id(envelope["boot_id"])
     _require_wall_time(envelope["wall_time"])
@@ -464,7 +686,7 @@ def _validate_envelope(envelope: object) -> None:
     prev_digest = _require_hex64(envelope["prev_record_digest"])
     if (event_seq == 1) != (prev_digest == ZERO_DIGEST):
         _fail_record("record_field")
-    _TYPE_VALIDATORS[event_type](envelope["ids"], envelope["data"], event_id)
+    _TYPE_VALIDATORS[type_key](envelope["ids"], envelope["data"], event_id)
 
 
 # --- Encode, digest, decode ----------------------------------------------------
@@ -594,16 +816,27 @@ __all__ = [
     "DEDUPE_RULE",
     "DISPATCH_HOLD_CODES",
     "EVENT_TYPES",
+    "FRONT_DOOR_EVENT_TYPES",
     "IDENTITY_KEYS",
+    "INGRESS_REFUSAL_CODES_V1",
     "MAX_COMMIT_RECORDS",
     "MAX_GENERATION",
     "MAX_ID_BYTES",
     "MAX_RECORD_BYTES",
+    "MAX_REFUSAL_RECORDS",
     "MAX_SEQ",
+    "OPERATOR_ACTIONS",
     "RECORD_CLASS",
     "RECORD_ERROR_CODES",
     "RECORD_TAG",
+    "REFUSAL_RESOLVED_RESERVE",
+    "REFUSAL_RULE",
+    "REGISTERED_EVENT_TYPES",
+    "RESUMABLE_HOLDS",
+    "RESUME_RULE",
     "SCHEMA_VERSION",
+    "SCHEMA_VERSIONS",
+    "TYPE_ACTORS",
     "V1_BOUND_CEILINGS",
     "ZERO_DIGEST",
     "Draft",
@@ -617,6 +850,7 @@ __all__ = [
     "decode_record",
     "format_wall_time",
     "open_record",
+    "refusal_summary_data",
     "seal",
     "thaw",
     "validate_id",

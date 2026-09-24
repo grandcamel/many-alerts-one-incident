@@ -60,4 +60,15 @@ closed-code refusal. Every 400-class check runs before any member-level 422, and
 each 422 names its lost members, Resolved first. All 115 captures admit, and the
 full suite reports 4443 passed, 38 skipped. Receiver integration with operator
 resume, refusal persistence, Run and effect records, accounting, reset and
-reconstruction remain open. This ticket stays open.
+reconstruction remain open.
+
+Unit [17a](../reviews/receiver-journal/outcome-17a.md) adds the journal side of
+the Receiver integration, which the user chose to make opt-in:
+- durable `ingress_refusal` records under the flood rule `first-per-membership-v1`;
+- `operator_action` resume at open, which clears only `restart_recovery`;
+- a verify-only inspect.
+
+Replay re-derives every field of both new records. The full suite reports
+4786 passed, 38 skipped. The body spool, the journaled front door (unit 17b),
+Run and effect records, accounting, reset and reconstruction remain open. This
+ticket stays open.

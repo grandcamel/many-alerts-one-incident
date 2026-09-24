@@ -10,7 +10,9 @@ The journal is built in layers: `journal_source` (the sanitized source record),
 `journal_records` (the record envelope), `journal_store` (SQLite and the
 anchor), `journal_reducer` (a pure fold that makes every decision) and
 `recovery_journal` (the shell: `create`, `open`, `admit`, holds and the
-snapshot).
+snapshot). Unit 17a adds three journal-level pieces for the later journaled
+front door: durable ingress refusal records, operator resume at open, and a
+verify-only inspect. The front door itself does not exist yet.
 
 Every limit, field name, code string and storage setting below is a proposed
 routine choice under review (ticket-37 specification L341-347). The
@@ -44,7 +46,8 @@ lists the ones that freeze into v1 records and need ratification.
 **Operator rules.** `create` is explicit, and the code never deletes a file.
 Recovering from a failed create means removing the journal's files by hand.
 Back up the whole directory, because recent commits may live only in the WAL.
-Never edit the files; inspect a live journal only through its snapshot.
+Never edit the files. Inspect a live journal only through its snapshot, and a
+stopped one with `inspect_recovery_journal` (see "Verify-only inspect").
 
 ## Settings and what a commit proves
 
@@ -138,9 +141,20 @@ Every record is canonical ASCII JSON with exactly 15 envelope keys:
 SHA-256 (`rj.record.v1`) of the exact body bytes and chains each record to its
 predecessor. `content_digest` covers the schema version, generation, event ID,
 type, actor, identities and data but not positions, stamps or the predecessor,
-so an exact retry of a commit can be recognised. The record types in scope are
+so an exact retry of a commit can be recognised. The record types are
 `journal_genesis`, `admission`, `dedupe_decision`, `capacity_hold` and
-`restart_recovery`.
+`restart_recovery` (unit 15), plus `ingress_refusal` and `operator_action`
+(unit 17a).
+
+A record is accepted only if its `(event_type, schema_version)` pair is
+registered, and its actor must be the one registered for that pair:
+`operator` for `operator_action`, `receiver` for every other type. For the five
+unit-15 types these checks accept and reject exactly as before, at the same
+positions and with the same codes. An older binary therefore meets a new type,
+and this binary meets a `schema_version: 2` record of any type, as
+`record_unsupported`. On open, that is the process hold
+`journal_schema_unsupported`, which is never persisted. Every stored
+`schema_version` is still 1.
 
 Stored rows are verified in a fixed order: the raw-byte digest before any
 parsing, then a strict parse, the chain link, the columns against the body, and
@@ -220,10 +234,103 @@ journal is wired in, the repeat is suppressed.
   `journal_open_failed`, `journal_schema_unsupported`, `journal_write_failed`,
   `journal_clock_invalid`, `journal_divergence` and `journal_capacity_recovery`.
 - **Dispatch holds** leave admission running: `restart_recovery` after every
-  open, and one capacity code per exhausted bound. Nothing clears them yet.
+  open, and one capacity code per exhausted bound. An operator resume at open
+  clears `restart_recovery`; the capacity holds stay.
 
-Every code is retryable backpressure for the later Receiver integration, except
-`source_invalid`, which is a caller bug.
+Every code `admit` raises is retryable backpressure for the later Receiver
+integration, except `source_invalid`, which is a caller bug. The unit-17a codes
+are not backpressure: `refusal_invalid` and `resume_invalid` are caller errors,
+and `resume_stale` means inspect again.
+
+## Refusal records
+
+`record_refusal(summary)` records one ingress refusal. The summary is the
+nine-key output of `journal_ingress.refusal_to_json`. It returns one of
+`REFUSAL_OUTCOMES`:
+- `recorded`: one `ingress_refusal` commit.
+- `coalesced`: a summary with the same key is already recorded in this generation. It is checked first, so a known key coalesces even at the limit.
+- `limit`: 256 records exist in this generation. Or the summary carries no Resolved member and 192 such records exist, so the last 64 stay reserved for summaries that do.
+- `no_room`: the sealed record's charge (its body plus 384 bytes) would pass the ordinary byte bound.
+
+Only `recorded` writes. Each outcome is counted per boot in
+`front_door_status()`. A malformed summary raises `refusal_invalid` and latches
+nothing. A clock or ID fault latches a process hold, as in `admit`, and a held
+or closed journal raises `journal_held` or `journal_closed`.
+
+**The record.** `ingress_refusal` is an ordinary record written by `receiver`,
+with empty `ids`. Its `data` holds four keys:
+- `rule`: `first-per-membership-v1`. A different value is `record_unsupported`.
+- `summary`: `members` a tuple of `(fingerprint, status)` pairs, every unit-16 consistency rule checked, at most 4,096 canonical bytes.
+- `refusal_key`.
+- `refusal_seq`, from 1 to 256.
+
+The key is a tagged digest of the summary without `body_bytes` and
+`body_digest`. A Grafana re-render, which changes only `message` and so the
+body digest, coalesces. A member turning Resolved changes the membership, so it
+gets its own record; that lost Resolved is what the record exists to keep.
+Replay re-derives the key, its novelty, the sequence, the limit, the reserve
+and the byte charge.
+
+**Consequences:**
+- **Bytes.** Refusals change no baseline, pending entry, admission count or dispatch hold. They do advance the logical byte count that admissions are checked against. Near the ordinary bound, refusal records can therefore turn an admission into a `capacity_bytes` refusal. The boundary moves by at most their summed charge. The largest summary v1 can hold (32 listed members at the 64-byte Fingerprint limit, 256 alerts, all Resolved) is 2,866 bytes, and 256 records of that size charge under 1 MiB.
+- **Reserve limits.** The reserve keeps a benign flood without Resolved members from using up the channel. It does not stop a sender who can reach the port and mints summaries with Resolved members; only webhook authentication would.
+- **Restated vocabulary.** `journal_records` must not import `journal_ingress`, so it keeps its own copies of the ingress codes and bounds. Parity tests keep the copies in step. A new ingress code needs a new registered record version.
+
+## Operator resume at open
+
+Every open appends `restart_recovery`, and the hold stays until an operator
+resumes. The steps are:
+
+1. **Inspect** the stopped journal and take the `resume.token` it reports: the verified head's `record_digest`.
+2. **Open** with `open_recovery_journal(directory, resume=ResumeRequest(token=..., operator=..., reason=...))`.
+3. **Checks.**
+   - The request is validated before any file is touched, including `lock`. The token must be 64 lowercase hex characters, and `operator` and `reason` must follow the ID grammar. Otherwise the open raises `resume_invalid`.
+   - After replay and before anything is written, the token is compared with the verified head. A mismatch raises `resume_stale`. That writes nothing to a journal whose WAL exists; a journal with no WAL gains an empty one from the store's connect.
+4. **Commits.** A clean open commits its `restart_recovery`, then exactly one `operator_action` in its own commit. The record is written by `operator`, belongs to the recovery class and is charged to the total region, so a resume works even after the ordinary region is exhausted. Its data holds:
+   - `action` (`resume`) and `rule` (`resume-at-open-v1`);
+   - `hold` (`restart_recovery`) and the hold's `since_commit_seq`;
+   - `inspected`: the head this boot's restart recovered, which the token matched;
+   - `pending_digest`;
+   - `operator` and `reason`.
+
+   Replay requires the resume to be the first commit after the restart that started its boot. It re-derives the hold, `since`, `inspected` and `pending_digest`, so nothing can be admitted between the inspected state and the resume.
+5. **Effect.** Only `restart_recovery` is removed. Capacity holds stay, a durable recovery hold is never lifted, and the next open adds `restart_recovery` again.
+
+`resumed_this_boot` returns the `ResumeReceipt`. If the open ends held, the
+resume is not applied, `resumed_this_boot` is None, and `front_door_status()`
+reports `not_applied`. A clock, ID, capacity or write fault during the resume
+commit latches a process hold, as it does for the restart.
+
+The token is a staleness binding, not authentication: anyone who can read the
+directory can compute it, and `operator` is a self-asserted label.
+
+## Verify-only inspect
+
+`inspect_recovery_journal(directory)` runs the same verification and replay as
+`open` and returns an `Inspection`, which has two parts:
+- `report`: closed-shape JSON, described below.
+- `references`: the admitted `body_digest` set.
+
+It never commits and never writes to the database, WAL or anchor. It calls none
+of `finish_open`, `write_anchor`, `persist_hold`, `plan_restart` or `append`,
+and it always closes the store. The only file it may create is an absent
+`lock`, which the report lists under `created`.
+
+**The WAL rule.** Opening SQLite on a journal with no WAL would create one and
+change the next restart's `wal_found`. Inspect therefore checks for the WAL
+with `lstat` first:
+- **WAL absent, DB at least one page:** inspect does not open SQLite and reports `unverified` with reason `wal_absent`. Start and stop the journal once, then inspect again. If that start is held, the hold code the process reports is the verdict.
+- **WAL absent, DB absent or shorter than a page:** the store is opened, because it returns its finding before connecting.
+
+**The report** holds these fields:
+- `verdict` (`ready`, `held` or `unverified`) and `reason`;
+- `finding`, `anchor` and `wal_found`;
+- `next_open`: `restart_recovery`, `reanchor` then `restart_recovery`, `persist_hold`, `hold` or `unknown`;
+- only when `ready`: the journal head, holds, counts, bytes, bounds and digests (`pending_digest`, `state_digest`, `front_door_digest`), up to 1,024 pending entries, refusal counts with the last 32 summaries, the last resume, and the resume token.
+
+For any other verdict those fields are null and `references` is empty, even
+when a prefix verified before the finding. Inspect of a live journal fails with
+`journal_locked`.
 
 ## Crash windows
 
@@ -237,6 +344,12 @@ Every code is retryable backpressure for the later Receiver integration, except
 | During hold persistence | held; the next open completes the hold |
 | Storage loses acknowledged commits, or a row is damaged or forged | a recovery hold, persisted (a missing or invalid anchor is re-derived instead); database and WAL untouched; a typed failure on a verified row is a process hold |
 | Consistent rollback of every file, or a same-uid forger | ready; undetectable (non-claim) |
+| Refusal commit not yet durable | ready; nothing was recorded, and a re-sent refusal is recorded |
+| Refusal durable, before `record_refusal` returns | ready; a re-sent refusal coalesces |
+| After the start's `restart_recovery`, before `operator_action` | ready, with `restart_recovery` a dispatch hold again; the old token is stale because the head moved |
+| `operator_action` committed, anchor not synced | ready at lag 1: adopted, re-anchored, then a new `restart_recovery`, so `restart_recovery` is a dispatch hold again |
+| Resume with a stale token | nothing written to a journal whose WAL exists; a WAL-absent journal gains an empty WAL |
+| During inspect | unchanged; the kernel releases the lock |
 
 Run intent, spawn, effect and terminal windows belong to later units.
 
@@ -303,7 +416,8 @@ Member-level 422 refusals name up to 32 members, Resolved first, with counts
 and an omitted count. `refused_group` gives a key that stays stable across
 Grafana's resends. `refusal_to_json` validates internal consistency and a
 4 KiB bound. `oversize_refusal(declared_length)` refuses from a
-`Content-Length` header without reading the body. Nothing persists a refusal
+`Content-Length` header without reading the body. `record_refusal` can persist
+a summary (see "Refusal records"), but no Receiver calls it or the sanitizer
 yet.
 
 **Not claimed.** Grafana's real wire bytes (the captures store re-encoded
@@ -322,18 +436,26 @@ Local deterministic, real-SQLite and real-sync tests cover every layer:
 - crash images for every detectable window above, including two-crash cases,
   torn WAL frames, stale restores and a SIGKILL loop, plus a test that pins
   the consistent-rollback non-claim;
-- a golden journal that later units must keep replaying;
+- two golden journals that later units must keep replaying: the unit-15 one,
+  and a unit-17a one holding refusals, two restarts, a resume and a later
+  admission;
+- for the refusal and resume records: validators, check order, the flood rule,
+  the byte coupling, a property test over seeded histories, older- and
+  newer-binary simulations, and resume crash images;
+- inspect on eleven journal images, with a check that inspecting first does
+  not change what the next open does;
 - a mutation matrix and custody checks.
 
 They run on macOS; the Linux sync primitive is skipped there.
 
 ```sh
-pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py tests/test_journal_ingress.py tests/test_journal_ingress_corpus.py tests/test_journal_ingress_adversarial.py tests/test_forwarder_json_string_cap.py
+pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py tests/test_journal_ingress.py tests/test_journal_ingress_corpus.py tests/test_journal_ingress_adversarial.py tests/test_forwarder_json_string_cap.py tests/test_journal_front_door_records.py tests/test_recovery_journal_front_door.py
 ```
 
-No Receiver integration, ingress refusal persistence, dispatch, Run, effect,
-accounting, operator action, reset, retention or reconstruction is implemented
-or qualified. Venue durability, device flush honesty, Linux behavior, isolation
-of the journal from Runs, and Grafana's retry and resend behaviour after a
-refusal are not qualified, and every v1 semantic above still awaits
-ratification.
+No Receiver integration, HTTP front door, body spool, dispatch, Run, effect,
+accounting, reset, retention or reconstruction is implemented or qualified.
+The only operator action is resume at open; cancel, retry, abandon, capacity
+clear and any online operator channel are not implemented. Venue durability,
+device flush honesty, Linux behavior, isolation of the journal from Runs, and
+Grafana's retry and resend behaviour after a refusal are not qualified, and
+every v1 semantic above still awaits ratification.

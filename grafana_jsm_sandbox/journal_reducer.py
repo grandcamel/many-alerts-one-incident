@@ -26,6 +26,11 @@ from .forwarder_json import canonical_json, tagged_digest
 from .journal_records import (
     CAPACITY_CODES,
     DEDUPE_RULE,
+    MAX_REFUSAL_RECORDS,
+    REFUSAL_RESOLVED_RESERVE,
+    REFUSAL_RULE,
+    RESUMABLE_HOLDS,
+    RESUME_RULE,
     V1_BOUND_CEILINGS,
     ZERO_DIGEST,
     Draft,
@@ -46,6 +51,11 @@ from .journal_source import (
 )
 
 RECORD_OVERHEAD_BYTES = 384
+REFUSAL_KEY_TAG = "rj.refusal-key.v1"
+FRONT_DOOR_STATE_TAG = "rj.front-door-state.v1"
+_REFUSAL_KEY_FIELDS = (
+    "alerts", "code", "members", "members_omitted", "refused_group", "resolved", "source_group",
+)
 
 REPLAY_ERROR_CODES = frozenset({
     "replay_chain", "replay_framing", "replay_generation", "replay_boot",
@@ -111,6 +121,14 @@ class CapacityRefusal:
 
 
 @dataclasses.dataclass(frozen=True)
+class RefusalNotRecorded:
+    """Why a planned ``ingress_refusal`` writes nothing; never an exception:
+    the class is still sent to the caller even when this is returned."""
+
+    reason: str  # "coalesced" | "limit" | "no_room"
+
+
+@dataclasses.dataclass(frozen=True)
 class Plan:
     records: tuple[Record, ...]
     charge: int
@@ -136,6 +154,10 @@ class Delta:
     baseline_update: tuple[str, Baseline] | None
     pending_updates: tuple[tuple[str, PendingEntry], ...]
     dispatch_hold_add: tuple[str, int] | None
+    refusal_key_add: str | None = None
+    refusal_unreserved: bool = False
+    dispatch_hold_clear: str | None = None
+    resume_commit_seq: int | None = None
 
 
 class Projection:
@@ -158,6 +180,17 @@ class Projection:
         self.baselines: dict[str, Baseline] = {}
         self.pending: dict[str, PendingEntry] = {}
         self.dispatch_holds: dict[str, int] = {}
+        # Front-door fields (unit 17): no admission transition reads or writes
+        # these (R4).
+        self.refusal_keys: set[str] = set()
+        self.refusal_count: int = 0
+        self.refusal_unreserved_count: int = 0
+        self.resume_count: int = 0
+        self.last_resume_commit_seq: int | None = None
+        # Boot fields: set only in apply_delta, from the existing genesis and
+        # restart deltas.
+        self.boot_start_commit_seq: int | None = None
+        self.boot_recovered: Head | None = None
 
 
 def new_projection() -> Projection:
@@ -401,6 +434,83 @@ def plan_capacity_hold(
     return Plan(records=(record,), charge=charge, outcome=outcome)
 
 
+def refusal_key(summary: dict) -> str:
+    """The dedupe key for an ingress refusal (D12, restated as membership-
+    inclusive by U17-P3): the summary without ``body_bytes``/``body_digest``,
+    so a re-render (only ``message``/``body_digest`` change) coalesces, and a
+    membership change (a fingerprint turning Resolved) earns its own record.
+    """
+    payload = {field: summary[field] for field in _REFUSAL_KEY_FIELDS}
+    return tagged_digest(REFUSAL_KEY_TAG, payload)
+
+
+def plan_ingress_refusal(
+    p: Projection, summary: dict, *, event_id: str, stamp: Stamp,
+) -> Plan | RefusalNotRecorded:
+    key = refusal_key(summary)
+    if key in p.refusal_keys:
+        return RefusalNotRecorded("coalesced")
+    unreserved = not (type(summary["resolved"]) is int and summary["resolved"] > 0)
+    if p.refusal_count + 1 > MAX_REFUSAL_RECORDS:
+        return RefusalNotRecorded("limit")
+    if unreserved and (
+        p.refusal_unreserved_count + 1 > MAX_REFUSAL_RECORDS - REFUSAL_RESOLVED_RESERVE
+    ):
+        return RefusalNotRecorded("limit")
+
+    position = Position(
+        journal_generation=p.generation, event_seq=p.head.event_seq + 1,
+        commit_seq=p.head.commit_seq + 1, commit_index=0, commit_size=1,
+        prev_record_digest=p.head.record_digest,
+    )
+    record = seal(
+        Draft(
+            event_id=event_id, event_type="ingress_refusal", actor="receiver", ids={},
+            data={
+                "rule": REFUSAL_RULE, "summary": summary, "refusal_key": key,
+                "refusal_seq": p.refusal_count + 1,
+            },
+        ),
+        position, stamp,
+    )
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.ordinary_bytes:
+        return RefusalNotRecorded("no_room")
+    outcome = MappingProxyType({"refusal_key": key, "refusal_seq": p.refusal_count + 1})
+    return Plan(records=(record,), charge=charge, outcome=outcome)
+
+
+def plan_operator_resume(
+    p: Projection, *, event_id: str, stamp: Stamp, operator: str, reason: str,
+) -> Plan | CapacityRefusal:
+    since_commit_seq = p.dispatch_holds["restart_recovery"]
+    inspected = {
+        "commit_seq": p.boot_recovered.commit_seq, "event_seq": p.boot_recovered.event_seq,
+        "record_digest": p.boot_recovered.record_digest,
+    }
+    position = Position(
+        journal_generation=p.generation, event_seq=p.head.event_seq + 1,
+        commit_seq=p.head.commit_seq + 1, commit_index=0, commit_size=1,
+        prev_record_digest=p.head.record_digest,
+    )
+    record = seal(
+        Draft(
+            event_id=event_id, event_type="operator_action", actor="operator", ids={},
+            data={
+                "action": "resume", "rule": RESUME_RULE, "hold": "restart_recovery",
+                "since_commit_seq": since_commit_seq, "inspected": inspected,
+                "pending_digest": pending_digest(p), "operator": operator, "reason": reason,
+            },
+        ),
+        position, stamp,
+    )
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    outcome = MappingProxyType({"since_commit_seq": since_commit_seq})
+    return Plan(records=(record,), charge=charge, outcome=outcome)
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -412,6 +522,10 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "restart"
     if types == ("capacity_hold",):
         return "capacity_hold"
+    if types == ("ingress_refusal",):
+        return "ingress_refusal"
+    if types == ("operator_action",):
+        return "operator_action"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -503,6 +617,75 @@ def _verify_capacity_hold(p: Projection, record: Record, commit_seq: int) -> Del
         logical_bytes=p.logical_bytes + charge, admission_count=p.admission_count,
         last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
         dispatch_hold_add=(code, commit_seq),
+    )
+
+
+def _verify_ingress_refusal(p: Projection, record: Record, commit_seq: int) -> Delta:
+    summary = record.data["summary"]
+    if record.data["refusal_seq"] != p.refusal_count + 1:
+        _fail_replay("replay_mismatch")
+    if p.refusal_count + 1 > MAX_REFUSAL_RECORDS:
+        _fail_replay("replay_mismatch")
+    unreserved = not (type(summary["resolved"]) is int and summary["resolved"] > 0)
+    if unreserved and (
+        p.refusal_unreserved_count + 1 > MAX_REFUSAL_RECORDS - REFUSAL_RESOLVED_RESERVE
+    ):
+        _fail_replay("replay_mismatch")
+    key = refusal_key(summary)
+    if record.data["refusal_key"] != key or key in p.refusal_keys:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.ordinary_bytes:
+        _fail_replay("replay_mismatch")
+    head = Head(
+        generation=p.generation, commit_seq=commit_seq, event_seq=record.position.event_seq,
+        record_digest=record.record_digest,
+    )
+    return Delta(
+        head=head, generation=p.generation, journal_uuid=None, bounds=None,
+        boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
+        logical_bytes=p.logical_bytes + charge, admission_count=p.admission_count,
+        last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
+        dispatch_hold_add=None, refusal_key_add=key, refusal_unreserved=unreserved,
+    )
+
+
+def _verify_operator_action(p: Projection, record: Record, commit_seq: int) -> Delta:
+    data = record.data
+    hold = data["hold"]
+    # Replay re-checks the validator's own rule: a resume never clears a capacity hold.
+    if hold not in RESUMABLE_HOLDS or hold not in p.dispatch_holds:
+        _fail_replay("replay_mismatch")
+    if data["since_commit_seq"] != p.dispatch_holds[hold]:
+        _fail_replay("replay_mismatch")
+    # Immediacy: the resume is the first commit after the restart that
+    # started this boot (I20; J1 graft 1).
+    if p.head.commit_seq != p.boot_start_commit_seq:
+        _fail_replay("replay_mismatch")
+    inspected = data["inspected"]
+    if p.boot_recovered is None or (
+        inspected["commit_seq"] != p.boot_recovered.commit_seq
+        or inspected["event_seq"] != p.boot_recovered.event_seq
+        or inspected["record_digest"] != p.boot_recovered.record_digest
+    ):
+        _fail_replay("replay_mismatch")
+    if data["pending_digest"] != pending_digest(p):
+        _fail_replay("replay_mismatch")
+    # Charged to the total region, like restart_recovery (an operator can
+    # resume after the ordinary region is exhausted).
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        _fail_replay("replay_mismatch")
+    head = Head(
+        generation=p.generation, commit_seq=commit_seq, event_seq=record.position.event_seq,
+        record_digest=record.record_digest,
+    )
+    return Delta(
+        head=head, generation=p.generation, journal_uuid=None, bounds=None,
+        boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
+        logical_bytes=p.logical_bytes + charge, admission_count=p.admission_count,
+        last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
+        dispatch_hold_add=None, dispatch_hold_clear=hold, resume_commit_seq=commit_seq,
     )
 
 
@@ -623,10 +806,19 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         _fail_replay("replay_clock")
     if shape == "capacity_hold":
         return _verify_capacity_hold(p, records[0], commit_seq)
+    if shape == "ingress_refusal":
+        return _verify_ingress_refusal(p, records[0], commit_seq)
+    if shape == "operator_action":
+        return _verify_operator_action(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
 def apply_delta(p: Projection, delta: Delta) -> None:
+    if delta.new_boot_id is not None:
+        # Read before p.head moves: the head this boot's restart recovered
+        # (None at genesis), and the commit that started this boot.
+        p.boot_recovered = p.head
+        p.boot_start_commit_seq = delta.head.commit_seq
     p.head = delta.head
     p.generation = delta.generation
     if delta.journal_uuid is not None:
@@ -649,6 +841,16 @@ def apply_delta(p: Projection, delta: Delta) -> None:
         code, commit_seq = delta.dispatch_hold_add
         if code not in p.dispatch_holds:
             p.dispatch_holds[code] = commit_seq
+    if delta.refusal_key_add is not None:
+        p.refusal_keys.add(delta.refusal_key_add)
+        p.refusal_count += 1
+        if delta.refusal_unreserved:
+            p.refusal_unreserved_count += 1
+    if delta.dispatch_hold_clear is not None:
+        del p.dispatch_holds[delta.dispatch_hold_clear]
+    if delta.resume_commit_seq is not None:
+        p.resume_count += 1
+        p.last_resume_commit_seq = delta.resume_commit_seq
 
 
 # --- Grouping and replay --------------------------------------------------------
@@ -739,9 +941,24 @@ def state_digest(p: Projection) -> str:
     return tagged_digest("rj.state.v1", payload)
 
 
+def front_door_digest(p: Projection) -> str:
+    """Front-door state only, under its own tag. The front-door fields are not
+    in ``state_digest``'s formula, which stays ``rj.state.v1`` (J1-AO-5,
+    J2-AO-1); a refusal or a resume still changes ``state_digest`` through
+    the head and byte count, and a resume through the dispatch holds too."""
+    payload = {
+        "refusal_count": p.refusal_count, "refusal_unreserved_count": p.refusal_unreserved_count,
+        "refusal_keys_digest": _list_digest("rj.refusal-key-set.v1", p.refusal_keys),
+        "resume_count": p.resume_count, "last_resume_commit_seq": p.last_resume_commit_seq,
+    }
+    return tagged_digest(FRONT_DOOR_STATE_TAG, payload)
+
+
 __all__ = [
     "DEFAULT_BOUNDS",
+    "FRONT_DOOR_STATE_TAG",
     "RECORD_OVERHEAD_BYTES",
+    "REFUSAL_KEY_TAG",
     "REPLAY_ERROR_CODES",
     "Baseline",
     "CapacityRefusal",
@@ -750,9 +967,11 @@ __all__ = [
     "PendingEntry",
     "Plan",
     "Projection",
+    "RefusalNotRecorded",
     "ReplayError",
     "apply_delta",
     "dispatch_holds",
+    "front_door_digest",
     "group_commits",
     "new_projection",
     "pending_digest",
@@ -760,7 +979,10 @@ __all__ = [
     "plan_admission",
     "plan_capacity_hold",
     "plan_genesis",
+    "plan_ingress_refusal",
+    "plan_operator_resume",
     "plan_restart",
+    "refusal_key",
     "replay",
     "state_digest",
     "verify_commit",
