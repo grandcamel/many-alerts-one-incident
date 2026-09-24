@@ -152,8 +152,13 @@ minute except the first.
     Prints one line per Incident it closed or left alone, then `queue is empty` and exit 0
     when nothing is left in the Incidents queue. Any key it names is a human's: an open
     Incident in a status a Run never uses, or without an `fp-` label, finished in the Jira UI;
-    or a done Incident with no resolution, which only deletion removes from the queue and
-    which it prints the delete command for. See
+    one it completed but Jira left without a resolution, which needs the Jira admin to put
+    Resolution on the Resolve screen, after which the next reset reopens and closes it; one
+    whose `Close` failed, already out of the queue and ending the report with `queue is empty;
+    N left for a human to close`; or a `Canceled` or `Closed` Incident with no resolution, which
+    only deletion removes from the queue and which it prints the delete command for. If `docker
+    compose` fails, the report still prints, with the `docker compose start traffic` to run by
+    hand. `--dry-run` shows all this first without changing anything. See
     [Reset](#reset-between-takes-or-after-a-bad-one) for what it does and does not do.
 
 4. **Grafana provisioned, the rule Normal, the boundary in place.** The opt-in checks ask the
@@ -192,9 +197,11 @@ the workflow was mapped were exactly this and were deleted on 2026-09-15, so the
 empty now.
 
 ```bash
-jira-as api call deleteIssue --issueIdOrKey OPS-n
+jira-as api call deleteIssue --issueIdOrKey OPS-n --confirm
 ```
 
+Without `--confirm`, jira-as only shows the request it would send. With it, the deletion is
+permanent: jira-as rates the operation irreversible, and the Incident's history goes with it.
 Unlike the reset, this is your own shell's `jira-as`, with whatever site and credential it is
 configured with, so check that it points at the demo's site before deleting anything. Run from
 inside this repo, the committed `.claude/settings.json` also refuses any key but `OPS`.
@@ -343,13 +350,29 @@ python3 -m grafana_jsm_sandbox.reset
 It finds every open Incident carrying an `fp-` label in the project `.env` names, takes each
 out of the queue the only clean way this workflow has, `Resolve` with resolution Done and then
 `Close`, leaves a comment saying the reset did it, and then starts the traffic service so that
-the rule returns to Normal.
+the rule returns to Normal. It reads every page of the search before it moves anything.
+Between `Resolve` and `Close` it reads the Incident again: when the Resolve screen has no
+Resolution field, jira-as 2.0.0 quietly resolves without one, and closing that Incident would
+strand it in the queue, so the reset leaves it on Completed and says to ask the Jira admin to put
+Resolution on the Resolve screen. Completed keeps the road back, so once the admin has, the next
+reset reopens that Incident, resolves it with Done and closes it; one without an `fp-` label it
+names instead, for a human to reopen and resolve. A `Close` that fails is left for a human too,
+with a second comment saying so; it is already resolved and out of the queue, so the report ends
+`queue is empty; N left for a human to close`, and the exit is 1.
 It prints what it did per key and ends with `queue is empty` and exit 0, or names what it left:
 an `fp-` Incident with no road to Completed from where it is (`Pending`, which only a human
-uses), an open Incident with no `fp-` label, which is not a Run's and is not touched, or a done
-Incident with no resolution, which nothing but deletion can take out of the queue and which it
-prints the delete command for. It does not cancel anything: `Canceled` carries no resolution and
-stays in the queue for good (ADR 0004). It does not delete anything either.
+uses), one completed without a resolution or not closed, an open Incident with no `fp-` label,
+which is not a Run's and is not touched, or a `Canceled` or `Closed` Incident with no
+resolution, which nothing but deletion can take out of the queue and which it prints the delete
+command for, with `--confirm` and a warning that deletion is permanent. It never offers to delete
+a Completed one. It does not cancel anything: `Canceled` carries no
+resolution and stays in the queue for good (ADR 0004). It does not delete anything either.
+If `docker compose` fails to start the traffic, the report still prints, with a line naming
+`docker compose start traffic` to run by hand, and the exit is 1.
+`python3 -m grafana_jsm_sandbox.reset --dry-run` prints the same report in the conditional
+("would be completed", "traffic would be started") and changes nothing in Jira or the stack. It
+checks only the first step out of each Incident's status, so a Resolve screen that drops the
+resolution, or a Completed with no `Close`, shows up only in a real run.
 
 After a clean take nothing is open and the reset only starts traffic. After an abandoned take,
 run it, then wait for Grafana to show Normal before the next `stop traffic`. If a Run is still
