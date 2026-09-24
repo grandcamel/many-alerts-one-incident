@@ -57,6 +57,7 @@ BASIC_DEMO_TESTS = frozenset(
         "test_reset.py",
         "test_run_command.py",
         "test_run_spawner.py",
+        "test_setup_skill.py",
         "test_skill_template.py",
         "test_startup.py",
         "test_verify.py",
