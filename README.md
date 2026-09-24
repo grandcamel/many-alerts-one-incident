@@ -80,8 +80,11 @@ The **Receiver** — the HTTP endpoint that accepts Notifications and starts Run
 Each Notification becomes one Run with its own working directory under the Receiver's runs
 directory, containing the Notification exactly as Grafana sent it as `notification.json`. Runs
 execute one at a time in arrival order, so two Firings of the same Alert cannot race into
-duplicate Incidents. The Receiver logs each Run's start, end, exit status and duration; a Run that
-blows up is logged and the next one still starts.
+duplicate Incidents. The Receiver logs each accepted Notification (its Alert count, the Run it
+queued and how many Runs are ahead of it), each rejected POST with the reason, and each Run's
+start, end, exit status and duration. A Run that failed ends on `run <id> FAILED: <reason>` at
+ERROR, whatever its exit status said; a Run that blows up is logged the same way and the next one
+still starts.
 
 The process that actually spawns a Run is injected into the `Receiver` at construction, so it
 stays a seam a test can substitute; the real spawner is `RunSpawner`, below.
@@ -94,6 +97,14 @@ and permission denials on a `[DENIED]` line — the audience-visible proof that 
 anything except talk to Jira (ADR 0003). An event it does not understand costs one diagnostic
 line, never a crash. Every line is redacted on the way out, so no Authorization header and nothing
 token-shaped can reach a screen.
+
+A Run that failed ends on `[FAILED] <terminal_reason or subtype>: <first line of what it said>`
+instead of `[result]`: any result with `is_error: true` or an `error_` subtype. A Run the API
+refused outright reports `subtype: success` and exits 0, so neither of those is trusted. When
+the cause is one a newcomer's setup is known to hit (a Claude token that is invalid or expired,
+usage credits run out, a rate limit, a model the seat cannot use, a spent budget) a `[hint]`
+line under it says what to do. Claude Code retrying the API prints `[retry]`, and a rate-limit
+event prints `[limit]` only when its status is not `allowed`.
 
 Render a saved Transcript to see what the log window will look like:
 
@@ -118,7 +129,32 @@ python3 -m grafana_jsm_sandbox.log_formatter fixtures/run-transcript.jsonl
 [result] success in 10.0s, 3 turns, $0.4527
 ```
 
-The Receiver pipes every live Run through it, one line at a time, as the Run produces it.
+`fixtures/run-transcript-refused.jsonl` is a Run refused for want of usage credits, rebuilt
+from the recorded shape of one with nothing of a real account in it:
+
+```
+[run]    model=claude-fable-5-1 permission-mode=dontAsk tools=Bash,Read
+[claude] You're out of usage credits · manage usage credits at claude.ai/settings/usage
+[FAILED] api_error: You're out of usage credits · manage usage credits at claude.ai/settings/usage
+[hint]   the Claude account is out of usage credits for this model: top them up at claude.ai/settings/usage, or run a model the account has credits for
+```
+
+The Receiver pipes every live Run through it, one line at a time, as the Run produces it. In the
+container log each line also carries the time and a level: `[FAILED]` is ERROR, and `[hint]`,
+`[DENIED]`, `[retry]` and `[limit]` are WARNING, so a log filtered to warnings still shows what
+went wrong. The same refused Run, as `docker compose logs demo` shows it:
+
+```
+2026-09-23 21:46:00 INFO    notification accepted: 1 alert, run 20260923T214600-a7ae37 queued, 0 ahead
+2026-09-23 21:46:00 INFO    run 20260923T214600-a7ae37 started in /app/runs/20260923T214600-a7ae37
+2026-09-23 21:46:00 INFO    run 20260923T214600-a7ae37 transcript: /app/runs/20260923T214600-a7ae37/transcript.jsonl
+2026-09-23 21:46:00 INFO    [run]    model=claude-fable-5-1 permission-mode=dontAsk tools=Bash,Read
+2026-09-23 21:46:00 INFO    [claude] You're out of usage credits · manage usage credits at claude.ai/settings/usage
+2026-09-23 21:46:00 ERROR   [FAILED] api_error: You're out of usage credits · manage usage credits at claude.ai/settings/usage
+2026-09-23 21:46:00 WARNING [hint]   the Claude account is out of usage credits for this model: top them up at claude.ai/settings/usage, or run a model the account has credits for
+2026-09-23 21:46:00 INFO    run 20260923T214600-a7ae37 finished with exit status 0 in 0.04s
+2026-09-23 21:46:00 ERROR   run 20260923T214600-a7ae37 FAILED: api_error: You're out of usage credits · manage usage credits at claude.ai/settings/usage
+```
 
 The **skill** a Run follows, and the command line that starts one.
 
@@ -158,6 +194,11 @@ forwards the request to the configured Atlassian site (ADR 0002). It binds to lo
 its upstream from configuration and never from the request, hands a redirect back rather than
 following it somewhere else, and refuses a request whose sentinel is missing, wrong, or left over
 from a Run that has ended. Neither the token nor an Authorization header reaches any log line.
+Each request it forwards is one `forwarded <method> <path>, upstream said <status>` line. A 4xx
+or 5xx is a WARNING, and a 401, a 403 or a 404 carries what it most likely means for the demo:
+the credential in `.env` refused, the site's IP allowlist (when the 403's body says so, gzip or
+deflate undone first), a missing permission, or a project key the account cannot see. A 403 whose
+body cannot be read names both of its likely causes. The body itself is never logged.
 
 Run it on its own to point a jira-as on this machine at the real site through a sentinel:
 
@@ -190,9 +231,16 @@ Receiver happened to be started with. The sentinel is registered with the
 Forwarder before the process starts and cleared the moment it ends, so a sentinel that turns up in
 a Transcript afterwards is worth nothing.
 
-The Run's stdout is its Transcript, rendered into the log by the formatter as it arrives. Its
-stderr is captured and logged only if it exits non-zero, redacted like every other line. A Run
-that outlives its timeout is killed and logged, and the queue behind it keeps moving.
+The Run's stdout is its Transcript, rendered into the log by the formatter as it arrives and
+kept raw, line for line as it arrives, as `transcript.jsonl` in the Run's working directory,
+whose path is logged when the Run starts. That copy is not trimmed or redacted: it is what the
+log left out. It sits beside the Notification, inside the one directory a Run may read, and lasts
+as long as the runs directory does, which in the container is a tmpfs emptied whenever the
+container stops or is recreated. The spawner
+also reads the Transcript's result event and hands the Receiver the reason a Run failed with its
+exit status. Its stderr is captured and logged only if it exits non-zero, redacted like every
+other line. A Run that outlives its timeout is killed and logged, and the queue behind it keeps
+moving.
 
 ## Historical laptop demo walkthrough (disabled)
 
@@ -348,8 +396,16 @@ comments on it rather than opening a second one, which is the demo working. It a
 replay and the live Alert must not be run at the same time.
 
 Everything a Run does arrives in `docker compose logs -f demo` through the formatter — its own
-text, every `jira-as` command in full, and every denial. To look around inside, the entrypoint
-honours a command:
+text, every `jira-as` command in full, every denial, and a `[FAILED]` line when it fails. Each
+line starts with the time and a level. A Run's untrimmed Transcript stays on the runs tmpfs, at
+the path its `run <id> transcript:` line names, only until the demo container stops or is
+recreated, so copy it out before a restart:
+
+```bash
+docker compose exec -T demo cat /app/runs/<run id>/transcript.jsonl > transcript.jsonl
+```
+
+To look around inside, the entrypoint honours a command:
 
 ```bash
 docker compose run --rm demo sh
@@ -401,6 +457,7 @@ deletes.
 | `fixtures/notification-*.json` | The canned Notification sequence as Grafana really posted it: firing, repeat, resolved |
 | `fixtures/run-transcript.jsonl` | A recorded Run Transcript, including a real denial |
 | `fixtures/run-transcript-repeat-firing.jsonl` | A recorded Run that commented a trend on a real Incident |
+| `fixtures/run-transcript-refused.jsonl` | A Run the API refused for want of usage credits, sanitized: `subtype: success`, `is_error: true`, exit 0 |
 | `tests/` | pytest, driving a real Receiver and Forwarder over real HTTP on ephemeral ports |
 
 ## Running the tests

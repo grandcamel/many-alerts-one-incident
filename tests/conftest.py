@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 from grafana_jsm_sandbox.forwarder import Forwarder, JiraCredential
-from grafana_jsm_sandbox.receiver import Receiver, Run
+from grafana_jsm_sandbox.receiver import Receiver, Run, RunOutcome
 from tests.upstream import FakeUpstream
 
 REPOSITORY = Path(__file__).resolve().parent.parent
@@ -79,9 +79,14 @@ class SpawnedRun:
 
 @dataclass
 class RecordingSpawner:
-    """A fake Run spawner that records what the Receiver asked it to start."""
+    """A fake Run spawner that records what the Receiver asked it to start.
+
+    It returns `outcome` when a test sets one, as the real spawner does, and the bare
+    `exit_status` otherwise.
+    """
 
     exit_status: int = 0
+    outcome: RunOutcome | None = None
     spawned: list[SpawnedRun] = field(default_factory=list)
     _progress: threading.Condition = field(default_factory=threading.Condition)
     _release: threading.Event | None = None
@@ -101,7 +106,7 @@ class RecordingSpawner:
             reached = self._progress.wait_for(lambda: len(self.spawned) >= count, timeout)
         assert reached, f"expected {count} spawns, saw {len(self.spawned)}"
 
-    def __call__(self, run) -> int:
+    def __call__(self, run) -> RunOutcome | int:
         with self._progress:
             self.spawned.append(SpawnedRun.record(run))
             error, self._fail_next = self._fail_next, None
@@ -111,7 +116,7 @@ class RecordingSpawner:
             assert release.wait(5.0), "blocked spawn was never released"
         if error is not None:
             raise error
-        return self.exit_status
+        return self.exit_status if self.outcome is None else self.outcome
 
 
 @dataclass

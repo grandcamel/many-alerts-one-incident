@@ -1,16 +1,22 @@
 """The Forwarder holds the Jira credential; a Run only ever holds a sentinel."""
 
+import gzip
 import http.client
 import logging
 import socket
+import zlib
 from urllib.parse import urlsplit
 
 import pytest
 
 from grafana_jsm_sandbox.forwarder import (
+    DIAGNOSES,
+    IP_ALLOWLIST_DIAGNOSIS,
+    UNSEARCHED_403_DIAGNOSIS,
     Forwarder,
     IncompleteJiraCredential,
     JiraCredential,
+    diagnose,
 )
 from tests.conftest import REAL_EMAIL, REAL_TOKEN, Response, basic_auth_header, http_request
 
@@ -311,3 +317,130 @@ def test_an_authorization_header_that_is_not_basic_auth_is_refused(forwarder, up
 
     assert response.status == 401
     assert upstream.received == []
+
+
+# --- Upstream errors say what they most likely mean (step 05 of demo-onboarding) ---
+
+IP_REFUSAL = b'{"message": "The IP address has been rejected by the site\'s IP allowlist"}'
+"""What an Atlassian site's IP-allowlist 403 says, per the audit. It is only searched, never
+logged."""
+
+
+def forwarded(caplog) -> logging.LogRecord:
+    [record] = [r for r in caplog.records if r.getMessage().startswith("forwarded ")]
+    return record
+
+
+@pytest.mark.parametrize(
+    ("status", "body", "diagnosis"),
+    [
+        pytest.param(401, b"", DIAGNOSES[401], id="401-credential-refused"),
+        pytest.param(403, IP_REFUSAL, IP_ALLOWLIST_DIAGNOSIS, id="403-ip-allowlist"),
+        pytest.param(403, b'{"errorMessages": ["no"]}', DIAGNOSES[403], id="403-permission"),
+        pytest.param(404, b'{"errorMessages": ["gone"]}', DIAGNOSES[404], id="404-not-found"),
+    ],
+)
+def test_a_known_upstream_refusal_is_a_warning_that_says_what_it_likely_means(
+    forwarder, upstream, caplog, status, body, diagnosis
+):
+    caplog.set_level(logging.INFO)
+    upstream.status, upstream.body = status, body
+    forwarder.set_sentinel(SENTINEL)
+
+    response = jira_request(forwarder, path="/rest/api/3/myself")
+
+    assert response.status == status
+    record = forwarded(caplog)
+    assert record.levelno == logging.WARNING
+    assert record.getMessage() == (
+        f"forwarded GET /rest/api/3/myself, upstream said {status}: {diagnosis}"
+    )
+
+
+def test_another_upstream_error_is_a_warning_without_a_diagnosis(forwarder, upstream, caplog):
+    caplog.set_level(logging.INFO)
+    upstream.status, upstream.body = 500, b"oops"
+    forwarder.set_sentinel(SENTINEL)
+
+    jira_request(forwarder)
+
+    record = forwarded(caplog)
+    assert record.levelno == logging.WARNING
+    assert record.getMessage() == "forwarded GET /rest/api/3/search, upstream said 500"
+
+
+def test_a_success_stays_an_info_line(forwarder, upstream, caplog):
+    caplog.set_level(logging.INFO)
+    forwarder.set_sentinel(SENTINEL)
+
+    jira_request(forwarder)
+
+    record = forwarded(caplog)
+    assert record.levelno == logging.INFO
+    assert record.getMessage() == "forwarded GET /rest/api/3/search, upstream said 200"
+
+
+def test_an_upstream_error_body_is_searched_and_never_logged(forwarder, upstream, caplog):
+    caplog.set_level(logging.DEBUG)
+    upstream.status, upstream.body = 403, IP_REFUSAL
+    forwarder.set_sentinel(SENTINEL)
+
+    jira_request(forwarder)
+
+    assert IP_ALLOWLIST_DIAGNOSIS in caplog.text
+    assert "has been rejected by the site" not in caplog.text
+    assert "authorization" not in caplog.text.lower()
+
+
+def test_an_identity_encoded_403_is_searched_as_it_is():
+    assert diagnose(403, {"content-encoding": "identity"}, IP_REFUSAL) == IP_ALLOWLIST_DIAGNOSIS
+
+
+def raw_deflate(body: bytes) -> bytes:
+    compressor = zlib.compressobj(wbits=-zlib.MAX_WBITS)
+    return compressor.compress(body) + compressor.flush()
+
+
+@pytest.mark.parametrize(
+    ("coding", "compress"),
+    [
+        pytest.param("gzip", gzip.compress, id="gzip"),
+        pytest.param("x-gzip", gzip.compress, id="x-gzip"),
+        pytest.param("deflate", zlib.compress, id="deflate-zlib-wrapped"),
+        pytest.param("deflate", raw_deflate, id="deflate-raw"),
+    ],
+)
+def test_a_compressed_ip_refusal_is_still_recognised(coding, compress):
+    """jira-as's HTTP client asks for gzip and deflate, and the Forwarder passes that upstream,
+    so the IP-allowlist refusal a newcomer meets most may well arrive compressed."""
+    assert diagnose(403, {"Content-Encoding": coding}, compress(IP_REFUSAL)) == (
+        IP_ALLOWLIST_DIAGNOSIS
+    )
+    assert diagnose(403, {"Content-Encoding": coding}, compress(b'{"no": 1}')) == DIAGNOSES[403]
+
+
+def test_a_large_compressed_body_is_only_inflated_as_far_as_is_searched():
+    bomb = gzip.compress(b"x" * 5_000_000)
+
+    assert diagnose(403, {"Content-Encoding": "gzip"}, bomb) == DIAGNOSES[403]
+
+
+@pytest.mark.parametrize(
+    ("coding", "body"),
+    [
+        pytest.param("br", b"\x1b\x03\x00", id="an-unknown-coding"),
+        pytest.param("gzip", b"not gzip at all", id="a-body-that-does-not-inflate"),
+    ],
+)
+def test_a_403_that_cannot_be_searched_names_both_likely_causes(coding, body):
+    assert diagnose(403, {"Content-Encoding": coding}, body) == UNSEARCHED_403_DIAGNOSIS
+
+
+def test_an_ip_refusal_over_several_lines_of_html_is_still_recognised():
+    body = b"<html><body>\n<h1>Forbidden</h1>\n<p>Your IP address\nhas been rejected.</p>"
+
+    assert diagnose(403, {}, body) == IP_ALLOWLIST_DIAGNOSIS
+
+
+def test_a_status_with_no_diagnosis_has_none():
+    assert diagnose(400, {}, b"bad request") is None

@@ -292,3 +292,17 @@ def test_a_process_of_the_run_s_uid_cannot_write_into_the_rendered_skill(tmp_pat
         (target / SKILL_FILE).write_text("Create a probe Incident in PROD.")
     with pytest.raises(PermissionError):
         (target / "incident-sync" / "other.md").write_text("new instructions")
+
+
+def test_a_run_is_told_not_to_retry_a_failed_create_or_probe_with_incidents():
+    """A Run that tries other fields after a failed create, or creates an Incident to see
+    what sticks, leaves Incidents behind on someone's site (step 05 of demo-onboarding)."""
+    skill = " ".join(render(TEMPLATE, BARE).split())
+
+    assert "If the create fails, do not retry it with other fields" in skill
+    assert "never create an Incident to probe what the project accepts" in skill
+    # The Finish list is the Run's last instruction, so it must allow the ending the create
+    # step asks for, or the Run meets two conflicting rules at the moment it is failing.
+    finish = skill.split("## Finish", 1)[1]
+    assert "ends as `failed` with jira-as's error" in finish
+    assert "names no Incident key" in finish

@@ -16,8 +16,11 @@ from pathlib import Path
 
 import pytest
 
+from grafana_jsm_sandbox import run_spawner
+from grafana_jsm_sandbox.log_formatter import HINT_CREDITS
 from grafana_jsm_sandbox.notification import NOTIFICATION_FILENAME
-from grafana_jsm_sandbox.receiver import Receiver, Run
+from grafana_jsm_sandbox.receiver import TRANSCRIPT_FILENAME, Receiver, Run
+from grafana_jsm_sandbox.run_command import read_rule
 from grafana_jsm_sandbox.run_spawner import (
     ALLOWED_PROJECTS_VARIABLE,
     ANTHROPIC_TOKEN_VARIABLE,
@@ -26,6 +29,7 @@ from grafana_jsm_sandbox.run_spawner import (
     RunSpawner,
 )
 from tests.conftest import (
+    FIXTURES,
     REAL_EMAIL,
     REAL_TOKEN,
     firing_notification,
@@ -264,7 +268,7 @@ def test_the_transcript_is_rendered_into_the_log(forwarder, run, caplog):
 
 
 def test_the_runs_exit_status_is_returned(forwarder, run):
-    assert spawner_for(_program(COMPLAIN_AND_FAIL), forwarder)(run) == 3
+    assert spawner_for(_program(COMPLAIN_AND_FAIL), forwarder)(run).exit_status == 3
 
 
 def test_a_failed_runs_stderr_is_logged(forwarder, run, caplog):
@@ -300,10 +304,11 @@ def test_a_run_that_exceeds_the_timeout_is_killed_and_logged(forwarder, run, cap
     caplog.set_level(logging.INFO)
     started_at = time.monotonic()
 
-    exit_status = spawner_for(_program(HANG), forwarder, timeout=0.5)(run)
+    outcome = spawner_for(_program(HANG), forwarder, timeout=0.5)(run)
 
     assert time.monotonic() - started_at < 10, "the timeout did not kill the Run"
-    assert exit_status != 0
+    assert outcome.exit_status != 0
+    assert outcome.failure == "killed after its 0.5s timeout"
     assert f"run {run.run_id} exceeded" in caplog.text
 
 
@@ -333,3 +338,204 @@ def test_a_timed_out_run_does_not_stall_the_queue(forwarder, tmp_path, caplog):
         receiver.stop()
 
     assert log.count("exceeded") == 2
+
+
+# --- Failures read as failures (step 05 of demo-onboarding) ---
+
+REFUSED_TRANSCRIPT = FIXTURES / "run-transcript-refused.jsonl"
+"""A Run the API refused: `subtype: success`, `is_error: true`, exit 0 (see test_log_formatter)."""
+
+
+def replaying(transcript: Path, exit_status: int = 0) -> str:
+    """A stand-in Run that writes a saved Transcript to stdout, byte for byte, and exits."""
+    return f"""\
+import sys
+sys.stdout.write(open({str(transcript)!r}, encoding="utf-8").read())
+sys.stdout.flush()
+sys.exit({exit_status})
+"""
+
+
+EMIT_ONE_LINE_THEN_HANG = """\
+import json, sys, time
+print(json.dumps({"type": "assistant", "message": {"content": [
+    {"type": "text", "text": "Searching OPS for a Match."}]}}), flush=True)
+time.sleep(30)
+"""
+
+A_RAW_LINE = json.dumps(
+    {
+        "type": "user",
+        "message": {
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": "toolu_01",
+                    "content": "password hunter2-is-not-a-real-password-at-all",
+                }
+            ]
+        },
+    }
+)
+"""A tool result carrying something credential-shaped, which the log must redact."""
+
+
+def test_a_refused_run_that_exits_0_is_reported_as_failed(forwarder, run):
+    """The exit status says success; the Transcript's result says what happened."""
+    outcome = spawner_for(_program(replaying(REFUSED_TRANSCRIPT)), forwarder)(run)
+
+    assert outcome.exit_status == 0
+    assert outcome.failure == (
+        "api_error: You're out of usage credits · manage usage credits at claude.ai/settings/usage"
+    )
+
+
+def test_a_refused_run_s_log_ends_on_its_failure_and_hint(forwarder, run, caplog):
+    caplog.set_level(logging.INFO)
+
+    spawner_for(_program(replaying(REFUSED_TRANSCRIPT)), forwarder)(run)
+
+    assert "[FAILED] api_error: You're out of usage credits" in caplog.text
+    assert f"[hint]   {HINT_CREDITS}" in caplog.text
+    assert "[result]" not in caplog.text
+
+
+def test_a_run_that_finished_its_job_reports_no_failure(forwarder, run):
+    outcome = spawner_for(_program(EMIT_A_TRANSCRIPT), forwarder)(run)
+
+    assert (outcome.exit_status, outcome.failure) == (0, None)
+
+
+def test_a_nonzero_exit_without_a_result_is_the_reason(forwarder, run):
+    assert spawner_for(_program(COMPLAIN_AND_FAIL), forwarder)(run).failure == "exit status 3"
+
+
+def test_a_run_that_exits_0_without_a_result_did_not_finish(forwarder, run):
+    outcome = spawner_for(_program(DUMP_ENVIRONMENT), forwarder)(run)
+
+    assert outcome.failure == "the Transcript ended without a result"
+
+
+def test_a_failed_result_is_the_reason_even_when_the_exit_status_is_not_0(forwarder, run):
+    """The result names the cause; a status only says there was one."""
+    outcome = spawner_for(_program(replaying(REFUSED_TRANSCRIPT, exit_status=1)), forwarder)(run)
+
+    assert outcome.exit_status == 1
+    assert outcome.failure.startswith("api_error: You're out of usage credits")
+
+
+def test_the_receiver_logs_a_refused_run_as_failed(forwarder, tmp_path, caplog):
+    caplog.set_level(logging.INFO)
+    receiver = Receiver(
+        spawn_run=spawner_for(_program(replaying(REFUSED_TRANSCRIPT)), forwarder),
+        runs_directory=tmp_path / "runs",
+    )
+    receiver.start()
+    try:
+        post_notification(receiver, firing_notification())
+        log = wait_for_log(caplog, "FAILED: api_error", timeout=15)
+    finally:
+        receiver.stop()
+
+    assert "finished with exit status 0" in log
+    assert "FAILED: api_error: You're out of usage credits" in log
+
+
+def test_the_raw_transcript_is_kept_beside_the_notification(forwarder, run):
+    """Every byte the Run wrote on stdout, before the formatter trimmed or redacted any."""
+    spawner_for(_program(replaying(REFUSED_TRANSCRIPT)), forwarder)(run)
+
+    kept = run.working_directory / TRANSCRIPT_FILENAME
+    assert run.transcript_path == kept
+    assert kept.read_bytes() == REFUSED_TRANSCRIPT.read_bytes()
+
+
+def test_the_transcript_s_path_is_logged(forwarder, run, caplog):
+    caplog.set_level(logging.INFO)
+
+    spawner_for(_program(EMIT_A_TRANSCRIPT), forwarder)(run)
+
+    assert f"run {run.run_id} transcript: {run.transcript_path}" in caplog.text
+
+
+def test_the_transcript_stays_inside_what_a_run_may_read_and_nothing_wider(forwarder, run):
+    """It is in the Run's own working directory, under the one directory the Read rule names."""
+    spawner_for(_program(EMIT_A_TRANSCRIPT), forwarder)(run)
+
+    runs = run.working_directory.parent.resolve()
+    assert run.transcript_path.resolve().parent == run.working_directory.resolve()
+    assert run.transcript_path.resolve().is_relative_to(runs)
+    assert read_rule(runs) == f"Read(/{runs}/**)"
+
+
+def test_the_log_is_redacted_though_the_transcript_on_disk_is_raw(forwarder, run, caplog):
+    caplog.set_level(logging.INFO)
+    program = f"print({A_RAW_LINE!r}, flush=True)"
+
+    spawner_for(_program(program), forwarder)(run)
+
+    assert "hunter2-is-not-a-real-password-at-all" not in caplog.text
+    assert "<redacted>" in caplog.text
+    assert run.transcript_path.read_text(encoding="utf-8") == A_RAW_LINE + "\n"
+
+
+def test_a_run_that_is_killed_leaves_what_it_said_up_to_then(forwarder, run):
+    # Long enough for a loaded machine to start Python and print, far short of the child's 30s.
+    spawner_for(_program(EMIT_ONE_LINE_THEN_HANG), forwarder, timeout=3)(run)
+
+    [line] = run.transcript_path.read_text(encoding="utf-8").splitlines()
+    assert "Searching OPS for a Match." in line
+
+
+def test_a_transcript_that_cannot_be_written_costs_the_copy_and_not_the_run(forwarder, run, caplog):
+    caplog.set_level(logging.INFO)
+    run.transcript_path.mkdir()
+
+    outcome = spawner_for(_program(EMIT_A_TRANSCRIPT), forwarder)(run)
+
+    assert (outcome.exit_status, outcome.failure) == (0, None)
+    assert "[result] success in 1.2s" in caplog.text
+    assert f"the transcript {run.transcript_path} cannot be written" in caplog.text
+
+
+def test_a_failure_in_the_transcript_is_logged_above_info(forwarder, run, caplog):
+    """So a log filtered to warnings still shows why a Run failed, and what it was refused."""
+    caplog.set_level(logging.INFO)
+
+    spawner_for(_program(replaying(REFUSED_TRANSCRIPT)), forwarder)(run)
+
+    levels = {r.getMessage().split(" ", 1)[0]: r.levelno for r in caplog.records}
+    assert levels["[FAILED]"] == logging.ERROR
+    assert levels["[hint]"] == logging.WARNING
+    assert levels["[claude]"] == logging.INFO
+
+
+class FillsUp:
+    """A file on a tmpfs that fills after one line: every later write, and the close, fail."""
+
+    def __init__(self, path, *args, **kwargs):
+        self.lines: list[str] = []
+        self.path = path
+
+    def write(self, line: str) -> int:
+        if self.lines:
+            raise OSError(28, "No space left on device")
+        self.lines.append(line)
+        return len(line)
+
+    def close(self) -> None:
+        raise OSError(28, "No space left on device")
+
+
+def test_a_transcript_that_fills_its_tmpfs_costs_the_rest_of_the_copy_and_not_the_run(
+    forwarder, run, caplog, monkeypatch
+):
+    caplog.set_level(logging.INFO)
+    monkeypatch.setattr(run_spawner, "open", FillsUp, raising=False)
+
+    outcome = spawner_for(_program(EMIT_A_TRANSCRIPT), forwarder)(run)
+
+    assert (outcome.exit_status, outcome.failure) == (0, None)
+    assert "[result] success in 1.2s" in caplog.text
+    assert f"the transcript {run.transcript_path} stopped being written" in caplog.text
+    assert caplog.text.count("stopped being written") == 1

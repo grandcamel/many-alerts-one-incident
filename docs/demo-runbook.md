@@ -23,7 +23,7 @@ does; right column is what the audience believes.
 | Window | Where | What it shows |
 | --- | --- | --- |
 | Top left: **Grafana** | <http://localhost:3000/alerting/list?search=rolldice> | The one rule, `rolldice request rate is zero`, and its state: Normal, Pending, Firing. No login |
-| Bottom left: **container log** | a terminal running `docker compose logs -f demo` | Every Run as it happens: its reasoning, every `jira-as` command in full, every `forwarded` line, any `[DENIED]` |
+| Bottom left: **container log** | a terminal running `docker compose logs -f demo` | Every Run as it happens, each line after its time and level: its reasoning, every `jira-as` command in full, every `forwarded` line, any `[DENIED]`, and a `[FAILED]` line with its `[hint]` if a Run fails |
 | Right: **OPS Incidents queue** | `https://<your-site>.atlassian.net/jira/servicedesk/projects/OPS/queues/custom/<queue-id>` | The Incident appearing, changing status, and leaving |
 | Hidden: **presenter shell** | a second terminal, repo root | The two commands the presenter types. Keep it out of the projected area or the audience reads ahead |
 
@@ -221,7 +221,7 @@ filling.
 | T+0:00 | In the hidden shell: `docker compose stop traffic` (returns in about a second) | Nothing yet | What just happened: the only synthetic traffic to rolldice stopped. Grafana is about to notice |
 | ~T+0:30 | Nothing | Grafana: **Pending** (reload) | The rule: request rate zero for thirty seconds, evaluated every ten. Point at the log: nothing has happened yet, because nothing has been sent |
 | ~T+1:00 | Nothing | Grafana: **Firing** (reload) | Grafana has now posted one Notification at the Receiver. The Receiver acknowledged it in milliseconds and queued one Run |
-| ~T+1:10 | Nothing | Log: `run ... started`, then `[claude]` lines, then `[tool] Bash: jira-as search jql ...`, then `forwarded GET ... upstream said 200` | Walk the log as it scrolls: it read the Notification, searched OPS for the Fingerprint label, found nothing, is creating. Every `forwarded` line is the Forwarder swapping the sentinel for the real token |
+| ~T+1:10 | Nothing | Log: `notification accepted: 1 alert, run ... queued, 0 ahead`, `run ... started`, then `[claude]` lines, then `[tool] Bash: jira-as search jql ...`, then `forwarded GET ... upstream said 200` | Walk the log as it scrolls: it read the Notification, searched OPS for the Fingerprint label, found nothing, is creating. Every `forwarded` line is the Forwarder swapping the sentinel for the real token |
 | ~T+1:35 | Reload the queue | **OPS-n** in the queue, status Open, Sev-2, Source Monitoring systems | Open it. Summary from the alert name and instance; Description with the annotations and the generator link; the `fp-` label; the opening comment with the value. The Run took about 30s |
 | ~T+2:20 | Nothing | Log: second `run ... started` | This is the repeat: the policy resends a Firing Alert every minute. The Run finds the Match this time |
 | ~T+2:45 | Reload the Incident | A trend comment: `Still firing. value=0 (previous value=0, unchanged). Open for 1m..`; status **Work in progress** | The comment reports value, change, time open, all read off Jira's clock. First repeat moves it on; later repeats only comment |
@@ -236,6 +236,15 @@ can still show the Incident. Count to twenty, then reload.
 If a third `run` never starts because the repeat and the resolve landed close together, that is
 Grafana coalescing, not a failure: the Resolved Run still arrives, one group interval later.
 
+A Run that fails says so, whatever its exit status: its `[result]` line becomes `[FAILED]`
+(ERROR) with the reason, a `[hint]` under it when the cause is a known one (the Claude token,
+usage credits, a rate limit, the model, the budget), and then `run ... FAILED: <reason>`. A 401,
+403 or 404 from Jira shows as a WARNING `forwarded ... upstream said` line saying what it most
+likely means. Its untrimmed Transcript is at the path its `run ... transcript:` line names, on a
+tmpfs that empties when the demo container stops or is recreated: copy it out with
+`docker compose exec -T demo cat <that path> > transcript.jsonl` before any restart. Fix the cause
+off screen, then switch to the replay below.
+
 Do not `stop traffic` again for a second take until Grafana shows Normal and the queue is empty.
 A re-fire deliberately gets a new Incident, which is the chapter two story, not a duplicate.
 
@@ -246,7 +255,8 @@ available. Each has one thing on screen to point at.
 
 **The Run can only run jira-as.** A Run is headless Claude Code in print mode with
 `--permission-mode dontAsk` and an allow list of exactly two tools: `Bash(jira-as *)`, and `Read`
-of the runs directory, which holds the Notification and the rendered Skill, and nothing else.
+of the runs directory, which holds each Run's Notification and Transcript and the rendered Skill,
+and nothing else.
 Anything else is denied without a prompt, and the denial is printed on a `[DENIED]` line in the
 log window (ADR 0003). Show the command line:
 

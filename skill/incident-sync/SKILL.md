@@ -85,6 +85,10 @@ it says this project lacks stays off: never look for its id, never guess one.
 Add `--components '<service>'` only when that component exists. The Incident is
 created in `Open`; do not transition it on the first Firing.
 
+If the create fails, do not retry it with other fields, and never create an
+Incident to probe what the project accepts: finish that Alert as `failed`, with
+jira-as's error.
+
 Then record the value it opened at, so the next Firing has something to compare
 against and the closing comment can count the Firings:
 
@@ -178,4 +182,6 @@ Read them every time. An id that was right last week is not a fact about this is
 
 End with one line per Alert, naming the Fingerprint, the Incident key and what
 changed — `created`, `commented`, `commented and moved to Work in progress`,
-`completed`, or `skipped` and why. Nothing else after those lines.
+`completed`, or `skipped` and why. An Alert whose create failed ends as `failed`
+with jira-as's error, and names no Incident key because there is none. Nothing
+else after those lines.

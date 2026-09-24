@@ -17,12 +17,14 @@ import binascii
 import ipaddress
 import logging
 import os
+import re
 import secrets
 import socket
 import sys
 import threading
 import urllib.error
 import urllib.request
+import zlib
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from email.message import Message
@@ -61,6 +63,44 @@ for every server it starts."""
 
 _TEXT = {"Content-Type": "text/plain; charset=utf-8"}
 """The headers on an answer the Forwarder writes itself rather than forwarding."""
+
+DIAGNOSED_BODY_BYTES = 4096
+"""How much of an upstream error body is searched for the words of an IP-allowlist refusal.
+It is only searched, never logged: a body can quote anything the site holds."""
+
+IP_ALLOWLIST = re.compile(r"(?is)\bIP address\b.*\b(rejected|not allowed|allowlist)|IP allowlist")
+"""How an Atlassian site's IP-allowlist refusal reads. The audit recorded its 403 body as
+saying the "IP address has been rejected"; the other words cover rephrasings of the same
+refusal, which is still unverified live."""
+
+DIAGNOSES = {
+    401: (
+        "Jira refused the credential in .env: JIRA_API_TOKEN is expired, revoked or blocked by "
+        "an org policy, JIRA_EMAIL is not the account it belongs to, or it is a scoped token, "
+        "which works only through an api.atlassian.com/ex/jira/<cloudId> JIRA_SITE_URL"
+    ),
+    403: "the account in .env lacks a Jira permission this call needs",
+    404: (
+        "Jira has no such thing, or the account in .env cannot see it: check DEMO_PROJECT_KEY "
+        "and that the account can browse that project"
+    ),
+}
+"""What a Jira status most likely means for the demo, for the statuses a newcomer's site is
+known to answer when it is set up wrong. Every other 4xx and 5xx is still logged, undiagnosed.
+They name `.env` because the Receiver takes its credential from there; the stand-alone
+Forwarder reads the same variables from its shell."""
+
+IP_ALLOWLIST_DIAGNOSIS = (
+    "the site's IP allowlist rejected this address: ask the Atlassian org admin to allow the "
+    "demo's address, or connect from a network the allowlist already has"
+)
+
+UNSEARCHED_403_DIAGNOSIS = (
+    "the account in .env lacks a Jira permission this call needs, or the site's IP allowlist "
+    "rejected this address; the body's encoding hid which"
+)
+"""A 403 whose body could not be read names both causes, rather than send a newcomer to the
+Jira admin when it is the org admin's allowlist that refused."""
 
 
 ENVIRONMENT_VARIABLES = {
@@ -160,7 +200,17 @@ class Forwarder:
         status, upstream_headers, upstream_body = self._send_upstream(
             method, path, _headers_to_send_upstream(headers), body
         )
-        logger.info("forwarded %s %s, upstream said %s", method, path, status)
+        if status < 400:
+            logger.info("forwarded %s %s, upstream said %s", method, path, status)
+        else:
+            diagnosis = diagnose(status, upstream_headers, upstream_body)
+            logger.warning(
+                "forwarded %s %s, upstream said %s%s",
+                method,
+                path,
+                status,
+                f": {diagnosis}" if diagnosis else "",
+            )
         return status, _headers_to_send_back(upstream_headers), upstream_body
 
     def _accepts(self, presented: str | None) -> bool:
@@ -243,6 +293,58 @@ class _StopAtRedirect(urllib.request.HTTPRedirectHandler):
 
 
 _UPSTREAM_OPENER = urllib.request.build_opener(_StopAtRedirect)
+
+
+def diagnose(status: int, headers: Mapping[str, str], body: bytes) -> str | None:
+    """What an upstream error most likely means, or None when the status has no diagnosis.
+
+    A Run sees Jira's error only as a tool result trimmed to a few lines, so a site
+    that refuses the demo's credential or address is diagnosed here, once, where the
+    status is plain. A 403 is an IP-allowlist refusal when its body says so; a body
+    whose encoding cannot be undone gets a diagnosis naming both likely causes.
+    """
+    if status == 403:
+        searched = _searchable_prefix(headers, body)
+        if searched is None:
+            return UNSEARCHED_403_DIAGNOSIS
+        if IP_ALLOWLIST.search(searched):
+            return IP_ALLOWLIST_DIAGNOSIS
+    return DIAGNOSES.get(status)
+
+
+def _searchable_prefix(headers: Mapping[str, str], body: bytes) -> str | None:
+    """The start of a body as text, or None when its content coding cannot be undone here.
+
+    A Run's own Accept-Encoding goes upstream, and jira-as's HTTP client asks for gzip
+    and deflate, so a refusal may well arrive compressed. Those two are undone with
+    zlib, capped at the searched length so a large body costs no more than a small one.
+    Any other coding, or a body that does not decompress, cannot be searched.
+    """
+    coding = next(
+        (value for name, value in headers.items() if name.lower() == "content-encoding"), ""
+    )
+    coding = coding.strip().lower()
+    if coding in ("", "identity"):
+        prefix = body[:DIAGNOSED_BODY_BYTES]
+    elif coding in ("gzip", "x-gzip", "deflate"):
+        prefix = _inflated_prefix(body, deflate=coding == "deflate")
+        if prefix is None:
+            return None
+    else:
+        return None
+    return prefix.decode("utf-8", errors="replace")
+
+
+def _inflated_prefix(body: bytes, *, deflate: bool) -> bytes | None:
+    # MAX_WBITS | 32 reads a gzip or a zlib header. HTTP's "deflate" is meant to be
+    # zlib-wrapped, but some servers send the raw stream, which needs negative wbits.
+    attempts = (zlib.MAX_WBITS | 32, -zlib.MAX_WBITS) if deflate else (zlib.MAX_WBITS | 32,)
+    for wbits in attempts:
+        try:
+            return zlib.decompressobj(wbits).decompress(body, DIAGNOSED_BODY_BYTES)
+        except zlib.error:
+            continue
+    return None
 
 
 def _is_loopback(host: str) -> bool:

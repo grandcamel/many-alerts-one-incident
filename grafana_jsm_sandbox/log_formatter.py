@@ -5,6 +5,11 @@ lines out. Nothing here holds state between events, so the Receiver can pipe a
 Run's stdout through it a line at a time and the same function can render a
 Transcript saved on disk.
 
+A Run that failed says so. Its result event renders as `[FAILED]` with the
+reason, plus a `[hint]` line when the cause is one a newcomer's setup is known to
+hit. `run_failure` is the same judgement for the spawner, so the Receiver's
+closing line about a Run and the Transcript's own last line always agree.
+
 Every line goes through `redact` on the way out. A Run only ever holds a
 sentinel, never the real Jira token (ADR 0002), but the log window is on a screen
 in front of an audience, so anything credential-shaped is replaced before it can
@@ -24,6 +29,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable, Iterator
+from datetime import UTC, datetime
 
 TRIM_LINES = 5
 """How many lines of one tool result reach the log."""
@@ -38,9 +44,26 @@ OUTPUT = "[out]"
 ERROR = "[err]"
 DENIED = "[DENIED]"
 RESULT = "[result]"
+FAILED = "[FAILED]"
+HINT = "[hint]"
+RETRY = "[retry]"
+LIMIT = "[limit]"
 DIAGNOSTIC = "[?]"
 
-_LABELS = (RUN, ASSISTANT, TOOL, OUTPUT, ERROR, DENIED, RESULT, DIAGNOSTIC)
+_LABELS = (
+    RUN,
+    ASSISTANT,
+    TOOL,
+    OUTPUT,
+    ERROR,
+    DENIED,
+    RESULT,
+    FAILED,
+    HINT,
+    RETRY,
+    LIMIT,
+    DIAGNOSTIC,
+)
 _LABEL_WIDTH = max(len(label) for label in _LABELS)
 
 REDACTED = "<redacted>"
@@ -155,9 +178,41 @@ def _render_system(event: dict) -> list[str]:
         if not reason:
             reason = f"denied ({event.get('decision_reason_type', 'no reason given')})"
         return [_line(DENIED, _truncated(f"{tool_name}: {reason}"))]
+    if subtype == "api_retry":
+        # A Run that goes quiet while Claude Code retries the API looks stuck.
+        # This line is what says it is waiting, and on what.
+        return [_line(RETRY, _truncated(_retry(event)))]
     # Everything else a system event carries is progress chatter the audience
     # does not need: task summaries, turn summaries, and whatever is added next.
     return []
+
+
+def _retry(event: dict) -> str:
+    """One `system/api_retry` event as a sentence: which attempt, why, and how long it waits.
+
+    The fields are the documented ones (`attempt`, `max_retries`, `retry_delay_ms`,
+    `error_status`, `error`); a Run has not yet been seen to emit one, so each is
+    optional here rather than trusted to be there.
+    """
+    attempt, most = event.get("attempt"), event.get("max_retries")
+    text = "retrying the API"
+    if attempt is not None:
+        text += f", attempt {attempt}" + (f" of {most}" if most is not None else "")
+    cause = " ".join(
+        str(part)
+        for part in (event.get("error"), _in_brackets(event.get("error_status")))
+        if part is not None
+    )
+    if cause:
+        text += f", after {cause}"
+    delay = event.get("retry_delay_ms")
+    if isinstance(delay, (int, float)):
+        text += f", next in {delay / 1000:.1f}s"
+    return text
+
+
+def _in_brackets(status: object) -> str | None:
+    return None if status is None else f"(HTTP {status})"
 
 
 def _render_assistant(event: dict) -> list[str]:
@@ -204,21 +259,54 @@ def _render_result(event: dict) -> list[str]:
     turns = event.get("num_turns")
     turns_text = f", {turns} turns" if turns is not None else ""
     # The denial recap comes first so the result line is the last thing the log
-    # says about a Run, the clean ending presenter story 5 asks the log for.
+    # says about a Run, the clean ending presenter story 5 asks the log for. A
+    # failed Run ends on its hint instead, which belongs directly under the
+    # failure it explains.
     lines = [
         _line(DENIED, _tool_call(denial.get("tool_name"), denial.get("tool_input")))
         for denial in event.get("permission_denials") or []
         if isinstance(denial, dict)
     ]
+    failure = _failure(event)
+    if failure is not None:
+        lines.append(_line(FAILED, _truncated(failure)))
+        hint = _hint(event)
+        if hint is not None:
+            lines.append(_line(HINT, hint))
+        return lines
     lines.append(
         _line(RESULT, f"{event.get('subtype', 'finished')} in {duration}{turns_text}{cost_text}")
     )
     return lines
 
 
-def _render_nothing(event: dict) -> list[str]:
-    """A Run event that is real and understood, and that an audience gains nothing from."""
-    return []
+def _render_rate_limit(event: dict) -> list[str]:
+    """A rate-limit event, when it is news: the account is near a limit or past one.
+
+    Every real Transcript carries one of these with status `allowed`, and that is
+    not worth a line. Anything else (`allowed_warning`, `rejected`) is the likeliest
+    explanation for a Run about to stall or fail, so it is printed with the window
+    and when it resets.
+    """
+    info = event.get("rate_limit_info")
+    if not isinstance(info, dict):
+        return []
+    status = info.get("status")
+    if status is None or status == "allowed":
+        return []
+    window = info.get("rateLimitType")
+    text = f"{status}: the {window} limit" if window else f"{status}: a rate limit"
+    utilization = info.get("utilization")
+    windows = info.get("unifiedWindows")
+    if utilization is None and isinstance(windows, dict) and isinstance(windows.get(window), dict):
+        utilization = windows[window].get("utilization")
+    if isinstance(utilization, (int, float)):
+        text += f", {utilization:.0%} used"
+    resets = info.get("resetsAt")
+    if isinstance(resets, (int, float)):
+        moment = datetime.fromtimestamp(resets, tz=UTC)
+        text += f", resets {moment:%Y-%m-%d %H:%M} UTC"
+    return [_line(LIMIT, _truncated(text))]
 
 
 _RENDERERS = {
@@ -228,8 +316,119 @@ _RENDERERS = {
     "result": _render_result,
     # Rate-limit accounting arrives as its own Run event in every real Transcript.
     # It is known, not unrecognised, so it costs no diagnostic line either.
-    "rate_limit_event": _render_nothing,
+    "rate_limit_event": _render_rate_limit,
 }
+
+
+def run_failure(event: object) -> str | None:
+    """Why a Run failed, if `event` is the result of one that did; otherwise None.
+
+    What the spawner reports to the Receiver, redacted like any line bound for the
+    log, and the same text the `[FAILED]` line carries. A result is a failure when
+    `is_error` is true or its subtype starts `error_`; the subtype alone is not
+    enough, because a Run the API refused outright (out of usage credits, in the
+    owner's case) ends `subtype: success` with `is_error: true` and
+    `terminal_reason: api_error`, and the process still exits 0.
+    """
+    if not isinstance(event, dict) or event.get("type") != "result":
+        return None
+    failure = _failure(event)
+    return None if failure is None else redact(_truncated(failure))
+
+
+def _failure(event: dict) -> str | None:
+    """`<terminal_reason or subtype>: <first line of the result text>`, for a failed result."""
+    subtype = event.get("subtype")
+    failed = event.get("is_error") is True or (
+        isinstance(subtype, str) and subtype.startswith("error_")
+    )
+    if not failed:
+        return None
+    reason = event.get("terminal_reason") or subtype or "unknown"
+    return f"{reason}: {_failure_text(event)}"
+
+
+def _failure_text(event: dict) -> str:
+    """The first line of what the Run said went wrong: its result text, else its errors.
+
+    The `error_*` shapes carry an `errors` list and may carry no result text.
+    """
+    candidates = [event.get("result")]
+    errors = event.get("errors")
+    if isinstance(errors, list):
+        candidates.extend(errors)
+    for candidate in candidates:
+        if isinstance(candidate, str):
+            for line in candidate.splitlines():
+                if line.strip():
+                    return line.strip()
+    return "no result text"
+
+
+# The one-line hints for the failures a newcomer's setup is known to hit.
+HINT_TOKEN = (
+    "the Claude token was refused: make a new one with `claude setup-token`, put it in "
+    "CLAUDE_CODE_OAUTH_TOKEN in .env, and recreate the container with `docker compose up -d demo`"
+)
+HINT_CREDITS = (
+    "the Claude account is out of usage credits for this model: top them up at "
+    "claude.ai/settings/usage, or run a model the account has credits for"
+)
+HINT_RATE_LIMIT = (
+    "the Claude account hit a rate limit: wait for it to reset (a [limit] line above says "
+    "when, if the Run printed one), then send the Alert again"
+)
+HINT_MODEL = (
+    "this Claude seat cannot use the model the Run asked for: ask the Claude org owner to "
+    "allow it, or run a model the seat has"
+)
+HINT_BUDGET = (
+    "the Run reached its spending cap before it finished: its transcript.jsonl shows "
+    "what it spent it on"
+)
+
+
+def _hint(event: dict) -> str | None:
+    """The hint for a failed result, or None when the cause is not a known one.
+
+    It reads what the result event itself carries, since nothing here remembers
+    the events before it: the subtype, the API's HTTP status in `api_error_status`,
+    and the words of the result text. A refusal the API gives in words, like the
+    usage-credit one, reaches the result with `api_error_status` unset, so the
+    words are checked before the status. Credits come before the token, because a
+    credit refusal can mention the account without the token being at fault, and
+    before a usage limit, since "usage credits" and "usage limit" differ by one word.
+    The token's words are the Claude API's own: a plain "authentication failed" in
+    `errors` may be Jira's, which the Forwarder's 401 line already diagnoses.
+    """
+    if event.get("subtype") == "error_max_budget_usd":
+        return HINT_BUDGET
+    status = event.get("api_error_status")
+    errors = event.get("errors")
+    words = " ".join(
+        text
+        for text in [event.get("result"), *(errors if isinstance(errors, list) else [])]
+        if isinstance(text, str)
+    ).lower()
+    if _mentions(words, "usage credits", "credit balance", "out of credits"):
+        return HINT_CREDITS
+    if status == 401 or _mentions(
+        words, "oauth token", "invalid api key", "not logged in", "/login", "authentication_error"
+    ):
+        return HINT_TOKEN
+    if status == 429 or _mentions(
+        words, "rate limit", "rate_limit", "usage limit", "hit your limit", "limit reached"
+    ):
+        return HINT_RATE_LIMIT
+    if status == 404 or _mentions(
+        words, "selected model", "model_not_found", "may not exist or you may not have access"
+    ):
+        return HINT_MODEL
+    return None
+
+
+def _mentions(text: str, *phrases: str) -> bool:
+    return any(phrase in text for phrase in phrases)
 
 
 def _content_blocks(event: dict) -> list[dict]:

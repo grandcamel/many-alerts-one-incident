@@ -81,7 +81,7 @@ The random token registered with the Forwarder for one Run and one service. It g
 _Avoid_: fake token, dummy credential, placeholder, api key
 
 **Transcript**:
-The stream-json output of one Run, one Run event per line. The Receiver renders it into the container log as it arrives, and a recorded Transcript is committed as a fixture.
+The stream-json output of one Run, one Run event per line. The Receiver renders it into the container log as it arrives and keeps it raw as `transcript.jsonl` in the Run's working directory, and a recorded Transcript is committed as a fixture.
 _Avoid_: log, output, stream, session log
 
 **Run event**:

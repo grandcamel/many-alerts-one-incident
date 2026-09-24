@@ -8,25 +8,41 @@ sentinel the moment the process ends, so a sentinel that leaks out of a
 Transcript is worth nothing by the time anyone reads it.
 
 Everything the Run says on stdout is a Transcript, rendered into the log by the
-formatter as it arrives. A Run that runs long is killed, because a demo cannot
-wait and the queue behind it cannot either.
+formatter as it arrives and teed, raw, to `transcript.jsonl` in the Run's own
+working directory, because the log is trimmed and redacted and the question
+after a failure is usually about what it left out. The stream is also where a
+Run says whether it worked: a Run the API refused exits 0 all the same, so the
+spawner reads the result event and hands the Receiver the reason with the exit
+status. A Run that runs long is killed, because a demo cannot wait and the queue
+behind it cannot either.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import secrets
 import signal
 import subprocess
 import threading
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import IO, cast
+from pathlib import Path
+from typing import IO, Self, cast
 
 from grafana_jsm_sandbox.forwarder import ENVIRONMENT_VARIABLES, Forwarder
-from grafana_jsm_sandbox.log_formatter import format_stream, redact
-from grafana_jsm_sandbox.receiver import Run
+from grafana_jsm_sandbox.log_formatter import (
+    DENIED,
+    FAILED,
+    HINT,
+    LIMIT,
+    RETRY,
+    format_stream,
+    redact,
+    run_failure,
+)
+from grafana_jsm_sandbox.receiver import Run, RunOutcome
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +108,17 @@ STDERR_TAIL = 2000
 what went wrong. The log window is a screen in a room, not a file anyone will scroll."""
 
 
+LEVELS = {
+    FAILED: logging.ERROR,
+    HINT: logging.WARNING,
+    DENIED: logging.WARNING,
+    RETRY: logging.WARNING,
+    LIMIT: logging.WARNING,
+}
+"""The Transcript lines logged above INFO, by label: the ones that say a Run failed, was
+refused something, or is waiting on the API. Everything else a Run says is INFO."""
+
+
 class MissingAnthropicToken(ValueError):
     """No Anthropic token, so no Run could ever start."""
 
@@ -128,8 +155,8 @@ class RunSpawner:
     path: str = field(default_factory=lambda: os.environ.get("PATH", os.defpath))
     trust_store: Mapping[str, str] = field(default_factory=trust_store_from_environment)
 
-    def __call__(self, run: Run) -> int:
-        """Run one Run to completion and return its exit status."""
+    def __call__(self, run: Run) -> RunOutcome:
+        """Run one Run to completion and say how it ended."""
         sentinel = secrets.token_urlsafe(SENTINEL_BYTES)
         self.forwarder.set_sentinel(sentinel)
         try:
@@ -137,8 +164,10 @@ class RunSpawner:
         finally:
             self.forwarder.clear_sentinel()
 
-    def _execute(self, run: Run, sentinel: str) -> int:
+    def _execute(self, run: Run, sentinel: str) -> RunOutcome:
         timed_out = threading.Event()
+        transcript = _Transcript(run.transcript_path)
+        logger.info("run %s transcript: %s", run.run_id, run.transcript_path)
         process = subprocess.Popen(
             list(self.command),
             cwd=run.working_directory,
@@ -162,9 +191,10 @@ class RunSpawner:
         try:
             # The timer stays armed across this whole block, the reaping in
             # `__exit__` included, so nothing here can outlive the timeout.
-            with process:
-                for line in format_stream(cast("IO[str]", process.stdout)):
-                    logger.info("%s", line)
+            with process, transcript:
+                stream = transcript.tee(cast("IO[str]", process.stdout))
+                for line in format_stream(stream):
+                    logger.log(LEVELS.get(line.split(" ", 1)[0], logging.INFO), "%s", line)
                 exit_status = process.wait()
         finally:
             killer.cancel()
@@ -176,7 +206,26 @@ class RunSpawner:
             )
         if exit_status != 0 and errors.text:
             logger.warning("run %s wrote to stderr: %s", run.run_id, redact(errors.text))
-        return exit_status
+        return RunOutcome(exit_status, self._failure(timed_out, transcript, exit_status))
+
+    def _failure(
+        self, timed_out: threading.Event, transcript: _Transcript, exit_status: int
+    ) -> str | None:
+        """Why the Run failed, most telling reason first, or None when it did its job.
+
+        The Run's own result comes before its exit status, because it names the
+        cause where a status only says there was one. A Run that exits 0 without
+        a result at all did not finish either.
+        """
+        if timed_out.is_set():
+            return f"killed after its {self.timeout:g}s timeout"
+        if transcript.failure is not None:
+            return transcript.failure
+        if exit_status != 0:
+            return f"exit status {exit_status}"
+        if not transcript.finished:
+            return "the Transcript ended without a result"
+        return None
 
     def _environment(self, sentinel: str) -> dict[str, str]:
         """Everything the Run's process gets, and it is built here rather than inherited.
@@ -199,6 +248,68 @@ class RunSpawner:
             SITE_OPERATIONS_VARIABLE: "true",
             "PATH": self.path,
         }
+
+
+class _Transcript:
+    """A Run's stdout on its way to the formatter: copied to disk, and read for its result.
+
+    The copy is the raw stream-json, line for line, in the Run's working directory,
+    so it is there for as long as the Run's Notification is, and a Run's `Read` rule
+    reaches it exactly as it reaches the Notification. It is written as each line
+    arrives, so a Run that is killed leaves everything it said up to then. A file
+    that cannot be written costs one warning and the copy, never the Run: the log
+    still gets every line.
+    """
+
+    def __init__(self, path: Path):
+        self.path = path
+        self.failure: str | None = None
+        self.finished = False
+        self._file: IO[str] | None = None
+
+    def __enter__(self) -> Self:
+        try:
+            self._file = open(self.path, "w", encoding="utf-8", buffering=1)
+        except OSError as error:
+            logger.warning("the transcript %s cannot be written: %s", self.path, error)
+        return self
+
+    def __exit__(self, *exc_info) -> None:
+        self._close()
+
+    def tee(self, lines: Iterable[str]) -> Iterator[str]:
+        for line in lines:
+            self._write(line)
+            self._read(line)
+            yield line
+
+    def _write(self, line: str) -> None:
+        if self._file is None:
+            return
+        try:
+            self._file.write(line)
+        except OSError as error:
+            logger.warning("the transcript %s stopped being written: %s", self.path, error)
+            self._close()
+
+    def _close(self) -> None:
+        """Close the copy. A full tmpfs can refuse the last flush too, and that costs nothing."""
+        file, self._file = self._file, None
+        if file is not None:
+            try:
+                file.close()
+            except OSError:
+                pass
+
+    def _read(self, line: str) -> None:
+        """Note the result event: whether one came, and the first failure one reported."""
+        try:
+            event = json.loads(line)
+        except ValueError:
+            return
+        if isinstance(event, dict) and event.get("type") == "result":
+            self.finished = True
+            self.failure = self.failure or run_failure(event)
 
 
 class _Drained:
