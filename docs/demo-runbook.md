@@ -227,12 +227,13 @@ These are the five points the audience is there for, in the order the demo makes
 available. Each has one thing on screen to point at.
 
 **The Run can only run jira-as.** A Run is headless Claude Code in print mode with
-`--permission-mode dontAsk` and an allow list of exactly two tools: `Bash(jira-as *)` and `Read`.
-Anything else is denied without a prompt, and the denial is printed on a `[DENIED]` line in
-the log window (ADR 0003). Show the command line:
+`--permission-mode dontAsk` and an allow list of exactly two tools: `Bash(jira-as *)`, and `Read`
+of the runs directory and the skill and nothing else. Anything else is denied without a prompt,
+and the denial is printed on a `[DENIED]` line in the log window (ADR 0003). Show the command
+line:
 
 ```bash
-python3 -m grafana_jsm_sandbox.run_command skill
+python3 -m grafana_jsm_sandbox.run_command skill runs
 ```
 
 The live Runs have so far never tried anything off the list, so the log has shown no denial.
@@ -247,7 +248,9 @@ python3 -m grafana_jsm_sandbox.log_formatter fixtures/run-transcript.jsonl
 one process: the Receiver, and the Forwarder thread it owns, bound to the container's loopback.
 Each Run gets an environment built from scratch, not inherited: `JIRA_SITE_URL` pointing at the
 Forwarder over plain http and `JIRA_API_TOKEN` set to a random per-Run sentinel that the
-Forwarder registers when the Run starts and forgets when it ends. The only other thing it inherits
+Forwarder registers when the Run starts and forgets when it ends. The Receiver is non-dumpable,
+so its `/proc` entry, where its environment and the real token are, is root's and no Run can
+read it. The only other thing it inherits
 is the container's trust store, five variables pointing at the one system bundle, so that on the
 work laptop a Run reaches Anthropic through the same proxy the build did. Every `forwarded ... upstream
 said` line in the log is the swap happening; a sentinel copied out of a Transcript is worth

@@ -19,6 +19,8 @@ import shutil
 import ssl
 import subprocess
 import urllib.request
+from collections.abc import Mapping
+from fnmatch import fnmatch
 from pathlib import Path
 
 import pytest
@@ -34,6 +36,12 @@ from grafana_jsm_sandbox.__main__ import (
 )
 from grafana_jsm_sandbox.forwarder import ENVIRONMENT_VARIABLES
 from grafana_jsm_sandbox.log_formatter import redact
+from grafana_jsm_sandbox.replay import (
+    BIND_ADDRESS_VARIABLE,
+    DEFAULT_BIND_ADDRESS,
+    RECEIVER_HOST_PORT_VARIABLE,
+    default_receiver,
+)
 from grafana_jsm_sandbox.run_spawner import ANTHROPIC_TOKEN_VARIABLE, TRUST_STORE_VARIABLES
 from tests.conftest import REPOSITORY, compose, needs_the_stack_up
 
@@ -65,10 +73,14 @@ GRAFANA_ALERTING_PROVISIONING = "/otel-lgtm/grafana/conf/provisioning/alerting"
 """Where Grafana in the published image reads alerting provisioning from."""
 
 GRAFANA_PORT = 3000
-"""Where the presenter watches the Alert fire, on the laptop."""
+"""Grafana's port in its container, and on the laptop unless GRAFANA_HOST_PORT moves it."""
 
 RECEIVER_PORT = 8080
-"""What the contact point names and what the replay script posts at by default."""
+"""The Receiver's port in its container, which the contact point names; on the laptop unless
+RECEIVER_HOST_PORT moves it."""
+
+GRAFANA_HOST_PORT_VARIABLE = "GRAFANA_HOST_PORT"
+"""The presenter's knob for a laptop whose 3000 is taken."""
 
 CREDENTIALS = (*ENVIRONMENT_VARIABLES.values(), ANTHROPIC_TOKEN_VARIABLE)
 """Credentials named by the historical configuration parser, never loaded on startup."""
@@ -104,20 +116,45 @@ def service(name: str) -> dict:
     return COMPOSE["services"][name]
 
 
-def published_ports(name: str) -> set[int]:
-    """The laptop-side ports a service publishes.
+INTERPOLATION = re.compile(r"\$\{(\w+)(?::-([^}]*))?\}")
+"""`${NAME}` or `${NAME:-default}`, the two forms of compose interpolation this file uses."""
 
-    Compose's short form is `"host:container"`, optionally with an address in
-    front. A bare `"container"` publishes nothing to the laptop and so counts for
-    nothing here.
+
+def interpolated(value: str, environment: Mapping[str, str]) -> str:
+    """A compose value as compose resolves it: `:-` takes the default for empty or unset."""
+    return INTERPOLATION.sub(lambda match: environment.get(match[1]) or (match[2] or ""), value)
+
+
+def publications(name: str, environment: Mapping[str, str] | None = None) -> set[tuple]:
+    """What a service publishes to the laptop: address, laptop port, container port.
+
+    Compose's short form is `"[address:]host:container"`, here with the address and
+    the laptop port interpolated from the presenter's environment, empty by default.
+    A bare `"container"` publishes nothing to the laptop and so counts for nothing.
     """
-    mappings = (str(mapping).split(":") for mapping in service(name).get("ports", []))
-    return {int(parts[-2]) for parts in mappings if len(parts) > 1}
+    found = set()
+    for mapping in service(name).get("ports", []):
+        parts = interpolated(str(mapping), environment or {}).rsplit(":", 2)
+        if len(parts) == 3:
+            found.add((parts[0], int(parts[1]), int(parts[2])))
+        elif len(parts) == 2:
+            found.add(("", int(parts[0]), int(parts[1])))
+    return found
+
+
+def published_ports(name: str, environment: Mapping[str, str] | None = None) -> set[int]:
+    """The container ports a service publishes to the laptop at all."""
+    return {container for _, _, container in publications(name, environment)}
 
 
 def git_ignores(path: str) -> bool:
+    """By this repo's own rules: another engineer's clone has none of this laptop's global ones."""
     return (
-        subprocess.run(["git", "check-ignore", "-q", path], cwd=REPOSITORY, check=False).returncode
+        subprocess.run(
+            ["git", "-c", "core.excludesFile=/dev/null", "check-ignore", "-q", path],
+            cwd=REPOSITORY,
+            check=False,
+        ).returncode
         == 0
     )
 
@@ -164,6 +201,54 @@ def test_the_build_context_carries_neither_the_env_file_nor_a_past_run():
     assert RUNS_PATTERN in ignored
 
 
+LOCAL_ONLY = (".claude/", "**/__pycache__/", ".scratch/", "prototype/")
+"""What a laptop keeps beside the code and an image must not carry: Claude Code's local
+settings, byte code from any depth, the working notes, and the chapter-two prototype."""
+
+
+def test_git_never_takes_claude_code_s_local_settings():
+    """Where a laptop's own permissions go, and never a commit (audit F24)."""
+    assert git_ignores(".claude/settings.local.json")
+    assert not git_ignores(".claude/settings.json"), "the shared settings are committed"
+
+
+@pytest.mark.parametrize("pattern", LOCAL_ONLY)
+def test_the_build_context_refuses_what_is_only_the_laptop_s(pattern):
+    assert pattern in DOCKER_IGNORE.read_text().split()
+
+
+def copied_sources() -> list[str]:
+    """Every path either Dockerfile copies from the build context, which both build from the
+    repository root through the one .dockerignore, the CA argument as its default."""
+    sources = []
+    instructions = [line for file in BOTH_DOCKERFILES for line in dockerfile_instructions(file)]
+    for instruction in instructions:
+        if instruction.startswith("COPY "):
+            words = [word for word in instruction.split()[1:] if not word.startswith("--")]
+            sources += [
+                word.replace(f"${{{EXTRA_CA_ARGUMENT}}}", PLACEHOLDER) for word in words[:-1]
+            ]
+    return sources
+
+
+def test_the_build_context_still_carries_everything_the_image_copies():
+    """Checked against every ignore pattern, and against each directory above each source."""
+    patterns = [
+        line.strip().rstrip("/")
+        for line in DOCKER_IGNORE.read_text().splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
+    assert copied_sources(), "the Dockerfile copies nothing; the check reads nothing"
+    for source in copied_sources():
+        path = source.rstrip("/")
+        prefixes = [path] + [
+            "/".join(path.split("/")[:end]) for end in range(1, path.count("/") + 1)
+        ]
+        for pattern in patterns:
+            for prefix in prefixes:
+                assert not fnmatch(prefix, pattern), f"{pattern} keeps {source} out of the image"
+
+
 def test_the_demo_takes_its_credentials_from_the_ignored_env_file():
     demo = service(DEMO_SERVICE)
 
@@ -186,6 +271,49 @@ def test_no_service_is_handed_the_docker_socket():
 def test_grafana_and_the_receiver_answer_the_laptop():
     assert GRAFANA_PORT in published_ports(LGTM_SERVICE)
     assert RECEIVER_PORT in published_ports(DEMO_SERVICE)
+
+
+def test_grafana_and_the_receiver_are_all_that_is_published():
+    """OTLP stays on the compose network, where rolldice exports to it (audit F11)."""
+    published = {(name, port) for name in COMPOSE["services"] for port in published_ports(name)}
+
+    assert published == {(LGTM_SERVICE, GRAFANA_PORT), (DEMO_SERVICE, RECEIVER_PORT)}
+
+
+def test_by_default_nothing_is_published_beyond_the_laptop_s_loopback():
+    """Grafana has anonymous Admin and a POST to the Receiver starts a paid Run that writes to
+    Jira; on 0.0.0.0 both were anyone's on the office Wi-Fi (audit F11)."""
+    for name in COMPOSE["services"]:
+        for address, laptop, container in publications(name):
+            assert address == DEFAULT_BIND_ADDRESS == "127.0.0.1", f"{name} is on {address!r}"
+            assert laptop == container, f"{name} moved {container} to {laptop} by default"
+
+
+def test_the_presenter_moves_the_laptop_side_and_never_the_container_side():
+    """A taken 3000 or 8080 is fixed in the environment; the contact point still names
+    `demo:8080` and the healthcheck still asks the container's own 8080 (audit F22)."""
+    moved = {
+        BIND_ADDRESS_VARIABLE: "192.0.2.10",
+        GRAFANA_HOST_PORT_VARIABLE: "13000",
+        RECEIVER_HOST_PORT_VARIABLE: "18080",
+    }
+
+    assert publications(LGTM_SERVICE, moved) == {("192.0.2.10", 13000, GRAFANA_PORT)}
+    assert publications(DEMO_SERVICE, moved) == {("192.0.2.10", 18080, RECEIVER_PORT)}
+    contact_point = yaml.safe_load((PROVISIONING / "contact-point.yaml").read_text())
+    [receiver] = contact_point["contactPoints"][0]["receivers"]
+    assert receiver["settings"]["url"] == f"http://{DEMO_SERVICE}:{RECEIVER_PORT}/notification"
+
+
+@pytest.mark.parametrize(
+    "environment",
+    [{}, {RECEIVER_HOST_PORT_VARIABLE: "18080"}, {BIND_ADDRESS_VARIABLE: "192.0.2.10"}],
+    ids=["default", "moved-port", "moved-address"],
+)
+def test_the_replay_script_posts_where_compose_publishes_the_receiver(environment):
+    [(address, laptop, _)] = publications(DEMO_SERVICE, environment)
+
+    assert default_receiver(environment) == f"http://{address}:{laptop}"
 
 
 def test_the_receiver_listens_where_the_published_port_leads():
@@ -247,7 +375,7 @@ class TestAStackThatIsUp:
     """With `docker compose up -d` already done, the two things the demo depends on."""
 
     def test_the_health_endpoint_answers_the_laptop(self):
-        assert _get(f"http://localhost:{RECEIVER_PORT}/health") == 200
+        assert _get(f"{default_receiver()}/health") == 200
 
     def test_the_health_endpoint_answers_from_inside_the_network(self):
         """What Grafana's contact point will do, from the container that will do it."""
@@ -266,6 +394,16 @@ class TestAStackThatIsUp:
         who = compose("exec", "-T", DEMO_SERVICE, "id", "-u")
 
         assert who.stdout.strip() != "0"
+
+    @pytest.mark.parametrize("path", ["/proc/1/environ", "/proc/1/task/1/environ"])
+    def test_no_run_can_read_the_receiver_s_environment(self, path):
+        """The Receiver, PID 1, holds the real Jira token in its environment and is
+        non-dumpable, so its /proc is root's; `exec` runs as the Run user, with no capability."""
+        read = compose("exec", "-T", DEMO_SERVICE, "cat", path)
+
+        assert read.returncode != 0, "the Receiver's environment is readable by the Run user"
+        assert "Permission denied" in read.stderr
+        assert not read.stdout
 
     def test_a_run_would_find_the_tools_it_is_allowed_to_use(self):
         for tool in ("claude", "jira-as"):

@@ -3,6 +3,12 @@
 # stack is not a current launch/acceptance path under ADRs 0011-0013. The
 # following commands and topology describe the historical demo only.
 #
+# Both are published on the laptop's loopback address and nowhere else: Grafana
+# runs with anonymous Admin, and anything that can post to the Receiver starts a
+# paid Run that writes to Jira. BIND_ADDRESS, GRAFANA_HOST_PORT and
+# RECEIVER_HOST_PORT move them, from the shell or .env, when 3000 or 8080 is
+# taken; the containers' own ports, and so the contact point, never move.
+#
 #     cp .env.example .env    # then fill it in
 #     docker compose up -d --build
 #     docker compose logs -f demo
@@ -24,9 +30,9 @@ services:
   lgtm:
     image: grafana/otel-lgtm:latest
     ports:
-      - "3000:3000" # Grafana, which is what the audience watches
-      - "4317:4317" # OTLP gRPC, so a traffic source on the laptop could export too
-      - "4318:4318" # OTLP HTTP
+      # Grafana, which is what the audience watches. OTLP stays on the network,
+      # where rolldice exports to it; nothing on the laptop needs it.
+      - "${BIND_ADDRESS:-127.0.0.1}:${GRAFANA_HOST_PORT:-3000}:3000"
     environment:
       GF_PATHS_DATA: /data/grafana
       GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -53,7 +59,7 @@ services:
     ports:
       # The Receiver, so the replay script can post from the laptop. Grafana
       # reaches it on the network instead, at http://demo:8080/notification.
-      - "8080:8080"
+      - "${BIND_ADDRESS:-127.0.0.1}:${RECEIVER_HOST_PORT:-8080}:8080"
     networks:
       - demo
     # Historical runtime boundary, in the shape Anthropic's secure-deployment guide

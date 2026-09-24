@@ -29,7 +29,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from grafana_jsm_sandbox.replay import DEFAULT_RECEIVER, replay
+from grafana_jsm_sandbox.replay import default_receiver, replay
 from grafana_jsm_sandbox.reset import CLOSED, COMPLETED, RESOLUTION, move_to, run_jira_as, search
 from tests.conftest import firing_notification
 
@@ -122,7 +122,7 @@ def fingerprint_label() -> str:
 
 
 def receiver_url() -> str:
-    return os.environ.get(RECEIVER_VARIABLE, "").strip() or DEFAULT_RECEIVER
+    return os.environ.get(RECEIVER_VARIABLE, "").strip() or default_receiver()
 
 
 def setting(variable: str, default: float) -> float:

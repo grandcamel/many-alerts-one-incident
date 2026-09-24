@@ -128,11 +128,17 @@ every operation written as a `jira-as` invocation, because nothing else will exe
 on purpose — it is meant to be read off a screen during the demo.
 
 `build_run_command` is the command line that starts one Run: print mode, `dontAsk`, an allow list
-of `Bash(jira-as *)` and `Read`, stream-json with `--verbose`, and the skill directory added so the
-Run can read it (ADR 0003). Print it to start a Run by hand:
+of `Bash(jira-as *)` and `Read` scoped to two absolute directories, the runs directory and the
+skill (`Read(//app/runs/**)` and `Read(//app/skill/**)` in the container), stream-json with
+`--verbose`, and the skill directory added so the Run can read it (ADR 0003). A bare `Read` was
+enough for a Run to read the real Jira token out of the Receiver's `/proc` entry; the Receiver is
+also non-dumpable on Linux, so that entry is root's and no Run can open it by any route (ADR
+0002). Processes Docker execs into the container, the healthcheck and any `docker compose exec`,
+still carry the token in their environment while they live; ADR 0002's amendment records that
+open route and its fix. Print the command line to start a Run by hand:
 
 ```bash
-python3 -m grafana_jsm_sandbox.run_command skill
+python3 -m grafana_jsm_sandbox.run_command skill runs
 ```
 
 Two things the permission boundary decides for the skill, both found by running it:
@@ -270,14 +276,29 @@ EXTRA_CA_CERT=certs/corporate-root.crt docker compose up -d --build
 ```
 
 The Receiver answers on the compose network at `http://demo:8080`, which is what Grafana will
-post to, and on the laptop at `http://localhost:8080`, which is where the replay script posts:
+post to, and on the laptop at `http://localhost:8080`, which is where the replay script posts by
+default:
 
 ```bash
 curl -fsS http://localhost:8080/health
-python3 -m grafana_jsm_sandbox.replay --receiver http://localhost:8080 --pause 30
+python3 -m grafana_jsm_sandbox.replay --pause 30
 ```
 
 Grafana is on the laptop at <http://localhost:3000>, anonymous admin, no login form.
+
+Both are published on the laptop's loopback address and nowhere else, and OTLP is not published
+at all: Grafana's anonymous user is an Admin, and anything that can post to the Receiver starts a
+paid Run that writes to Jira. Three variables, in the shell or `.env`, move the laptop side and
+never the containers' own ports, so the contact point is untouched:
+
+| Variable | What it moves | Default |
+| --- | --- | --- |
+| `BIND_ADDRESS` | The laptop address both are published on | `127.0.0.1` |
+| `GRAFANA_HOST_PORT` | Grafana's laptop port, when 3000 is taken | `3000` |
+| `RECEIVER_HOST_PORT` | The Receiver's laptop port, when 8080 is taken | `8080` |
+
+The replay script's default follows `BIND_ADDRESS` and `RECEIVER_HOST_PORT` when they are set in
+the shell; one set only in `.env` needs `--receiver`.
 
 ### Firing the Alert for real
 

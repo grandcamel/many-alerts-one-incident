@@ -21,10 +21,14 @@ from urllib.parse import urlencode
 
 import pytest
 
+from grafana_jsm_sandbox.replay import laptop_url
 from tests.conftest import compose, firing_notification, http_request, needs_the_stack_up
 
-GRAFANA = "http://localhost:3000"
-"""Grafana on the laptop: anonymous admin, no login form."""
+GRAFANA_HOST_PORT_VARIABLE = "GRAFANA_HOST_PORT"
+"""What moves Grafana off a taken 3000 on the laptop; its port in the container stays 3000."""
+
+GRAFANA = laptop_url(GRAFANA_HOST_PORT_VARIABLE, 3000)
+"""Grafana on the laptop, where compose publishes it: anonymous admin, no login form."""
 
 RECEIVER_ON_THE_NETWORK = "http://demo:8080/notification"
 """The Receiver as Grafana must name it: by compose service name, not localhost."""

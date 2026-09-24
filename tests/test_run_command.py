@@ -2,8 +2,9 @@
 
 The flags here are the demo's permission boundary (ADR 0003): a Run is started
 in a mode where anything outside the allow list is denied without a prompt, and
-the allow list is jira-as and reading. These tests are what stops a later change
-from quietly widening that, which no other test in this repo would notice.
+the allow list is jira-as and reading under two absolute directories. These tests
+are what stops a later change from quietly widening that, which no other test in
+this repo would notice.
 """
 
 from __future__ import annotations
@@ -13,14 +14,15 @@ from pathlib import Path
 import pytest
 
 from grafana_jsm_sandbox.notification import NOTIFICATION_FILENAME
-from grafana_jsm_sandbox.run_command import ALLOWED_TOOLS, SKILL_FILE, build_run_command
+from grafana_jsm_sandbox.run_command import SKILL_FILE, build_run_command, main
 
 SKILL_DIRECTORY = Path("/srv/skill")
+RUNS_DIRECTORY = Path("/srv/runs")
 
 
 @pytest.fixture
 def command() -> list[str]:
-    return build_run_command(SKILL_DIRECTORY)
+    return build_run_command(SKILL_DIRECTORY, RUNS_DIRECTORY)
 
 
 def value_of(command: list[str], flag: str) -> str:
@@ -50,8 +52,12 @@ def test_anything_outside_the_allow_list_is_denied_without_a_prompt(command):
     assert value_of(command, "--permission-mode") == "dontAsk"
 
 
-def test_the_run_may_execute_jira_as_and_read_files_and_nothing_else(command):
-    assert values_of(command, "--allowedTools") == ["Bash(jira-as *)", "Read"]
+def test_the_run_may_execute_jira_as_and_read_two_directories_and_nothing_else(command):
+    assert values_of(command, "--allowedTools") == [
+        "Bash(jira-as *)",
+        "Read(//srv/runs/**)",
+        "Read(//srv/skill/**)",
+    ]
     assert "--dangerously-skip-permissions" not in command
     assert "--allow-dangerously-skip-permissions" not in command
     assert "--disallowedTools" not in command
@@ -75,7 +81,7 @@ def test_the_system_prompt_appendix_names_the_notification_and_the_skill(command
 def test_the_run_is_told_the_same_allow_list_that_is_enforced_on_it(command):
     """A Run that knows what it may do stops reaching for what it may not."""
     appendix = value_of(command, "--append-system-prompt")
-    for tool in ALLOWED_TOOLS:
+    for tool in values_of(command, "--allowedTools"):
         assert tool in appendix
 
 
@@ -87,5 +93,30 @@ def test_the_prompt_is_the_last_argument_and_is_not_a_flag(command):
 
 def test_a_relative_skill_directory_is_made_absolute(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    command = build_run_command(Path("skill"))
+    command = build_run_command(Path("skill"), RUNS_DIRECTORY)
     assert value_of(command, "--add-dir") == str(tmp_path / "skill")
+
+
+def test_every_read_rule_names_an_absolute_path(command):
+    """A bare `Read` handed a Run the real token from /proc/1/task/1/environ (the
+    2026-09-23 probe). `//` is Claude Code's prefix for an absolute path, and only a
+    rule scoped that way denied the token and every alias of it."""
+    for tool in values_of(command, "--allowedTools"):
+        if tool.startswith("Read"):
+            assert tool.startswith("Read(//") and tool.endswith("/**)"), tool
+    assert "Read" not in values_of(command, "--allowedTools")
+
+
+def test_a_relative_runs_directory_is_made_absolute_in_its_read_rule(tmp_path, monkeypatch):
+    """The Receiver's default runs directory is relative to where it was started."""
+    monkeypatch.chdir(tmp_path)
+    command = build_run_command(SKILL_DIRECTORY, Path("runs"))
+    assert f"Read(/{tmp_path.resolve()}/runs/**)" in values_of(command, "--allowedTools")
+
+
+def test_printed_by_hand_it_needs_both_directories(capsys):
+    assert main(["skill"]) == 2
+    assert "<runs-directory>" in capsys.readouterr().err
+
+    assert main(["/srv/skill", "/srv/runs"]) == 0
+    assert "'Read(//srv/runs/**)'" in capsys.readouterr().out

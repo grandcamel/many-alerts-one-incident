@@ -12,7 +12,7 @@ import time
 
 import pytest
 
-from grafana_jsm_sandbox.replay import SEQUENCE, replay
+from grafana_jsm_sandbox.replay import SEQUENCE, default_receiver, replay
 from tests.conftest import FIXTURES
 
 
@@ -46,3 +46,34 @@ def test_the_pause_falls_between_the_notifications_and_not_after_the_last(receiv
 def test_a_receiver_that_is_not_there_says_so():
     with pytest.raises(OSError):
         replay("http://127.0.0.1:1", pause=0)
+
+
+# --- Where compose publishes the Receiver on the laptop (step 01 of demo-onboarding) ---
+
+
+def test_by_default_it_posts_to_the_laptop_s_loopback_where_compose_publishes_it():
+    assert default_receiver({}) == "http://127.0.0.1:8080"
+
+
+def test_a_receiver_moved_off_a_taken_port_is_followed():
+    assert default_receiver({"RECEIVER_HOST_PORT": "18080"}) == "http://127.0.0.1:18080"
+
+
+def test_an_empty_value_means_compose_s_default_as_it_does_for_compose():
+    """`${RECEIVER_HOST_PORT:-8080}` takes the default for an empty value, not only a missing one."""
+    assert default_receiver({"BIND_ADDRESS": " ", "RECEIVER_HOST_PORT": ""}) == (
+        "http://127.0.0.1:8080"
+    )
+
+
+@pytest.mark.parametrize(
+    ("address", "url"),
+    [
+        ("0.0.0.0", "http://localhost:8080"),
+        ("::", "http://localhost:8080"),
+        ("192.0.2.10", "http://192.0.2.10:8080"),
+        ("::1", "http://[::1]:8080"),
+    ],
+)
+def test_the_laptop_reaches_the_address_compose_binds(address, url):
+    assert default_receiver({"BIND_ADDRESS": address}) == url

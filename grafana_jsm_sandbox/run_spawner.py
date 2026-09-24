@@ -43,8 +43,12 @@ of them: `getServerInfo`. A Run has no clock — `date` is not on its allow list
 duration it reports is Jira's `serverTime` minus the Incident's `created` (ticket 04). Without
 this, a Run outside a tree holding a jira-as settings file cannot read the time at all.
 
-It gates which calls jira-as will make, not what the credential behind the Forwarder can reach,
-so it widens nothing: the boundary is the sentinel and the allow list."""
+It is not narrow. jira-as has no switch for one site-scoped call: this unlocks all of them,
+610 of its operations in 2.0.0, users, groups and schemes among them, besides the one a Run
+needs. What any of those can then do is whatever the account behind the Forwarder may do,
+because the Forwarder swaps the sentinel for that account's real token on every request. So
+the limit on a Run's site-wide reach is the Skill it follows and that account's own Jira
+permissions, and the account the demo runs as should hold no more than the demo needs."""
 
 TRUST_STORE_VARIABLES = (
     "SSL_CERT_FILE",

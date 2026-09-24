@@ -5,7 +5,10 @@ Firing, and a Resolved. Posting them in order drives the whole Incident
 lifecycle without Grafana being involved, which is the demo's fallback and what
 the end-to-end check uses.
 
-    python3 -m grafana_jsm_sandbox.replay --receiver http://localhost:8080 --pause 30
+    python3 -m grafana_jsm_sandbox.replay --pause 30
+
+Without `--receiver` it posts where compose publishes the Receiver on this
+laptop, `127.0.0.1:8080` unless the shell moves it (`laptop_url`).
 
 The Receiver runs Notifications one at a time in arrival order, so the pause is
 about pacing what an audience sees, not about keeping the Runs apart.
@@ -15,9 +18,11 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -35,8 +40,19 @@ FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 NOTIFICATION_PATH = "/notification"
 """The Receiver's endpoint, the one Grafana's contact point points at."""
 
-DEFAULT_RECEIVER = "http://localhost:8080"
-"""The demo on this laptop, or the container's published port."""
+BIND_ADDRESS_VARIABLE = "BIND_ADDRESS"
+RECEIVER_HOST_PORT_VARIABLE = "RECEIVER_HOST_PORT"
+"""What compose publishes the Receiver on:
+`${BIND_ADDRESS:-127.0.0.1}:${RECEIVER_HOST_PORT:-8080}`."""
+
+DEFAULT_BIND_ADDRESS = "127.0.0.1"
+"""The laptop's loopback, and nowhere else, unless the presenter says otherwise."""
+
+DEFAULT_RECEIVER_HOST_PORT = 8080
+"""The Receiver's port on the laptop when 8080 is free, which is also its port in the container."""
+
+WILDCARD_ADDRESSES = ("0.0.0.0", "::")
+"""Every interface, which includes the laptop's own, so the laptop reaches it as localhost."""
 
 DEFAULT_PAUSE = 30.0
 """Seconds between Notifications: long enough to watch one Run finish before the next."""
@@ -45,8 +61,34 @@ POST_TIMEOUT = 10.0
 """Seconds to wait for the Receiver's acknowledgement, which it sends before the Run."""
 
 
-def replay(receiver_url: str = DEFAULT_RECEIVER, pause: float = DEFAULT_PAUSE) -> list[int]:
+def laptop_url(
+    port_variable: str, default_port: int, environment: Mapping[str, str] | None = None
+) -> str:
+    """Where this laptop reaches a port compose publishes as `${BIND_ADDRESS}:${port_variable}`.
+
+    Read from the variables compose interpolates the published ports from, with
+    compose's own defaults, so moving the Receiver off a taken 8080 moves this with
+    it. Compose also reads them from `.env`; this reads only the shell, so a port
+    moved in `.env` alone needs `--receiver`.
+    """
+    environment = os.environ if environment is None else environment
+    address = environment.get(BIND_ADDRESS_VARIABLE, "").strip() or DEFAULT_BIND_ADDRESS
+    if address in WILDCARD_ADDRESSES:
+        address = "localhost"
+    elif ":" in address:
+        address = f"[{address}]"
+    port = environment.get(port_variable, "").strip() or str(default_port)
+    return f"http://{address}:{port}"
+
+
+def default_receiver(environment: Mapping[str, str] | None = None) -> str:
+    """The container's Receiver as compose publishes it on this laptop."""
+    return laptop_url(RECEIVER_HOST_PORT_VARIABLE, DEFAULT_RECEIVER_HOST_PORT, environment)
+
+
+def replay(receiver_url: str | None = None, pause: float = DEFAULT_PAUSE) -> list[int]:
     """Post the canned sequence in order and return what the Receiver answered each time."""
+    receiver_url = default_receiver() if receiver_url is None else receiver_url
     url = receiver_url.rstrip("/") + NOTIFICATION_PATH
     statuses = []
     for index, filename in enumerate(SEQUENCE):
@@ -76,7 +118,10 @@ def post(url: str, notification: bytes) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--receiver", default=DEFAULT_RECEIVER, help="the Receiver's base URL")
+    parser.add_argument(
+        "--receiver",
+        help="the Receiver's base URL; by default where compose publishes it on this laptop",
+    )
     parser.add_argument(
         "--pause", type=float, default=DEFAULT_PAUSE, help="seconds between Notifications"
     )

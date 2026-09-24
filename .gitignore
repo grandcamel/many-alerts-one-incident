@@ -17,3 +17,6 @@ certs/*
 
 # Subagent worktrees. Ephemeral; never a commit.
 .claude/worktrees/
+
+# A laptop's own Claude Code permissions. The shared settings beside it are committed.
+.claude/settings.local.json
