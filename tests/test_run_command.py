@@ -153,6 +153,14 @@ def test_the_prompt_names_the_demo_s_project_and_not_ops(command):
     assert "OPS" not in prompt
 
 
+def test_another_prompt_changes_the_prompt_and_nothing_else(command):
+    """`doctor --with-model` asks a Run with the real flags to do something harmless."""
+    probe = build_run_command(RUNS_DIRECTORY, PROJECT_KEY, prompt="run `jira-as --version`")
+
+    assert probe[:-1] == command[:-1]
+    assert probe[-1] == "run `jira-as --version`"
+
+
 def test_a_relative_runs_directory_puts_the_rendered_skill_at_an_absolute_path(
     tmp_path, monkeypatch
 ):

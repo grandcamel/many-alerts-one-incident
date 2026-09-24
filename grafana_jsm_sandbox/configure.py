@@ -97,7 +97,7 @@ from grafana_jsm_sandbox.demo_config import (
     jira_as_environment,
     read_env_file,
 )
-from grafana_jsm_sandbox.forwarder import IP_ALLOWLIST
+from grafana_jsm_sandbox.forwarder import DIAGNOSED_BODY_BYTES, IP_ALLOWLIST
 from grafana_jsm_sandbox.log_formatter import redact
 from grafana_jsm_sandbox.reset import (
     CLOSED,
@@ -185,6 +185,10 @@ GATEWAY_HOST = "api.atlassian.com"
 
 UNREACHABLE = "HTTP transport failed"
 """How jira-as 2.0.0 words a site it could not connect to, which it reports as a 503."""
+
+JIRA_AS_FAILED = "Failed to "
+"""How jira-as 2.0.0 starts the message for an error status: `Failed to <operation>: <body>`
+(`error_handler.handle_jira_error`)."""
 
 PAGE_SIZE = 50
 """What each page of a paged answer is asked for. Jira may answer fewer, so pages are followed."""
@@ -276,12 +280,26 @@ class JiraRefused(Exception):
     `{"status": 404, "messages": [...], ...}`, with `status` null for its own refusals and
     503 for a site it could not reach. The messages are redacted before they are kept, and
     folded onto one short line, since they end up on a check's line.
+
+    Whether they are an IP allowlist's refusal is decided first, on what was said in
+    full: jira-as puts the whole response body after `Failed to <operation>: `, and an
+    allowlist's HTML page says so well past what a line keeps. The body is searched as
+    far as the Forwarder's `diagnose` searches one, so the laptop and the container
+    read the same page the same way.
     """
 
     def __init__(self, status: int | None, messages: list[str]):
         self.status = status
+        self.ip_allowlist = any(IP_ALLOWLIST.search(body_of(message)) for message in messages)
         self.messages = [clipped(redact(message)) for message in messages]
         super().__init__("; ".join(self.messages) or "no message")
+
+
+def body_of(message: str) -> str:
+    """The start of the response body a jira-as message quotes, as much as `diagnose` searches."""
+    if message.startswith(JIRA_AS_FAILED):
+        message = message.partition(": ")[2]
+    return message[:DIAGNOSED_BODY_BYTES]
 
 
 def one_line(text: str) -> str:
@@ -351,7 +369,7 @@ def refused(name: str, failure: JiraRefused) -> Check:
             "and whether your account may use API tokens",
             (API_TOKENS,),
         )
-    if failure.status == 403 and IP_ALLOWLIST.search(said):
+    if failure.status == 403 and failure.ip_allowlist:
         return Check(
             FAIL,
             name,

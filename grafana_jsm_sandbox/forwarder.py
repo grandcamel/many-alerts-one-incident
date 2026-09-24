@@ -64,6 +64,10 @@ for every server it starts."""
 _TEXT = {"Content-Type": "text/plain; charset=utf-8"}
 """The headers on an answer the Forwarder writes itself rather than forwarding."""
 
+UNREACHABLE_BODY = b"upstream is unreachable"
+"""The body of the 502 the Forwarder writes itself when the site cannot be reached at all, so a
+caller can tell it from a 502 the site sent: `doctor` reads the one as a network problem."""
+
 DIAGNOSED_BODY_BYTES = 4096
 """How much of an upstream error body is searched for the words of an IP-allowlist refusal.
 It is only searched, never logged: a body can quote anything the site holds."""
@@ -239,7 +243,7 @@ class Forwarder:
             return error.code, dict(error.headers), error.read()
         except (urllib.error.URLError, TimeoutError) as error:
             logger.warning("upstream %s %s could not be reached: %s", method, path, error)
-            return 502, dict(_TEXT), b"upstream is unreachable"
+            return 502, dict(_TEXT), UNREACHABLE_BODY
 
     def _upstream_url(self, path: str) -> str:
         """The configured site plus the request's path and query, and nothing else."""

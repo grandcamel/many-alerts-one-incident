@@ -372,7 +372,8 @@ HINT_TOKEN = (
 )
 HINT_CREDITS = (
     "the Claude account is out of usage credits for this model: top them up at "
-    "claude.ai/settings/usage, or run a model the account has credits for"
+    "claude.ai/settings/usage, or set RUN_MODEL in .env to a model the account has credits for "
+    "and recreate the container with `docker compose up -d demo`"
 )
 HINT_RATE_LIMIT = (
     "the Claude account hit a rate limit: wait for it to reset (a [limit] line above says "

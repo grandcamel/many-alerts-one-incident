@@ -97,6 +97,7 @@ def build_run_command(
     project_key: str,
     model: str = DEFAULT_MODEL,
     budget_usd: float | None = None,
+    prompt: str | None = None,
 ) -> list[str]:
     """The argv that starts one Run, to be executed in the Run's working directory.
 
@@ -110,6 +111,10 @@ def build_run_command(
     what one Run may spend (`--max-budget-usd`, print mode only): a Run that reaches
     it stops with `error_max_budget_usd`, which the log formatter's hint names. With
     none, a Run is bounded only by its timeout.
+
+    `prompt` replaces the one a Notification's Run is given, and nothing else: `doctor
+    --with-model` asks a Run with these very flags to do something harmless, so what it
+    finds out about the seat and the allow list holds for the Runs an Alert starts.
     """
     runs_directory = Path(runs_directory).resolve()
     skill_directory = rendered_skill_directory(runs_directory)
@@ -136,7 +141,7 @@ def build_run_command(
             skill=skill_directory / SKILL_FILE,
             tools=", ".join(tools),
         ),
-        PROMPT.format(project_key=project_key),
+        PROMPT.format(project_key=project_key) if prompt is None else prompt,
     ]
 
 

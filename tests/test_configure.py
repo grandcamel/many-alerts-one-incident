@@ -952,6 +952,21 @@ def test_a_multi_line_refusal_still_prints_one_line_per_check(configure):
     assert END_LINE.match(said.lines[-1])
 
 
+def test_an_allowlist_page_is_read_in_full_before_the_line_is_cut(configure):
+    """Its words can sit well past what a line keeps, behind a page's head and style."""
+    jira = FakeJira()
+    head = "<html><head><style>" + "body { margin: 0; padding: 0 } " * 20 + "</style></head>"
+    jira.answers["getProject"] = Refusal(
+        403, [f"Failed to getProject: {head}<body>Your IP address has been rejected</body>"]
+    )
+
+    said = configure(jira)
+
+    assert len(head) > 300
+    (line,) = said.check("project")
+    assert line.endswith("; ask: docs/admin-requests.md#atlassian-org-admin-ip-allowlist"), line
+
+
 def test_a_refusal_with_no_json_is_folded_onto_one_line_with_a_next_step(configure):
     """A jira-as that crashed, or no longer knows a flag, says so in no JSON at all."""
     jira = FakeJira()

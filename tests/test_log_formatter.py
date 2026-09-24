@@ -31,7 +31,7 @@ from grafana_jsm_sandbox.log_formatter import (
     format_stream,
     run_failure,
 )
-from tests.conftest import FIXTURES
+from tests.conftest import FIXTURES, REPOSITORY
 
 REPO_ROOT = FIXTURES.parent
 TRANSCRIPT = FIXTURES / "run-transcript.jsonl"
@@ -548,11 +548,21 @@ def test_a_known_cause_gets_its_hint_under_the_failure(fields, hint):
 
 
 @pytest.mark.parametrize(
-    ("hint", "variable"), [(HINT_MODEL, "RUN_MODEL"), (HINT_BUDGET, "RUN_BUDGET_USD")]
+    ("hint", "variable"),
+    [(HINT_MODEL, "RUN_MODEL"), (HINT_CREDITS, "RUN_MODEL"), (HINT_BUDGET, "RUN_BUDGET_USD")],
 )
-def test_the_model_and_budget_hints_name_the_knob_that_changes_them(hint, variable):
-    """Both come from `.env` (step 06 of demo-onboarding), so the hint says which line."""
+def test_the_model_credit_and_budget_hints_name_the_knob_that_changes_them(hint, variable):
+    """Each comes from `.env` (steps 06 and 09 of demo-onboarding), so the hint says which line."""
     assert variable in hint
+
+
+def test_the_readme_quotes_the_refused_transcript_as_it_renders():
+    """The README's refused-Run sample is this fixture's rendering, word for word."""
+    readme = (REPOSITORY / "README.md").read_text(encoding="utf-8")
+    rendered = format_stream(REFUSED_TRANSCRIPT.read_text(encoding="utf-8").splitlines())
+
+    for line in rendered:
+        assert f"\n{line}\n" in readme, line
 
 
 def test_an_unknown_cause_gets_no_hint_rather_than_a_wrong_one():

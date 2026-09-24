@@ -127,6 +127,10 @@ no further.
 Run them in this order. Every one must pass before the audience arrives; none takes more than a
 minute except the first.
 
+`python3 -m grafana_jsm_sandbox.doctor` asks most of these questions in one pass, from the
+laptop's tools through `.env`, Jira and the stack to the running Grafana, and ends `READY` or
+`NOT READY: <first blocker>`. It changes nothing, so the reset below is still a step of its own.
+
 1. **Stack up.** `docker compose ps` shows four services running and `demo` healthy. If not:
 
     ```bash
