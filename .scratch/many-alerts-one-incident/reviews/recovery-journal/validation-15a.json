@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-23",
+  "status": "PASS_LOCAL_RECOVERY_JOURNAL_RECORDS_SOURCE_AND_STORE",
+  "unit": "15a (first part of unit 15; split per the plan's size rule)",
+  "baseline_commit": "6a3ecc2",
+  "unit_tests": {
+    "passed": 299,
+    "skipped": 2,
+    "repeated_runs": 2
+  },
+  "focused_tests": {
+    "passed": 476,
+    "skipped": 2,
+    "seconds": 17.65,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/recovery-journal/focused-tests-15a.txt"
+  },
+  "full_suite": {
+    "command": "pytest -q --ignore=<four untracked 15b test files>",
+    "passed": 3799,
+    "skipped": 38,
+    "seconds": 202.25,
+    "exit_code": 0,
+    "log": ".scratch/many-alerts-one-incident/reviews/recovery-journal/full-suite-15a.txt",
+    "new_skips": "two Linux-only sync-primitive variants, skipped on darwin"
+  },
+  "existing_tests_byte_identical": true,
+  "existing_modules_changed": [],
+  "design": {
+    "designs": 3,
+    "judges": 2,
+    "critic_issues_resolved": 15,
+    "winner": "sqlite (47 and 43 of 60)",
+    "baseline": "6a3ecc2"
+  },
+  "review": {
+    "orchestration": "individual agents (Workflow tool not opted into this session)",
+    "round1_lenses": [
+      "contract",
+      "durability",
+      "fail_closed_custody",
+      "test_adequacy"
+    ],
+    "round1_confirmed": 20,
+    "round1_high": 3,
+    "fixed_by_opus_fixer": 20,
+    "root_source_fixes": 2,
+    "gap_agent_1_mutants_killed": 15,
+    "final_verdict": "FAIL_TEST_GAP_THEN_FIXED",
+    "final_blocking": "durability pragmas never read back by a test (M01-M05)",
+    "final_mutants": 28,
+    "final_killed": 11,
+    "final_equivalent": 2,
+    "post_review_source_hardenings": [
+      "write_slot refuses backward heads and non-v1 bodies",
+      "persist_hold refuses a different persisted verdict",
+      "genesis bounds validated in sorted order",
+      "canonical_number rejects non-str JSONDecimal text"
+    ],
+    "gap_agent_2_mutants_killed": 20,
+    "post_review_doc_corrections": 5,
+    "addendum_verdict": "PASS",
+    "final_reviewer": "fresh independent agent (claude-opus-5-5)",
+    "implementation_models": "claude-sonnet-5 implementers and gap agents; claude-opus-5-5 designers, judges, synthesizer, critic, lens reviewers, fixer and final reviewer",
+    "artifact": ".scratch/many-alerts-one-incident/reviews/recovery-journal/review-15a.md"
+  },
+  "deviations": [
+    "Module 1 source-record section split into journal_source.py per the plan's split point",
+    "unit split into 15a and 15b per the plan's size rule",
+    "journal requires Python >= 3.12 and SQLite >= 3.37 (fails closed otherwise)"
+  ],
+  "size": {
+    "journal_source_lines": 396,
+    "journal_records_lines": 624,
+    "journal_store_lines": 1101,
+    "targets": "about 440 (Module 1) and 440 (store)",
+    "assessment": "mostly design content from the plan and round-1 fixes; about 60-90 foldable lines"
+  },
+  "ruff": "PASS",
+  "line_length": "PASS",
+  "compile": "PASS",
+  "whitespace": "PASS",
+  "artifacts": {
+    "grafana_jsm_sandbox/journal_source.py": "a5e9b9516e441b1cb7b14d8fc7f2fac59814c14dafc56bf188358e77a497c2d1",
+    "grafana_jsm_sandbox/journal_records.py": "a7320dc1238f3406958d49ab980a3bdbc8a49ab90a5a5c43fd22c3629ef63994",
+    "grafana_jsm_sandbox/journal_store.py": "fc5e79bec3d1ccddda403b986e708ff80a0a10d7ac696f8c4153b788ae09c627",
+    "tests/test_journal_source.py": "8abf9de168fb459111c24228b926a5c0ad8d1aa1f5794590f0dba1132ccf8da3",
+    "tests/test_journal_records.py": "de7ed910158e857e7d40dfde6798e5da2766b9c920f2858e1f0ee0a4fd1c8d17",
+    "tests/test_journal_store.py": "746dee72f847a53783ac411a0b41d2f13954e1eb988cf76e575161d48ffd2155",
+    "docs/recovery-journal.md": "186d9e3a72e14f01b0ac39682668d79e5dd93e5f4d3abcf45a789841ea0fc8b3",
+    ".scratch/many-alerts-one-incident/execution-backlog.md": "4269571ee7dc12ebe9db898fda295c56cb330459009774f576f435a24034b602",
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "be7d7a12560be6b045a9161df6f8c482a877028d90bff27c5692da19063cc0b6",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/implementation-plan.md": "5bf6cf52560cab939ad85ffa028c90289ff24f7da31ffb3c064d4335a25db68e",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/review-15a.md": "19396a9d664f79e756e05ae09448c73e2f8ba93b0393b82a75a3d8f10e6ddc78",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/outcome-15a.md": "da8abb2be75f80c173806725dc9b4a9ca4a49f3d6a5d3b8367673bb333f685ba",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/focused-tests-15a.txt": "7bfa5f2dab454c14f742f1a2413fe4f85121a82af769e0b3b6decb8529de49ac",
+    ".scratch/many-alerts-one-incident/reviews/recovery-journal/full-suite-15a.txt": "5eb6e54823f762ae108179866fed1a3ceae6b5271809b83dba8201b1a247e968"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "not_qualified": [
+    "reducer, admission transaction, replay, restart recovery and snapshot (15b)",
+    "Receiver integration, ingress, Run, effect, accounting, reset, retention, reconstruction",
+    "device flush honesty, venue durability, Linux behavior, isolation from Runs",
+    "detection of consistent rollback or same-uid anchor forgery",
+    "ratification of proposed v1 limits, fields and semantics"
+  ],
+  "publication": "LOCAL_ONLY"
+}

@@ -39,11 +39,12 @@ merely because its document is finished.
 - 44 tickets: 30 resolved, 13 open and ticket 19 claimed.
 - The supervised streaming integration joins an actual fixed child to the
   bounded two-hop Python loopback TLS fixture.
-- Latest code validation: **3500 passed, 36 skipped**, including focused
+- Latest code validation: **3799 passed, 38 skipped**, including focused
   service, lease, control, listener, supervisor, TLS, HTTP, receipt, response-send,
-  JSON, route-policy, dispatch-gate, exchange, upstream-connector and
-  control-framing tests plus existing regressions.
-  The [control-framing outcome](reviews/forwarder-control-framing/outcome.md),
+  JSON, route-policy, dispatch-gate, exchange, upstream-connector,
+  control-framing and recovery-journal store tests plus existing regressions.
+  The [recovery journal 15a outcome](reviews/recovery-journal/outcome-15a.md),
+  [control-framing outcome](reviews/forwarder-control-framing/outcome.md),
   [upstream connector outcome](reviews/forwarder-upstream/outcome.md),
   [dispatch-gate outcome](reviews/forwarder-dispatch/outcome.md),
   [route-policy outcome](reviews/forwarder-routes/outcome.md),
@@ -244,13 +245,25 @@ the registry before its error frame. Independent review passes; the full suite
 reports 3500 passed, 36 skipped. AuthorizeDispatch permits remain deferred until
 the ticket-37 durable intent journal exists.
 
+The [first part of the fifteenth unit (15a)](reviews/recovery-journal/outcome-15a.md)
+starts the ticket-37 Receiver recovery journal from its reviewed
+[plan](reviews/recovery-journal/implementation-plan.md). It adds the sanitized
+source record, the digest-chained canonical record envelope, and a SQLite WAL
+store with a separately synced two-slot anchor. A commit is acknowledged only
+after the COMMIT and a fail-closed anchor sync. Verified integrity failures can
+be held durably in the anchor, while transient ones never persist. No open
+destroys evidence, because the store never checkpoints on close. The store is
+not wired into the Receiver. Independent review passes; the full suite, without
+the in-progress 15b files, reports 3799 passed, 38 skipped. Unit 15b adds the
+pure reducer, the admission transaction and the crash and adversarial suites.
+
 | Order | Tickets | Concrete next deliverable | Completion boundary |
 | --- | --- | --- | --- |
 | 1 | 37, 38, 39 | Initial specification batch retained; consume it in the next contracts and reconcile later interface deltas | Planning artifacts with explicit unresolved inputs and real-interface acceptance cases; no claim of runtime acceptance |
 | 2 | 35, 41, 43 | Reviewed initial specifications retained; reconcile later Eyes/Forwarder and venue interface deltas | Exact contracts derived from accepted ADRs; version-specific or tenant facts retain evidence gates |
 | 3 | 12, 16, 36 | Initial proposals retained; integrate client selection, exact native bindings and later acceptance evidence | Progress independent sections despite C2; surface only genuinely missing human decisions; do not silently choose a provider-blocked implementation |
 | 4 | 32, 42, 44 | Initial drafts retained; bind native OPS state, storage, provider age/inventory and operator projection to future evidence | Planning only; preserve distinct storage, retention and authority boundaries |
-| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts, receipt-gated response send, strict JSON, read-only Jira route policy, atomic dispatch gate, one-request exchange, synthetic fixed-origin upstream connector and control framing (scoped registration, closeout replies) complete; next the ticket-37 durable Receiver journal and recovery, ticket-38 accounting, then AuthorizeDispatch permits, a worker supervisor with readiness and the guarded launcher | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
+| 5 | Authorized application implementation follow-ups | Service profiles, scoped leases, authenticated control, private listener, managed supervision, TLS client/server, common HTTP parser, bounded request/response collection, non-streaming response codec, sanitized receipts, receipt-gated response send, strict JSON, read-only Jira route policy, atomic dispatch gate, one-request exchange, synthetic fixed-origin upstream connector and control framing (scoped registration, closeout replies) complete; ticket-37 recovery journal records and store (15a) complete; next the journal reducer and admission transaction (15b), then Receiver integration and recovery, ticket-38 accounting, then AuthorizeDispatch permits, a worker supervisor with readiness and the guarded launcher | Local code/tests authorized by separate scope decision; native/provider/tenant/deployment execution remains closed pending evidence |
 | 6 | Live qualification | Execute a concrete, technically ready experiment under standing cost authority | Known cumulative exposure below $50, required transport/account/evidence/venue gates and human adjudication; no automatic qualification from synthetic success |
 
 Independent specification sections may advance before their linked tickets

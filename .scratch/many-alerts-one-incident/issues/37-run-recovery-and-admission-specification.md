@@ -32,3 +32,17 @@ Accepted ADR policy remains distinct from proposed implementation choices. See t
 [cross-ticket review](../reviews/recovery-accounting-audit-integration.md).
 This planning artifact is not runtime, model, billing, tenant or venue acceptance;
 the ticket remains open for its unresolved inputs and final integration.
+
+## Local implementation progress, 2026-09-23
+
+The reviewed [journal implementation plan](../reviews/recovery-journal/implementation-plan.md)
+chooses SQLite in WAL mode plus a separately synced anchor file. Every storage
+setting, limit and v1 semantic in it is a proposal awaiting ratification. Unit
+[15a](../reviews/recovery-journal/outcome-15a.md) adds the sanitized source
+record, the digest-chained record envelope, and a store that acknowledges only
+after the COMMIT and the anchor sync. Verified integrity failures persist as
+durable holds; transient failures never do. Independent review passes; the
+full suite reports 3799 passed, 38 skipped. The admission transaction (15b),
+Receiver integration, Run and effect records, accounting, reset and
+reconstruction remain open, as do venue durability and isolation from Runs.
+This ticket stays open.
