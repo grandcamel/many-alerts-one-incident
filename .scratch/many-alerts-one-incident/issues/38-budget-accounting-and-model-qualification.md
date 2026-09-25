@@ -159,3 +159,15 @@ event; the index cannot invent that identity or prove complete billing. No
 archive registration, witness, compaction, production reserve or dispatch was
 added. The external decisions above and provider, native, tenant, paid, venue
 and power-loss acceptance remain open. This ticket stays open.
+
+## Local active/archive overlap progress, 2026-09-25: unit 18g3
+
+The [18g3 local outcome](../reviews/receiver-journal/outcome-18g3-overlap.md)
+adds a pure same-generation relation over reverified segment/index bytes and
+caller-supplied active rows and head. It requires exact overlap, immediate
+suffix continuity and one semantic replay. Independent source/spec review,
+focused tests and the full local suite pass. No active-store adapter,
+archive registration, independent witness, compaction, capacity release,
+production reservation or dispatch authority was added. Opening/billing,
+retention and intended-venue gates remain open; native, provider, tenant,
+paid, venue and power-loss acceptance are NOT RUN. This ticket stays open.

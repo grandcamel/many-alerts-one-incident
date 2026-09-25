@@ -62,11 +62,16 @@ admission continues. No importer, archive or witness is implemented here.
 The [18g proposed archive format](../.scratch/many-alerts-one-incident/reviews/receiver-journal/design-18g-archive-format.md)
 pins contiguous event segments, a derived cumulative duplicate index and an
 ordered read-back/witness/registration handoff for a future ledger version.
-The current v1 append-only schema has no registration or compaction transition,
-so it cannot perform that handoff. The 18g format covers one ledger generation;
-cross-generation replay and compaction remain separately gated. A local digest
-or off-cluster copy without an independent witness cannot prove continuity.
-This is documentation only; no archive bytes or reserve method are created.
+Pure local segment and index codecs can re-derive a same-generation prefix.
+`accounting_archive_overlap.compare_archive_active` compares that reverified
+prefix with caller-supplied active rows and head, requiring byte-identical
+overlap, an immediate suffix and one replayed history. It supplies structural
+counts and a projection, never evidence that either input came from a trusted
+store. The current v1 append-only schema has no registration or compaction
+transition, so it cannot perform the handoff. Cross-generation replay and
+compaction remain separately gated. A local digest or off-cluster copy without
+an independent witness cannot prove continuity. No archive is registered, no
+rows are deleted and no reserve method is created.
 
 `accounting_evidence_candidate` parses only bounded canonical private
 metadata envelopes. It preserves source, account-scope, coverage and payload
