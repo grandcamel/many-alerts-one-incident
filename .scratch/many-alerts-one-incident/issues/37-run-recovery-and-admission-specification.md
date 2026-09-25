@@ -209,3 +209,19 @@ There is no Run caller, positive reservation, effect record, dispatch permit,
 worker containment or guarded launcher. Native, provider, tenant, paid,
 venue, deployment, power-loss and human adjudication are NOT RUN. This ticket
 stays open.
+
+## Local Run/effect ordering design, 2026-09-25: unit 19h
+
+The [19h proposed design](../reviews/run-recovery/design-19h-run-effect-order.md)
+sets the Receiver journal order for Run intent, pre-process launch claim,
+guarded spawn attestation, supervision, exact routed effect intent and
+receipt, terminal assessment and reconciliation. It holds dispatch across
+crash ambiguity, including attestation without a durable release observation,
+and distinguishes Forwarder pre-L1 denial from a consumed but unwritten
+permit. Independent Standards and Spec document reviews pass. The design
+exposes two local source gaps: v2 reservation intent only accepts an existing
+held job, and its UUID lease claim differs from the Forwarder-issued grant
+ID. Versioned first-attempt admission and explicit one-to-one lease mapping
+need implementation review. No Run/effect writer, launch, permit, native,
+provider, tenant or intended-venue acceptance is claimed. This ticket stays
+open.
