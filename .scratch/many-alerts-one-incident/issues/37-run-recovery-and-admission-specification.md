@@ -175,3 +175,13 @@ startup-barrier implementation, stable identity in the intended venue,
 lease/closeout wiring, durable observation writer and crash/orphan witness
 remain unresolved. No native/provider or venue experiment was run. The
 ticket stays open.
+
+## Local supervision-reducer progress, 2026-09-25: unit 19e
+
+The [19e plan](../reviews/run-recovery/implementation-plan-19e-supervision-reducer.md)
+adds a pure ordered-action and closeout-gap reducer over caller-supplied worker
+observations. It consumes 19c for deadlines and grants no process, lease,
+dispatch, Run or effect authority. Physical startup containment, current
+Forwarder closeout, durable journal observations, dispatch permits and the
+guarded launcher remain local integration work. Accounting and intended-venue
+gates remain open; this ticket stays open.

@@ -1,0 +1,29 @@
+{
+  "baseline": "2faddfe",
+  "files_sha256": {
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "1d09ea9c3b736c886b150399a2621f134c08352cb532510d64b645b02d2cef69",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/full-suite-19e.txt": "5b1491d0d1549eb357dc40c0c96facdc47966983940ed0b57f9f009006276ce3",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/implementation-plan-19e-supervision-reducer.md": "03fb412fc7a8215dce4ab3eec9a0021475bb00ec9dbc47e7ae623d5afbd84e61",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/outcome-19e.md": "3666e300f632d2b161c235ba22e865eb40b7ecbfad26351fc7083c6a9484bc87",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/review-19e-source.md": "6b6842150dcfb5de09c050881a35c6da2545518fc1f2e47b1d66acc7285c9ac3",
+    "docs/run-supervision-reducer.md": "38dd80722c5375f4e4576c695b20126d49a8464a7c328379876f462982521859",
+    "grafana_jsm_sandbox/run_supervision_reducer.py": "1a672f630909be4436df9cd4d0a66339404219af1c2fb6d349f7d1471351a86a",
+    "tests/test_run_supervision_reducer.py": "e8d758d5a20a84e53e009c7a18ab69cf20e22aa4ba58cfaaf214ea13f0bffb80"
+  },
+  "focused": "24 passed",
+  "full_suite": "5411 passed, 39 skipped in 388.32s",
+  "native_provider_tenant_venue_paid_power_loss": "NOT RUN",
+  "protected_readback": {
+    "files_sha256": {
+      ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+      ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+      ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+      ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+    },
+    "panel_bytes": 617831,
+    "panel_files": 76,
+    "panel_manifest_sha256": "0cf9c0e9ef79fc1d0e8727bb398bd529d3ebcf2f5630bdd7af10fb9ba17712ae"
+  },
+  "ruff": "pass",
+  "verdict": "local_source_and_tests_pass; ticket_open"
+}
