@@ -227,7 +227,19 @@ images and the ledger's unknown-population, no-reservation gate pass. A v3
 claim now truthfully reports `missing_ledger` and always holds; the earlier
 `v3_unsupported` result remains a historical 19i2 fixed-point observation.
 Independent source/spec review, focused real-store tests and the full local
-suite (**5,481 passed, 39 skipped**) pass. This supplies no billing source, authoritative
-opening population, positive reservation, capacity release or permit. The
+suite (**5,481 passed, 39 skipped**) pass. This supplies no billing source,
+authoritative opening population, positive reservation, capacity release or permit. The
 external accounting and durability decisions remain open; this ticket stays
 open.
+
+## Local Run-intent reservation evidence design, 2026-09-25: unit 19j
+
+The [19j proposed design](../reviews/run-recovery/design-19j-run-intent-evidence.md)
+requires an actual replayed and read-back `reservation_created` event, exact
+journal/ledger identity match and defensible population, charge coverage and
+liability U before future Run qualification. A ledger head or structural
+bridge match alone cannot qualify; the writer must recheck after its own
+journal append advances the head. Independent Standards and Spec document
+reviews pass. The current ledger cannot supply the positive event, so no
+reservation, Run-intent writer or dispatch is enabled. External accounting
+decisions remain open; this ticket stays open.

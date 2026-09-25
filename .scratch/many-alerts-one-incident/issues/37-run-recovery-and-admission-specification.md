@@ -269,6 +269,17 @@ through the same structural bridge. A v3 intent with or without a journal
 confirmation now reports `missing_ledger` under the current unknown-population,
 empty-reservation ledger, superseding the scanner behavior recorded at the
 19i2 fixed point. Independent source/spec review, focused real-store tests
-and the full local suite (**5,481 passed, 39 skipped**) pass. No ledger authentication, Run/effect
-writer, dispatch permit, process or launch is supplied. External gates remain
-open; this ticket stays open.
+and the full local suite (**5,481 passed, 39 skipped**) pass. No ledger
+authentication, Run/effect writer, dispatch permit, process or launch is
+supplied. External gates remain open; this ticket stays open.
+
+## Local no-writer Run-intent evidence design, 2026-09-25: unit 19j
+
+The [19j proposed design](../reviews/run-recovery/design-19j-run-intent-evidence.md)
+sets the `(run_intent, 3)` claim fields and ordinary capacity class for a
+first attempt. Pure replay must hold a superseded member set; a future writer
+needs an actual independently verified ledger reservation and a fresh
+post-append qualification before any grant registration. Independent Standards
+and Spec document reviews pass. No record validator, writer, launch, effect or
+permit is implemented by this design, and the accounting gate remains closed.
+This ticket stays open.

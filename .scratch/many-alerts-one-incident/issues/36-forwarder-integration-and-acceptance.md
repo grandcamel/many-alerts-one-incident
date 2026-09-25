@@ -206,3 +206,13 @@ Forwarder grant, and registration-relative expiry may shorten route
 authority before the Run work deadline. Independent Standards and Spec
 document reviews pass. No grant mapping, permit, process or native route is
 implemented; this ticket stays open.
+
+## Local Run-intent service claim design, 2026-09-25: unit 19j
+
+The [19j proposed design](../reviews/run-recovery/design-19j-run-intent-evidence.md)
+binds the current four mandatory Forwarder services to distinct journal
+claims in a future no-writer Run intent. Anthropic uses the accounting-linked
+model claim; actual Forwarder grants, sentinels, readiness and launch remain
+separate current checks. Independent Standards and Spec document reviews pass.
+No service grant, native client, permit or process is exercised; this ticket
+stays open.
