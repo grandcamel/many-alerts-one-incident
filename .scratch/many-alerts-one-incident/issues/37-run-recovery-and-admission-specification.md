@@ -260,3 +260,15 @@ holding. Independent Standards/Spec source reviews, 86 focused tests,
 Ruff and the full suite (**5,480 passed, 39 skipped**) pass. No verified
 ledger counterpart, application writer, Run/effect record, permit or launch
 exists. External acceptance is NOT RUN; this ticket stays open.
+
+## Local v3 stopped negative scanner, 2026-09-25: unit 19i3
+
+The [19i3 outcome](../reviews/run-recovery/outcome-19i3-negative-scan.md)
+updates the hold-only stopped scanner to inspect verified v2 and v3 claims
+through the same structural bridge. A v3 intent with or without a journal
+confirmation now reports `missing_ledger` under the current unknown-population,
+empty-reservation ledger, superseding the scanner behavior recorded at the
+19i2 fixed point. Independent source/spec review, focused real-store tests
+and the full local suite (**5,481 passed, 39 skipped**) pass. No ledger authentication, Run/effect
+writer, dispatch permit, process or launch is supplied. External gates remain
+open; this ticket stays open.

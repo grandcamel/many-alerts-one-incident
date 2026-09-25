@@ -218,3 +218,16 @@ local suite (**5,480 passed, 39 skipped**) pass. No ledger authentication,
 positive reservation or production writer exists. Opening population,
 billing semantics, continuity, archive registration and venue gates remain
 open; this ticket stays open.
+
+## Local v3 stopped negative scanner, 2026-09-25: unit 19i3
+
+The [19i3 outcome](../reviews/run-recovery/outcome-19i3-negative-scan.md)
+feeds verified v2/v3 journal claims to the read-only bridge after both stopped
+images and the ledger's unknown-population, no-reservation gate pass. A v3
+claim now truthfully reports `missing_ledger` and always holds; the earlier
+`v3_unsupported` result remains a historical 19i2 fixed-point observation.
+Independent source/spec review, focused real-store tests and the full local
+suite (**5,481 passed, 39 skipped**) pass. This supplies no billing source, authoritative
+opening population, positive reservation, capacity release or permit. The
+external accounting and durability decisions remain open; this ticket stays
+open.

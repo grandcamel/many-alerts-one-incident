@@ -451,11 +451,14 @@ def test_v3_confirmation_reopens_and_is_visible_without_ledger_authority(tmp_pat
             older.close()
 
 
-def test_stopped_negative_scanner_names_existing_v3_claim_as_unsupported(tmp_path):
+@pytest.mark.parametrize('with_confirmation', [False, True])
+def test_stopped_negative_scanner_reads_v3_claim_and_still_holds_missing_ledger(
+    tmp_path, with_confirmation,
+):
     p, history, _ = admitted()
     initial = plan(p)
     reducer.apply_delta(p, reducer.verify_commit(p, initial.records))
-    confirmation = plan_confirmation(p)
+    confirmation = plan_confirmation(p) if with_confirmation else None
     journal_dir = tmp_path / 'journal'
     journal_dir.mkdir(mode=0o700)
     stored = journal_store.JournalStore.create(
@@ -464,7 +467,8 @@ def test_stopped_negative_scanner_names_existing_v3_claim_as_unsupported(tmp_pat
     try:
         stored.append(history[1:], sync_directory=False)
         stored.append(initial.records, sync_directory=False)
-        stored.append(confirmation.records, sync_directory=False)
+        if confirmation is not None:
+            stored.append(confirmation.records, sync_directory=False)
     finally:
         stored.close()
     ledger_dir = tmp_path / 'ledger'
@@ -479,5 +483,13 @@ def test_stopped_negative_scanner_names_existing_v3_claim_as_unsupported(tmp_pat
     )
     with LedgerStore.create(ledger_dir, genesis):
         pass
+    before = {
+        str(path.relative_to(tmp_path)): path.read_bytes()
+        for path in (*journal_dir.iterdir(), *ledger_dir.iterdir()) if path.is_file()
+    }
     result = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
-    assert (result.hold, result.reason) == (True, 'v3_unsupported')
+    assert (result.hold, result.reason) == (True, 'missing_ledger')
+    assert {
+        str(path.relative_to(tmp_path)): path.read_bytes()
+        for path in (*journal_dir.iterdir(), *ledger_dir.iterdir()) if path.is_file()
+    } == before

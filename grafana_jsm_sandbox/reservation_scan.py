@@ -84,11 +84,14 @@ def scan_reservation(
         return ScanAssessment('ledger_unverified')
     if ledger.population != 'unknown' or ledger.reservations != ():
         return ScanAssessment('ledger_unsupported')
-    if any(claim.intent_id == target_intent_id for claim in journal.initial_intents):
-        return ScanAssessment('v3_unsupported')
-
-    intents = tuple(_intent_fact(claim) for claim in journal.intents)
-    confirmations = tuple(_confirmation_fact(claim) for claim in journal.confirmations)
+    intents = tuple(
+        _intent_fact(claim)
+        for claim in (*journal.intents, *journal.initial_intents)
+    )
+    confirmations = tuple(
+        _confirmation_fact(claim)
+        for claim in (*journal.confirmations, *journal.initial_confirmations)
+    )
     result = None
     try:
         result = assess_bridge(target_intent_id, intents, (), confirmations)
