@@ -76,6 +76,8 @@ from .journal_reducer import (
     run_intent_claim_digest,
     spawn_attestation_claim_digest,
     state_digest,
+    supervision_action_intents_claim_digest,
+    supervision_action_results_claim_digest,
     verify_commit,
 )
 from .journal_source import SourceError, SourceRecord, source_digest, validate_source
@@ -119,6 +121,22 @@ def _effect_claim_summary(projection: Projection) -> dict[str, object] | None:
         "intents_digest": effect_intents_claim_digest(projection),
         "receipts_digest": effect_receipts_claim_digest(projection),
         "state": "effects_unqualified",
+    }
+
+
+def _supervision_action_summary(projection: Projection) -> dict[str, object] | None:
+    """Counts of replayed cleanup claims, without process or callback authority."""
+    intents = projection.supervision_action_intents
+    results = projection.supervision_action_results
+    if not intents and not results:
+        return None
+    return {
+        "intents": len(intents), "results": len(results),
+        "unmatched_intents": len(intents) - len(results),
+        "intents_digest": supervision_action_intents_claim_digest(projection),
+        "results_digest": supervision_action_results_claim_digest(projection),
+        "state": "supervision_actions_unqualified",
+        "trigger_and_due_time": "unqualified",
     }
 
 
@@ -1048,6 +1066,8 @@ class RecoveryJournal:
                 }
             if p.effect_intents or p.effect_receipts:
                 result["effect_claims"] = _effect_claim_summary(p)
+            if p.supervision_action_intents or p.supervision_action_results:
+                result["supervision_action_claims"] = _supervision_action_summary(p)
             return result
 
     def close(self) -> None:
@@ -1201,6 +1221,8 @@ def _ready_report(
         }
     if candidate.effect_intents or candidate.effect_receipts:
         journal_json["effect_claims"] = _effect_claim_summary(candidate)
+    if candidate.supervision_action_intents or candidate.supervision_action_results:
+        journal_json["supervision_action_claims"] = _supervision_action_summary(candidate)
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,
         "reserve": REFUSAL_RESOLVED_RESERVE,

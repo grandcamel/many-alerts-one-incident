@@ -53,6 +53,9 @@ RUN_EVENT_TYPES_V2 = ("run_hold",)
 RUN_EVENT_TYPES_V3 = ("run_intent", "launch_claim")
 SPAWN_EVENT_TYPES_V3 = ("spawn_attestation", "release_intent", "release_observation")
 EFFECT_EVENT_TYPES_V3 = ("effect_intent", "effect_receipt")
+SUPERVISION_ACTION_EVENT_TYPES_V3 = (
+    "supervision_action_intent", "supervision_action_result",
+)
 REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
@@ -73,6 +76,10 @@ SPAWN_RECORD_CLASS_V3 = MappingProxyType({
 })
 EFFECT_RECORD_CLASS_V3 = MappingProxyType({
     "effect_intent": "ordinary", "effect_receipt": "recovery",
+})
+SUPERVISION_ACTION_RECORD_CLASS_V3 = MappingProxyType({
+    "supervision_action_intent": "recovery",
+    "supervision_action_result": "recovery",
 })
 RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
@@ -129,6 +136,8 @@ MAX_RELEASE_INTENT_RECORD_BYTES = 4_096
 MAX_RELEASE_OBSERVATION_RECORD_BYTES = 2_048
 MAX_EFFECT_INTENT_RECORD_BYTES = 4_096
 MAX_EFFECT_RECEIPT_RECORD_BYTES = 2_048
+MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES = 4_096
+MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES = 2_048
 
 # Private copies of journal_ingress/journal_source vocabulary the strict
 # refusal-summary checker needs; never imported (A12's import pin).
@@ -453,6 +462,26 @@ _EFFECT_RECEIPT_DATA_KEYS = frozenset({
     "forwarder_receipt_id", "claimed_dispatch_state", "claimed_reason",
     "finalized_receipt_digest", "observed_us", "effect_receipt_digest",
 })
+_SUPERVISION_ACTION_IDS_KEYS = frozenset({
+    "journal_uuid", "run_id", "attempt_id", "action_id",
+})
+_SUPERVISION_ACTION_RESULT_IDS_KEYS = frozenset({
+    "run_id", "attempt_id", "action_id",
+})
+_SUPERVISION_ACTION_INTENT_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "launch_claim_event_id", "launch_claim_digest", "receiver_boot_id",
+    "forwarder_generation", "action_kind", "phase", "phase_event_id",
+    "phase_digest", "service", "grant_id", "attestation_event_id",
+    "attestation_digest", "witness_locator", "witness_identity_digest",
+    "prior_revoke_action_ids", "observed_us", "action_intent_digest",
+})
+_SUPERVISION_ACTION_RESULT_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "action_intent_event_id", "action_intent_digest",
+    "action_intent_commit_seq", "receiver_boot_id", "action_kind",
+    "claimed_outcome", "observed_us", "action_result_digest",
+})
 # A closed syntax copy of the current Forwarder receipt state/reason pairs.
 # It validates a claim's shape; it does not authenticate its source or facts.
 EFFECT_CLAIM_REASONS = MappingProxyType({
@@ -466,6 +495,15 @@ EFFECT_CLAIM_REASONS = MappingProxyType({
     }),
     "PARTIAL": frozenset({"response_incomplete", "response_overflow"}),
     "TRANSPORT_CONFIRMED": frozenset({"ok", "response_policy_rejected"}),
+})
+SUPERVISION_ACTION_OUTCOMES = MappingProxyType({
+    "revoke_grant": frozenset({"acknowledged", "failed", "unknown"}),
+    "signal_interrupt": frozenset({"requested", "failed", "unknown"}),
+    "signal_kill": frozenset({"requested", "failed", "unknown"}),
+})
+SUPERVISION_ACTION_PHASES = frozenset({
+    "pre_attestation", "blocked_pre_release", "release_unknown",
+    "released_observed",
 })
 
 
@@ -1082,6 +1120,86 @@ def _validate_effect_receipt_v3(ids: object, data: object, event_id: str) -> Non
         _fail_record("record_field")
 
 
+def _validate_supervision_action_intent_v3(
+    ids: object, data: object, event_id: str,
+) -> None:
+    ids = _require_keys(ids, _SUPERVISION_ACTION_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    if event_id in ids.values():
+        _fail_record("record_field")
+    data = _require_keys(data, _SUPERVISION_ACTION_INTENT_DATA_KEYS)
+    _require_literal(data["rule"], "supervision-action-intent-v3", "record_unsupported")
+    _require_bound_int(data["based_on_commit_seq"], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "launch_claim_digest", "phase_digest",
+                "action_intent_digest"):
+        _require_hex64(data[key])
+    for key in ("launch_claim_event_id", "phase_event_id"):
+        _require_uuid(data[key])
+    for key in ("receiver_boot_id", "forwarder_generation"):
+        validate_id(data[key])
+    _require_bound_int(data["observed_us"], 0, MAX_SEQ, "record_field")
+    kind, phase = data["action_kind"], data["phase"]
+    if (type(kind) is not str or kind not in SUPERVISION_ACTION_OUTCOMES
+        or type(phase) is not str or phase not in SUPERVISION_ACTION_PHASES):
+        _fail_record("record_field")
+    prior = data["prior_revoke_action_ids"]
+    if type(prior) not in (list, tuple) or len(prior) > 5:
+        _fail_record("record_field")
+    for action_id in prior:
+        _require_uuid(action_id)
+    if len(set(prior)) != len(prior):
+        _fail_record("record_field")
+    attestation_fields = (
+        "attestation_event_id", "attestation_digest", "witness_locator",
+        "witness_identity_digest",
+    )
+    if phase == "pre_attestation":
+        if any(data[key] is not None for key in attestation_fields):
+            _fail_record("record_field")
+    else:
+        _require_uuid(data["attestation_event_id"])
+        for key in ("attestation_digest", "witness_identity_digest"):
+            _require_hex64(data[key])
+        validate_id(data["witness_locator"])
+    if kind == "revoke_grant":
+        if (type(data["service"]) is not str
+            or data["service"] not in _RUN_INTENT_ALLOWED_SERVICES
+            or prior):
+            _fail_record("record_field")
+        validate_id(data["grant_id"])
+    elif (data["service"] is not None or data["grant_id"] is not None
+          or phase == "pre_attestation" or not 4 <= len(prior) <= 5):
+        _fail_record("record_field")
+
+
+def _validate_supervision_action_result_v3(
+    ids: object, data: object, event_id: str,
+) -> None:
+    ids = _require_keys(ids, _SUPERVISION_ACTION_RESULT_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    if event_id in ids.values():
+        _fail_record("record_field")
+    data = _require_keys(data, _SUPERVISION_ACTION_RESULT_DATA_KEYS)
+    _require_literal(data["rule"], "supervision-action-result-v3", "record_unsupported")
+    for key in ("based_on_commit_seq", "action_intent_commit_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "action_intent_digest",
+                "action_result_digest"):
+        _require_hex64(data[key])
+    _require_uuid(data["action_intent_event_id"])
+    validate_id(data["receiver_boot_id"])
+    kind, outcome = data["action_kind"], data["claimed_outcome"]
+    if (type(kind) is not str or kind not in SUPERVISION_ACTION_OUTCOMES
+        or type(outcome) is not str
+        or outcome not in SUPERVISION_ACTION_OUTCOMES[kind]):
+        _fail_record("record_field")
+    _require_bound_int(data["observed_us"], 0, MAX_SEQ, "record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -1106,6 +1224,8 @@ _V3_TYPE_VALIDATORS = MappingProxyType({
     ("release_observation", 3): _validate_release_observation_v3,
     ("effect_intent", 3): _validate_effect_intent_v3,
     ("effect_receipt", 3): _validate_effect_receipt_v3,
+    ("supervision_action_intent", 3): _validate_supervision_action_intent_v3,
+    ("supervision_action_result", 3): _validate_supervision_action_result_v3,
 })
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
@@ -1131,6 +1251,8 @@ _V3_TYPE_ACTORS = MappingProxyType({
     ("release_observation", 3): "receiver",
     ("effect_intent", 3): "receiver",
     ("effect_receipt", 3): "receiver",
+    ("supervision_action_intent", 3): "receiver",
+    ("supervision_action_result", 3): "receiver",
 })
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
@@ -1249,6 +1371,8 @@ def seal(
         ("release_observation", 3): MAX_RELEASE_OBSERVATION_RECORD_BYTES,
         ("effect_intent", 3): MAX_EFFECT_INTENT_RECORD_BYTES,
         ("effect_receipt", 3): MAX_EFFECT_RECEIPT_RECORD_BYTES,
+        ("supervision_action_intent", 3): MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES,
+        ("supervision_action_result", 3): MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES,
     }.get((draft.event_type, schema_version), MAX_RUN_HOLD_RECORD_BYTES)
     if schema_version in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
@@ -1293,6 +1417,8 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
         ("release_observation", 3): MAX_RELEASE_OBSERVATION_RECORD_BYTES,
         ("effect_intent", 3): MAX_EFFECT_INTENT_RECORD_BYTES,
         ("effect_receipt", 3): MAX_EFFECT_RECEIPT_RECORD_BYTES,
+        ("supervision_action_intent", 3): MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES,
+        ("supervision_action_result", 3): MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES,
     }.get((envelope["event_type"], envelope["schema_version"]),
           MAX_RUN_HOLD_RECORD_BYTES)
     if envelope["schema_version"] in (2, 3) and len(body) > private_cap:
@@ -1363,6 +1489,8 @@ __all__ = [
     "MAX_RUN_INTENT_RECORD_BYTES",
     "MAX_SEQ",
     "MAX_SPAWN_ATTESTATION_RECORD_BYTES",
+    "MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES",
+    "MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES",
     "OPERATOR_ACTIONS",
     "RECORD_CLASS",
     "RECORD_ERROR_CODES",
@@ -1383,6 +1511,10 @@ __all__ = [
     "SCHEMA_VERSIONS",
     "SPAWN_EVENT_TYPES_V3",
     "SPAWN_RECORD_CLASS_V3",
+    "SUPERVISION_ACTION_EVENT_TYPES_V3",
+    "SUPERVISION_ACTION_OUTCOMES",
+    "SUPERVISION_ACTION_PHASES",
+    "SUPERVISION_ACTION_RECORD_CLASS_V3",
     "TYPE_ACTORS",
     "V1_BOUND_CEILINGS",
     "ZERO_DIGEST",

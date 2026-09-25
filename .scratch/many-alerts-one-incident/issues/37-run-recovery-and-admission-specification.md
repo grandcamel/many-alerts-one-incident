@@ -388,3 +388,13 @@ does not clear either. Independent Standards and Spec reviews and local
 verification pass. There is no effect writer, authenticated permit, trusted
 Forwarder receipt, OPS read-back or production Run. Accounting and venue
 gates remain open; this ticket stays open.
+
+## Local unqualified supervision-action replay, 2026-09-25: unit 19r
+
+The [19r outcome](../reviews/run-recovery/outcome-19r-no-writer-supervision-actions.md)
+adds bounded no-writer revoke/signal intent and result claims. The first
+cleanup intent bars new release and effect intents, but historical results
+and a prior release acknowledgment may still append. Independent Standards
+and Spec reviews and local verification pass. No action writer, stable group
+witness, actual callback, early-stop proof or clean Run was added. The
+accounting and venue gates remain open; this ticket stays open.

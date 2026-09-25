@@ -743,6 +743,21 @@ No application writer, release byte or production launcher uses these types.
 The future writer still needs protected capacity escrow and the reviewed 19n
 pre-release checks; the present source cannot supply them.
 
+The private v3 `supervision_action_intent` and
+`supervision_action_result` family replays no-writer cleanup claims. A
+revoke intent targets one claimed launch grant; signal intents bind the
+claimed attestation witness and all preceding grant-revoke intents. They
+can append during a dispatch hold, and historical results can append after
+the deadline. The first cleanup intent blocks new release-intent and
+effect-intent claims, while a prior release intent may still receive a
+historical release observation. At most one revoke per grant and one of
+each signal are allowed; both record types use recovery capacity. Live
+and stopped inspection show counts, digests and unmatched intents under
+`supervision_actions_unqualified`. There is no durable early-stop trigger,
+real callback writer, protected group resolution or due-time proof. A
+claimed result does not establish revocation, signal delivery, group
+absence, Forwarder closeout or a clean Run.
+
 Receiver integration is opt-in and admission-only. Dispatch, Runs, effects,
 accounting, reset, retention and reconstruction remain unimplemented here.
 The only operator action is resume at open; cancel, retry, abandon, capacity

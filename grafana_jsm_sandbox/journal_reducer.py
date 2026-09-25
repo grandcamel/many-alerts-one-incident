@@ -38,10 +38,13 @@ from .journal_records import (
     MAX_RUN_INTENT_RECORD_BYTES,
     MAX_SEQ,
     MAX_SPAWN_ATTESTATION_RECORD_BYTES,
+    MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES,
+    MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES,
     REFUSAL_RESOLVED_RESERVE,
     REFUSAL_RULE,
     RESUMABLE_HOLDS,
     RESUME_RULE,
+    SUPERVISION_ACTION_OUTCOMES,
     V1_BOUND_CEILINGS,
     ZERO_DIGEST,
     Draft,
@@ -100,6 +103,10 @@ EFFECT_INTENT_TAG = "rj.effect-intent.v3"
 EFFECT_INTENTS_STATE_TAG = "rj.effect-intents-state.v3"
 EFFECT_RECEIPT_TAG = "rj.effect-receipt.v3"
 EFFECT_RECEIPTS_STATE_TAG = "rj.effect-receipts-state.v3"
+SUPERVISION_ACTION_INTENT_TAG = "rj.supervision-action-intent.v3"
+SUPERVISION_ACTION_RESULT_TAG = "rj.supervision-action-result.v3"
+SUPERVISION_ACTION_INTENTS_STATE_TAG = "rj.supervision-action-intents-state.v3"
+SUPERVISION_ACTION_RESULTS_STATE_TAG = "rj.supervision-action-results-state.v3"
 EFFECT_ROUTE_SERVICE_V3 = MappingProxyType({
     "anthropic.messages": "anthropic",
     "draft.create": "confluence", "draft.read": "confluence",
@@ -347,6 +354,31 @@ class EffectReceiptClaim:
 
 
 @dataclasses.dataclass(frozen=True)
+class SupervisionActionIntentClaim:
+    event_id: str
+    claim_digest: str
+    action_id: str
+    action_kind: str
+    phase: str
+    phase_event_id: str
+    service: str | None
+    grant_id: str | None
+    observed_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
+class SupervisionActionResultClaim:
+    event_id: str
+    claim_digest: str
+    action_id: str
+    intent_event_id: str
+    claimed_outcome: str
+    observed_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -404,6 +436,8 @@ class Delta:
     release_observation_add: ReleaseObservationClaim | None = None
     effect_intent_add: EffectIntentClaim | None = None
     effect_receipt_add: EffectReceiptClaim | None = None
+    supervision_action_intent_add: SupervisionActionIntentClaim | None = None
+    supervision_action_result_add: SupervisionActionResultClaim | None = None
 
 
 class Projection:
@@ -437,6 +471,8 @@ class Projection:
         self.release_observation: ReleaseObservationClaim | None = None
         self.effect_intents: dict[str, EffectIntentClaim] = {}
         self.effect_receipts: dict[str, EffectReceiptClaim] = {}
+        self.supervision_action_intents: dict[str, SupervisionActionIntentClaim] = {}
+        self.supervision_action_results: dict[str, SupervisionActionResultClaim] = {}
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -1366,6 +1402,9 @@ def _claim_event_id_ok(p: Projection, event_id: str) -> bool:
     used.update(p.effect_intents)
     used.update(claim.event_id for claim in p.effect_intents.values())
     used.update(claim.event_id for claim in p.effect_receipts.values())
+    used.update(p.supervision_action_intents)
+    used.update(claim.event_id for claim in p.supervision_action_intents.values())
+    used.update(claim.event_id for claim in p.supervision_action_results.values())
     return _canonical_uuid(event_id) and event_id not in used
 
 
@@ -1447,6 +1486,7 @@ def plan_release_intent(
     launch = _claim_pre_release(p, stamp)
     attested = p.spawn_attestation
     if (attested is None or p.release_intent is not None
+        or p.supervision_action_intents
         or not _claim_event_id_ok(p, event_id)
         or attested.receiver_boot_id != stamp.boot_id
         or type(activated_grants) is not tuple
@@ -1546,6 +1586,7 @@ def plan_effect_intent(
     used_flights = {claim.flight_id for claim in p.effect_intents.values()}
     used_receipts = {claim.forwarder_receipt_id for claim in p.effect_intents.values()}
     if (released is None or released.receiver_boot_id != stamp.boot_id
+        or p.supervision_action_intents
         or released.observed_us > stamp.mono_us
         or not _claim_event_id_ok(p, event_id)
         or not _canonical_uuid(operation_id)
@@ -1651,6 +1692,148 @@ def plan_effect_receipt(
     }))
 
 
+def _supervision_action_phase(
+    p: Projection, launch: LaunchClaim,
+) -> tuple[str, str, str]:
+    observed = p.release_observation
+    intended = p.release_intent
+    attested = p.spawn_attestation
+    if observed is not None:
+        return "released_observed", observed.event_id, observed.claim_digest
+    if intended is not None:
+        return "release_unknown", intended.event_id, intended.claim_digest
+    if attested is not None:
+        return "blocked_pre_release", attested.event_id, attested.claim_digest
+    return "pre_attestation", launch.launch_claim_id, launch.launch_claim_digest
+
+
+def plan_supervision_action_intent(
+    p: Projection, *, event_id: str, action_id: str, action_kind: str,
+    service: str | None = None, grant_id: str | None = None, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Replay a cleanup request claim; it never invokes the action."""
+    launch = p.launch_claim
+    if (p.head is None or p.bounds is None or launch is None
+        or type(action_kind) is not str or action_kind not in SUPERVISION_ACTION_OUTCOMES
+        or not _claim_event_id_ok(p, event_id)
+        or not _claim_event_id_ok(p, action_id) or event_id == action_id
+        or p.boot_id != stamp.boot_id or launch.receiver_boot_id != stamp.boot_id
+        or p.boot_start_commit_seq is None
+        or launch.committed_at_seq < p.boot_start_commit_seq
+        or type(stamp.mono_us) is not int
+        or not p.last_mono_us <= stamp.mono_us < launch.hard_deadline_us):
+        _fail_replay("replay_mismatch")
+    actions = p.supervision_action_intents
+    grant_rows = launch.grants
+    revokes = {claim.grant_id: claim for claim in actions.values()
+               if claim.action_kind == "revoke_grant"}
+    if action_kind == "revoke_grant":
+        if (type(service) is not str or not _safe_grant_id(grant_id)
+            or not any(row[0] == service and row[3] == grant_id for row in grant_rows)
+            or grant_id in revokes
+            or any(claim.action_kind != "revoke_grant" for claim in actions.values())):
+            _fail_replay("replay_mismatch")
+    else:
+        if (service is not None or grant_id is not None
+            or p.spawn_attestation is None
+            or len(revokes) != len(grant_rows)
+            or any(row[3] not in revokes for row in grant_rows)
+            or any(claim.action_kind == action_kind for claim in actions.values())
+            or (action_kind == "signal_interrupt" and any(
+                claim.action_kind == "signal_kill" for claim in actions.values()
+            ))):
+            _fail_replay("replay_mismatch")
+    if len(actions) >= len(grant_rows) + 2:
+        _fail_replay("replay_mismatch")
+    phase, phase_event_id, phase_digest = _supervision_action_phase(p, launch)
+    attested = p.spawn_attestation
+    ids = {
+        "journal_uuid": launch.journal_uuid, "run_id": launch.run_id,
+        "attempt_id": launch.attempt_id, "action_id": action_id,
+    }
+    data = {
+        "rule": "supervision-action-intent-v3",
+        "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "launch_claim_event_id": launch.launch_claim_id,
+        "launch_claim_digest": launch.launch_claim_digest,
+        "receiver_boot_id": p.boot_id,
+        "forwarder_generation": launch.forwarder_generation,
+        "action_kind": action_kind, "phase": phase,
+        "phase_event_id": phase_event_id, "phase_digest": phase_digest,
+        "service": service, "grant_id": grant_id,
+        "attestation_event_id": None if attested is None else attested.event_id,
+        "attestation_digest": None if attested is None else attested.claim_digest,
+        "witness_locator": None if attested is None else attested.witness_locator,
+        "witness_identity_digest": (
+            None if attested is None else attested.witness_identity_digest
+        ),
+        "prior_revoke_action_ids": [revokes[row[3]].action_id for row in grant_rows]
+        if action_kind != "revoke_grant" else [],
+        "observed_us": stamp.mono_us,
+    }
+    data["action_intent_digest"] = tagged_digest(
+        SUPERVISION_ACTION_INTENT_TAG, {"event_id": event_id, "ids": ids, "data": data},
+    )
+    record = seal(Draft(event_id, "supervision_action_intent", "receiver", ids, data),
+                  _single_position(p), stamp, schema_version=3)
+    if len(record.body) > MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "supervision_actions_unqualified", "action_id": action_id,
+    }))
+
+
+def plan_supervision_action_result(
+    p: Projection, *, event_id: str, action_id: str,
+    claimed_outcome: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Preserve a result claim even after a hold or elapsed deadline."""
+    intent = p.supervision_action_intents.get(action_id) if type(action_id) is str else None
+    launch = p.launch_claim
+    if (p.head is None or p.bounds is None or intent is None or launch is None
+        or action_id in p.supervision_action_results
+        or not _claim_event_id_ok(p, event_id)
+        or p.boot_id != stamp.boot_id or launch.receiver_boot_id != stamp.boot_id
+        or type(stamp.mono_us) is not int
+        or not max(p.last_mono_us, intent.observed_us) <= stamp.mono_us <= MAX_SEQ
+        or type(claimed_outcome) is not str
+        or claimed_outcome not in SUPERVISION_ACTION_OUTCOMES[intent.action_kind]):
+        _fail_replay("replay_mismatch")
+    ids = {
+        "run_id": launch.run_id, "attempt_id": launch.attempt_id,
+        "action_id": action_id,
+    }
+    data = {
+        "rule": "supervision-action-result-v3",
+        "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "action_intent_event_id": intent.event_id,
+        "action_intent_digest": intent.claim_digest,
+        "action_intent_commit_seq": intent.committed_at_seq,
+        "receiver_boot_id": p.boot_id,
+        "action_kind": intent.action_kind,
+        "claimed_outcome": claimed_outcome,
+        "observed_us": stamp.mono_us,
+    }
+    data["action_result_digest"] = tagged_digest(
+        SUPERVISION_ACTION_RESULT_TAG, {"event_id": event_id, "ids": ids, "data": data},
+    )
+    record = seal(Draft(event_id, "supervision_action_result", "receiver", ids, data),
+                  _single_position(p), stamp, schema_version=3)
+    if len(record.body) > MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "supervision_actions_unqualified", "action_id": action_id,
+    }))
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -1686,6 +1869,10 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "effect_intent"
     if types == ("effect_receipt",):
         return "effect_receipt"
+    if types == ("supervision_action_intent",):
+        return "supervision_action_intent"
+    if types == ("supervision_action_result",):
+        return "supervision_action_result"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -2108,6 +2295,8 @@ def _claim_delta(
     observation: ReleaseObservationClaim | None = None,
     effect_intent: EffectIntentClaim | None = None,
     effect_receipt: EffectReceiptClaim | None = None,
+    supervision_action_intent: SupervisionActionIntentClaim | None = None,
+    supervision_action_result: SupervisionActionResultClaim | None = None,
 ) -> Delta:
     return Delta(
         head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
@@ -2118,6 +2307,8 @@ def _claim_delta(
         dispatch_hold_add=None, spawn_attestation_add=attestation,
         release_intent_add=intent, release_observation_add=observation,
         effect_intent_add=effect_intent, effect_receipt_add=effect_receipt,
+        supervision_action_intent_add=supervision_action_intent,
+        supervision_action_result_add=supervision_action_result,
     )
 
 
@@ -2233,6 +2424,53 @@ def _verify_effect_receipt(p: Projection, record: Record, commit_seq: int) -> De
         observed_us=data["observed_us"], committed_at_seq=commit_seq,
     )
     return _claim_delta(p, record, commit_seq, plan.charge, effect_receipt=claim)
+
+
+def _verify_supervision_action_intent(
+    p: Projection, record: Record, commit_seq: int,
+) -> Delta:
+    if (record.schema_version != 3
+        or len(record.body) > MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES):
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_supervision_action_intent(
+        p, event_id=record.event_id, action_id=record.ids["action_id"],
+        action_kind=data["action_kind"], service=data["service"],
+        grant_id=data["grant_id"], stamp=record.stamp,
+    ), record)
+    claim = SupervisionActionIntentClaim(
+        event_id=record.event_id, claim_digest=data["action_intent_digest"],
+        action_id=record.ids["action_id"], action_kind=data["action_kind"],
+        phase=data["phase"], phase_event_id=data["phase_event_id"],
+        service=data["service"], grant_id=data["grant_id"],
+        observed_us=data["observed_us"], committed_at_seq=commit_seq,
+    )
+    return _claim_delta(
+        p, record, commit_seq, plan.charge, supervision_action_intent=claim,
+    )
+
+
+def _verify_supervision_action_result(
+    p: Projection, record: Record, commit_seq: int,
+) -> Delta:
+    if (record.schema_version != 3
+        or len(record.body) > MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES):
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_supervision_action_result(
+        p, event_id=record.event_id, action_id=record.ids["action_id"],
+        claimed_outcome=data["claimed_outcome"], stamp=record.stamp,
+    ), record)
+    claim = SupervisionActionResultClaim(
+        event_id=record.event_id, claim_digest=data["action_result_digest"],
+        action_id=record.ids["action_id"],
+        intent_event_id=data["action_intent_event_id"],
+        claimed_outcome=data["claimed_outcome"],
+        observed_us=data["observed_us"], committed_at_seq=commit_seq,
+    )
+    return _claim_delta(
+        p, record, commit_seq, plan.charge, supervision_action_result=claim,
+    )
 
 
 def _verify_admission_pair(
@@ -2378,6 +2616,10 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_effect_intent(p, records[0], commit_seq)
     if shape == "effect_receipt":
         return _verify_effect_receipt(p, records[0], commit_seq)
+    if shape == "supervision_action_intent":
+        return _verify_supervision_action_intent(p, records[0], commit_seq)
+    if shape == "supervision_action_result":
+        return _verify_supervision_action_result(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -2447,6 +2689,12 @@ def apply_delta(p: Projection, delta: Delta) -> None:
     if delta.effect_receipt_add is not None:
         claim = delta.effect_receipt_add
         p.effect_receipts[claim.operation_id] = claim
+    if delta.supervision_action_intent_add is not None:
+        claim = delta.supervision_action_intent_add
+        p.supervision_action_intents[claim.action_id] = claim
+    if delta.supervision_action_result_add is not None:
+        claim = delta.supervision_action_result_add
+        p.supervision_action_results[claim.action_id] = claim
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -2591,6 +2839,18 @@ def effect_receipts_claim_digest(p: Projection) -> str:
     return tagged_digest(EFFECT_RECEIPTS_STATE_TAG, claims)
 
 
+def supervision_action_intents_claim_digest(p: Projection) -> str:
+    claims = [dataclasses.asdict(claim)
+              for _, claim in sorted(p.supervision_action_intents.items())]
+    return tagged_digest(SUPERVISION_ACTION_INTENTS_STATE_TAG, claims)
+
+
+def supervision_action_results_claim_digest(p: Projection) -> str:
+    claims = [dataclasses.asdict(claim)
+              for _, claim in sorted(p.supervision_action_results.items())]
+    return tagged_digest(SUPERVISION_ACTION_RESULTS_STATE_TAG, claims)
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -2644,6 +2904,8 @@ __all__ = [
     "REPLAY_ERROR_CODES",
     "RUN_INTENT_STATE_TAG",
     "SPAWN_ATTESTATION_STATE_TAG",
+    "SUPERVISION_ACTION_INTENTS_STATE_TAG",
+    "SUPERVISION_ACTION_RESULTS_STATE_TAG",
     "Baseline",
     "CapacityRefusal",
     "Delta",
@@ -2664,6 +2926,8 @@ __all__ = [
     "RunHold",
     "RunIntentClaim",
     "SpawnAttestationClaim",
+    "SupervisionActionIntentClaim",
+    "SupervisionActionResultClaim",
     "apply_delta",
     "dispatch_holds",
     "effect_intents_claim_digest",
@@ -2694,6 +2958,8 @@ __all__ = [
     "plan_run_hold",
     "plan_run_intent",
     "plan_spawn_attestation",
+    "plan_supervision_action_intent",
+    "plan_supervision_action_result",
     "refusal_key",
     "release_intent_claim_digest",
     "release_observation_claim_digest",
@@ -2703,5 +2969,7 @@ __all__ = [
     "run_intent_claim_digest",
     "spawn_attestation_claim_digest",
     "state_digest",
+    "supervision_action_intents_claim_digest",
+    "supervision_action_results_claim_digest",
     "verify_commit",
 ]
