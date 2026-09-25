@@ -162,3 +162,16 @@ without claiming process containment or lease revocation. Its inputs are
 caller-supplied, with no Receiver, spawner or journal integration; no Run is
 started and no reservation or permit exists. The OS supervisor, trusted
 observations and effect recovery remain open. This ticket stays open.
+
+## Worker supervision design progress, 2026-09-25: unit 19d
+
+The [19d boundary design](../reviews/run-recovery/design-19d-worker-supervision.md)
+requires a child startup barrier before group attestation, a stable
+containment identity across root exit, revocation on every exit path and
+separate gated Forwarder closeout evidence. Independent Standards and Spec
+reviews pass after those gaps were corrected. This is local specification
+only; there is no production supervisor or guarded launch caller. The
+startup-barrier implementation, stable identity in the intended venue,
+lease/closeout wiring, durable observation writer and crash/orphan witness
+remain unresolved. No native/provider or venue experiment was run. The
+ticket stays open.
