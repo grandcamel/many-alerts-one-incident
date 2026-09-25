@@ -47,3 +47,12 @@ reviewed plan, but they must be incapable of returning a production reserve
 or launch permit from synthetic inputs. Once external evidence is supplied,
 review the exact verifier against the actual source semantics before wiring
 reservation. Ticket 38 remains open throughout this local work.
+
+The [18g proposed archive format](design-18g-archive-format.md) now details
+contiguous event bytes, a derived cumulative duplicate index and ordered
+read-back, independent witness, active registration and compaction failure
+states. It is not implemented. V1 cannot register an archive; the selected
+off-cluster store, witness trust domain and versioned ledger migration remain
+open alongside the authoritative billing and opening-history decisions above.
+Its index and replay cover one ledger generation only; no compaction or
+cross-generation continuity rule is supplied by 18g.

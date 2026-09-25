@@ -126,3 +126,15 @@ unverified claims. There is no source profile, payload verification, billing
 importer, opening reconstruction, archive, witness or reserve method. This
 local source slice cannot clear a budget hold. The external evidence and
 continuity decisions listed above remain open; this ticket stays open.
+
+## Local archive-format progress, 2026-09-25: unit 18g
+
+The [18g proposed format](../reviews/receiver-journal/design-18g-archive-format.md)
+pins future contiguous event segments, a derived cumulative duplicate index
+and fail-closed read-back, witness and registration ordering. The current v1
+ledger cannot register or compact an archive, and no writer, importer,
+off-cluster destination or independent witness was built or selected. Opening
+history, provider source/account scope, charge-line and adjustment identity,
+coverage/lag/finality, liability U, archive registration, witness and venue
+durability remain decisions. Provider, paid, native, tenant, venue and
+power-loss acceptance are NOT RUN. This ticket stays open.
