@@ -153,3 +153,12 @@ dispatch permit. Independent source reviews pass; the full local suite
 passed 5274 tests with 39 skipped. Run/effect recovery, supervision and a
 guarded launcher remain local work, and external accounting gates remain
 unresolved. The ticket stays open.
+
+## Local deadline policy progress, 2026-09-25: unit 19c
+
+Unit 19c adds a pure monotonic supervision schedule for the accepted
+270/20/10-second Run window and earlier stop requests. It reports due actions
+without claiming process containment or lease revocation. Its inputs are
+caller-supplied, with no Receiver, spawner or journal integration; no Run is
+started and no reservation or permit exists. The OS supervisor, trusted
+observations and effect recovery remain open. This ticket stays open.

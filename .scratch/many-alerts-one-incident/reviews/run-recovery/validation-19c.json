@@ -1,0 +1,34 @@
+{
+  "baseline": "6ab54e0",
+  "files_sha256": {
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "4c9885161846c73917176d81681a87f97a84c349fe45edf668f8e744c4acd244",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/full-suite-19c.txt": "081f611337bb1d93481fec6fc44753715514ba59ecbe770ec94e5d3006c16f09",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/implementation-plan-19c-deadline-policy.md": "3a61e1b463ed178f11fc4dc3729078047b0ac9638fe87b7e5ea51f7afd33995d",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/outcome-19c.md": "a3a84da61c9b65b9ef95446be4f25496392a8719c90fac3534786b4b32f3e29a",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/review-19c-source.md": "bb67f5b6162ccebd44d4c8097df022e53e65b0f73d630d03d07b811f56cbe847",
+    "docs/run-outcome.md": "66fdac98662d77d7d51a36e19a7efac113b4f9938f44c7824e60c661581215b7",
+    "grafana_jsm_sandbox/run_supervision_policy.py": "e52d76e32ad2db65d7fd3bf244b29af1dc120cc91728d1843302b083b72b9d1a",
+    "tests/test_run_supervision_policy.py": "282a46ab311084330c483d177d4756f1093315e848964a2f5aa27ce36ea3c7a7"
+  },
+  "focused": "17 passed",
+  "full_suite": "5291 passed, 39 skipped in 404.25s",
+  "protected_panel_files": 76,
+  "protected_panel_manifest_sha256": "0cf9c0e9ef79fc1d0e8727bb398bd529d3ebcf2f5630bdd7af10fb9ba17712ae",
+  "protected_sha256": {
+    "issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    "reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    "reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    "reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "ruff": "passed",
+  "source_only": true,
+  "unit": "19c",
+  "unrun": [
+    "native/provider",
+    "tenant",
+    "intended venue",
+    "paid",
+    "power loss",
+    "human adjudication"
+  ]
+}

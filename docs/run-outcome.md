@@ -23,3 +23,12 @@ evidence, and a separate effect unit must verify Forwarder correlation and
 OPS read-back before claiming an external write. The legacy spawner and
 admission-only front door are unchanged. Provider, model, tenant and intended
 venue behavior remain untested.
+
+`run_supervision_policy.assess_supervision` separately computes the due
+270-second work, 20-second interrupt/flush and 10-second kill/reap boundaries
+on one caller-supplied monotonic boot. An earlier observed stop shortens both
+cleanup windows and never extends the original 300-second bound. Its booleans
+say which actions are due; they do not prove a sentinel was revoked, a signal
+was delivered, or a process group was reaped. Cross-boot or malformed times
+raise fixed errors for a future caller to hold. There is no process caller or
+dispatch decision in this local policy.
