@@ -37,7 +37,8 @@ Input schema for the first unit:
 - `JournalIntent`: journal UUID/generation, admission ID, intent ID, attempt
   ID, reservation ID, Run ID, lease ID, and intent content digest.
 - `LedgerReservation`: the same correlation fields, plus ledger UUID,
-  generation, event ID, sequence and event digest from a read-back receipt.
+  generation, event ID, sequence and event digest, with an exact boolean
+  `read_back` observation. A false value cannot be a structural match.
 - `JournalConfirmation`: intent ID plus the ledger UUID/generation/event
   ID/sequence/digest that the journal claims to have observed.
 - `assess_bridge(target_intent_id, intents, ledger, confirmations)` accepts
@@ -45,6 +46,6 @@ Input schema for the first unit:
   idempotent. A conflicting duplicate or counterpart mismatch is a conflict
   hold; orphan ledger evidence is never discarded. Closed reasons are
   `missing_intent`, `orphan_ledger`, `missing_ledger`,
-  `missing_confirmation`, `identity_conflict`, and
+  `ledger_unverified`, `missing_confirmation`, `identity_conflict`, and
   `matching_unqualified`. All are holds. Malformed input raises a fixed
   `bridge_invalid` error with no echoed values.

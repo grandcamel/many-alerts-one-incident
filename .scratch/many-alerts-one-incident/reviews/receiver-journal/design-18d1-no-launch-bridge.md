@@ -42,7 +42,8 @@ separate gates.
 derived from future verified store views. It checks one-to-one intent,
 reservation and confirmation identity, origin/generation, immutable attempt
 and admission links, intent content digest, ledger event digest and sequence,
-and exact duplicate/conflict behavior. Every result is a hold with a closed
+an explicit ledger read-back observation, and exact duplicate/conflict
+behavior. Every result is a hold with a closed
 reason; a structurally matching triple is named `matching_unqualified`, never
 `ready` or `permitted`. The result contains no amount, credential, prompt,
 provider record or launch token. Arbitrary caller-supplied facts cannot be

@@ -1,0 +1,4 @@
+Command: python /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_reservation_bridge.py
+Result: 29 passed in 0.09s; exit 0
+NON_LOOPBACK_ATTEMPTS []
+Scope: synthetic pure relation tests only; no journal or ledger store adapter.

@@ -54,3 +54,14 @@ coverage/lag, defensible U, continuity witness, archive/repair design and
 cross-store handshake. No synthetic marker or new directory satisfies these
 inputs. The ticket remains open; provider, native, tenant, paid, power-loss and
 dispatch acceptance are NOT RUN.
+
+## Local cross-store relation progress, 2026-09-25
+
+The [18d1 pure relation](../reviews/receiver-journal/design-18d1-no-launch-bridge.md)
+compares caller-supplied journal intent, ledger reservation and journal
+confirmation facts. Its exact-match result remains a hold, so this source
+slice supplies no authenticated store join, production reserve or launch
+permit. The [source review](../reviews/receiver-journal/review-18d1-source.md)
+found no local blocker. Verified history adapters, versioned writers and crash
+ordering are still local work; authoritative opening/billing evidence and the
+other gates in the 18c record remain unresolved. This ticket stays open.

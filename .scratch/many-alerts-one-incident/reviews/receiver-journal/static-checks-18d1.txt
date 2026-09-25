@@ -1,0 +1,5 @@
+python -m ruff check grafana_jsm_sandbox/reservation_bridge.py tests/test_reservation_bridge.py: PASS
+100-character line check for both new Python files: PASS
+git diff --check: PASS
+Source imports: re, dataclasses only; no filesystem, clock, socket, provider, journal or ledger imports.
+Application caller scan: no import of reservation_bridge outside its focused test and documentation.

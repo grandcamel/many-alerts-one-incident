@@ -1,0 +1,70 @@
+{
+  "artifacts": {
+    ".scratch/many-alerts-one-incident/issues/38-budget-accounting-and-model-qualification.md": "d243d8ec70ceb98475efb20e4f0dcf41fa1e2dbf1632e3cf72588c866354793d",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/design-18d1-no-launch-bridge.md": "fd8f9e50ec66e2131f2dd40a7cde4db224402ba38f9a7a37eb71ecf5406e0689",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/focused-tests-18d1.txt": "437e538de8196fa1b2951785eb2b759ba7bbd87157097a9f1ddc04d19e3f0ae6",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/full-suite-18d1.txt": "940903457a7383cd93cf36ba50c8a91e72dfdf7e58af0b481a5205a49e094cfd",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18d1.md": "8c4a36dcb6037c2fb19db78a356041de19befd50084c782356a5ac7fe73532c8",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/outcome-18d1.md": "f729e4d833f0d3a82341da27e8360078971a876b9fc23aafc48f7f2107861b6a",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-18d1-source.md": "01af42c795de8e3f8ce910b4c7ebfcecc251a55b1aed1670f452f6643b6b55e1",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/static-checks-18d1.txt": "c7d6a7ff5895947ff6af0d1ae3b48f9e6b466ed87095e1c5207cda0bd2062f00",
+    "docs/reservation-bridge.md": "a5e9eeca5e82af4e1c0c0a17f656826d05f5b1ad31afbcb50ca1eb321013257f",
+    "grafana_jsm_sandbox/reservation_bridge.py": "86637308e4aaa3d209f374dcf580b5b8a5a1aa59d1c1a691b329eb620ed022b3",
+    "tests/test_reservation_bridge.py": "2122fcc915041182f593cd490a103f8dd98de5e4371324c3b0cc3cf0acc2a9f5"
+  },
+  "evidence_scope": "local source/static and synthetic pure relation tests only",
+  "fixed_point": "07300a647492c70ff5f0bdd77ad480fece83819a",
+  "focused_suite": {
+    "command": "python /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_reservation_bridge.py",
+    "exit": 0,
+    "non_loopback_attempts": [],
+    "passed": 29
+  },
+  "full_run_inputs": {
+    "grafana_jsm_sandbox/reservation_bridge.py": "86637308e4aaa3d209f374dcf580b5b8a5a1aa59d1c1a691b329eb620ed022b3",
+    "tests/test_reservation_bridge.py": "2122fcc915041182f593cd490a103f8dd98de5e4371324c3b0cc3cf0acc2a9f5"
+  },
+  "full_suite": {
+    "command": "env -u DEMO_END_TO_END -u DEMO_CONTAINER pytest -q -p no:cacheprovider",
+    "exit": 0,
+    "passed": 5222,
+    "seconds": 378.24,
+    "skipped": 39
+  },
+  "not_qualified": [
+    "verified journal or ledger store adapter",
+    "versioned reservation intent or confirmation writer",
+    "production accounting reservation",
+    "Run launch or dispatch permit",
+    "trusted opening history or authoritative provider coverage",
+    "external rollback witness or power-loss durability",
+    "native/provider/tenant/venue/paid execution",
+    "human Report adjudication"
+  ],
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "preserved_panel": {
+    "regular_file_count": 76,
+    "relative_path_sha256_lf_manifest_digest": "0cf9c0e9ef79fc1d0e8727bb398bd529d3ebcf2f5630bdd7af10fb9ba17712ae",
+    "total_bytes": 617831
+  },
+  "publication": "LOCAL_ONLY",
+  "reviews": {
+    "final": "PASS_LOCAL_PURE_BRIDGE",
+    "spec": "NO_CONCRETE_BLOCKER",
+    "standards": "NO_CONCRETE_BLOCKER"
+  },
+  "schema_version": 1,
+  "static_checks": {
+    "application_caller_import_scan": "PASS",
+    "git_diff_check": "PASS",
+    "line_length_new_python": "PASS",
+    "ruff_new_python": "PASS"
+  },
+  "status": "PASS_LOCAL_PURE_BRIDGE",
+  "unit": "18d1-no-launch-bridge"
+}
