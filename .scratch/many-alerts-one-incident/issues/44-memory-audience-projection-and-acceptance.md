@@ -29,3 +29,12 @@ the separate authority of human review and reference publication.
 This remains open for exact source joins, operator authentication and projection
 storage choices and later presenter acceptance. No UI, dashboard, tenant access
 change, live refresh test, model Run or automated Report grade was created.
+
+## Local status-policy progress, 2026-09-25: unit 44a
+
+The [44a plan](../reviews/ticket-44/implementation-plan-status-policy.md)
+adds pure freshness, count-qualification and pinned-reference overlay decisions
+over caller-supplied safe claims. It cannot authenticate source evidence, redact
+arbitrary content, isolate operator access, render the view or serve a reference
+to a Run. Actual projection/parser, source joins, snapshot storage, UI and
+presenter acceptance remain open. This ticket remains open.
