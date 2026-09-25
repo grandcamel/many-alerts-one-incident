@@ -1,6 +1,6 @@
 # Unit 18c: durable accounting ledger design
 
-Status: proposed local design for independent critique, 2026-09-24.
+Status: reviewed local 18c-storage design, 2026-09-24.
 Baseline: `221dab94c8828b101bb1f3a35bbe131e0b1d23bd`.
 Authority: local source, tests, review and commits only. This is not an ADR
 amendment, production reservation, dispatch approval or ticket-38 acceptance.
@@ -89,10 +89,21 @@ assumption follows a reported sync error.
 The anchor is a separate 8192-byte two-slot file. Its exact version-1 body
 contains `format: acct.anchor.v1`, monotonic `counter`, `ledger_uuid`,
 `ledger_generation`, `experiment_id`, `head` (`sequence`, `event_digest`), and
-nullable durable `hold` (`code`, `observed_sequence`, `boot_id`). Slots have
-distinct `ACANCHOR` magic, length, canonical ASCII JSON and tagged SHA-256,
-zero padding, at offsets 0 and 4096; the higher valid counter wins. The
-genesis row fixes identity, and every row must agree. A valid anchor ahead of
+nullable durable `hold` (`code`, `observed_sequence`, `boot_id`). Each slot
+starts at offset 0 or 4096. Its bytes are `b'ACANCHOR'` (8 bytes), a 4-byte
+unsigned big-endian payload length, canonical ASCII JSON payload of 1..960
+bytes, then the 32 raw bytes of
+`SHA256(b'acct.anchor.v1\0' + magic + length_bytes + payload)`. Write the
+result into a 1024-byte slot and require zero bytes from the checksum's end
+through the next offset (or end of the file). Never hash padding, encode the
+checksum as hex, or accept another byte order. Creation writes slot 0 at
+counter 1 and leaves slot 1 all zero; subsequent writes alternate slots by
+counter parity and stop before counter `2**53`. The higher valid counter wins;
+two valid slots must have consecutive counters and identical store identity.
+A single valid slot with an all-zero other slot is valid only at counter 1;
+a nonzero invalid other slot is a recovery hold and is never adopted as a
+clean tail. The genesis row fixes identity, and every row must
+agree. A valid anchor ahead of
 rows, wrong identity/digest, gap, fork, tampered body, replay contradiction or
 more than one complete event ahead of the anchor is a hold. Exactly one
 verified committed event ahead may be adopted only by writing and reading

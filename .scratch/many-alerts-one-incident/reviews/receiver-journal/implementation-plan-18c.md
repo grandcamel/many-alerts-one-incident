@@ -1,6 +1,6 @@
 # Unit 18c: exact implementation plan for a non-reserving durable store
 
-Status: proposed for independent review, 2026-09-24. No 18c source edited.
+Status: reviewed local 18c-storage plan, 2026-09-24. No 18c source edited.
 Baseline: `221dab94c8828b101bb1f3a35bbe131e0b1d23bd`.
 Decision: [design-18c.md](design-18c.md). This plan covers 18c-storage only.
 The separately reviewed trusted-history extension and production reservation
@@ -35,10 +35,15 @@ trusted state. Stage only the explicit 18c paths.
 The directory/file names, modes, SQLite capability/version/settings, DDL,
 schema comparison, anchor bytes, slot offsets and fields, custody checks, lock
 and no-checkpoint rule are fixed in `design-18c.md`. Encode anchor bodies with
-the same canonical ASCII JSON policy as event bodies and a distinct
-`acct.anchor.v1\0` SHA-256 domain tag. Enforce a maximum 960-byte anchor body.
-Require exact 8192-byte anchor length, exact zero padding outside both slots,
-strict field sets/types/UUID/digest syntax, and monotonic two-slot counters.
+the same canonical ASCII JSON policy as event bodies. Use exactly the anchor
+wire layout there: 8-byte magic, 4-byte unsigned big-endian payload length,
+1..960 payload bytes, and 32 raw tagged-SHA-256 bytes over the domain tag,
+magic, length and payload, followed by zero padding. Require exact 8192-byte
+anchor length, exact zero padding outside both slots, strict field
+sets/types/UUID/digest syntax, genesis counter 1 in slot 0, alternating
+counter parity, and consecutive counters when both slots verify. The sole
+valid-slot case requires an all-zero second slot and counter 1; a nonzero
+invalid second slot holds.
 Never use an anchor digest alone as proof of current billing or external
 identity. Event rows bind independent stored digest to canonical bytes;
 `replay_accounting` then verifies all semantic and chain rules.
