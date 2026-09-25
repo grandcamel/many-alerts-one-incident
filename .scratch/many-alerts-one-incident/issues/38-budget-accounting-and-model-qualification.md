@@ -194,3 +194,15 @@ a future versioned Run mapping must bind it to an actual model-service grant.
 Independent Standards and Spec document reviews pass. No positive
 reservation or v3 writer exists. The unknown opening population and other
 external billing/continuity gates remain unresolved; this ticket stays open.
+
+## Local first-attempt claim replay, 2026-09-25: unit 19i1
+
+The [19i1 outcome](../reviews/run-recovery/outcome-19i1-first-intent.md)
+adds an ordinary-capacity v3 journal claim for an eligible first attempt,
+with no application writer or ledger call. Replayed claims are visible as
+outstanding read-only evidence, and mixed-version reopen is covered.
+Independent source/spec reviews and the full local suite (**5,473 passed,
+39 skipped**) pass. No v3 confirmation, production reserve, billing
+verification or dispatch authority was added; the unknown opening
+population and external accounting decisions remain gates. This ticket
+stays open.

@@ -65,6 +65,7 @@ RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
     "reservation_confirmation": "recovery",
 })
+RESERVATION_RECORD_CLASS_V3 = MappingProxyType({"reservation_intent": "ordinary"})
 
 ACTORS = ("receiver", "spawner", "forwarder", "operator")
 
@@ -357,6 +358,9 @@ _RESERVATION_INTENT_IDS_KEYS = frozenset({
 })
 _RESERVATION_INTENT_DATA_KEYS = frozenset({
     "rule", "based_on_commit_seq", "intent_digest",
+})
+_RESERVATION_INTENT_V3_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "intent_digest", "member_count", "member_digest",
 })
 _RESERVATION_CONFIRMATION_IDS_KEYS = frozenset({"intent_id"})
 _RESERVATION_CONFIRMATION_DATA_KEYS = frozenset({
@@ -697,6 +701,20 @@ def _validate_reservation_intent_v2(ids: object, data: object, event_id: str) ->
     _require_hex64(data["intent_digest"])
 
 
+def _validate_reservation_intent_v3(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _RESERVATION_INTENT_IDS_KEYS)
+    for key in _RESERVATION_INTENT_IDS_KEYS:
+        _require_uuid(ids[key])
+    if ids["intent_id"] != event_id or len(set(ids.values())) != len(ids):
+        _fail_record("record_field")
+    data = _require_keys(data, _RESERVATION_INTENT_V3_DATA_KEYS)
+    _require_literal(data["rule"], "reservation-intent-v3", "record_unsupported")
+    _require_bound_int(data["based_on_commit_seq"], 1, MAX_SEQ, "record_field")
+    _require_bound_int(data["member_count"], 1, 32, "record_field")
+    _require_hex64(data["member_digest"])
+    _require_hex64(data["intent_digest"])
+
+
 def _validate_reservation_confirmation_v2(
     ids: object, data: object, event_id: str,
 ) -> None:
@@ -729,6 +747,9 @@ _V2_TYPE_VALIDATORS = MappingProxyType({
     ("reservation_intent", 2): _validate_reservation_intent_v2,
     ("reservation_confirmation", 2): _validate_reservation_confirmation_v2,
 })
+_V3_TYPE_VALIDATORS = MappingProxyType({
+    ("reservation_intent", 3): _validate_reservation_intent_v3,
+})
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
     ("restart_recovery", 1): "receiver",
@@ -743,6 +764,7 @@ _V2_TYPE_ACTORS = MappingProxyType({
     ("reservation_intent", 2): "receiver",
     ("reservation_confirmation", 2): "receiver",
 })
+_V3_TYPE_ACTORS = MappingProxyType({("reservation_intent", 3): "receiver"})
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
 
@@ -756,7 +778,9 @@ def _validate_envelope(envelope: object) -> None:
         proposed_type = envelope["event_type"]
         if type(proposed_type) is not str or (
             proposed_type, schema_version
-        ) not in _V2_TYPE_VALIDATORS:
+        ) not in _V2_TYPE_VALIDATORS and (
+            proposed_type, schema_version
+        ) not in _V3_TYPE_VALIDATORS:
             _fail_record("record_unsupported")
     _require_bound_int(envelope["journal_generation"], 1, MAX_GENERATION, "record_field")
     event_id = validate_id(envelope["event_id"])
@@ -772,12 +796,16 @@ def _validate_envelope(envelope: object) -> None:
     type_key = (event_type, schema_version)
     if type(event_type) is not str or (
         type_key not in _TYPE_VALIDATORS and type_key not in _V2_TYPE_VALIDATORS
+        and type_key not in _V3_TYPE_VALIDATORS
     ):
         _fail_record("record_unsupported")
     actor = envelope["actor"]
-    expected_actor = (
-        TYPE_ACTORS[type_key] if type_key in TYPE_ACTORS else _V2_TYPE_ACTORS[type_key]
-    )
+    if type_key in TYPE_ACTORS:
+        expected_actor = TYPE_ACTORS[type_key]
+    elif type_key in _V2_TYPE_ACTORS:
+        expected_actor = _V2_TYPE_ACTORS[type_key]
+    else:
+        expected_actor = _V3_TYPE_ACTORS[type_key]
     if type(actor) is not str or actor not in ACTORS or actor != expected_actor:
         _fail_record("record_field")
     validate_id(envelope["boot_id"])
@@ -786,10 +814,12 @@ def _validate_envelope(envelope: object) -> None:
     prev_digest = _require_hex64(envelope["prev_record_digest"])
     if (event_seq == 1) != (prev_digest == ZERO_DIGEST):
         _fail_record("record_field")
-    validator = (
-        _TYPE_VALIDATORS[type_key] if type_key in _TYPE_VALIDATORS
-        else _V2_TYPE_VALIDATORS[type_key]
-    )
+    if type_key in _TYPE_VALIDATORS:
+        validator = _TYPE_VALIDATORS[type_key]
+    elif type_key in _V2_TYPE_VALIDATORS:
+        validator = _V2_TYPE_VALIDATORS[type_key]
+    else:
+        validator = _V3_TYPE_VALIDATORS[type_key]
     validator(envelope["ids"], envelope["data"], event_id)
 
 
@@ -844,7 +874,7 @@ def seal(
         _fail_record(code)
     if len(body) > MAX_RECORD_BYTES:
         _fail_record("record_too_large")
-    if schema_version == 2 and len(body) > MAX_RUN_HOLD_RECORD_BYTES:
+    if schema_version in (2, 3) and len(body) > MAX_RUN_HOLD_RECORD_BYTES:
         _fail_record("record_too_large")
     return _build_record(envelope, position, stamp, body, _record_digest(body))
 
@@ -879,7 +909,7 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
     if canonical_body != body:
         _fail_record("record_not_canonical")
     _validate_envelope(envelope)
-    if envelope["schema_version"] == 2 and len(body) > MAX_RUN_HOLD_RECORD_BYTES:
+    if envelope["schema_version"] in (2, 3) and len(body) > MAX_RUN_HOLD_RECORD_BYTES:
         _fail_record("record_too_large")
     position = Position(
         journal_generation=envelope["journal_generation"],
@@ -945,6 +975,7 @@ __all__ = [
     "REFUSAL_RULE",
     "REGISTERED_EVENT_TYPES",
     "RESERVATION_RECORD_CLASS_V2",
+    "RESERVATION_RECORD_CLASS_V3",
     "RESUMABLE_HOLDS",
     "RESUME_RULE",
     "RUN_EVENT_TYPES_V2",

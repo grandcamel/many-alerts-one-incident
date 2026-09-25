@@ -238,3 +238,14 @@ Forwarder grant; the accounting UUID has no service meaning by itself.
 Independent Standards and Spec document reviews pass. This is a reviewed
 source plan only: no v3 record, writer, reservation, grant, process or permit
 is implemented, and external accounting and runtime gates stay open.
+
+## Local first-attempt claim replay, 2026-09-25: unit 19i1
+
+The [19i1 outcome](../reviews/run-recovery/outcome-19i1-first-intent.md)
+adds a no-writer v3 initial intent with ordinary-capacity planning, pure
+replay and a separate digest. A reopened claim is explicitly outstanding in
+read-only inspection, and a v2 hold cannot create a second job for its
+admission. Independent source/spec reviews, 79 focused tests, Ruff and the
+full suite (**5,473 passed, 39 skipped**) pass. V3 confirmation, the
+cross-store writer, Run/effect records, service grants, permits, containment
+and guarded launch remain open; external acceptance is NOT RUN.

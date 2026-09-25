@@ -43,6 +43,7 @@ from .journal_records import (
 from .journal_reducer import (
     DEFAULT_BOUNDS,
     CapacityRefusal,
+    InitialReservationIntentClaim,
     JournalBounds,
     RefusalNotRecorded,
     ReplayError,
@@ -52,6 +53,7 @@ from .journal_reducer import (
     dispatch_holds,
     front_door_digest,
     group_commits,
+    initial_intents_digest,
     new_projection,
     pending_digest,
     pending_entries,
@@ -220,6 +222,8 @@ class ReservationClaimView:
     intents: tuple[ReservationIntentClaim, ...] = ()
     confirmations: tuple[ReservationConfirmationClaim, ...] = ()
     digest: str | None = None
+    initial_intents: tuple[InitialReservationIntentClaim, ...] = ()
+    initial_digest: str | None = None
 
 
 def _resume_token_ok(value: object) -> bool:
@@ -962,6 +966,11 @@ class RecoveryJournal:
                     "intents": len(p.intents), "confirmations": len(p.confirmations),
                     "digest": reservation_claims_digest(p),
                 }
+            if p.initial_intents:
+                result["initial_reservation_intents"] = {
+                    "count": len(p.initial_intents), "digest": initial_intents_digest(p),
+                    "outstanding": True,
+                }
             return result
 
     def close(self) -> None:
@@ -1074,6 +1083,12 @@ def _ready_report(
             "intents": len(candidate.intents),
             "confirmations": len(candidate.confirmations),
             "digest": reservation_claims_digest(candidate),
+        }
+    if candidate.initial_intents:
+        journal_json["initial_reservation_intents"] = {
+            "count": len(candidate.initial_intents),
+            "digest": initial_intents_digest(candidate),
+            "outstanding": True,
         }
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,
@@ -1240,6 +1255,8 @@ def inspect_reservation_claim_view(directory: Path) -> ReservationClaimView:
                 tuple(claim for _, claim in sorted(candidate.intents.items())),
                 tuple(claim for _, claim in sorted(candidate.confirmations.items())),
                 reservation_claims_digest(candidate),
+                tuple(claim for _, claim in sorted(candidate.initial_intents.items())),
+                initial_intents_digest(candidate) if candidate.initial_intents else None,
             )
     finally:
         try:
