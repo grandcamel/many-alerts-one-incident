@@ -328,3 +328,17 @@ Standards and Spec reviews, 168 focused journal/crash/restart tests, Ruff
 and the full local suite (**5,524 passed, 39 skipped**) pass. No application
 writer, real grant read-back, process, barrier release, effect or permit was
 added; the accounting and venue gates remain open. This ticket stays open.
+
+## Local guarded spawn/release evidence contract, 2026-09-25: unit 19n
+
+The [19n proposed design](../reviews/run-recovery/design-19n-spawn-release-evidence.md)
+requires a protected, recoverable containment anchor before child creation,
+then separate blocked-child attestation, one-use release intent and release
+observation. Every crash prefix remains held until its exact orphan,
+Forwarder, effect and containment evidence is reconciled. The release fence
+rechecks the new journal head, independent ledger and current approved
+reference scope/revocation. [Independent Standards and Spec document
+reviews](../reviews/run-recovery/review-19n-spawn-release-design.md) pass.
+This is a proposed local contract, not a launcher, witness, journal writer,
+permit or Run. Intended-venue containment and external accounting remain
+gates; this ticket stays open.
