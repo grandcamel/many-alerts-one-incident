@@ -116,3 +116,13 @@ source, account scope, line identity, adjustment and lag semantics, opening
 history, liability U, archive registration, independent witness and intended
 venue durability evidence remain decisions. Provider, paid, native, tenant,
 venue and power-loss acceptance are NOT RUN. This ticket stays open.
+
+## Local candidate syntax progress, 2026-09-25: unit 18f
+
+Unit 18f parses the reviewed 18e private candidate envelope as canonical,
+bounded metadata and detects exact replay versus changed bytes under one
+candidate ID. Source kind, account scope, coverage and payload digest remain
+unverified claims. There is no source profile, payload verification, billing
+importer, opening reconstruction, archive, witness or reserve method. This
+local source slice cannot clear a budget hold. The external evidence and
+continuity decisions listed above remain open; this ticket stays open.

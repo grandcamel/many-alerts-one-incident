@@ -59,6 +59,15 @@ index covering attempts, reservations and charge lines. If its history is
 unavailable, model reservation and dispatch remain held; bounded Notification
 admission continues. No importer, archive or witness is implemented here.
 
+`accounting_evidence_candidate` parses only bounded canonical private
+metadata envelopes. It preserves source, account-scope, coverage and payload
+digest as unverified claims, and detects changed bytes under a repeated
+candidate ID within one bounded batch. This is not a persistent duplicate
+index. It never reads the claimed payload or
+authenticates a billing source. A parsed claim is not an opening balance,
+charge line, coverage proof, archive entry or reservation input. The current
+v1 store still rejects every production reservation.
+
 The [reviewed 18c design](../.scratch/many-alerts-one-incident/reviews/receiver-journal/design-18c.md)
 and [implementation plan](../.scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18c.md)
 define the physical format and local tests. Local SQLite/restart/crash-image
