@@ -245,3 +245,13 @@ adds a no-writer journal claim for one distinct opaque Forwarder grant ID per
 Run-intent service claim. It does not register, authenticate, activate or
 revoke a real grant and supplies no permit or production launch. Independent
 source reviews and the full local suite pass; this ticket stays open.
+
+## Local legacy proxy executable retirement, 2026-09-25: unit 19o
+
+The [19o outcome](../reviews/run-recovery/outcome-19o-legacy-launcher-retirement.md)
+closes the historical standalone Jira Forwarder executable before it reads
+a credential, prints a sentinel or opens its HTTP listener. The old class
+remains an isolated test subject. Independent source reviews and the full
+local suite (**5,530 passed, 39 skipped**) pass. This does not provide the
+accepted scoped TLS sidecar, real service grants, native mediated client
+path or effect permit; this ticket stays open.

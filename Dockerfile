@@ -1,4 +1,6 @@
-# The demo container: the Receiver is its main process, and a Run is a child of that.
+# ARCHIVAL chapter-one image. Its default entrypoint now refuses before
+# onboarding, credential parsing, Receiver startup or Run launch. The comments
+# below describe the former demo image, not a current ADR 0011-0013 runtime.
 #
 # The image carries what a Run needs and nothing else (ADR 0005): the slim official
 # Node image plus the distribution's Python, Claude Code and jira-as at pinned
@@ -55,36 +57,30 @@ RUN if [ -s /tmp/extra-ca.crt ]; then \
     fi \
     && rm -f /tmp/extra-ca.crt
 
-# Every TLS client the image carries, pointed at that one bundle, image-wide and
-# before the installs that need them: Python's ssl module and so the Forwarder's
-# urllib, the requests library jira-as uses, pip, curl-style clients, and Claude
-# Code, which documents NODE_EXTRA_CA_CERTS as its custom-CA setting. The Receiver
-# hands exactly these five on to each Run, and nothing else new (ADR 0002).
+# Historical image-wide TLS bundle for installed clients. The former Receiver
+# handed these five settings to each Run (ADR 0002); the disabled entrypoint
+# now starts no Receiver or Run.
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
     REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     PIP_CERT=/etc/ssl/certs/ca-certificates.crt \
     NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-# A Run's Transcript is what the audience reads and the formatter renders its
-# Run event shapes, so Claude Code is pinned to the version the container was
-# rehearsed on rather than left to drift. Its install script is the one npm is
-# allowed to run: it copies the native Linux binary over the `claude` stub, so a
-# Run is that binary and not a Node wrapper around it.
+# The historical Transcript renderer was rehearsed with this pinned Claude
+# Code version. The image still carries it for archival inspection; the
+# disabled default entrypoint does not start it.
 RUN npm install -g --allow-scripts="@anthropic-ai/claude-code" \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
     && npm cache clean --force
 
-# The only thing a Run may execute. Pinned, because the skill is written in its
-# invocations and was verified against this version. Its own venv keeps its
-# dependencies out of the interpreter the Receiver runs on; the symlink puts the
-# one command a Run may call on the PATH next to `claude`.
+# The historical Run's pinned jira-as. Its own venv kept dependencies out of
+# the Receiver interpreter; this installed command is not current Run authority.
 RUN python3 -m venv /opt/jira-as \
     && /opt/jira-as/bin/pip install --no-cache-dir "jira-as==${JIRA_AS_VERSION}" \
     && ln -s /opt/jira-as/bin/jira-as /usr/local/bin/jira-as
 
-# /app is the Receiver's home and the parent of every Run's working directory, so
-# it belongs to the user the Receiver runs as.
+# /app was the Receiver's home and Run working-directory parent. Retain its
+# historical ownership without enabling the retired entrypoint.
 RUN mkdir -p /app/runs && chown -R demo:demo /app
 
 WORKDIR /app
@@ -92,9 +88,8 @@ COPY --chown=demo:demo grafana_jsm_sandbox/ /app/grafana_jsm_sandbox/
 COPY --chown=demo:demo skill/ /app/skill/
 COPY --chown=demo:demo docker/entrypoint.sh /app/entrypoint.sh
 
-# Where this container keeps the two directories the Receiver is told about. The
-# credentials are not here and are not in the image: compose hands them in from an
-# env file that git and the build context both refuse.
+# Historical Receiver directory settings. Credentials remain outside the
+# image; the default entrypoint refuses before reading them.
 ENV SKILL_DIRECTORY=/app/skill \
     RUNS_DIRECTORY=/app/runs \
     PYTHONUNBUFFERED=1 \

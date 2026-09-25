@@ -1,5 +1,11 @@
 # Demo runbook: Grafana Alert to OPS Incident
 
+**Archived, not executable:** the legacy Receiver/Forwarder and default
+Compose entrypoint now refuse startup under ADRs 0011–0013. The commands
+below describe the old chapter-one demo and must not be used as current Run,
+provider or OPS acceptance. For local admission-only replay, see
+[recovery-journal.md](recovery-journal.md); it starts no Run.
+
 For the presenter, to be followed cold. The demo is one Alert's lifetime: traffic stops, Grafana
 fires, a Run opens an Incident; Grafana repeats, a Run adds a trend and moves it on; traffic
 returns, Grafana resolves, a Run completes it. About four minutes from the one action to the

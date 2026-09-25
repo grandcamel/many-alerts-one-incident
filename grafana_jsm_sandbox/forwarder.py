@@ -5,10 +5,9 @@ per-Run sentinel as its API token. The Forwarder swaps that sentinel for the
 real email and token and forwards the request to the configured Atlassian site,
 so the token exists only in the Receiver's process (ADR 0002).
 
-Run it on its own to point a jira-as on this machine at the real site through a
-sentinel, which is the manual check for the credential boundary:
-
-    python3 -m grafana_jsm_sandbox.forwarder
+The historical standalone executable is disabled under ADRs 0011–0013.
+This class remains importable for isolated legacy tests; running this module
+does not load a credential, create a sentinel or open a listener.
 """
 
 from __future__ import annotations
@@ -291,37 +290,13 @@ def _presented_sentinel(authorization: str | None) -> str | None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Serve one sentinel on loopback until interrupted, and say how to use it.
-
-    The real token is read from this process's environment and printed nowhere.
-    """
+    """Refuse the historical credentialed standalone proxy before side effects."""
     argv = sys.argv[1:] if argv is None else argv
     if argv:
         print("usage: python3 -m grafana_jsm_sandbox.forwarder", file=sys.stderr)
         return 2
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
-    try:
-        credential = JiraCredential.from_environment()
-    except IncompleteJiraCredential as failure:
-        print(failure, file=sys.stderr)
-        return 1
-
-    forwarder = Forwarder(credential)
-    sentinel = secrets.token_urlsafe(24)
-    forwarder.set_sentinel(sentinel)
-    forwarder.start()
-    print(f"forwarding to {credential.site_url} as {credential.email}", flush=True)
-    print("point jira-as at the Forwarder with a sentinel in place of the token:\n", flush=True)
-    print(f"    export JIRA_SITE_URL={forwarder.url}", flush=True)
-    print(f"    export JIRA_API_TOKEN={sentinel}\n", flush=True)
-    try:
-        threading.Event().wait()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        forwarder.clear_sentinel()
-        forwarder.stop()
-    return 0
+    print("legacy_forwarder_disabled", file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

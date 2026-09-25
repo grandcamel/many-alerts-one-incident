@@ -1,40 +1,25 @@
-"""The container's main process: the Receiver, the Forwarder it owns, and real Runs.
+"""Historical demo settings and its retired executable entrypoint.
 
-Everything the demo needs in one process (ADR 0001). The Forwarder is a thread
-inside it holding the real Jira credential; the Receiver listens for Grafana's
-Notifications; each Notification becomes a child process started by the spawner
-with a sentinel where that credential would be.
-
-    python3 -m grafana_jsm_sandbox
-
-It reads its whole configuration from the environment and refuses to start
-without a Jira credential and an Anthropic token, naming everything that is
-missing at once, because a container that starts and quietly does nothing is
-only found out when an Alert fires in front of an audience.
+The direct-credential Run composition predates ADRs 0011–0013. Importable
+configuration parsing remains for isolated historical tests, but invoking
+this module or ``serve`` cannot start the old Receiver/Forwarder/Run path.
 """
 
 from __future__ import annotations
 
-import logging
 import os
 import sys
-import threading
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TypeVar
 
-from grafana_jsm_sandbox.forwarder import Forwarder, IncompleteJiraCredential, JiraCredential
-from grafana_jsm_sandbox.receiver import Receiver
-from grafana_jsm_sandbox.run_command import build_run_command
+from grafana_jsm_sandbox.forwarder import IncompleteJiraCredential, JiraCredential
 from grafana_jsm_sandbox.run_spawner import (
     RUN_TIMEOUT,
     MissingAnthropicToken,
-    RunSpawner,
     anthropic_token_from_environment,
 )
-
-logger = logging.getLogger(__name__)
 
 Number = TypeVar("Number", int, float)
 
@@ -61,6 +46,13 @@ DEFAULT_SKILL_DIRECTORY = Path(__file__).resolve().parent.parent / "skill"
 
 class IncompleteConfiguration(ValueError):
     """The environment does not describe a demo that could work, and says how."""
+
+
+class LegacyLaunchDisabled(RuntimeError):
+    """The former executable cannot start a Run under the accepted ADRs."""
+
+
+LEGACY_LAUNCH_DISABLED = "legacy_launch_disabled"
 
 
 @dataclass(frozen=True)
@@ -112,39 +104,8 @@ class Settings:
 
 
 def serve(settings: Settings) -> int:
-    """Start the Forwarder and the Receiver, and serve Notifications until interrupted."""
-    forwarder = Forwarder(settings.credential)
-    forwarder.start()
-    receiver = Receiver(
-        spawn_run=RunSpawner(
-            command=build_run_command(settings.skill_directory),
-            forwarder=forwarder,
-            anthropic_token=settings.anthropic_token,
-            # The email, and only the email. The spawner is handed the one part of
-            # the credential a Run is allowed to hold, rather than the credential
-            # it would then have to be trusted not to pass on (ADR 0002).
-            jira_email=settings.credential.email,
-            timeout=settings.run_timeout,
-        ),
-        runs_directory=settings.runs_directory,
-        host=settings.host,
-        port=settings.port,
-    )
-    receiver.start()
-    logger.info("receiver listening on %s", receiver.url)
-    logger.info(
-        "runs reach %s as %s through the Forwarder, holding a sentinel",
-        settings.credential.site_url,
-        settings.credential.email,
-    )
-    try:
-        threading.Event().wait()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        receiver.stop()
-        forwarder.stop()
-    return 0
+    """Refuse direct calls to the historical runtime composition."""
+    raise LegacyLaunchDisabled(LEGACY_LAUNCH_DISABLED) from None
 
 
 def main(argv: list[str] | None = None, environment: Mapping[str, str] | None = None) -> int:
@@ -152,13 +113,8 @@ def main(argv: list[str] | None = None, environment: Mapping[str, str] | None = 
     if argv:
         print("usage: python3 -m grafana_jsm_sandbox", file=sys.stderr)
         return 2
-    try:
-        settings = Settings.from_environment(environment)
-    except IncompleteConfiguration as failure:
-        print(failure, file=sys.stderr)
-        return 1
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
-    return serve(settings)
+    print(LEGACY_LAUNCH_DISABLED, file=sys.stderr)
+    return 1
 
 
 def _number(

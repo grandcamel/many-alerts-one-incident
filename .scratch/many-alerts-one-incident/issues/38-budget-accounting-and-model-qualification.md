@@ -254,3 +254,13 @@ Independent source reviews, 267 focused tests, Ruff and the full local suite
 (**5,496 passed, 39 skipped**) pass. No spend reservation, provider charge
 evidence, capacity release or dispatch authority is established. Opening, billing, continuity,
 archive and venue gates remain open; this ticket stays open.
+
+## Local direct-model-token launcher retirement, 2026-09-25: unit 19o
+
+The [19o outcome](../reviews/run-recovery/outcome-19o-legacy-launcher-retirement.md)
+closes the historical executable that placed an Anthropic OAuth token in
+the Run environment. It does not add the ADR 0013 mediated API-key route,
+authoritative opening history, current provider billing evidence, a
+positive reservation or qualified model. Independent source reviews and
+the full local suite (**5,530 passed, 39 skipped**) pass; this ticket
+stays open.

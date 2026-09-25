@@ -1,5 +1,13 @@
 # grafana-jsm-sandbox
 
+**Current status (2026-09-25): the chapter-one live launcher is disabled.**
+`python3 -m grafana_jsm_sandbox`, its standalone Forwarder command and the
+default Compose entrypoint refuse before loading credentials or starting a
+Run. The walkthrough below is historical; do not use it as a current demo
+runbook. The [journaled Receiver](docs/recovery-journal.md) supports local
+admission-only replay and starts no Run. Guarded launch, accounting and
+Forwarder acceptance remain open under tickets 36–38.
+
 **This repository is chapter two, and it opens with chapter one's code.** Everything below
 describes `grafana-jsm-sandbox`, a finished demo in which one Grafana alert becomes one Jira
 Service Management Incident through a Run that holds no Jira credential. That repository is
@@ -180,7 +188,7 @@ The Run's stdout is its Transcript, rendered into the log by the formatter as it
 stderr is captured and logged only if it exits non-zero, redacted like every other line. A Run
 that outlives its timeout is killed and logged, and the queue behind it keeps moving.
 
-## Running the demo on the laptop
+## Historical laptop demo walkthrough (disabled)
 
 The Receiver, the Forwarder and real Runs are one process — the demo container's main process,
 and this on a laptop:
@@ -189,8 +197,8 @@ and this on a laptop:
 python3 -m grafana_jsm_sandbox
 ```
 
-It refuses to start without a Jira credential and an Anthropic token, naming everything that is
-missing at once, so a half-filled env file is fixed in one pass rather than three restarts.
+This command now exits with `legacy_launch_disabled` before reading the
+historical credentials listed below. The table documents the retired format.
 
 | Variable | What it is |
 | --- | --- |
@@ -210,7 +218,7 @@ which is also the demo's fallback if Grafana is uncooperative:
 python3 -m grafana_jsm_sandbox.replay --receiver http://localhost:8080 --pause 30
 ```
 
-## Running the demo in the container
+## Historical container demo walkthrough (disabled)
 
 `docker compose up` is the whole demo: the LGTM stack the Alert fires from, one demo container
 whose main process is the Receiver, the rolldice app the Alert is about, and the synthetic

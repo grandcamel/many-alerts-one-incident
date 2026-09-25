@@ -1,18 +1,22 @@
-"""Starting the container's main process: the Receiver, its Forwarder, its spawner.
-
-A misconfigured container that starts anyway and no-ops is the worst thing that
-can happen during the demo, because nothing says so until an Alert fires and
-nothing happens. These tests are the fail-fast: every variable that is missing
-is named, and named all at once, before anything is listening.
-"""
+"""Historical settings remain parseable; executable legacy launch refuses."""
 
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
-from grafana_jsm_sandbox.__main__ import Settings, main
+from grafana_jsm_sandbox import forwarder as legacy_forwarder
+from grafana_jsm_sandbox.__main__ import (
+    IncompleteConfiguration,
+    LegacyLaunchDisabled,
+    Settings,
+    main,
+    serve,
+)
 from grafana_jsm_sandbox.run_command import SKILL_FILE
 from grafana_jsm_sandbox.run_spawner import ANTHROPIC_TOKEN_VARIABLE
 
@@ -73,40 +77,75 @@ def test_the_container_can_say_where_everything_lives(tmp_path):
     "variable",
     ["JIRA_SITE_URL", "JIRA_EMAIL", "JIRA_API_TOKEN", ANTHROPIC_TOKEN_VARIABLE],
 )
-def test_startup_stops_and_names_a_missing_credential(variable, capsys):
-    assert main([], environment=complete_but(**{variable: None})) == 1
+def test_historical_settings_name_a_missing_credential(variable):
+    with pytest.raises(IncompleteConfiguration) as error:
+        Settings.from_environment(complete_but(**{variable: None}))
+    assert variable in str(error.value)
 
-    assert variable in capsys.readouterr().err
 
-
-def test_startup_names_every_missing_credential_at_once(capsys):
-    assert main([], environment={}) == 1
-
-    said = capsys.readouterr().err
+def test_historical_settings_name_every_missing_credential_at_once():
+    with pytest.raises(IncompleteConfiguration) as error:
+        Settings.from_environment({})
+    said = str(error.value)
     for variable in COMPLETE:
         assert variable in said
 
 
-def test_startup_stops_on_a_site_url_that_is_not_a_url(capsys):
-    assert main([], environment=complete_but(JIRA_SITE_URL="example.atlassian.net")) == 1
-
-    assert "JIRA_SITE_URL" in capsys.readouterr().err
-
-
-def test_startup_stops_on_a_port_that_is_not_a_number(capsys):
-    assert main([], environment=complete_but(RECEIVER_PORT="eight thousand")) == 1
-
-    assert "RECEIVER_PORT" in capsys.readouterr().err
+def test_historical_settings_stop_on_a_site_url_that_is_not_a_url():
+    with pytest.raises(IncompleteConfiguration) as error:
+        Settings.from_environment(complete_but(JIRA_SITE_URL="example.atlassian.net"))
+    assert "JIRA_SITE_URL" in str(error.value)
 
 
-def test_startup_stops_on_a_timeout_that_is_not_a_number(capsys):
-    assert main([], environment=complete_but(RUN_TIMEOUT="five minutes")) == 1
+def test_historical_settings_stop_on_a_port_that_is_not_a_number():
+    with pytest.raises(IncompleteConfiguration) as error:
+        Settings.from_environment(complete_but(RECEIVER_PORT="eight thousand"))
+    assert "RECEIVER_PORT" in str(error.value)
 
-    assert "RUN_TIMEOUT" in capsys.readouterr().err
+
+def test_historical_settings_stop_on_a_timeout_that_is_not_a_number():
+    with pytest.raises(IncompleteConfiguration) as error:
+        Settings.from_environment(complete_but(RUN_TIMEOUT="five minutes"))
+    assert "RUN_TIMEOUT" in str(error.value)
 
 
-def test_startup_says_nothing_of_the_credential_it_could_not_read(capsys):
-    """A container that fails to start still prints its log where an audience can see it."""
-    main([], environment=complete_but(JIRA_EMAIL=None))
+@pytest.mark.parametrize("environment", [COMPLETE, {}, complete_but(JIRA_EMAIL=None)])
+def test_legacy_module_refuses_before_configuration_or_serve(monkeypatch, capsys, environment):
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("legacy startup reached a side effect")
 
-    assert "a-real-token" not in capsys.readouterr().err
+    monkeypatch.setattr(Settings, "from_environment", forbidden)
+    monkeypatch.setattr("grafana_jsm_sandbox.__main__.serve", forbidden)
+    assert main([], environment=environment) == 1
+    assert capsys.readouterr().err == "legacy_launch_disabled\n"
+
+
+def test_direct_legacy_serve_refuses():
+    with pytest.raises(LegacyLaunchDisabled, match="^legacy_launch_disabled$"):
+        serve(object())  # type: ignore[arg-type] - refusal precedes configuration use.
+
+
+def test_standalone_forwarder_refuses_before_credential_or_listener(monkeypatch, capsys):
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("legacy Forwarder reached a side effect")
+
+    monkeypatch.setattr(legacy_forwarder.JiraCredential, "from_environment", forbidden)
+    monkeypatch.setattr(legacy_forwarder.Forwarder, "start", forbidden)
+    assert legacy_forwarder.main([]) == 1
+    assert capsys.readouterr().err == "legacy_forwarder_disabled\n"
+
+
+@pytest.mark.parametrize("module, diagnostic", [
+    ("grafana_jsm_sandbox", "legacy_launch_disabled"),
+    ("grafana_jsm_sandbox.forwarder", "legacy_forwarder_disabled"),
+])
+def test_legacy_module_subprocess_exits_without_starting(module, diagnostic):
+    completed = subprocess.run(
+        [sys.executable, "-m", module],
+        cwd=Path(__file__).resolve().parent.parent,
+        env={"PATH": os.environ.get("PATH", ""), "PYTHONPATH": str(Path(__file__).resolve().parent.parent)},
+        capture_output=True, text=True, check=False, timeout=5,
+    )
+    assert completed.returncode == 1
+    assert completed.stdout == ""
+    assert completed.stderr == diagnostic + "\n"

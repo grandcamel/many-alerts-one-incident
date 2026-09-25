@@ -1,12 +1,8 @@
-"""The whole loop, against a running demo and the real OPS project.
+"""Archived live OPS end-to-end test; permanently skipped with the retired launcher.
 
-This is the only test that touches Jira, so it is opt-in: set `DEMO_END_TO_END`
-and it runs, otherwise it is skipped and the default suite stays offline and
-fast. It replays the canned Notification sequence at a Receiver that is already
-running — `python3 -m grafana_jsm_sandbox`, or the container from ticket 06 —
-and then watches OPS until the Incident those Runs created is Completed:
-
-    DEMO_END_TO_END=1 python3 -m pytest tests/test_end_to_end.py
+The former `DEMO_END_TO_END` flag cannot enable this test. It describes the
+chapter-one Receiver and was not updated for ADRs 0011–0013. The old loop
+replays Notifications and watches OPS for the completed Incident.
 
 It asserts through `jira-as`, which reads the real credential from this shell's
 environment, the same credential the Forwarder holds inside the demo.
@@ -38,7 +34,7 @@ from grafana_jsm_sandbox.reset import CLOSED, COMPLETED, RESOLUTION, move_to, ru
 from tests.conftest import firing_notification
 
 END_TO_END_VARIABLE = "DEMO_END_TO_END"
-"""Set it to anything and this check runs against a live demo and the real OPS project."""
+"""Retired historical flag; it cannot enable the live OPS test."""
 
 RECEIVER_VARIABLE = "DEMO_RECEIVER_URL"
 """Where the demo is listening, when it is not on this laptop's default port."""
@@ -62,9 +58,8 @@ MATCH = LABELLED + " AND statusCategory != Done"
 """The Match as a Run defines it (ADR 0004): the one *open* Incident for a Fingerprint."""
 
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get(END_TO_END_VARIABLE),
-    reason=f"drives a running demo and the real OPS project; set {END_TO_END_VARIABLE}=1 to run",
+pytestmark = pytest.mark.skip(
+    reason="archival live OPS test disabled under ADRs 0011-0013; DEMO_END_TO_END cannot enable it",
 )
 
 

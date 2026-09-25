@@ -342,3 +342,15 @@ reviews](../reviews/run-recovery/review-19n-spawn-release-design.md) pass.
 This is a proposed local contract, not a launcher, witness, journal writer,
 permit or Run. Intended-venue containment and external accounting remain
 gates; this ticket stays open.
+
+## Local legacy Run entrypoint retirement, 2026-09-25: unit 19o
+
+The [19o outcome](../reviews/run-recovery/outcome-19o-legacy-launcher-retirement.md)
+closes the direct-token Receiver/Run executable and default container
+entrypoint before credentials, onboarding mutation, listener or child
+startup. The historical modules remain testable in isolation, and the
+newer journaled front door remains admission-only. Former live opt-in
+tests are quarantined. Independent source reviews and the full local suite
+(**5,530 passed, 39 skipped**) pass. No guarded production launcher,
+durable effect writer, permit or contained Run was added; accounting and
+venue gates remain open. This ticket stays open.

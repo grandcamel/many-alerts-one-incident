@@ -1,15 +1,12 @@
-"""The committed container and compose, checked against the process they must start.
+"""The historical container and compose, checked as archived configuration.
 
 Nothing here builds an image. These drive the three committed files — the
 Dockerfile, `docker-compose.yml` and `.env.example` — against the code and the
-rules they exist to satisfy: the configuration reader that refuses to start
-without a credential, git's own ignore rules, and the redaction the log
+rules they once served: the historical configuration parser, git's own ignore rules, and the redaction the log
 formatter applies to anything credential-shaped.
 
-The checks that need a container actually running are opt-in, like the
-end-to-end check, because they cost a build and a demo:
-
-    DEMO_CONTAINER=1 python3 -m pytest tests/test_container.py
+Checks that need a running container remain archived and permanently skipped.
+The former DEMO_CONTAINER live opt-in cannot enable them.
 """
 
 from __future__ import annotations
@@ -74,7 +71,7 @@ RECEIVER_PORT = 8080
 """What the contact point names and what the replay script posts at by default."""
 
 CREDENTIALS = (*ENVIRONMENT_VARIABLES.values(), ANTHROPIC_TOKEN_VARIABLE)
-"""Every variable the process refuses to start without."""
+"""Credentials named by the historical configuration parser, never loaded on startup."""
 
 SETTINGS_VARIABLES = (
     *CREDENTIALS,
@@ -125,8 +122,8 @@ def git_ignores(path: str) -> bool:
     )
 
 
-def test_the_committed_example_describes_a_process_that_would_start():
-    """Every variable filled with its placeholder, and the Receiver still starts."""
+def test_the_committed_example_remains_parseable_as_historical_configuration():
+    """The old placeholders remain syntactically valid; launch is disabled."""
     settings = Settings.from_environment(env_example())
 
     assert settings.credential.site_url.startswith("https://")
@@ -390,19 +387,13 @@ def test_the_user_the_container_ends_as_was_created_by_this_dockerfile():
 
 
 ENTRYPOINT = REPOSITORY / "docker" / "entrypoint.sh"
-"""What the container starts: onboarding pre-accepted, then the command it was given."""
+"""What the container starts: default refusal or explicit command pass-through."""
 
 TOOLS_THE_IMAGE_CARRIES = ("sh", "mkdir", "chmod", "python3")
-"""All the entrypoint may call. The slim image has no jq (story 21), so the test's PATH has none."""
-
-ONBOARDING_FLAG = "hasCompletedOnboarding"
-
+"""Tools historically present in the image; current entrypoint uses only sh."""
 
 def start_container_with(tmp_path, *command: str, existing: dict | None = None) -> tuple:
-    """Run the real entrypoint as the container would, on a PATH of only what the image carries.
-
-    Returns the pre-accepted onboarding file's contents and the command's output.
-    """
+    """Run the entrypoint on a bounded PATH and return its result and config path."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     for tool in TOOLS_THE_IMAGE_CARRIES:
@@ -421,27 +412,27 @@ def start_container_with(tmp_path, *command: str, existing: dict | None = None) 
         text=True,
         check=False,
     )
-    assert started.returncode == 0, started.stderr
-    onboarding = config_dir / ".claude.json"
-    assert oct(onboarding.stat().st_mode)[-3:] == "600"
-    return json.loads(onboarding.read_text()), started.stdout
+    return started, config_dir / ".claude.json"
 
 
-def test_the_entrypoint_pre_accepts_onboarding_and_becomes_the_command_it_was_given(tmp_path):
-    """A fresh container: no config yet, and the one flag headless Claude needs is written."""
-    onboarding, output = start_container_with(tmp_path, "sh", "-c", "echo became the command")
+def test_default_entrypoint_refuses_without_writing_onboarding(tmp_path):
+    started, onboarding = start_container_with(tmp_path)
+    assert started.returncode == 1
+    assert started.stdout == ""
+    assert started.stderr == "legacy_launch_disabled\n"
+    assert not onboarding.exists()
 
-    assert onboarding == {ONBOARDING_FLAG: True}
-    assert output.strip() == "became the command"
 
-
-def test_the_entrypoint_keeps_whatever_claude_code_already_wrote(tmp_path):
-    """A restart: Claude Code's own configuration is there, and only the flag is added to it."""
-    onboarding, _ = start_container_with(
-        tmp_path, "sh", "-c", "true", existing={"numStartups": 3, ONBOARDING_FLAG: False}
+def test_explicit_entrypoint_command_passes_through_without_onboarding(tmp_path):
+    started, onboarding = start_container_with(
+        tmp_path, "sh", "-c", "echo became the command",
+        existing={"numStartups": 3, "hasCompletedOnboarding": False},
     )
-
-    assert onboarding == {"numStartups": 3, ONBOARDING_FLAG: True}
+    assert started.returncode == 0
+    assert started.stdout.strip() == "became the command"
+    assert json.loads(onboarding.read_text()) == {
+        "numStartups": 3, "hasCompletedOnboarding": False,
+    }
 
 
 def test_the_healthcheck_needs_nothing_the_image_does_not_carry():

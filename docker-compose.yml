@@ -1,7 +1,7 @@
-# The whole demo: the LGTM stack the Alert fires from, the container the Run
-# happens in, and the synthetic traffic whose absence fires the Alert, on one
-# network so Grafana's contact point can name `demo` by service name and the
-# presenter can watch both from the laptop.
+# ARCHIVAL chapter-one Compose definition. The demo image's default entrypoint
+# now exits `legacy_launch_disabled` before starting a Receiver or Run. This
+# stack is not a current launch/acceptance path under ADRs 0011-0013. The
+# following commands and topology describe the historical demo only.
 #
 #     cp .env.example .env    # then fill it in
 #     docker compose up -d --build
@@ -56,16 +56,16 @@ services:
       - "8080:8080"
     networks:
       - demo
-    # The runtime boundary, in the shape Anthropic's secure-deployment guide gives
-    # a headless agent (ADR 0005). Every capability dropped: the Receiver binds an
+    # Historical runtime boundary, in the shape Anthropic's secure-deployment guide
+    # gives a headless agent (ADR 0005). Every capability dropped: the old Receiver bound an
     # unprivileged port and needs none. No new privileges: the image has no sudo
     # and no setuid route to root, and this says a Run could not gain one even if
     # something in the image were to grow it back. A root filesystem nothing can
     # write, with what must be written on tmpfs and nowhere else: the temp
     # directory, the runs directory (RUNS_DIRECTORY in the Dockerfile) and the Run
-    # user's home, where the entrypoint writes the onboarding flag and Claude Code
-    # its configuration and Transcripts. Those three are exactly what `docker diff`
-    # lists after three Runs. Nothing survives a restart, and nothing needs to. The
+    # user's home, where the former entrypoint wrote the onboarding flag and Claude Code
+    # its configuration and Transcripts. The entrypoint now writes none of those.
+    # These mounts document the old demo's three writable locations. The
     # uid is the one the Dockerfile gave the account; a tmpfs is otherwise root's.
     cap_drop:
       - ALL
@@ -97,9 +97,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    # Deliberately no restart policy. The Receiver refuses to start on a half-filled
-    # .env and says which variable is missing; restarting it would turn that one
-    # readable message into a crash loop that scrolls itself away.
+    # Deliberately no restart policy. This archived default exits immediately
+    # with legacy_launch_disabled; it must not be treated as a healthy demo.
 
   # The service the Alert is about: the rolldice example app, auto-instrumented,
   # exporting its request metrics to the lgtm service every five seconds. It stays

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import base64
 import json
-import os
 import subprocess
 import threading
 import time
@@ -30,14 +29,10 @@ REPOSITORY = Path(__file__).resolve().parent.parent
 
 FIXTURES = REPOSITORY / "fixtures"
 
-CONTAINER_VARIABLE = "DEMO_CONTAINER"
-"""Set it to anything and the checks that need `docker compose up -d` done run too."""
-
-needs_the_stack_up = pytest.mark.skipif(
-    not os.environ.get(CONTAINER_VARIABLE),
-    reason=f"needs the stack up; set {CONTAINER_VARIABLE}=1 after docker compose up -d",
+needs_the_stack_up = pytest.mark.skip(
+    reason="archival live demo disabled under ADRs 0011-0013; DEMO_CONTAINER cannot enable it",
 )
-"""The opt-in for anything that asks the running containers a question."""
+"""Quarantine former live-container tests even when their old flag is set."""
 
 
 def compose(*arguments: str) -> subprocess.CompletedProcess:

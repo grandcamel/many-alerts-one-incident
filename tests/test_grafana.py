@@ -1,4 +1,4 @@
-"""Grafana, provisioned from this repo, and the Alert it is set up to send.
+"""Archived Grafana stack checks; skipped with the retired demo launcher.
 
 The contact point, the notification policy and the alert rule are files under
 `grafana/provisioning/alerting`, mounted into the LGTM container. A typo there
@@ -6,10 +6,8 @@ makes Grafana skip the file and say so only in its own log, so nothing here
 reads the files back: every check asks the running Grafana what it actually
 took, through the same API the provisioning UI uses, and the last checks ask it
 to run the rule's own query against the Prometheus it is wired to. All of it
-needs the stack up, so all of it is opt-in the way the container checks are:
-
-    docker compose up -d
-    DEMO_CONTAINER=1 python3 -m pytest tests/test_grafana.py
+needs the old stack up. The former `DEMO_CONTAINER` flag cannot enable these
+checks after the executable was retired under ADRs 0011–0013.
 
 The canned fixtures stand in for Grafana when it is uncooperative, so the last
 check holds them to the Alert Grafana is provisioned to send: same receiver,
