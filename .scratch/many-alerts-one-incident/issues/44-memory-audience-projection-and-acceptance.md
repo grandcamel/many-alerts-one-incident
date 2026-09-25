@@ -38,3 +38,15 @@ over caller-supplied safe claims. It cannot authenticate source evidence, redact
 arbitrary content, isolate operator access, render the view or serve a reference
 to a Run. Actual projection/parser, source joins, snapshot storage, UI and
 presenter acceptance remain open. This ticket remains open.
+
+## Local structural card candidates, 2026-09-25: unit 44b
+
+The [44b outcome](../reviews/ticket-44/outcome-44b-safe-card-envelope.md)
+adds a strict structural parser for one untrusted candidate card in each primary
+section. Every result is `unqualified`; caller-provided source, availability
+and retrieval states are preserved as claims, never promoted to operator
+display authority. Source joins, operator isolation, other projection classes,
+current overlays, ID/text sanitization, UI and presenter acceptance remain open.
+Independent Standards/Spec reviews and the full local suite (**5,805 passed,
+39 skipped**) passed. Native, provider, paid, tenant, venue and human acceptance
+are **NOT RUN**; the ticket stays open.

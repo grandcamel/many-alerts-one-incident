@@ -57,6 +57,12 @@ The 35b source check adds a specific telemetry identity gate: current durable
 Receiver admission commits only a Notification. It has no Run or rehearsal ID,
 so no admission receipt can enter the shared Run feed or invoke the 35a per-Run
 gap codec before a reviewed trusted handoff and read-scope owner exist.
+Ticket 44b adds only unqualified structural card candidates for
+four primary operator sections. It cannot authenticate a source or operator,
+join a Run/Incident, sanitize arbitrary ID content, qualify a count or render
+a view; the other projection classes and current overlays remain open. Its
+independent Standards/Spec reviews, 103 targeted tests, Ruff and full local
+suite (**5,805 passed, 39 skipped**) passed after review fixes.
 Keep every externally gated ticket open and label native/provider/paid/tenant/
 venue/human acceptance **NOT RUN**. This record is not a completion verdict.
 
