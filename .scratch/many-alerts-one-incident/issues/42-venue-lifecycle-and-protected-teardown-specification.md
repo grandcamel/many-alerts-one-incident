@@ -36,3 +36,13 @@ resource and metric bindings, private vault permissions/read-back, and later
 intended-venue evidence. No provisioning, deletion, pricing probe, credential
 change or paid baseline was performed. Age 90 remains a hold, not deletion
 authority; unknown historical and residual-resource charges remain liabilities.
+
+## Local age arithmetic progress, 2026-09-25: unit 42a
+
+The [42a plan](../reviews/ticket-42/implementation-plan-age-arithmetic.md)
+adds a pure lower/upper age calculation with same-boot monotonic advancement,
+new-boot carry-forward and raw rollback rejection. It accepts only
+caller-supplied claims and issues no admission or teardown decision. Provider
+timestamp authenticity/placement, resource identity, restart coverage,
+off-cluster persistence, health, cost and handoff still need real adapters and
+intended-venue evidence. This ticket stays open.
