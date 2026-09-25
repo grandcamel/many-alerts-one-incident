@@ -55,7 +55,7 @@ def test_run_intent_is_private_ordinary_and_unqualified_with_separate_digest():
     p, history, _ = _confirmed()
     before_v2 = reducer.reservation_claims_digest(p)
     before_v3 = reducer.initial_intents_digest(p)
-    assert records.RUN_EVENT_TYPES_V3 == ('run_intent',)
+    assert records.RUN_EVENT_TYPES_V3 == ('run_intent', 'launch_claim')
     assert records.RUN_RECORD_CLASS_V3['run_intent'] == 'ordinary'
     assert records.SCHEMA_VERSIONS == frozenset({1})
     assert {name for name, profile in SERVICE_PROFILES.items() if profile.mandatory} == {

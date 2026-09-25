@@ -26,6 +26,8 @@ from .forwarder_json import canonical_json, tagged_digest
 from .journal_records import (
     CAPACITY_CODES,
     DEDUPE_RULE,
+    MAX_ID_BYTES,
+    MAX_LAUNCH_CLAIM_RECORD_BYTES,
     MAX_REFUSAL_RECORDS,
     MAX_RUN_HOLD_RECORD_BYTES,
     MAX_RUN_INTENT_RECORD_BYTES,
@@ -79,6 +81,8 @@ INITIAL_INTENTS_STATE_TAG = "rj.initial-intents.v3"
 INITIAL_CONFIRMATIONS_STATE_TAG = "rj.initial-confirmations.v3"
 RUN_INTENT_TAG = "rj.run-intent.v3"
 RUN_INTENT_STATE_TAG = "rj.run-intent-state.v3"
+LAUNCH_CLAIM_TAG = "rj.launch-claim.v3"
+LAUNCH_CLAIM_STATE_TAG = "rj.launch-claim-state.v3"
 _UUID_DASHES = frozenset({8, 13, 18, 23})
 _UUID_HEX = frozenset("0123456789abcdef")
 
@@ -213,6 +217,31 @@ class RunIntentClaim:
 
 
 @dataclasses.dataclass(frozen=True)
+class LaunchClaim:
+    launch_claim_id: str
+    run_intent_id: str
+    run_intent_digest: str
+    journal_uuid: str
+    admission_id: str
+    job_id: str
+    intent_id: str
+    attempt_id: str
+    reservation_id: str
+    run_id: str
+    model_lease_id: str
+    receiver_boot_id: str
+    forwarder_generation: str
+    barrier_token_digest: str
+    origin_us: int
+    work_deadline_us: int
+    flush_deadline_us: int
+    hard_deadline_us: int
+    grants: tuple[tuple[str, str, str, str, int], ...]
+    launch_claim_digest: str
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -264,6 +293,7 @@ class Delta:
     initial_reservation_intent_add: InitialReservationIntentClaim | None = None
     initial_reservation_confirmation_add: ReservationConfirmationClaim | None = None
     run_intent_add: RunIntentClaim | None = None
+    launch_claim_add: LaunchClaim | None = None
 
 
 class Projection:
@@ -291,6 +321,7 @@ class Projection:
         self.initial_intents: dict[str, InitialReservationIntentClaim] = {}
         self.initial_confirmations: dict[str, ReservationConfirmationClaim] = {}
         self.run_intent: RunIntentClaim | None = None
+        self.launch_claim: LaunchClaim | None = None
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -1091,6 +1122,112 @@ def plan_run_intent(
     }))
 
 
+_SAFE_GRANT_ID = frozenset(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_."
+)
+
+
+def _safe_grant_id(value: object) -> bool:
+    return (type(value) is str and 1 <= len(value) <= MAX_ID_BYTES
+            and all(character in _SAFE_GRANT_ID for character in value))
+
+
+def plan_launch_claim(
+    p: Projection, *, event_id: str, forwarder_generation: str,
+    barrier_token_digest: str,
+    grants: tuple[tuple[str, str, str, str, int], ...], stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Plan a replayed grant mapping claim without grant or launch authority."""
+    intent = p.run_intent
+    if (p.head is None or p.bounds is None or p.boot_id != stamp.boot_id
+        or intent is None or p.launch_claim is not None
+        or p.dispatch_holds or p.run_holds
+        or p.boot_start_commit_seq is None
+        or intent.committed_at_seq < p.boot_start_commit_seq
+        or type(stamp.mono_us) is not int
+        or not p.last_mono_us <= stamp.mono_us <= MAX_SEQ - 300_000_000):
+        _fail_replay("replay_mismatch")
+    initial = p.initial_intents.get(intent.intent_id)
+    if initial is None or (
+        initial.admission_id != intent.admission_id
+        or initial.member_count != intent.member_count
+        or initial.member_digest != intent.member_digest
+    ):
+        _fail_replay("replay_mismatch")
+    members = tuple(sorted(
+        fingerprint for fingerprint, entry in p.pending.items()
+        if entry.admission_id == intent.admission_id
+    ))
+    if (len(members) != intent.member_count
+        or tagged_digest(INITIAL_INTENT_MEMBERS_TAG, members) != intent.member_digest):
+        _fail_replay("replay_mismatch")
+    if (not _canonical_uuid(event_id)
+        or event_id in _known_reservation_ids(p)
+        or event_id == intent.run_intent_id
+        or event_id in {service[1] for service in intent.services}
+        or not _safe_grant_id(forwarder_generation)
+        or not _digest64(barrier_token_digest)):
+        _fail_replay("replay_mismatch")
+    if type(grants) is not tuple or len(grants) != len(intent.services) or any(
+        type(row) is not tuple or len(row) != 5 for row in grants
+    ):
+        _fail_replay("replay_mismatch")
+    grant_ids: list[str] = []
+    for row, service in zip(grants, intent.services, strict=True):
+        name, lease_claim_id, scope_digest, grant_id, expiry_us = row
+        if ((name, lease_claim_id, scope_digest) != service
+            or not _safe_grant_id(grant_id)
+            or type(expiry_us) is not int
+            or not stamp.mono_us < expiry_us <= stamp.mono_us + 270_000_000):
+            _fail_replay("replay_mismatch")
+        grant_ids.append(grant_id)
+    if len(set(grant_ids)) != len(grant_ids):
+        _fail_replay("replay_mismatch")
+    ids = {
+        "journal_uuid": intent.journal_uuid, "admission_id": intent.admission_id,
+        "job_id": intent.job_id, "intent_id": intent.intent_id,
+        "attempt_id": intent.attempt_id,
+        "reservation_id": intent.reservation_id, "run_id": intent.run_id,
+        "lease_id": intent.model_lease_id,
+    }
+    data = {
+        "rule": "launch-claim-v3", "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "run_intent_event_id": intent.run_intent_id,
+        "run_intent_digest": intent.run_intent_digest,
+        "run_intent_commit_seq": intent.committed_at_seq,
+        "receiver_boot_id": p.boot_id,
+        "forwarder_generation": forwarder_generation,
+        "barrier_token_digest": barrier_token_digest,
+        "origin_us": stamp.mono_us,
+        "work_deadline_us": stamp.mono_us + 270_000_000,
+        "flush_deadline_us": stamp.mono_us + 290_000_000,
+        "hard_deadline_us": stamp.mono_us + 300_000_000,
+        "grants": [
+            {"service": name, "lease_claim_id": claim_id,
+             "scope_digest": scope, "grant_id": grant_id,
+             "grant_expiry_us": expiry_us}
+            for name, claim_id, scope, grant_id, expiry_us in grants
+        ],
+    }
+    data["launch_claim_digest"] = tagged_digest(LAUNCH_CLAIM_TAG, {
+        "event_id": event_id, "ids": ids, "data": data,
+    })
+    record = seal(
+        Draft(event_id, "launch_claim", "receiver", ids, data),
+        _single_position(p), stamp, schema_version=3,
+    )
+    if len(record.body) > MAX_LAUNCH_CLAIM_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.ordinary_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.ordinary_bytes, p.logical_bytes, charge)
+    return Plan(records=(record,), charge=charge, outcome=MappingProxyType({
+        "launch_claim_id": event_id, "launch_claim_digest": data["launch_claim_digest"],
+        "state": "outstanding_unqualified_launch_claim",
+    }))
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -1114,6 +1251,8 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "reservation_confirmation"
     if types == ("run_intent",):
         return "run_intent"
+    if types == ("launch_claim",):
+        return "launch_claim"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -1468,6 +1607,56 @@ def _verify_run_intent(p: Projection, record: Record, commit_seq: int) -> Delta:
     )
 
 
+def _verify_launch_claim(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_LAUNCH_CLAIM_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    grants = tuple(
+        (item["service"], item["lease_claim_id"], item["scope_digest"],
+         item["grant_id"], item["grant_expiry_us"])
+        for item in record.data["grants"]
+    )
+    plan = plan_launch_claim(
+        p, event_id=record.event_id,
+        forwarder_generation=record.data["forwarder_generation"],
+        barrier_token_digest=record.data["barrier_token_digest"],
+        grants=grants, stamp=record.stamp,
+    )
+    if isinstance(plan, CapacityRefusal) or (
+        plan.records[0].body != record.body
+        or plan.records[0].record_digest != record.record_digest
+        or plan.records[0].ids != record.ids
+        or plan.records[0].data != record.data
+    ):
+        _fail_replay("replay_mismatch")
+    claim = LaunchClaim(
+        launch_claim_id=record.event_id,
+        run_intent_id=record.data["run_intent_event_id"],
+        run_intent_digest=record.data["run_intent_digest"],
+        journal_uuid=record.ids["journal_uuid"],
+        admission_id=record.ids["admission_id"], job_id=record.ids["job_id"],
+        intent_id=record.ids["intent_id"], attempt_id=record.ids["attempt_id"],
+        reservation_id=record.ids["reservation_id"], run_id=record.ids["run_id"],
+        model_lease_id=record.ids["lease_id"],
+        receiver_boot_id=record.data["receiver_boot_id"],
+        forwarder_generation=record.data["forwarder_generation"],
+        barrier_token_digest=record.data["barrier_token_digest"],
+        origin_us=record.data["origin_us"],
+        work_deadline_us=record.data["work_deadline_us"],
+        flush_deadline_us=record.data["flush_deadline_us"],
+        hard_deadline_us=record.data["hard_deadline_us"],
+        grants=grants, launch_claim_digest=record.data["launch_claim_digest"],
+        committed_at_seq=commit_seq,
+    )
+    return Delta(
+        head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
+        generation=p.generation, journal_uuid=None, bounds=None,
+        boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
+        logical_bytes=p.logical_bytes + plan.charge, admission_count=p.admission_count,
+        last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
+        dispatch_hold_add=None, launch_claim_add=claim,
+    )
+
+
 def _verify_admission_pair(
     p: Projection, admission: Record, dedupe: Record, commit_seq: int,
 ) -> Delta:
@@ -1599,6 +1788,8 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_reservation_confirmation(p, records[0], commit_seq)
     if shape == "run_intent":
         return _verify_run_intent(p, records[0], commit_seq)
+    if shape == "launch_claim":
+        return _verify_launch_claim(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -1654,6 +1845,8 @@ def apply_delta(p: Projection, delta: Delta) -> None:
         p.initial_confirmations[claim.intent_id] = claim
     if delta.run_intent_add is not None:
         p.run_intent = delta.run_intent_add
+    if delta.launch_claim_add is not None:
+        p.launch_claim = delta.launch_claim_add
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -1760,6 +1953,13 @@ def run_intent_claim_digest(p: Projection) -> str:
     )
 
 
+def launch_claim_digest(p: Projection) -> str:
+    return tagged_digest(
+        LAUNCH_CLAIM_STATE_TAG,
+        None if p.launch_claim is None else dataclasses.asdict(p.launch_claim),
+    )
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -1800,6 +2000,7 @@ __all__ = [
     "FRONT_DOOR_STATE_TAG",
     "INITIAL_CONFIRMATIONS_STATE_TAG",
     "INITIAL_INTENTS_STATE_TAG",
+    "LAUNCH_CLAIM_STATE_TAG",
     "MAX_RESERVATION_CLAIMS",
     "MAX_RUN_HOLDS",
     "RECORD_OVERHEAD_BYTES",
@@ -1811,6 +2012,7 @@ __all__ = [
     "Delta",
     "InitialReservationIntentClaim",
     "JournalBounds",
+    "LaunchClaim",
     "PendingEntry",
     "Plan",
     "Projection",
@@ -1826,6 +2028,7 @@ __all__ = [
     "group_commits",
     "initial_confirmations_digest",
     "initial_intents_digest",
+    "launch_claim_digest",
     "new_projection",
     "pending_digest",
     "pending_entries",
@@ -1835,6 +2038,7 @@ __all__ = [
     "plan_ingress_refusal",
     "plan_initial_reservation_confirmation",
     "plan_initial_reservation_intent",
+    "plan_launch_claim",
     "plan_operator_resume",
     "plan_reservation_confirmation",
     "plan_reservation_intent",

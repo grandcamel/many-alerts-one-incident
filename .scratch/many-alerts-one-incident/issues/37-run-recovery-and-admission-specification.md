@@ -316,3 +316,15 @@ pass. This is a synthetic process test, not a production launcher or stable
 containment proof. Guarded Run launch, durable spawn
 attestation, real grants and accounting authority remain open; this ticket
 stays open.
+
+## Local no-writer launch-claim replay, 2026-09-25: unit 19m1
+
+The [19m1 outcome](../reviews/run-recovery/outcome-19m1-launch-claim-replay.md)
+adds a private replayable map from every Run-intent service claim to one
+claimed Forwarder grant, with a monotonic origin and fixed deadline
+arithmetic. Replay refuses stale original members, new holds and changed
+service maps. Live and stopped views label it unqualified. Independent
+Standards and Spec reviews, 168 focused journal/crash/restart tests, Ruff
+and the full local suite (**5,524 passed, 39 skipped**) pass. No application
+writer, real grant read-back, process, barrier release, effect or permit was
+added; the accounting and venue gates remain open. This ticket stays open.

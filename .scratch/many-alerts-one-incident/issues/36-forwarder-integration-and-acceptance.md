@@ -237,3 +237,11 @@ NOT_DISPATCHED and post-L1 FAILED evidence, holding on receipt ambiguity.
 Current permit routes still deny. Receiver effect
 writer, accounting qualification, logical-operation binding and native/venue
 evidence remain open; this ticket stays open.
+
+## Local unqualified service-grant mapping, 2026-09-25: unit 19m1
+
+The [19m1 outcome](../reviews/run-recovery/outcome-19m1-launch-claim-replay.md)
+adds a no-writer journal claim for one distinct opaque Forwarder grant ID per
+Run-intent service claim. It does not register, authenticate, activate or
+revoke a real grant and supplies no permit or production launch. Independent
+source reviews and the full local suite pass; this ticket stays open.

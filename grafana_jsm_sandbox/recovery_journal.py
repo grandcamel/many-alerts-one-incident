@@ -55,6 +55,7 @@ from .journal_reducer import (
     group_commits,
     initial_confirmations_digest,
     initial_intents_digest,
+    launch_claim_digest,
     new_projection,
     pending_digest,
     pending_entries,
@@ -985,6 +986,11 @@ class RecoveryJournal:
                     "count": 1, "digest": run_intent_claim_digest(p),
                     "state": "outstanding_unqualified",
                 }
+            if p.launch_claim is not None:
+                result["launch_claim"] = {
+                    "count": 1, "digest": launch_claim_digest(p),
+                    "state": "outstanding_unqualified_launch_claim",
+                }
             return result
 
     def close(self) -> None:
@@ -1114,6 +1120,11 @@ def _ready_report(
         journal_json["run_intent"] = {
             "count": 1, "digest": run_intent_claim_digest(candidate),
             "state": "outstanding_unqualified",
+        }
+    if candidate.launch_claim is not None:
+        journal_json["launch_claim"] = {
+            "count": 1, "digest": launch_claim_digest(candidate),
+            "state": "outstanding_unqualified_launch_claim",
         }
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,

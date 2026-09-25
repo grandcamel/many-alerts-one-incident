@@ -50,7 +50,7 @@ EVENT_TYPES = (
 # five-tuple: F3 replays a journal holding only those and asserts the set.
 FRONT_DOOR_EVENT_TYPES = ("ingress_refusal", "operator_action")
 RUN_EVENT_TYPES_V2 = ("run_hold",)
-RUN_EVENT_TYPES_V3 = ("run_intent",)
+RUN_EVENT_TYPES_V3 = ("run_intent", "launch_claim")
 REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
@@ -62,7 +62,9 @@ RECORD_CLASS = MappingProxyType({
     "operator_action": "recovery",
 })
 RUN_RECORD_CLASS_V2 = MappingProxyType({"run_hold": "recovery"})
-RUN_RECORD_CLASS_V3 = MappingProxyType({"run_intent": "ordinary"})
+RUN_RECORD_CLASS_V3 = MappingProxyType({
+    "run_intent": "ordinary", "launch_claim": "ordinary",
+})
 RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
     "reservation_confirmation": "recovery",
@@ -112,6 +114,7 @@ RUN_HOLD_REASONS_V2 = (
 )
 MAX_RUN_HOLD_RECORD_BYTES = 2_048
 MAX_RUN_INTENT_RECORD_BYTES = 4_096
+MAX_LAUNCH_CLAIM_RECORD_BYTES = 6_144
 
 # Private copies of journal_ingress/journal_source vocabulary the strict
 # refusal-summary checker needs; never imported (A12's import pin).
@@ -386,6 +389,16 @@ _RUN_INTENT_LEDGER_HEAD_KEYS = frozenset({"sequence", "event_digest"})
 _RUN_INTENT_SERVICE_KEYS = frozenset({"service", "lease_claim_id", "scope_digest"})
 _RUN_INTENT_MANDATORY_SERVICES = frozenset({"anthropic", "jira", "grafana", "kubernetes"})
 _RUN_INTENT_ALLOWED_SERVICES = _RUN_INTENT_MANDATORY_SERVICES | {"confluence"}
+_LAUNCH_CLAIM_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "run_intent_event_id", "run_intent_digest", "run_intent_commit_seq",
+    "receiver_boot_id", "forwarder_generation", "barrier_token_digest",
+    "origin_us", "work_deadline_us", "flush_deadline_us",
+    "hard_deadline_us", "grants", "launch_claim_digest",
+})
+_LAUNCH_CLAIM_GRANT_KEYS = frozenset({
+    "service", "lease_claim_id", "scope_digest", "grant_id", "grant_expiry_us",
+})
 
 
 # The per-type validators below share a handful of two-line "check shape or
@@ -823,6 +836,54 @@ def _validate_run_intent_v3(ids: object, data: object, event_id: str) -> None:
         _fail_record("record_field")
 
 
+def _validate_launch_claim_v3(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _RUN_INTENT_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    data = _require_keys(data, _LAUNCH_CLAIM_DATA_KEYS)
+    _require_literal(data["rule"], "launch-claim-v3", "record_unsupported")
+    for key in ("based_on_commit_seq", "run_intent_commit_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "run_intent_digest",
+                "barrier_token_digest", "launch_claim_digest"):
+        _require_hex64(data[key])
+    _require_uuid(data["run_intent_event_id"])
+    validate_id(data["receiver_boot_id"])
+    validate_id(data["forwarder_generation"])
+    origin = _require_bound_int(data["origin_us"], 0, MAX_SEQ - 300_000_000,
+                                "record_field")
+    for key, offset in (("work_deadline_us", 270_000_000),
+                        ("flush_deadline_us", 290_000_000),
+                        ("hard_deadline_us", 300_000_000)):
+        if _require_bound_int(data[key], 0, MAX_SEQ, "record_field") != origin + offset:
+            _fail_record("record_field")
+    grants = data["grants"]
+    if type(grants) not in (list, tuple) or not 4 <= len(grants) <= 5:
+        _fail_record("record_field")
+    names: list[str] = []
+    grant_ids: list[str] = []
+    for item in grants:
+        item = _require_keys(item, _LAUNCH_CLAIM_GRANT_KEYS)
+        name = item["service"]
+        if type(name) is not str or name not in _RUN_INTENT_ALLOWED_SERVICES:
+            _fail_record("record_field")
+        names.append(name)
+        _require_uuid(item["lease_claim_id"])
+        _require_hex64(item["scope_digest"])
+        grant_ids.append(validate_id(item["grant_id"]))
+        expiry = _require_bound_int(item["grant_expiry_us"], 0, MAX_SEQ,
+                                    "record_field")
+        if not origin < expiry <= origin + 270_000_000:
+            _fail_record("record_field")
+    if (names != sorted(names) or len(set(names)) != len(names)
+        or not _RUN_INTENT_MANDATORY_SERVICES.issubset(names)
+        or len(set(grant_ids)) != len(grant_ids)):
+        _fail_record("record_field")
+    if len({*ids.values(), event_id, data["run_intent_event_id"]}) != len(ids) + 2:
+        _fail_record("record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -841,6 +902,7 @@ _V3_TYPE_VALIDATORS = MappingProxyType({
     ("reservation_intent", 3): _validate_reservation_intent_v3,
     ("reservation_confirmation", 3): _validate_reservation_confirmation_v3,
     ("run_intent", 3): _validate_run_intent_v3,
+    ("launch_claim", 3): _validate_launch_claim_v3,
 })
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
@@ -860,6 +922,7 @@ _V3_TYPE_ACTORS = MappingProxyType({
     ("reservation_intent", 3): "receiver",
     ("reservation_confirmation", 3): "receiver",
     ("run_intent", 3): "receiver",
+    ("launch_claim", 3): "receiver",
 })
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
@@ -970,10 +1033,10 @@ def seal(
         _fail_record(code)
     if len(body) > MAX_RECORD_BYTES:
         _fail_record("record_too_large")
-    private_cap = (
-        MAX_RUN_INTENT_RECORD_BYTES if (draft.event_type, schema_version) == ("run_intent", 3)
-        else MAX_RUN_HOLD_RECORD_BYTES
-    )
+    private_cap = {
+        ("run_intent", 3): MAX_RUN_INTENT_RECORD_BYTES,
+        ("launch_claim", 3): MAX_LAUNCH_CLAIM_RECORD_BYTES,
+    }.get((draft.event_type, schema_version), MAX_RUN_HOLD_RECORD_BYTES)
     if schema_version in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
     return _build_record(envelope, position, stamp, body, _record_digest(body))
@@ -1009,11 +1072,11 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
     if canonical_body != body:
         _fail_record("record_not_canonical")
     _validate_envelope(envelope)
-    private_cap = (
-        MAX_RUN_INTENT_RECORD_BYTES
-        if (envelope["event_type"], envelope["schema_version"]) == ("run_intent", 3)
-        else MAX_RUN_HOLD_RECORD_BYTES
-    )
+    private_cap = {
+        ("run_intent", 3): MAX_RUN_INTENT_RECORD_BYTES,
+        ("launch_claim", 3): MAX_LAUNCH_CLAIM_RECORD_BYTES,
+    }.get((envelope["event_type"], envelope["schema_version"]),
+          MAX_RUN_HOLD_RECORD_BYTES)
     if envelope["schema_version"] in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
     position = Position(
@@ -1068,6 +1131,7 @@ __all__ = [
     "MAX_COMMIT_RECORDS",
     "MAX_GENERATION",
     "MAX_ID_BYTES",
+    "MAX_LAUNCH_CLAIM_RECORD_BYTES",
     "MAX_RECORD_BYTES",
     "MAX_REFUSAL_RECORDS",
     "MAX_RUN_HOLD_RECORD_BYTES",

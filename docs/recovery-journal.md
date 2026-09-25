@@ -412,6 +412,21 @@ registration, launch, effect or permit path for this record; the current
 ledger's unknown population and absent reservation events keep that gate
 closed.
 
+The private `(launch_claim, 3)` record is another ordinary-capacity,
+no-writer extension. Pure replay requires the same-boot Run intent, current
+original members, no new dispatch or Run hold, and an exact sorted mapping
+from each journal service lease claim to one distinct opaque Forwarder grant
+ID. It checks origin-plus-270/290/300-second arithmetic and a claimed grant
+expiry with a 6,144-byte type-specific record limit. Live snapshot and
+stopped inspection expose a separate `launch_claim` digest labelled
+`outstanding_unqualified_launch_claim`. Grant IDs, boot/generation and
+monotonic expiry are replayed claims: neither the codec nor a matching
+record authenticates the Forwarder registry or shared clock domain. There is
+no grant registration, process creation, barrier release, effect or permit
+writer here. A future writer must commit and read back the claim before a
+blocked child can be created, then separately record spawn attestation and
+release/containment observations.
+
 ## Crash windows
 
 | Window | Next open |
