@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "unit": "18c-storage",
+  "status": "PASS_LOCAL_STORAGE_ONLY",
+  "baseline_commit": "221dab94c8828b101bb1f3a35bbe131e0b1d23bd",
+  "source_checkpoint_commit": "c27ec5e",
+  "evidence_scope": "local source/static and synthetic durable-store tests only",
+  "full_suite": {
+    "passed": 5154,
+    "skipped": 39,
+    "seconds": 404.73,
+    "exit": 0,
+    "command": "env -u DEMO_END_TO_END -u DEMO_CONTAINER pytest -q -p no:cacheprovider"
+  },
+  "focused_suite": {
+    "passed": 215,
+    "exit": 0,
+    "non_loopback_attempts": [],
+    "command": "python3 /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_accounting_events.py tests/test_accounting_transition.py tests/test_accounting_policy.py tests/test_accounting_store.py tests/test_accounting_ledger.py"
+  },
+  "static_checks": {
+    "ruff_new_python": "PASS",
+    "line_length_new_python": "PASS",
+    "git_diff_check": "PASS",
+    "application_caller_import_scan": "PASS"
+  },
+  "reviews": {
+    "design_plan": "ACCEPT_LOCAL_18C_STORAGE_PLAN",
+    "source_standards": "NO_CONCRETE_REMAINING_BLOCKER",
+    "source_spec": "NO_CONCRETE_REMAINING_BLOCKER",
+    "final": "PASS_LOCAL_STORAGE_ONLY"
+  },
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "full_run_inputs": {
+    "grafana_jsm_sandbox/accounting_store.py": "78a604316f89be17fcf0008b4806682e9143c2f14e7ab2fa9bfa364ea4eb464b",
+    "grafana_jsm_sandbox/accounting_ledger.py": "ac31678565a54eec2f17678f295f7754d87babaed0a9c8a914f20f4fca8e4153",
+    "tests/test_accounting_store.py": "00613da459a11fb0a0868f12289de025ac7daeceb206d5a2de32bfc043a14b92",
+    "tests/test_accounting_ledger.py": "46ae8375b09efba3b52dbbb106f7fbe3363dc8a74ed8967e5a2d2334104c08d7"
+  },
+  "artifacts": {
+    "grafana_jsm_sandbox/accounting_store.py": "78a604316f89be17fcf0008b4806682e9143c2f14e7ab2fa9bfa364ea4eb464b",
+    "grafana_jsm_sandbox/accounting_ledger.py": "ac31678565a54eec2f17678f295f7754d87babaed0a9c8a914f20f4fca8e4153",
+    "tests/test_accounting_store.py": "00613da459a11fb0a0868f12289de025ac7daeceb206d5a2de32bfc043a14b92",
+    "tests/test_accounting_ledger.py": "46ae8375b09efba3b52dbbb106f7fbe3363dc8a74ed8967e5a2d2334104c08d7",
+    "docs/accounting-ledger.md": "5a76ef598565032f5ca76bf1083cb8c79cd7e779c11d2f19ba3828a9cda2d014",
+    "docs/accounting-transition.md": "cbe652d35544069a4b49065834b7fc811fddd8cf6b9ae3fb55257aa0d2ebf066",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/design-18c.md": "594a706e54d92ac149aab044cc90cfe2f2bf3d00015ef51c9119032c1a204e7e",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18c.md": "5ae1fe9b7ef6c675aafad50f59fe811f21a1107e90ecde7cac67970517d4f66e",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-18c.md": "9cba245a1e16cfe665cabcad4ae6f0690bde92bb8182ffbb77f47d345f968252",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-18c-source.md": "d155fce1482bc990e354652ace253a74e56b2227a5dc8a5e48499b5f9711cfa0",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/outcome-18c.md": "f1e3f60f47e35ebb8d1b39b2b118cf84aa9452a3f24038e292e1b8d895bee8ee",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/focused-tests-18c.txt": "025729ebde24ea5f178031ff3f885b89d5241ce28cd6807e6e762eb518642c66",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/full-suite-18c.txt": "5701285c5e1755624e6e490849d170e44c24be1cfbae064b80ab08267e4f56f1",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/static-checks-18c.txt": "be5d8b23a4c4dbdefbe42036337e34d1d7faa78ce848e52d5afc19a30173c83e"
+  },
+  "not_qualified": [
+    "production accounting reservation",
+    "trusted opening history or authoritative provider coverage",
+    "archive and repair acceptance",
+    "journal/ledger 18d recovery bridge",
+    "external rollback witness or power-loss durability",
+    "Run launch",
+    "native/provider/tenant/venue/paid execution",
+    "human Report adjudication"
+  ],
+  "publication": "LOCAL_ONLY"
+}

@@ -3,8 +3,14 @@
 import hashlib
 import json
 import os
+import signal
 import sqlite3
 import struct
+import subprocess
+import sys
+import time
+from dataclasses import replace
+from uuid import UUID
 
 import pytest
 
@@ -37,6 +43,28 @@ def journal_binding(previous):
         event_type='journal_bound',
         data={'journal_uuid': JOURNAL, 'journal_generation': 1},
     )
+
+
+def profile_configuration(previous):
+    return encode_event(
+        ledger_uuid=LEDGER, ledger_generation=1, experiment_id=EXPERIMENT,
+        sequence=3, previous_digest=previous,
+        event_id='cccccccc-cccc-cccc-cccc-cccccccccccc',
+        recorded_at_utc='2026-09-24T12:02:00.000000Z', actor_kind='receiver',
+        event_type='profile_configured', data={'profile': {
+            'model_id': '66666666-6666-6666-6666-666666666666',
+            'auth_id': '77777777-7777-7777-7777-777777777777',
+            'venue_id': '88888888-8888-8888-8888-888888888888',
+        }},
+    )
+
+
+def rewrite_anchor_slot(raw, body, offset=0):
+    payload = json.dumps(body, sort_keys=True, separators=(',', ':'),
+                         ensure_ascii=True).encode('ascii')
+    header = b'ACANCHOR' + struct.pack('>I', len(payload))
+    checksum = hashlib.sha256(b'acct.anchor.v1\0' + header + payload).digest()
+    raw[offset:offset + 4096] = (header + payload + checksum).ljust(4096, b'\0')
 
 
 def test_create_and_open_preserve_verified_unknown_head(tmp_path):
@@ -116,6 +144,10 @@ def test_committed_unanchored_tail_becomes_durable_hold(tmp_path):
     connection.close()
     with pytest.raises(LedgerError, match='ledger_held'):
         LedgerStore.open(directory)
+    assert LedgerStore.inspect(directory).code == 'tail_adopted_unreconciled'
+    raw = (directory / 'anchor').read_bytes()
+    assert storage._slot_body(raw[:4096])[1]['hold'] == (
+        storage._slot_body(raw[4096:])[1]['hold'])
     with pytest.raises(LedgerError, match='ledger_held'):
         LedgerStore.open(directory)
 
@@ -163,6 +195,499 @@ def test_missing_wal_is_unverified_without_recreation(tmp_path):
         LedgerStore.open(directory)
     assert not wal.exists()
     assert (directory / 'anchor').read_bytes() == anchor
+
+
+def test_missing_anchor_is_rederived_recovery_hold_without_repair(tmp_path):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    (directory / 'anchor').unlink()
+    before = {name: (directory / name).read_bytes()
+              for name in ('ledger.sqlite3', 'ledger.sqlite3-wal')}
+    for _ in range(2):
+        with pytest.raises(LedgerError, match='ledger_anchor_missing'):
+            LedgerStore.open(directory)
+        report = LedgerStore.inspect(directory)
+        assert (report.state, report.code) == ('held', 'ledger_anchor_missing')
+    assert not (directory / 'anchor').exists()
+    assert {name: (directory / name).read_bytes() for name in before} == before
+
+
+@pytest.mark.parametrize('change', ['missing_field', 'extra_field', 'torn',
+                                     'nonzero_padding'])
+def test_damaged_v1_anchor_is_recovery_hold_without_repair(tmp_path, change):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    path = directory / 'anchor'
+    raw = bytearray(path.read_bytes())
+    if change in ('missing_field', 'extra_field'):
+        length = struct.unpack('>I', raw[8:12])[0]
+        body = json.loads(raw[12:12 + length])
+        if change == 'missing_field':
+            del body['ledger_generation']
+        else:
+            body['extra'] = 'v1-damage'
+        rewrite_anchor_slot(raw, body)
+    elif change == 'torn':
+        raw = raw[:-1]
+    else:
+        raw[1024] = 1
+    path.write_bytes(raw)
+    before = path.read_bytes()
+    with pytest.raises(LedgerError, match='ledger_anchor_invalid'):
+        LedgerStore.open(directory)
+    assert (LedgerStore.inspect(directory).state,
+            LedgerStore.inspect(directory).code) == ('held', 'ledger_anchor_invalid')
+    assert path.read_bytes() == before
+
+
+def test_close_failure_still_releases_exclusive_lock(tmp_path):
+    directory = tmp_path / 'ledger'
+    store = LedgerStore.create(directory, receiver_genesis())
+    connection = store._connection
+
+    class FailedClose:
+        def close(self):
+            connection.close()
+            raise RuntimeError('injected close failure')
+
+    store._connection = FailedClose()
+    with pytest.raises(LedgerError, match='ledger_close_failed'):
+        store.close()
+    with LedgerStore.open(directory):
+        pass
+
+
+def test_inspect_close_failure_is_fixed_code_and_releases_lock(tmp_path, monkeypatch):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    real_connect = storage._connect
+
+    class FailedClose:
+        def __init__(self, connection):
+            self.connection = connection
+
+        def __getattr__(self, name):
+            return getattr(self.connection, name)
+
+        def close(self):
+            self.connection.close()
+            raise RuntimeError('injected close failure')
+
+    with monkeypatch.context() as patcher:
+        patcher.setattr(storage, '_connect', lambda path: FailedClose(real_connect(path)))
+        report = LedgerStore.inspect(directory)
+    assert (report.state, report.code) == ('unverified', 'ledger_close_failed')
+    with LedgerStore.open(directory):
+        pass
+
+
+def test_open_error_cleanup_releases_lock_when_sqlite_close_fails(tmp_path,
+                                                                 monkeypatch):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    real_connect = storage._connect
+
+    class FailedClose:
+        def __init__(self, connection):
+            self.connection = connection
+
+        def __getattr__(self, name):
+            return getattr(self.connection, name)
+
+        def close(self):
+            self.connection.close()
+            raise RuntimeError('injected close failure')
+
+    with monkeypatch.context() as patcher:
+        patcher.setattr(storage, '_connect', lambda path: FailedClose(real_connect(path)))
+        patcher.setattr(storage, '_verify_existing', lambda *_: (
+            (_ for _ in ()).throw(LedgerError('ledger_schema_invalid'))))
+        with pytest.raises(LedgerError, match='ledger_schema_invalid'):
+            LedgerStore.open(directory)
+    with pytest.raises(LedgerError, match='ledger_held'):
+        LedgerStore.open(directory)
+
+
+def test_anchor_removed_under_writer_returns_fixed_code_and_latches(tmp_path):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with LedgerStore.create(directory, genesis) as store:
+        (directory / 'anchor').unlink()
+        with pytest.raises(LedgerError, match='ledger_anchor_missing'):
+            store.append(journal_binding(genesis.digest),
+                         expected_head=genesis.digest)
+        with pytest.raises(LedgerError, match='ledger_closed'):
+            store.append(journal_binding(genesis.digest),
+                         expected_head=genesis.digest)
+
+
+def test_duplicate_lookup_error_is_fixed_code_and_latches(tmp_path):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with LedgerStore.create(directory, genesis) as store:
+        connection = store._connection
+
+        class FailedLookup:
+            def __getattr__(self, name):
+                return getattr(connection, name)
+
+            def execute(self, sql, *args):
+                if 'WHERE event_id=?' in sql:
+                    raise sqlite3.OperationalError('injected private detail')
+                return connection.execute(sql, *args)
+
+        store._connection = FailedLookup()
+        with pytest.raises(LedgerError, match='^ledger_open_failed$') as failure:
+            store.append(journal_binding(genesis.digest),
+                         expected_head=genesis.digest)
+        assert 'private detail' not in str(failure.value)
+        with pytest.raises(LedgerError, match='ledger_closed'):
+            store.append(journal_binding(genesis.digest),
+                         expected_head=genesis.digest)
+
+
+def test_explicit_future_anchor_format_is_process_hold(tmp_path):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    path = directory / 'anchor'
+    raw = bytearray(path.read_bytes())
+    length = struct.unpack('>I', raw[8:12])[0]
+    body = json.loads(raw[12:12 + length])
+    body['format'] = 'acct.anchor.v2'
+    rewrite_anchor_slot(raw, body)
+    path.write_bytes(raw)
+    before = path.read_bytes()
+    with pytest.raises(LedgerError, match='ledger_schema_unsupported'):
+        LedgerStore.open(directory)
+    assert LedgerStore.inspect(directory).code == 'ledger_schema_unsupported'
+    assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize(('mutation', 'code'), [
+    ('application_id', 'ledger_identity_mismatch'),
+    ('user_version', 'ledger_schema_invalid'),
+    ('extra_trigger', 'ledger_schema_invalid'),
+    ('malformed_column', 'ledger_schema_invalid'),
+])
+def test_schema_or_identity_change_becomes_recovery_hold(tmp_path, mutation, code):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    connection = sqlite3.connect(directory / 'ledger.sqlite3', isolation_level=None)
+    connection.setconfig(sqlite3.SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, True)
+    changes = {
+        'application_id': 'PRAGMA application_id=123',
+        'user_version': 'PRAGMA user_version=0',
+        'extra_trigger': ('CREATE TRIGGER extra BEFORE INSERT ON ledger_events '
+                          'BEGIN SELECT 1; END'),
+        'malformed_column': 'ALTER TABLE ledger_events ADD COLUMN unexpected TEXT',
+    }
+    connection.execute(changes[mutation])
+    connection.close()
+    with pytest.raises(LedgerError, match=f'^{code}$'):
+        LedgerStore.open(directory)
+    assert (LedgerStore.inspect(directory).state,
+            LedgerStore.inspect(directory).code) == ('held', code)
+
+
+def test_read_only_database_refuses_open_without_new_receipt(tmp_path):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with LedgerStore.create(directory, genesis):
+        pass
+    db = directory / 'ledger.sqlite3'
+    db.chmod(0o400)
+    try:
+        with pytest.raises(LedgerError, match='ledger_open_failed'):
+            LedgerStore.open(directory)
+        assert LedgerStore.inspect(directory).state == 'unverified'
+    finally:
+        db.chmod(0o600)
+    assert LedgerStore.inspect(directory).head == (1, genesis.digest)
+
+
+def test_both_anchor_slots_select_latest_counter_and_reject_identity_split(tmp_path):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    binding = journal_binding(genesis.digest)
+    profile = profile_configuration(binding.digest)
+    with LedgerStore.create(directory, genesis) as store:
+        store.append(binding, expected_head=genesis.digest)
+        receipt = store.append(profile, expected_head=binding.digest)
+        assert receipt.anchor_counter == 3
+    assert LedgerStore.inspect(directory).head == (3, profile.digest)
+    raw = bytearray((directory / 'anchor').read_bytes())
+    slot0 = storage._slot_body(bytes(raw[:4096]))[1]
+    slot1 = storage._slot_body(bytes(raw[4096:]))[1]
+    assert (slot0['counter'], slot1['counter']) == (3, 2)
+    slot1['ledger_uuid'] = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+    rewrite_anchor_slot(raw, slot1, offset=4096)
+    (directory / 'anchor').write_bytes(raw)
+    with pytest.raises(LedgerError, match='ledger_anchor_invalid'):
+        LedgerStore.open(directory)
+
+
+def test_repeated_business_origin_and_malformed_body_do_not_append(tmp_path):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    binding = journal_binding(genesis.digest)
+    with LedgerStore.create(directory, genesis) as store:
+        malformed = replace(binding, raw=b'{private source payload}')
+        with pytest.raises(LedgerError, match='^ledger_event_invalid$') as failure:
+            store.append(malformed, expected_head=genesis.digest)
+        assert 'private source payload' not in str(failure.value)
+        store.append(binding, expected_head=genesis.digest)
+        repeated = encode_event(
+            ledger_uuid=LEDGER, ledger_generation=1, experiment_id=EXPERIMENT,
+            sequence=3, previous_digest=binding.digest,
+            event_id='dddddddd-dddd-dddd-dddd-dddddddddddd',
+            recorded_at_utc='2026-09-24T12:02:00.000000Z', actor_kind='receiver',
+            event_type='journal_bound',
+            data={'journal_uuid': JOURNAL, 'journal_generation': 1},
+        )
+        with pytest.raises(LedgerError, match='origin_conflict'):
+            store.append(repeated, expected_head=binding.digest)
+        assert store.head == (2, binding.digest)
+
+
+def test_genesis_anchor_has_exact_zero_padding_and_zero_second_slot(tmp_path):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    raw = (directory / 'anchor').read_bytes()
+    length = struct.unpack('>I', raw[8:12])[0]
+    assert len(raw) == 8192
+    assert raw[12 + length + 32:4096] == bytes(4096 - 12 - length - 32)
+    assert raw[4096:] == bytes(4096)
+
+
+@pytest.mark.parametrize('name', ['ledger.sqlite3', 'ledger.sqlite3-wal'])
+def test_short_database_or_wal_is_preserved_and_refused(tmp_path, name):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    path = directory / name
+    path.write_bytes(path.read_bytes()[:16])
+    before = path.read_bytes()
+    with pytest.raises(LedgerError, match='ledger_truncated|ledger_corrupt'):
+        LedgerStore.open(directory)
+    assert path.read_bytes() == before
+    assert LedgerStore.inspect(directory).state == 'held'
+
+
+def test_store_refuses_open_on_loose_mode_and_uri_metacharacter(tmp_path):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    anchor = directory / 'anchor'
+    anchor.chmod(0o644)
+    with pytest.raises(LedgerError, match='ledger_permissions'):
+        LedgerStore.open(directory)
+    anchor.chmod(0o600)
+    with pytest.raises(LedgerError, match='ledger_path_invalid'):
+        LedgerStore.create(tmp_path / 'ledger?invalid', receiver_genesis())
+    assert not (tmp_path / 'ledger?invalid').exists()
+
+
+def test_store_refuses_unowned_custody_and_linked_wal(tmp_path, monkeypatch):
+    directory = tmp_path / 'ledger'
+    with LedgerStore.create(directory, receiver_genesis()):
+        pass
+    with monkeypatch.context() as patcher:
+        patcher.setattr(storage.os, 'geteuid', lambda: os.getuid() + 1)
+        with pytest.raises(LedgerError, match='ledger_permissions'):
+            LedgerStore.open(directory)
+    os.link(directory / 'ledger.sqlite3-wal', tmp_path / 'linked-wal')
+    with pytest.raises(LedgerError, match='ledger_permissions'):
+        LedgerStore.open(directory)
+
+
+def test_second_process_cannot_take_writer_lock(tmp_path):
+    directory = tmp_path / 'ledger'
+    script = (
+        'import pathlib, sys\n'
+        'from grafana_jsm_sandbox.accounting_store import LedgerError, LedgerStore\n'
+        'try:\n'
+        '    LedgerStore.open(pathlib.Path(sys.argv[1]))\n'
+        'except LedgerError as error:\n'
+        '    print(error.code)\n'
+    )
+    with LedgerStore.create(directory, receiver_genesis()):
+        result = subprocess.run([sys.executable, '-c', script, str(directory)],
+                                cwd=os.getcwd(), capture_output=True, text=True,
+                                timeout=10, check=True)
+    assert result.stdout.strip() == 'ledger_locked'
+
+
+def test_unsupported_sqlite_and_sync_capability_fail_before_mutation(tmp_path,
+                                                                      monkeypatch):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with monkeypatch.context() as patcher:
+        patcher.setattr(storage.sqlite3, 'sqlite_version_info', (3, 36, 0))
+        with pytest.raises(LedgerError, match='sqlite_unsupported'):
+            LedgerStore.create(directory, genesis)
+    assert not directory.exists()
+    with monkeypatch.context() as patcher:
+        patcher.setattr(storage.sys, 'platform', 'unsupported')
+        with pytest.raises(LedgerError, match='ledger_sync_unsupported'):
+            LedgerStore.create(directory, genesis)
+    assert not directory.exists()
+
+
+def test_capacity_refuses_without_eviction_or_reservation(tmp_path, monkeypatch):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with LedgerStore.create(directory, genesis) as store:
+        monkeypatch.setattr(storage, 'MAX_EVENTS', 1)
+        with pytest.raises(LedgerError, match='history_limit'):
+            store.append(journal_binding(genesis.digest),
+                         expected_head=genesis.digest)
+        assert store.head == (1, genesis.digest)
+    assert LedgerStore.inspect(directory).head == (1, genesis.digest)
+
+
+def test_physical_8192_event_boundary_refuses_8193_without_eviction(tmp_path):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with LedgerStore.create(directory, genesis):
+        pass
+    connection = sqlite3.connect(directory / 'ledger.sqlite3', isolation_level=None)
+    connection.setconfig(sqlite3.SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, True)
+    connection.execute('BEGIN IMMEDIATE')
+    previous = genesis
+    penultimate = None
+    for sequence in range(2, 8193):
+        event = encode_event(
+            ledger_uuid=LEDGER, ledger_generation=1, experiment_id=EXPERIMENT,
+            sequence=sequence, previous_digest=previous.digest,
+            event_id=str(UUID(int=2**112 + sequence)),
+            recorded_at_utc='2026-09-24T12:01:00.000000Z', actor_kind='receiver',
+            event_type='journal_bound',
+            data={'journal_uuid': str(UUID(int=2**113 + sequence)),
+                  'journal_generation': 1},
+        )
+        connection.execute(
+            'INSERT INTO ledger_events '
+            '(sequence, event_id, event_type, body, event_digest) '
+            'VALUES (?, ?, ?, ?, ?)',
+            (sequence, event.fields()['event_id'], 'journal_bound', event.raw,
+             event.digest),
+        )
+        if sequence == 8191:
+            penultimate = event
+        previous = event
+    connection.execute('COMMIT')
+    connection.close()
+    anchor_path = directory / 'anchor'
+    raw = bytearray(anchor_path.read_bytes())
+    length = struct.unpack('>I', raw[8:12])[0]
+    body = json.loads(raw[12:12 + length])
+    body.update(counter=8191, head={'sequence': 8191,
+                                    'event_digest': penultimate.digest})
+    rewrite_anchor_slot(raw, body)
+    body.update(counter=8192, head={'sequence': 8192,
+                                    'event_digest': previous.digest})
+    rewrite_anchor_slot(raw, body, offset=4096)
+    anchor_path.write_bytes(raw)
+    next_event = encode_event(
+        ledger_uuid=LEDGER, ledger_generation=1, experiment_id=EXPERIMENT,
+        sequence=8193, previous_digest=previous.digest,
+        event_id=str(UUID(int=2**112 + 8193)),
+        recorded_at_utc='2026-09-24T12:01:00.000000Z', actor_kind='receiver',
+        event_type='journal_bound',
+        data={'journal_uuid': str(UUID(int=2**113 + 8193)),
+              'journal_generation': 1},
+    )
+    with LedgerStore.open(directory) as store:
+        assert store.head == (8192, previous.digest)
+        with pytest.raises(LedgerError, match='history_limit'):
+            store.append(next_event, expected_head=previous.digest)
+        assert store.head == (8192, previous.digest)
+    connection = sqlite3.connect(directory / 'ledger.sqlite3')
+    assert connection.execute('SELECT count(*), max(sequence) FROM ledger_events').fetchone() == (
+        8192, 8192)
+    connection.close()
+
+
+def test_failed_insert_before_sql_commit_reopens_without_tail(tmp_path, monkeypatch):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with LedgerStore.create(directory, genesis) as store:
+        monkeypatch.setattr(storage, '_INSERT', 'INSERT INTO nonexistent VALUES (1)')
+        with pytest.raises(LedgerError, match='ledger_write_failed'):
+            store.append(journal_binding(genesis.digest),
+                         expected_head=genesis.digest)
+        with pytest.raises(LedgerError, match='ledger_closed'):
+            store.append(journal_binding(genesis.digest),
+                         expected_head=genesis.digest)
+    assert LedgerStore.inspect(directory).head == (1, genesis.digest)
+    with LedgerStore.open(directory) as reopened:
+        assert reopened.head == (1, genesis.digest)
+
+
+def test_receipt_before_sigkill_survives_reopen(tmp_path):
+    directory = tmp_path / 'ledger'
+    marker = tmp_path / 'receipt'
+    genesis = receiver_genesis()
+    binding = journal_binding(genesis.digest)
+    with LedgerStore.create(directory, genesis):
+        pass
+    script = (
+        'import pathlib, signal, sys\n'
+        'from grafana_jsm_sandbox.accounting_events import encode_event\n'
+        'from grafana_jsm_sandbox.accounting_store import LedgerStore\n'
+        'directory, marker = map(pathlib.Path, sys.argv[1:])\n'
+        f'event = encode_event(ledger_uuid={LEDGER!r}, ledger_generation=1, '
+        f'experiment_id={EXPERIMENT!r}, sequence=2, '
+        f'previous_digest={genesis.digest!r}, event_id={BINDING!r}, '
+        "recorded_at_utc='2026-09-24T12:01:00.000000Z', actor_kind='receiver', "
+        f"event_type='journal_bound', data={{'journal_uuid': {JOURNAL!r}, "
+        "'journal_generation': 1})\n"
+        'with LedgerStore.open(directory) as store:\n'
+        f'    receipt = store.append(event, expected_head={genesis.digest!r})\n'
+        '    marker.write_text(receipt.event_digest)\n'
+        '    signal.pause()\n'
+    )
+    child = subprocess.Popen([sys.executable, '-c', script, str(directory),
+                              str(marker)], cwd=os.getcwd())
+    try:
+        deadline = time.monotonic() + 10
+        while not marker.exists() and child.poll() is None and time.monotonic() < deadline:
+            time.sleep(.02)
+        assert marker.read_text() == binding.digest
+        child.kill()
+        assert child.wait(timeout=10) == -signal.SIGKILL
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.wait(timeout=10)
+    assert LedgerStore.inspect(directory).head == (2, binding.digest)
+    with LedgerStore.open(directory) as reopened:
+        assert reopened.head == (2, binding.digest)
+
+
+def test_consistent_older_image_is_unwitnessed_rollback(tmp_path):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with LedgerStore.create(directory, genesis):
+        pass
+    names = ('ledger.sqlite3', 'ledger.sqlite3-wal', 'anchor')
+    older = {name: (directory / name).read_bytes() for name in names}
+    with LedgerStore.open(directory) as store:
+        binding = journal_binding(genesis.digest)
+        store.append(binding, expected_head=genesis.digest)
+    assert LedgerStore.inspect(directory).head == (2, binding.digest)
+    for name, content in older.items():
+        (directory / name).write_bytes(content)
+    assert LedgerStore.inspect(directory).head == (1, genesis.digest)
+    with LedgerStore.open(directory) as reopened:
+        assert reopened.head == (1, genesis.digest)
 
 
 def test_second_writer_and_symlinked_store_are_refused(tmp_path):

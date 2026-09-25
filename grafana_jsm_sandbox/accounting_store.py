@@ -167,6 +167,21 @@ def _take_lock(path):
     return fd
 
 
+def _release_handles(connection, lock_fd):
+    failed = False
+    if connection is not None:
+        try:
+            connection.close()
+        except Exception:  # noqa: BLE001 - cleanup must still release the lock.
+            failed = True
+    if lock_fd is not None:
+        try:
+            os.close(lock_fd)
+        except OSError:
+            failed = True
+    return failed
+
+
 def _capability():
     _require(sqlite3.sqlite_version_info >= (3, 37, 0) and
              hasattr(sqlite3.Connection, 'setconfig') and
@@ -266,10 +281,10 @@ def _slot_body(region):
             return 'invalid', None
     except JSONPolicyError:
         return 'invalid', None
+    if type(body.get('format')) is str and body['format'] != 'acct.anchor.v1':
+        return 'newer', None
     if body.keys() != _TOP_KEYS:
-        return 'newer', None
-    if body['format'] != 'acct.anchor.v1':
-        return 'newer', None
+        return 'invalid', None
     head, hold = body['head'], body['hold']
     valid = (
         type(body['counter']) is int and 1 <= body['counter'] < 2**53 and
@@ -398,7 +413,6 @@ def _checked_event(event, *, genesis=False):
 
 def _read_rows(connection):
     events = []
-    index = {}
     for row in connection.execute(_ROWS_QUERY):
         sequence, event_id, event_type, raw, digest = row
         try:
@@ -415,13 +429,12 @@ def _read_rows(connection):
             _require(value['event_type'] == 'genesis' and
                      value['data']['population'] == 'unknown', 'ledger_event_invalid')
         events.append(checked)
-        index[event_id] = (sequence, checked)
     _require(events, 'ledger_missing')
     try:
         projection = replay_accounting(tuple(events))
     except AccountingTransitionError:
         raise LedgerError('ledger_replay_mismatch') from None
-    return projection, index
+    return projection
 
 
 def _verify_existing(directory, connection, anchor):
@@ -437,7 +450,7 @@ def _verify_existing(directory, connection, anchor):
              'ledger_schema_invalid')
     _require(tuple(cursor.execute('PRAGMA integrity_check')) == (('ok',),),
              'ledger_corrupt')
-    projection, index = _read_rows(connection)
+    projection = _read_rows(connection)
     _require((projection.ledger_uuid, projection.ledger_generation,
               projection.experiment_id) ==
              (anchor['ledger_uuid'], anchor['ledger_generation'],
@@ -451,19 +464,18 @@ def _verify_existing(directory, connection, anchor):
     _check_older_anchor(projection, older)
     _require(projection.head_sequence <= anchored_sequence + 1,
              'ledger_anchor_conflict')
-    return projection, index
+    return projection
 
 
 class LedgerStore:
     """Exclusive verified store of receiver-origin v1 accounting events."""
 
-    def __init__(self, directory, connection, lock_fd, anchor, projection, index):
+    def __init__(self, directory, connection, lock_fd, anchor, projection):
         self.directory = directory
         self._connection = connection
         self._lock_fd = lock_fd
         self._anchor = anchor
         self._projection = projection
-        self._index = index
         self._closed = False
         self._broken = False
 
@@ -486,7 +498,10 @@ class LedgerStore:
                      'projection_conflict')
         except AccountingTransitionError:
             raise LedgerError('projection_conflict') from None
-        anchor, older = _read_anchor_pair(self.directory / ANCHOR_FILENAME)
+        anchor_path = self.directory / ANCHOR_FILENAME
+        _require(_lstat(anchor_path) is not None, 'ledger_anchor_missing')
+        _check_stat(anchor_path)
+        anchor, older = _read_anchor_pair(anchor_path)
         _check_older_anchor(self.projection, older)
         row = self._connection.execute(
             'SELECT sequence, event_digest FROM ledger_events ORDER BY sequence DESC LIMIT 1'
@@ -504,12 +519,23 @@ class LedgerStore:
         """Append one receiver event and read back SQL row and anchor before receipt."""
         self._writable()
         checked, value = _checked_event(event)
-        self._physical_head()
+        try:
+            self._physical_head()
+        except LedgerError:
+            self._broken = True
+            raise
+        except (OSError, sqlite3.Error):
+            self._broken = True
+            raise LedgerError('ledger_open_failed') from None
         event_id = value['event_id']
-        existing = self._connection.execute(
-            'SELECT sequence, body, event_digest FROM ledger_events WHERE event_id=?',
-            (event_id,),
-        ).fetchone()
+        try:
+            existing = self._connection.execute(
+                'SELECT sequence, body, event_digest FROM ledger_events WHERE event_id=?',
+                (event_id,),
+            ).fetchone()
+        except (OSError, sqlite3.Error):
+            self._broken = True
+            raise LedgerError('ledger_open_failed') from None
         if existing is not None:
             if bytes(existing[1]) != checked.raw or existing[2] != checked.digest:
                 try:
@@ -557,7 +583,6 @@ class LedgerStore:
             raise LedgerError('ledger_write_failed') from None
         self._anchor = next_anchor
         self._projection = next_projection
-        self._index[event_id] = (value['sequence'], checked)
         return EventReceipt(self.projection.ledger_uuid,
                             self.projection.ledger_generation,
                             self.projection.experiment_id, value['sequence'],
@@ -611,14 +636,11 @@ class LedgerStore:
                 os.close(fd)
             _sync_path(directory)
             _require(_read_anchor(anchor_path) == body, 'ledger_anchor_invalid')
-            projection, index = _read_rows(connection)
+            projection = _read_rows(connection)
             _require(projection.head_digest == checked.digest, 'ledger_event_invalid')
-            return cls(directory, connection, lock_fd, body, projection, index)
+            return cls(directory, connection, lock_fd, body, projection)
         except Exception as error:
-            if connection is not None:
-                connection.close()
-            if lock_fd is not None:
-                os.close(lock_fd)
+            _release_handles(connection, lock_fd)
             if isinstance(error, LedgerError):
                 raise
             raise LedgerError('ledger_create_failed') from None
@@ -634,6 +656,7 @@ class LedgerStore:
             db_path = directory / DB_FILENAME
             anchor_path = directory / ANCHOR_FILENAME
             found = _check_stat(db_path)
+            _require(_lstat(anchor_path) is not None, 'ledger_anchor_missing')
             _check_stat(anchor_path)
             _require(_lstat(directory / WAL_FILENAME) is not None,
                      'ledger_wal_absent')
@@ -644,7 +667,7 @@ class LedgerStore:
             _check_database_header(db_path)
             _check_wal_header(directory / WAL_FILENAME)
             connection = _connect(db_path)
-            projection, index = _verify_existing(directory, connection, anchor)
+            projection = _verify_existing(directory, connection, anchor)
             anchored_sequence = anchor['head']['sequence']
             if projection.head_sequence == anchored_sequence + 1:
                 hold = {'code': 'tail_adopted_unreconciled',
@@ -661,7 +684,7 @@ class LedgerStore:
                 raise LedgerError('ledger_held')
             _require(projection.head_sequence == anchored_sequence,
                      'ledger_anchor_conflict')
-            return cls(directory, connection, lock_fd, anchor, projection, index)
+            return cls(directory, connection, lock_fd, anchor, projection)
         except LedgerError as error:
             if anchor is not None and error.code in RECOVERY_HOLDS:
                 try:
@@ -669,9 +692,7 @@ class LedgerStore:
                                   anchor['head']['sequence'])
                 except (LedgerError, OSError):
                     error = LedgerError('ledger_write_failed')
-            if connection is not None:
-                connection.close()
-            os.close(lock_fd)
+            _release_handles(connection, lock_fd)
             raise error from None
         except sqlite3.Error as error:
             code = _sqlite_code(error)
@@ -681,14 +702,10 @@ class LedgerStore:
                                   anchor['head']['sequence'])
                 except (LedgerError, OSError):
                     code = 'ledger_write_failed'
-            if connection is not None:
-                connection.close()
-            os.close(lock_fd)
+            _release_handles(connection, lock_fd)
             raise LedgerError(code) from None
         except OSError:
-            if connection is not None:
-                connection.close()
-            os.close(lock_fd)
+            _release_handles(connection, lock_fd)
             raise LedgerError('ledger_open_failed') from None
 
     @classmethod
@@ -702,6 +719,8 @@ class LedgerStore:
             lock_fd = _take_lock(directory / LOCK_FILENAME)
             db_path = directory / DB_FILENAME
             found = _check_stat(db_path)
+            _require(_lstat(directory / ANCHOR_FILENAME) is not None,
+                     'ledger_anchor_missing')
             _check_stat(directory / ANCHOR_FILENAME)
             _require(_lstat(directory / WAL_FILENAME) is not None,
                      'ledger_wal_absent')
@@ -709,39 +728,40 @@ class LedgerStore:
             _require(found.st_size >= PAGE_SIZE, 'ledger_truncated')
             anchor = _read_anchor(directory / ANCHOR_FILENAME)
             if anchor['hold'] is not None:
-                return Inspection('held', anchor['hold']['code'], None,
-                                  anchor['ledger_uuid'], anchor['experiment_id'])
-            _check_database_header(db_path)
-            _check_wal_header(directory / WAL_FILENAME)
-            connection = _connect(db_path)
-            cursor = connection.cursor()
-            _set_pragma(cursor, 'query_only', 'ON', 1)
-            projection, _ = _verify_existing(directory, connection, anchor)
-            _require(projection.head_sequence == anchor['head']['sequence'],
-                     'ledger_tail_unverified')
-            return Inspection('ready', None, (projection.head_sequence,
-                                              projection.head_digest),
-                              projection.ledger_uuid, projection.experiment_id)
+                result = Inspection('held', anchor['hold']['code'], None,
+                                    anchor['ledger_uuid'], anchor['experiment_id'])
+            else:
+                _check_database_header(db_path)
+                _check_wal_header(directory / WAL_FILENAME)
+                connection = _connect(db_path)
+                cursor = connection.cursor()
+                _set_pragma(cursor, 'query_only', 'ON', 1)
+                projection = _verify_existing(directory, connection, anchor)
+                _require(projection.head_sequence == anchor['head']['sequence'],
+                         'ledger_tail_unverified')
+                result = Inspection('ready', None, (projection.head_sequence,
+                                                    projection.head_digest),
+                                    projection.ledger_uuid, projection.experiment_id)
         except LedgerError as error:
-            return Inspection('held' if error.code.startswith('ledger_anchor') else
-                              'unverified', error.code, None, None, None)
+            result = Inspection('held' if error.code in RECOVERY_HOLDS else
+                                'unverified', error.code, None, None, None)
         except sqlite3.Error as error:
             code = _sqlite_code(error)
-            return Inspection('held' if code in RECOVERY_HOLDS else 'unverified',
-                              code, None, None, None)
+            result = Inspection('held' if code in RECOVERY_HOLDS else 'unverified',
+                                code, None, None, None)
         except OSError:
-            return Inspection('unverified', 'ledger_open_failed', None, None, None)
+            result = Inspection('unverified', 'ledger_open_failed', None, None, None)
         finally:
-            if connection is not None:
-                connection.close()
-            if lock_fd is not None:
-                os.close(lock_fd)
+            close_failed = _release_handles(connection, lock_fd)
+        if close_failed:
+            return Inspection('unverified', 'ledger_close_failed', None, None, None)
+        return result
 
     def close(self):
         if not self._closed:
             self._closed = True
-            self._connection.close()
-            os.close(self._lock_fd)
+            if _release_handles(self._connection, self._lock_fd):
+                raise LedgerError('ledger_close_failed')
 
     def __enter__(self):
         return self

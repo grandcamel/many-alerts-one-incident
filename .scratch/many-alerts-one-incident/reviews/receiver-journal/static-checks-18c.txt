@@ -1,0 +1,9 @@
+New Python paths: grafana_jsm_sandbox/accounting_store.py,
+grafana_jsm_sandbox/accounting_ledger.py, tests/test_accounting_store.py,
+tests/test_accounting_ledger.py
+
+ruff check: All checks passed!
+Line length <= 100 on new Python: PASS
+git diff --check: PASS
+Application caller import scan: only accounting_ledger.py imports accounting_store.py;
+no existing application caller imports AccountingLedger or LedgerStore.

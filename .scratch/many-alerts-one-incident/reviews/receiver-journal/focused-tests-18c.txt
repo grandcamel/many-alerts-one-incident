@@ -1,0 +1,7 @@
+Command: python3 /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_accounting_events.py tests/test_accounting_transition.py tests/test_accounting_policy.py tests/test_accounting_store.py tests/test_accounting_ledger.py
+
+215 passed in 63.12s (0:01:03)
+NON_LOOPBACK_ATTEMPTS []
+
+Scope: local pure/accounting-store tests only. This is not provider, tenant,
+native, power-loss, reservation, or cross-store acceptance.
