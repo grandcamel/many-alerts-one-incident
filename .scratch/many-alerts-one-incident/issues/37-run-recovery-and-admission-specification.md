@@ -354,3 +354,14 @@ tests are quarantined. Independent source reviews and the full local suite
 (**5,530 passed, 39 skipped**) pass. No guarded production launcher,
 durable effect writer, permit or contained Run was added; accounting and
 venue gates remain open. This ticket stays open.
+
+## Local isolated permit lifecycle, 2026-09-25: unit 19p
+
+The [19p outcome](../reviews/run-recovery/outcome-19p-permit-lifecycle.md)
+models exact, one-use L1/L2 transitions, closure and retained duplicate-ID
+tombstones without granting authority. Caller-owned bindings are copied before
+the lock, including the expected binding at each fence. Independent source
+reviews, 207 focused tests and the full local suite (**5,558 passed, 39
+skipped**) pass. This adds no Receiver permit endpoint, durable effect intent,
+trusted receipt finalization or production dispatch. Accounting and venue
+gates remain open; this ticket stays open.

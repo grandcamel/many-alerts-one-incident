@@ -2,7 +2,7 @@
 
 The application modules `forwarder_services` and `forwarder_leases` provide the
 first local implementation unit of the reviewed Forwarder contract. They are
-not wired into the legacy HTTP/OAuth launcher. No listener, native client or
+not wired into the retired legacy HTTP/OAuth launcher. No listener, native client or
 provider connection is started by importing or using these modules.
 
 `SERVICE_PROFILES` pins five immutable IPv4 loopback listener descriptions.
@@ -736,8 +736,19 @@ operations, native execution and deployment remain gated by their own
 acceptance evidence. Local module tests cannot replace that
 evidence or human Report adjudication.
 
+The isolated `forwarder_permit_model.PermitBook` models one-use L1/L2
+mechanics only. It owns exact handle identities in memory, retains closed
+ID tombstones, and refuses copied/foreign handles and duplicate operations.
+It accepts caller-staged claims, so it authenticates no Receiver reply and
+cannot issue a live dispatch permit. No runtime gate or exchange imports it;
+current permit-required routes remain unavailable. The future
+AuthorizeDispatch path still needs a current independently verified
+accounting reservation, durable exact effect intent, authenticated reply,
+reviewed lock order and receipt evidence. A fresh book after restart has no
+durable duplicate knowledge and cannot replace reconciliation.
+
 Run the focused local tests from the repository root:
 
 ```sh
-pytest -q tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py tests/test_forwarder_dispatch.py tests/test_forwarder_dispatch_seams.py tests/test_forwarder_dispatch_races.py tests/test_forwarder_dispatch_adversarial.py tests/test_forwarder_exchange.py tests/test_forwarder_exchange_integration.py tests/test_forwarder_exchange_adversarial.py tests/test_forwarder_upstream.py tests/test_forwarder_upstream_integration.py tests/test_forwarder_upstream_adversarial.py tests/test_forwarder_control_attachment.py tests/test_forwarder_control_scope.py tests/test_forwarder_control_gate.py tests/test_forwarder_control_gate_closeout.py tests/test_forwarder_control_gate_races.py
+pytest -q tests/test_forwarder_permit_model.py tests/test_forwarder_services.py tests/test_forwarder_leases.py tests/test_forwarder_control.py tests/test_forwarder_control_protocol.py tests/test_forwarder_listener.py tests/test_forwarder_listener_control.py tests/test_forwarder_supervisor.py tests/test_forwarder_supervisor_integration.py tests/test_forwarder_tls.py tests/test_forwarder_tls_integration.py tests/test_forwarder_http.py tests/test_forwarder_http_adversarial.py tests/test_forwarder_server_tls.py tests/test_forwarder_server_tls_integration.py tests/test_forwarder_http_head.py tests/test_forwarder_http_receive.py tests/test_forwarder_http_receive_integration.py tests/test_forwarder_http_response.py tests/test_forwarder_http_response_adversarial.py tests/test_forwarder_response_receive.py tests/test_forwarder_response_receive_adversarial.py tests/test_forwarder_response_receive_integration.py tests/test_forwarder_receipts.py tests/test_forwarder_receipts_adversarial.py tests/test_forwarder_response_send.py tests/test_forwarder_response_send_integration.py tests/test_forwarder_json.py tests/test_forwarder_json_adversarial.py tests/test_forwarder_routes.py tests/test_forwarder_routes_adversarial.py tests/test_forwarder_dispatch.py tests/test_forwarder_dispatch_seams.py tests/test_forwarder_dispatch_races.py tests/test_forwarder_dispatch_adversarial.py tests/test_forwarder_exchange.py tests/test_forwarder_exchange_integration.py tests/test_forwarder_exchange_adversarial.py tests/test_forwarder_upstream.py tests/test_forwarder_upstream_integration.py tests/test_forwarder_upstream_adversarial.py tests/test_forwarder_control_attachment.py tests/test_forwarder_control_scope.py tests/test_forwarder_control_gate.py tests/test_forwarder_control_gate_closeout.py tests/test_forwarder_control_gate_races.py
 ```

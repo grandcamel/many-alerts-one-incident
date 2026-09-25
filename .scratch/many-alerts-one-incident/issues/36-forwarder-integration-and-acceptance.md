@@ -255,3 +255,14 @@ remains an isolated test subject. Independent source reviews and the full
 local suite (**5,530 passed, 39 skipped**) pass. This does not provide the
 accepted scoped TLS sidecar, real service grants, native mediated client
 path or effect permit; this ticket stays open.
+
+## Local isolated permit lifecycle, 2026-09-25: unit 19p
+
+The [19p outcome](../reviews/run-recovery/outcome-19p-permit-lifecycle.md)
+adds an identity-owned, one-use L1/L2 permit mechanics model with private
+binding snapshots and bounded tombstones. Independent Standards and Spec
+source reviews, 207 focused tests, Ruff and the full local suite (**5,558
+passed, 39 skipped**) pass. The model accepts caller-staged claims and is not
+imported by the runtime gate or exchange. It supplies no authenticated
+permit, effect writer, reservation qualification or available mutation route.
+Native and venue acceptance remain NOT RUN; this ticket stays open.
