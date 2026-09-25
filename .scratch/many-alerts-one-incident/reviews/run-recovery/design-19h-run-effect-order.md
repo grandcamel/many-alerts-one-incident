@@ -32,35 +32,49 @@ registry, records and `rj.state.v1` digest remain byte-for-byte stable.
    replayable reconciliation/authorization transition, to immutable intent,
    attempt, reservation and Run IDs, the exact journal reservation claim,
    and a separately verified current accounting reservation receipt/head.
-   Record the requested bounded lease scope and the *policy durations*
-   270/290/300 seconds. It must not
-   invent actual launch time or deadlines. A future writer checks journal,
+   Record the requested bounded service lease scopes and the *policy
+   durations* 270/290/300 seconds. It must not invent actual launch time or
+   deadlines. A future writer checks journal,
    ledger and other dispatch predicates again while holding their required
    locks; replay alone can check only internal identity and order. No second
    run intent may reuse an attempt, Run or reservation ID. The current v2
    `reservation_intent` planner requires an existing `run_hold`, so it cannot
    serve an ordinary eligible first attempt. Its `lease_id` is a canonical
    UUID claim, while the current Forwarder mints a distinct `lease_...` grant
-   ID. Preserve that v2 record and its replay meaning; a future versioned
-   job-open/intent contract and exact one-to-one claim-to-grant mapping need
-   source review before a `run_intent` writer. Neither ID is silently
-   substituted for the other.
+   ID *per service*. Preserve that v2 record and its replay meaning; a future
+   versioned first-attempt intent and service-specific claim-to-grant mapping
+   need source review before a `run_intent` writer. The existing v2 UUID has
+   no service discriminator or enforceable grant mapping. A future versioned
+   mapping must explicitly designate the accounting-linked claim for the
+   model-service grant and separately claim/bind other routed services. Keep
+   existing v2 images held until that mapping is recorded and replayed;
+   neither ID is silently substituted for the other, and one grant cannot
+   authorize every service.
 2. **`launch_claim`, then guarded child and `spawn_attestation`.** To retain
-   ticket 37's claim-before-process rule, the Receiver first registers a
-   dormant, revocable Forwarder grant and reads back its Forwarder-issued
-   lease ID, scope and boot/generation binding. It samples a same-boot
-   monotonic origin and commits the launch claim with the journal lease claim
-   identity and actual Forwarder grant identity, a fresh barrier token and
-   absolute 270/290/300-second deadlines. This origin is at or before process
+   ticket 37's claim-before-process rule, the Receiver first registers the
+   intended dormant, revocable Forwarder grants per service and reads back
+   each Forwarder-issued lease ID, scope and boot/generation binding. It
+   samples a same-boot monotonic origin and commits the launch claim with the
+   journal service-lease claims and actual Forwarder grant identities, a fresh
+   barrier token and absolute 270/290/300-second deadlines. The claim maps each fresh journal
+   service lease identity, including the accounting-linked model lease claim,
+   to exactly one grant for that service. This origin is at or before process
    creation; queue wait ends there, and barrier/attestation time consumes the
-   Run budget. The child is then created behind an inherited fail-closed
-   barrier. It cannot run client code or make an external call while the
+   Run budget. A grant registered before this origin may expire before the
+   270-second work deadline: its effective service deadline is the earlier
+   of its registered expiry and origin plus 270 seconds. No activation or
+   retry extends that expiry; insufficient remaining authority holds launch
+   or denies that route. The Forwarder activation timestamp must satisfy its
+   own created-at rule and is not substituted for the journal Run origin.
+   The child is then created behind an inherited fail-closed barrier. It
+   cannot run client code or make an external call while the
    Receiver verifies stable containment identity and commits a separate
    `spawn_attestation` bound to the claim and observed group. Only after
-   attestation, current lease activation and a final same-boot/deadline check
-   may the barrier release. A failure revokes any installed lease, contains
-   and reaps the blocked child where identity is verified, and appends a
-   failed-pre-release/blocked-child containment observation. If that record
+   attestation, activation of the intended grants and a final
+   same-boot/deadline check may the barrier release. A failure revokes all
+   installed grants, contains and reaps the blocked child where identity is
+   verified, and appends a failed-pre-release/blocked-child containment
+   observation. If that record
    or containment proof is unavailable, state remains unknown and dispatch
    held. The barrier must close on parent loss;
    `start_new_session=True` alone does not prove this ordering. The barrier
@@ -71,9 +85,10 @@ registry, records and `rj.state.v1` digest remain byte-for-byte stable.
 3. **`spawn_observation` and supervision observations**, after release, a
    trusted failed-before-process path, or a failed-pre-release blocked-child
    path. A Receiver-owned writer binds each
-   sanitized observation to the immutable attempt/Run/lease and monotonic
-   boot. Spawn acceptance, root exit/reap, stable group identity/absence,
-   actual stdout/stderr EOF, capture completeness, lease revocation and
+   sanitized observation to the immutable attempt/Run/service grants and
+   monotonic boot. Spawn acceptance, root exit/reap, stable group
+   identity/absence,
+   actual stdout/stderr EOF, capture completeness, per-grant revocation and
    current Forwarder closeout are distinct facts. A callback or signal
    attempt is durably marked *before* it is invoked and its result is
    appended afterward. A crash between the two leaves the action unknown;
@@ -87,8 +102,8 @@ registry, records and `rj.state.v1` digest remain byte-for-byte stable.
    active supervision and usually before terminal assessment. A Run calls the
    scoped Forwarder route; it cannot write the Receiver journal. After route
    and pure connector preparation, the Forwarder presents the registered
-   lease/attempt, route, canonical *prepared-request* digest and sanitized
-   target/plan to the Receiver over authenticated control. The Receiver
+   route-specific grant/attempt, route, canonical *prepared-request* digest
+   and sanitized target/plan to the Receiver over authenticated control. The Receiver
    resolves these to its admitted logical operation ID, rechecks the current
    journal/accounting/gates, and durably commits an `effect_intent` bound to
    that exact route, request digest, operation, attempt and target before
@@ -98,8 +113,8 @@ registry, records and `rj.state.v1` digest remain byte-for-byte stable.
    routed digest, while the durable intent still precedes any upstream
    connection or write. If native-client request identity cannot be
    resolved, deny. The Forwarder consumes the permit at L1 admission, then
-   re-verifies that consumed permit, lease, digest, target and deadline at L2
-   immediately before the first possible upstream byte. Current permit
+   re-verifies that consumed permit, route-specific grant, digest, target and
+   deadline at L2 immediately before the first possible upstream byte. Current permit
    routes remain denied; neither exchange nor receipt ledger yet supplies
    this handshake. Missing or late approval denied before L1 is
    NOT_DISPATCHED and may qualify for ADR 0012's one shorter Report attempt
@@ -136,12 +151,13 @@ registry, records and `rj.state.v1` digest remain byte-for-byte stable.
 `AuthorizeDispatch` is a one-use, exact routed-request exchange from the
 Forwarder to the Receiver before L1 admission. It requires a verified current
 journal head, an independently verified
-accounting reservation relation, the committed launch claim and live lease,
-the intended target/scope, deadline, venue/reference readiness, no global
+accounting reservation relation, the committed launch claim and live
+route-specific grant, the intended target/scope, deadline, venue/reference
+readiness, no global
 dispatch hold and an explicit authorized state for this job. Historical
 `run_hold` records are never erased; their presence alone neither grants nor
 permanently forbids a later explicitly reconciled attempt. The permit is
-bound to the canonical prepared-request digest, exact operation and lease.
+bound to the canonical prepared-request digest, exact operation and grant.
 L1 consumes it once; L2 re-verifies it before first write without consuming
 it again. A Receiver-side snapshot is insufficient. A consumed but unwritten
 permit is not reusable. The permit does not make an upstream effect
@@ -149,7 +165,7 @@ reversible. The current product issues no such permit.
 
 On restart, all old leases are invalid and dispatch is held before recovery
 inspection. A `run_intent` without a launch claim predates process creation
-under this contract; a registered but unclaimed lease still needs revocation.
+under this contract; registered but unclaimed grants still need revocation.
 A launch claim without a verified spawn attestation
 does not prove whether a blocked child was created or contained; inspect
 the barrier/orphan state. An attestation without a subsequent durable
@@ -177,17 +193,17 @@ account identity, scoring data and Ground truth stay outside these records.
 ## Local implementation and acceptance order
 
 First resolve the local v2 held-job/eligible-first-attempt and journal lease
-claim/Forwarder grant mismatches above with a reviewed versioned contract.
-Then ratify record fields and capacity against real current codecs and
+claim/Forwarder service-grant mismatches above with a reviewed versioned
+contract. Then ratify record fields and capacity against real current codecs and
 stores. Implement no-writer `run_intent`/`launch_claim` replay only after a
 verified reservation relation can be represented without granting dispatch;
 then add Receiver writers with exact current-head checks. Independently,
 exercise a closed synthetic child through a test-only startup barrier and
 supervisor adapter; keep native/provider/OPS routes absent. Add actual
 Forwarder effect-intent/receipt wiring only after a current permit gate and
-lease/fence relation exist. At each storage-visible step, test mixed v1/v2
-reopen, every crash boundary above, exact retry/conflict, capacity, forged
-recomputed records, read-back and old-binary refusal; review Standards and
+service-grant/fence relation exist. At each storage-visible step, test mixed
+version reopen, every crash boundary above, exact retry/conflict, capacity,
+forged recomputed records, read-back and old-binary refusal; review Standards and
 Spec and run the full local suite before a code commit.
 
 Provider opening/billing identity, coverage/lag/finality, liability U,

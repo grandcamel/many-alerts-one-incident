@@ -196,3 +196,13 @@ Independent source/spec review, focused tests and the full local suite pass.
 Endpoint ownership, durable Receiver observations, dispatch permits, Ready,
 guarded launch, native compatibility and deployment remain open. This ticket
 stays open.
+
+## Local service-grant mapping design, 2026-09-25: unit 19i
+
+The [19i proposed design](../reviews/run-recovery/design-19i-first-attempt-lease-map.md)
+requires each intended service's journal claim to bind to one real Forwarder
+grant before a guarded child starts. The accounting UUID is not itself a
+Forwarder grant, and registration-relative expiry may shorten route
+authority before the Run work deadline. Independent Standards and Spec
+document reviews pass. No grant mapping, permit, process or native route is
+implemented; this ticket stays open.

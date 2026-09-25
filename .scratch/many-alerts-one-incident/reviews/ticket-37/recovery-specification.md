@@ -5,6 +5,17 @@ Receiver, spawner, Forwarder, Skill, venue, accounting ledger, provider, or OPS.
 It separates accepted policy from proposed routine implementation choices. Runtime,
 real Receiver/spawner/Forwarder, tenant, model, live OPS, billing, and teardown
 acceptance remain NOT RUN.
+
+Later local refinement: [unit 19h](../run-recovery/design-19h-run-effect-order.md)
+supersedes this proposal's singular-lease wording for Run/Forwarder
+integration. The Forwarder mints one grant per service. The existing v2
+journal/accounting UUID `lease_id` has no service discriminator and grants no
+authority; a future versioned, replayable mapping must bind it to the
+model-service grant and bind other intended services separately. Existing v2
+images remain held until that mapping is verified. The 19h order also places
+Forwarder route preparation before Receiver effect-intent commit, while
+requiring that commit before upstream admission or write.
+
 ## Authority and non-negotiable policy
 
 The accepted policy comes from ADR 0012 and ticket 21:

@@ -221,7 +221,20 @@ and distinguishes Forwarder pre-L1 denial from a consumed but unwritten
 permit. Independent Standards and Spec document reviews pass. The design
 exposes two local source gaps: v2 reservation intent only accepts an existing
 held job, and its UUID lease claim differs from the Forwarder-issued grant
-ID. Versioned first-attempt admission and explicit one-to-one lease mapping
-need implementation review. No Run/effect writer, launch, permit, native,
+ID per service. Versioned first-attempt admission and explicit
+service-specific claim-to-grant mapping need implementation review. No
+Run/effect writer, launch, permit, native,
 provider, tenant or intended-venue acceptance is claimed. This ticket stays
 open.
+
+## Local first-attempt and lease mapping design, 2026-09-25: unit 19i
+
+The [19i proposed design](../reviews/run-recovery/design-19i-first-attempt-lease-map.md)
+specifies an ordinary-capacity v3 initial reservation claim that can open a
+job without fabricating a v2 hold, while refusing another unresolved job.
+It retains v2-only replay and requires cross-version ledger event uniqueness.
+Later Run records must bind each journal service claim to one actual
+Forwarder grant; the accounting UUID has no service meaning by itself.
+Independent Standards and Spec document reviews pass. This is a reviewed
+source plan only: no v3 record, writer, reservation, grant, process or permit
+is implemented, and external accounting and runtime gates stay open.

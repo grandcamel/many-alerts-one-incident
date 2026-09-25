@@ -183,3 +183,14 @@ archive, release capacity, reserve spend or permit dispatch. The external
 opening/billing, continuity, durability, retention and venue decisions above
 remain open; native, provider, tenant, paid, venue and power-loss acceptance
 are NOT RUN. This ticket stays open.
+
+## Local first-attempt reservation contract, 2026-09-25: unit 19i
+
+The [19i proposed design](../reviews/run-recovery/design-19i-first-attempt-lease-map.md)
+keeps the first journal intent within ordinary capacity, reserves recovery
+space for confirmation, and requires cross-version uniqueness of claimed
+ledger events. Its UUID `lease_id` is only an accounting correlation claim;
+a future versioned Run mapping must bind it to an actual model-service grant.
+Independent Standards and Spec document reviews pass. No positive
+reservation or v3 writer exists. The unknown opening population and other
+external billing/continuity gates remain unresolved; this ticket stays open.
