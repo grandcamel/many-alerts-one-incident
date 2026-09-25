@@ -42,3 +42,15 @@ Accepted ADR policy remains distinct from proposed implementation choices. See t
 [cross-ticket review](../reviews/recovery-accounting-audit-integration.md).
 This planning artifact is not runtime, model, billing, tenant or venue acceptance;
 the ticket remains open for its unresolved inputs and final integration.
+
+## Local storage progress, 2026-09-24
+
+The separate Receiver-owned [18c storage gate](../reviews/receiver-journal/outcome-18c.md)
+passes local tests and independent source/spec review. It starts with unknown
+population, stores receiver-origin v1 events, and exposes no production reserve
+or launch method. Its [next-gate record](../reviews/receiver-journal/accounting-reservation-gates.md)
+names the missing authoritative opening history, provider line identity and
+coverage/lag, defensible U, continuity witness, archive/repair design and
+cross-store handshake. No synthetic marker or new directory satisfies these
+inputs. The ticket remains open; provider, native, tenant, paid, power-loss and
+dispatch acceptance are NOT RUN.
