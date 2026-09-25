@@ -44,3 +44,16 @@ Accepted ADR policy remains distinct from proposed implementation choices. See t
 [cross-ticket review](../reviews/recovery-accounting-audit-integration.md).
 This planning artifact is not runtime, model, billing, tenant or venue acceptance;
 the ticket remains open for its unresolved inputs and final integration.
+
+## Local content-free loss format, 2026-09-25: unit 39a
+
+The [39a outcome](../reviews/ticket-39/outcome-39a-loss-marker.md)
+adds a pure canonical codec for a bounded local capture-loss marker. It
+keeps missing, truncated, redacted, transport-error and unknown states
+explicit, while reserving a complete empty response for a separate future
+exchange record. Independent source reviews, 21 focused tests, Ruff and the
+full local suite (**5,665 passed, 39 skipped**) pass. This codec has no
+writer, private storage, redaction, manifest, retention, native provenance
+or human adjudication. Offline integration and every native, tenant,
+provider, venue and human acceptance gate remain open; this ticket stays
+open.
