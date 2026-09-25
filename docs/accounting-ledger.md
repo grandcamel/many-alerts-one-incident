@@ -67,7 +67,13 @@ Pure local segment and index codecs can re-derive a same-generation prefix.
 prefix with caller-supplied active rows and head, requiring byte-identical
 overlap, an immediate suffix and one replayed history. It supplies structural
 counts and a projection, never evidence that either input came from a trusted
-store. The current v1 append-only schema has no registration or compaction
+store. `LedgerStore.inspect_archive_active_view` now supplies a stopped,
+query-only, anchored v1 event image after replay and successful handle close;
+held and unverified images release no events. The
+`compare_archive_to_ledger` adapter uses exactly one such view for a local
+comparison. It holds no lock after the call, so a future registration must
+recheck the current ledger head under its own writer lock. The current v1
+append-only schema has no registration or compaction
 transition, so it cannot perform the handoff. Cross-generation replay and
 compaction remain separately gated. A local digest or off-cluster copy without
 an independent witness cannot prove continuity. No archive is registered, no

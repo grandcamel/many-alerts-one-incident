@@ -116,6 +116,17 @@ class ReservationView:
     reservations: tuple = ()
 
 
+@dataclass(frozen=True, slots=True)
+class ArchiveActiveView:
+    """Query-only stopped v1 event image; the writer lock is no longer held."""
+
+    state: str
+    code: str | None
+    head: tuple[int, str] | None = None
+    population: str | None = None
+    events: tuple[AccountingEvent, ...] = ()
+
+
 def _require(condition, code='ledger_argument'):
     if not condition:
         raise LedgerError(code)
@@ -743,6 +754,16 @@ class LedgerStore:
         )
 
     @classmethod
+    def inspect_archive_active_view(cls, directory):
+        """Release original rows only after query-only replay, anchor and close checks."""
+        report, projection = cls._inspect_verified(directory)
+        if report.state != 'ready':
+            return ArchiveActiveView(report.state, report.code)
+        return ArchiveActiveView(
+            'ready', None, report.head, projection.population, projection.events,
+        )
+
+    @classmethod
     def _inspect_verified(cls, directory):
         """Shared query-only verification; the projection never escapes a bad close."""
         lock_fd = None
@@ -805,4 +826,5 @@ class LedgerStore:
         self.close()
 
 
-__all__ = ['EventReceipt', 'Inspection', 'LedgerError', 'LedgerStore', 'ReservationView']
+__all__ = ['ArchiveActiveView', 'EventReceipt', 'Inspection', 'LedgerError',
+           'LedgerStore', 'ReservationView']

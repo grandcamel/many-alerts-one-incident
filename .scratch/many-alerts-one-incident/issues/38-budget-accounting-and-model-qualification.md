@@ -171,3 +171,15 @@ archive registration, independent witness, compaction, capacity release,
 production reservation or dispatch authority was added. Opening/billing,
 retention and intended-venue gates remain open; native, provider, tenant,
 paid, venue and power-loss acceptance are NOT RUN. This ticket stays open.
+
+## Local query-only active archive view, 2026-09-25: unit 18g4
+
+The [18g4 local outcome](../reviews/receiver-journal/outcome-18g4-active-view.md)
+adds a stopped, query-only verified v1 event view and a same-generation
+archive comparison adapter. Held, unverified and failed-close images release
+no history; independent source/spec review, focused tests and the full local
+suite pass. This comparison has no continuing lock and cannot register an
+archive, release capacity, reserve spend or permit dispatch. The external
+opening/billing, continuity, durability, retention and venue decisions above
+remain open; native, provider, tenant, paid, venue and power-loss acceptance
+are NOT RUN. This ticket stays open.

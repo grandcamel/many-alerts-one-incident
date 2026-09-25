@@ -5,10 +5,12 @@ durable active store, off-cluster copy or independent continuity witness.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from .accounting_archive_index import ArchiveIndex, ArchiveIndexError, decode_index
 from .accounting_archive_segment import ArchiveSegment
 from .accounting_events import AccountingEvent, AccountingEventError, decode_event
+from .accounting_store import LedgerStore
 from .accounting_transition import AccountingTransitionError, Projection, replay_accounting
 
 MAX_ACTIVE_EVENTS = 8192
@@ -91,4 +93,15 @@ def compare_archive_active(
     return ArchiveOverlap(projection, len(prefix), len(checked), overlap, len(suffix))
 
 
-__all__ = ['ArchiveOverlap', 'ArchiveOverlapError', 'compare_archive_active']
+def compare_archive_to_ledger(
+    directory: Path, segments: tuple[ArchiveSegment, ...], index: ArchiveIndex,
+) -> ArchiveOverlap:
+    """Compare one closed, query-only ledger image; grant no continuing lease."""
+    view = LedgerStore.inspect_archive_active_view(directory)
+    if view.state != 'ready' or view.head is None:
+        raise ArchiveOverlapError('archive_active_unverified')
+    return compare_archive_active(segments, index, view.events, active_head=view.head)
+
+
+__all__ = ['ArchiveOverlap', 'ArchiveOverlapError', 'compare_archive_active',
+           'compare_archive_to_ledger']
