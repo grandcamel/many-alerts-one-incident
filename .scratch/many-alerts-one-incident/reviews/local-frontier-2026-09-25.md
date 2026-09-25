@@ -53,6 +53,10 @@ OPS candidates and incomplete pages, never a Run permit. Subsequent candidate un
 telemetry, Memory, Confluence and audience contracts after source review.
 Each needs its own plan, tests and review. No synthetic claim may become a
 positive reservation, effect, clean audit, qualified Report or live Change.
+The 35b source check adds a specific telemetry identity gate: current durable
+Receiver admission commits only a Notification. It has no Run or rehearsal ID,
+so no admission receipt can enter the shared Run feed or invoke the 35a per-Run
+gap codec before a reviewed trusted handoff and read-scope owner exist.
 Keep every externally gated ticket open and label native/provider/paid/tenant/
 venue/human acceptance **NOT RUN**. This record is not a completion verdict.
 

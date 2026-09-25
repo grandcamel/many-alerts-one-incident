@@ -31,9 +31,20 @@ allowlisting collector boundary. Unsupported or unknown native fields are
 omitted with a visible loss marker; they are never passed through unfiltered.
 If the collector cannot prove this, the affected native feed stays disabled.
 
-The Receiver projection is the canonical Run telemetry source. At durable
-admission it allocates a `projection_generation`; each process then uses an
-in-memory monotonic `projection_seq` and `projected_event_id` before enqueueing.
+The Receiver projection is the canonical Run telemetry source. Its current
+journaled front door commits a **Notification** admission only: its receipt has
+an admission ID, but no Run ID, rehearsal ID or telemetry generation. A separate
+trusted handoff must bind that admission to a validated rehearsal and either a
+Receiver-owned Run ID or an explicit unassigned state before a shared record is
+staged. Journal generation is not telemetry generation, and the legacy
+one-notification/one-Run launcher is not that handoff. Once the handoff exists,
+the projection allocates its own `projection_generation`; each process then
+uses an in-memory monotonic `projection_seq` and `projected_event_id` before
+enqueueing. A rehearsal-unbound receipt remains durable journal evidence, not
+a Run telemetry event or an exportable record. A rehearsal-bound Notification
+with no Run can retain `run_id=null` only under a separately specified
+operator-only read scope; it is excluded from every Run read and must not be
+silently assigned to a Run.
 No per-event disk write or persistent telemetry spool is required. A restart
 allocates a new generation and emits an explicit gap before another event. A native
 `session.id` is mapped to the Receiver `run_id` only by an explicit mapping
@@ -97,7 +108,7 @@ resource labels such as `service.instance.id` and `k8s.pod.name`.
 | `api_request` | model label, request outcome, duration, retry count, usage state, usage reference | Native event or Receiver terminal, never both for one displayed measure |
 | `api_error` / `api_refusal` | bounded error category, HTTP status when present, retry state | Native event, sanitized category only |
 | `tool_result` | bounded tool category, success state, duration, tool-call reference | Receiver/native allowlist |
-| `notification_admitted` | source-group reference, admission state | Receiver / ticket 37 |
+| `notification_admitted` | admission ID, source-group reference, admission state and explicit Run/unassigned binding | Receiver / ticket 37 after trusted rehearsal binding; unassigned is operator-only |
 | `incident_touched` | Incident key, observed operation/effect state | Receiver / ticket 37; not candidate-read evidence |
 | `usage_observed` | measure ID, scope, coverage, units, value or `unknown`, source reference | One selected usage source |
 
@@ -166,8 +177,12 @@ overflow_count}`. IDs are capped at 256; overflow sets a nonzero count and
 truncation is never silent. Native-only records may set associations to null and
 must link through the Receiver mapping before appearing in a Run view. Empty
 known arrays mean observed zero; unknown means the association query was
-unavailable or incomplete. The Receiver records every admitted Notification and
-every touched Incident, including many-to-one and one-to-many relationships. A
+unavailable or incomplete. The durable Receiver journal records every admitted
+Notification. Its telemetry projection may represent each one only after a
+trusted rehearsal binding, with the Run association explicitly known or
+unassigned; until then it remains unexported. The projection also records every
+touched Incident once its effect owner supplies the verified association,
+including many-to-one and one-to-many relationships. A
 candidate read or asserted Match is not an Incident association.
 
 Ticket-37 `attempt_id`, `operation_id`, `intent_id`, `effect_id`, and recovery
@@ -211,6 +226,11 @@ sequence range and reason. When the loss-marker budget saturates, emit one
 terminal `loss_overflow` marker and mark the feed incomplete; never silently
 claim delivery. No persistent spool means restart or process kill makes
 unconfirmed records `delivery_unknown`, not delivered or absent.
+These bounds apply only after the trusted rehearsal/Run handoff. A queue over
+the current unbound admission receipts could be an internal best-effort staging
+experiment, but cannot issue a Run event or the 35a per-Run gap record; that
+codec requires a validated Run and rehearsal ID. No such queue is installed by
+this specification.
 
 Exact retry duplicates with the same `projected_event_id` and digest are accepted
 idempotently by a bounded transport/query dedup layer; conflicting duplicates

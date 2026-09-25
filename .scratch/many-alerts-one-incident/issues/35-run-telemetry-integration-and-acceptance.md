@@ -45,3 +45,13 @@ full local suite (**5,685 passed, 39 skipped**) pass. It has no trusted
 Receiver caller, queue, transport, native source, retention or audience
 binding. Native, provider, paid, tenant, venue and human acceptance are
 **NOT RUN**; this ticket stays open.
+
+## Admission identity handoff, 2026-09-25: unit 35b
+
+The [35b source-contract correction](../reviews/ticket-35/outcome-35b-identity-handoff.md)
+removes an assumed Run/rehearsal identity from the current journaled
+Notification admission. A trusted handoff and read-scope rule are required
+before admission receipts can become shared Run telemetry. The 35a codec has
+no caller here. This documentation unit changes no runtime behavior; native,
+provider, paid, tenant, venue and human acceptance are **NOT RUN**. The ticket
+remains open.
