@@ -67,3 +67,15 @@ source reviews, 27 focused tests, Ruff and the full local suite (**5,722
 passed, 39 skipped**) pass. It does not capture an exchange, retain reviewed
 response bytes, establish source provenance or perform human grading. The
 private audit integration and external acceptance gates remain open.
+
+## Local exchange candidate precheck, 2026-09-25: unit 39b
+
+The [39b outcome](../reviews/ticket-39/outcome-39b-exchange-candidate.md)
+checks claimed request/response states against canonical 39a loss markers,
+including unique loss identities and an explicit empty/missing distinction.
+Every result is `capture_unverified`. Independent Standards and Spec source
+reviews, 48 focused 39a/39b tests, Ruff and the full local suite (**5,773
+passed, 39 skipped**) pass. No trusted exchange writer, returned response
+body, redaction, storage, retention or human grade exists; native, provider,
+paid, tenant, venue and human acceptance are **NOT RUN**. This ticket stays
+open.
