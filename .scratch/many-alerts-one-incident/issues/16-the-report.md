@@ -68,3 +68,16 @@ request, retrieval, revision and uncertain-effect boundaries. This is planning
 work, not an accepted replacement ADR, changed tool permission, or runtime
 acceptance. The ticket remains open for its unresolved inputs and final review.
 No provider-blocked C2 retry or live request was performed.
+
+## Local ADF byte preflight, 2026-09-25: unit 16a
+
+The [16a outcome](../reviews/ticket-16/outcome-16a-adf-preflight.md)
+adds a pure canonical ADF serializer and preflight for the proposal's
+synthetic heading/paragraph/text subset. It measures final UTF-8 bytes and
+retains an external digest; it has no Jira dispatch or Report authority.
+Independent source reviews, 41 focused ADF/architecture tests, Ruff and the
+full local suite (**5,644 passed, 39 skipped**) pass. The seven-section
+builder, citations, immutable revision custody, bounded native transport,
+tenant permission/effect read-back and human review remain open. Native,
+provider, paid, tenant, venue and human acceptance are **NOT RUN**; this
+ticket stays open.
