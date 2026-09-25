@@ -148,3 +148,14 @@ suite pass. This does not create a registered archive, duplicate index,
 independent witness, reservation or dispatch authority. The external evidence
 and durability decisions above remain open; provider, native, tenant, paid,
 venue and power-loss acceptance are NOT RUN. This ticket stays open.
+
+## Local duplicate-index progress, 2026-09-25: unit 18g2
+
+The [18g2 local outcome](../reviews/receiver-journal/outcome-18g2-index.md)
+records a replay-derived, bounded cumulative duplicate index over verified
+same-generation v1 segments. Independent source/spec review, focused tests and
+the full local suite pass. Current v1 has no authenticated provider charge-line
+event; the index cannot invent that identity or prove complete billing. No
+archive registration, witness, compaction, production reserve or dispatch was
+added. The external decisions above and provider, native, tenant, paid, venue
+and power-loss acceptance remain open. This ticket stays open.
