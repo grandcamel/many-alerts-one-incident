@@ -93,3 +93,15 @@ Run/effect lifecycle still requires the durable ticket-38 reservation seam.
 The next design starts with a pure accounting-policy prerequisite, without
 launch authority or a no-reservation profile. Accounting, reset, retention,
 reconstruction and other operator controls remain open. This ticket stays open.
+
+## Local implementation progress, 2026-09-24: unit 19a
+
+Unit [19a](../reviews/run-recovery/outcome-19a.md) adds a pure execution-outcome
+classifier for bounded, sanitized process and terminal facts. It preserves
+ADR 0012 precedence and reports missing usage as unknown. It has no application
+caller and no effect, billing, reservation or launch authority. Independent
+Standards and Spec source reviews found no remaining concrete blocker after a
+conflicting-success-reason regression was added. The full local suite passed
+5183 tests with 39 skipped. Versioned journal Run/effect records and replay,
+Receiver provenance, Forwarder receipts, process containment and cross-store
+dispatch remain open. This ticket stays open.

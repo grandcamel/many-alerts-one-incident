@@ -1,0 +1,4 @@
+Command: env -u DEMO_END_TO_END -u DEMO_CONTAINER pytest -q -p no:cacheprovider
+Exit: 0
+Final pytest summary: 5183 passed, 39 skipped in 383.68s (0:06:23)
+Scope: local repository suite; no native, provider, tenant or venue run.
