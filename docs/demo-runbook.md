@@ -1,348 +1,40 @@
-# Demo runbook: Grafana Alert to OPS Incident
+# Future live demo storyboard
 
-**Archived, not executable:** the legacy Receiver/Forwarder and default
-Compose entrypoint now refuse startup under ADRs 0011–0013. The commands
-below describe the old chapter-one demo and must not be used as current Run,
-provider or OPS acceptance. For local admission-only replay, see
-[recovery-journal.md](recovery-journal.md); it starts no Run.
+Status: **design only**, 2026-09-25. This is the intended audience sequence under the accepted ADRs. It is not a command runbook or authorization to provision a venue, start a paid Run, change a tenant, or adjudicate a Report. The legacy Compose launcher is retired. Timing, model choice, billed cost, fault menu, and venue readiness are unqualified.
 
-For the presenter, to be followed cold. The demo is one Alert's lifetime: traffic stops, Grafana
-fires, a Run opens an Incident; Grafana repeats, a Run adds a trend and moves it on; traffic
-returns, Grafana resolves, a Run completes it. About four minutes from the one action to the
-Incident leaving the queue, three Runs, about $0.50.
+## Audience question
 
-Vocabulary is [CONTEXT.md](../CONTEXT.md). Every command below is run from the repo root, in a
-shell that has the Jira credential (`JIRA_SITE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`) and Docker.
+Can one investigated Fault produce many Alerts while responders receive one evidence-backed Incident, with uncertainty, recovery and cost visible instead of hidden?
 
-## The screen
+The presenter should make one approved Fault action in the intended venue. Its mechanism is recorded in repository Ground truth for later human adjudication; the Run cannot read that record. The corresponding Change may expose the triggering operator action, but it cannot tell the Run the Mechanism. The first live milestone ends with a Report and an Incident containing the accepted Alert members. Memory and Change are additional scenes only after their own authority gates pass.
 
-One screen, three windows, arranged before anyone is watching. Left column is what the machine
-does; right column is what the audience believes.
+## Proposed screen and sequence
 
-| Window | Where | What it shows |
-| --- | --- | --- |
-| Top left: **Grafana** | <http://localhost:3000/alerting/list?search=rolldice> | The one rule, `rolldice request rate is zero`, and its state: Normal, Pending, Firing. No login |
-| Bottom left: **container log** | a terminal running `docker compose logs -f demo` | Every Run as it happens: its reasoning, every `jira-as` command in full, every `forwarded` line, any `[DENIED]` |
-| Right: **OPS Incidents queue** | `https://<your-site>.atlassian.net/jira/servicedesk/projects/OPS/queues/custom/<queue-id>` | The Incident appearing, changing status, and leaving |
-| Hidden: **presenter shell** | a second terminal, repo root | The two commands the presenter types. Keep it out of the projected area or the audience reads ahead |
-
-`<your-site>` and `<queue-id>` are yours to fill in: open the OPS project's **Queues**, click
-**Incidents**, and the address bar has both. The queue id is that queue's own and differs on
-every site, so bookmark the address the day before rather than typing it live.
-
-Reload the queue and the Grafana list by hand when the log says a Run has finished. Neither
-refreshes fast enough on its own to be trusted during the demo.
-
-Have two more tabs ready but not shown: [`skill/incident-sync/SKILL.md`](../skill/incident-sync/SKILL.md)
-in an editor, and the Incident itself once it exists (click it in the queue), for the comments.
-
-## On the work laptop: the corporate CA
-
-Skip this on a laptop with no intercepting proxy. On one that has one, such as Zscaler, every
-TLS connection from this machine, including from inside a container, presents a chain ending in
-the corporate root CA, and nothing trusts it until it is told to: the build's `npm` and `pip`
-installs, the Forwarder's calls to Atlassian, a Run's calls to Anthropic, and the shell's own
-`jira-as`. Four things, done once, the morning of.
-
-1. **Export the corporate root CA as PEM into `certs/`.** Git ignores everything in that
-   directory except the empty placeholder, so the certificate cannot be committed. On macOS,
-   Keychain Access, System keychain, find the corporate root, File, Export Items, format
-   Privacy Enhanced Mail; or from the shell, with the certificate's name as the keychain shows it:
-
-    ```bash
-    security find-certificate -c "Corporate Root CA" -p /Library/Keychains/System.keychain > certs/corporate-root.crt
-    ```
-
-    On Windows, `certmgr.msc`, Trusted Root Certification Authorities, export as Base-64
-    encoded X.509. Then read it back; it must print a subject and a fingerprint:
-
-    ```bash
-    openssl x509 -in certs/corporate-root.crt -noout -subject -fingerprint -sha256
-    ```
-
-    `unable to load certificate` means the export was DER, not PEM: convert it with
-    `openssl x509 -inform der -in exported.cer -out certs/corporate-root.crt`. Only PEM works;
-    the build stops with `EXTRA_CA_CERT is not a PEM certificate` on anything else.
-
-2. **Name it for the build.** One variable, read by both images this repo builds; the
-   certificate goes into each image's system trust store before any install, and the demo
-   image points Python, `requests`, pip and Claude Code at that store, which every Run inherits:
-
-    ```bash
-    export EXTRA_CA_CERT=certs/corporate-root.crt
-    ```
-
-    Then the usual `docker compose up -d --build`. Unset, the build uses the committed
-    placeholder and is the same build as on the personal laptop. Export it in the shell rather
-    than typing it per command, because the pre-demo check in step 4 reads the same variable.
-
-3. **Tell the shell's own `jira-as` the same.** The reset and the end-to-end check call
-   `jira-as` from this shell, not from the container, and it uses the `requests` library:
-
-    ```bash
-    export REQUESTS_CA_BUNDLE=certs/corporate-root.crt
-    ```
-
-    That replaces the bundle rather than adding to it, which is right when every connection
-    goes through the proxy. If some hosts bypass it, hand `requests` both:
-    `cat "$(python3 -c 'import certifi; print(certifi.where())')" certs/corporate-root.crt > certs/bundle.pem`
-    and name `certs/bundle.pem` instead.
-
-4. **Check the certificate is really in the running container.** After the stack is up, with
-   `EXTRA_CA_CERT` still exported: the opt-in container checks find the certificate's
-   fingerprint in the container's bundle and confirm Python's default SSL context loads it.
-   They fail on purpose if the shell names a certificate the container was not built with, or
-   names none when it was:
-
-    ```bash
-    DEMO_CONTAINER=1 python3 -m pytest tests/test_container.py -q
-    ```
-
-    The one-line glance, which prints `extra-ca.crt` after a build with a certificate and
-    nothing after one without:
-
-    ```bash
-    docker compose exec -T demo ls /usr/local/share/ca-certificates
-    ```
-
-**Docker Desktop pulls are outside this repo.** The base images (`node`, `python`,
-`grafana/otel-lgtm`, `alpine`) are pulled by Docker Desktop's own daemon, which must trust the
-corporate CA itself; on macOS it reads the system keychain. A pull that fails with `x509:
-certificate signed by unknown authority` is a Docker Desktop setting, not anything here. Pull
-the four images the day before, on any network that lets you, and the build touches Docker Hub
-no further.
-
-## Fifteen minutes before: pre-demo checks
-
-Run them in this order. Every one must pass before the audience arrives; none takes more than a
-minute except the first.
-
-1. **Stack up.** `docker compose ps` shows four services running and `demo` healthy. If not:
-
-    ```bash
-    docker compose up -d --build
-    ```
-
-    A cold build pulls nothing new when the images are already on this machine; it has been
-    known to hang for minutes on a Docker Hub pull if they are not. Start early.
-
-2. **Health green.**
-
-    ```bash
-    curl -fsS http://localhost:8080/health
-    ```
-
-    Prints `ok`. Anything else: `docker compose logs demo` names the variable that is missing
-    from `.env`.
-
-3. **Queue empty, traffic flowing.** The reset closes every open Incident a rehearsal left
-   behind and starts the traffic service:
-
-    ```bash
-    python3 -m grafana_jsm_sandbox.reset
-    ```
-
-    Prints one line per Incident it closed or left alone, then `queue is empty` and exit 0
-    when nothing is left in the Incidents queue. Any key it names is a human's: an open
-    Incident in a status a Run never uses, or without an `fp-` label, finished in the Jira UI;
-    or a done Incident with no resolution, which only deletion removes from the queue and
-    which it prints the delete command for. See
-    [Reset](#reset-between-takes-or-after-a-bad-one) for what it does and does not do.
-
-4. **Grafana provisioned, the rule Normal, the boundary in place.** The opt-in checks ask the
-   running Grafana what it was actually given, and the running container's kernel what it
-   enforces: who the process is, no capability left, a write refused on the root filesystem
-   and accepted on each tmpfs, and the process, memory and CPU limits the compose file declares:
-
-    ```bash
-    DEMO_CONTAINER=1 python3 -m pytest tests/test_grafana.py tests/test_container.py -q
-    ```
-
-    All pass. On the work laptop, `EXTRA_CA_CERT` must still name the certificate the image
-    was built with (see above). The rule check needs the traffic to have been flowing for a
-    minute, so run it after step 3, not before. If a provisioning file was edited since the stack came up, Grafana has
-    not seen it: `docker compose restart lgtm`, wait a minute, rerun.
-
-    A limit check that fails with `Compose <version> did not apply it` means Docker Desktop's
-    Compose is older than the key: `pids_limit` needs Compose 2.2, `cpus` needs 2.17, and a
-    current Docker Desktop has both. Do not present a limit the kernel is not enforcing. The
-    stopgap puts both on the running container until it is next recreated; then rerun the check:
-
-    ```bash
-    docker update --pids-limit 256 --cpus 2 "$(docker compose ps -q demo)"
-    ```
-
-5. **Eyes.** Grafana's list shows the rule **Normal**. The Incidents queue shows nothing a Run
-   made. The log's last lines are a `receiver listening` or a finished Run, not a Run in
-   progress. Nothing else is posting at the Receiver: no replay, no end-to-end test in another
-   shell.
-
-**If the reset names an Incident as stuck.** A `Canceled` or `Closed` Incident with no
-resolution stays in the queue, because the queue filters on resolution and no transition on
-this workflow can give it one afterwards (ADR 0004). Nothing but deletion removes it, one key at
-a time, and the reset never deletes; that is the presenter's call. The six probes from the day
-the workflow was mapped were exactly this and were deleted on 2026-09-15, so the queue starts
-empty now.
-
-```bash
-jira-as api call deleteIssue --issueIdOrKey OPS-n
-```
-
-The alternative is to project a filter instead of the queue, which needs no deletion:
-`project = OPS AND issuetype = Incident AND statusCategory != Done ORDER BY created DESC`.
-
-## The demo, step by step
-
-Times are from the one action, measured in rehearsal on this laptop (the record is at the
-bottom). Grafana's parts add up: the rate window empties, then the thirty-second pending
-period, then the next ten-second evaluation. The waits are real and worth narrating rather than
-filling.
-
-| When | Presenter does | Audience sees | Say meanwhile |
+| Scene | Audience surface | What to demonstrate | Honest stop or fallback |
 | --- | --- | --- | --- |
-| T+0:00 | In the hidden shell: `docker compose stop traffic` (returns in about a second) | Nothing yet | What just happened: the only synthetic traffic to rolldice stopped. Grafana is about to notice |
-| ~T+0:30 | Nothing | Grafana: **Pending** (reload) | The rule: request rate zero for thirty seconds, evaluated every ten. Point at the log: nothing has happened yet, because nothing has been sent |
-| ~T+1:00 | Nothing | Grafana: **Firing** (reload) | Grafana has now posted one Notification at the Receiver. The Receiver acknowledged it in milliseconds and queued one Run |
-| ~T+1:10 | Nothing | Log: `run ... started`, then `[claude]` lines, then `[tool] Bash: jira-as search jql ...`, then `forwarded GET ... upstream said 200` | Walk the log as it scrolls: it read the Notification, searched OPS for the Fingerprint label, found nothing, is creating. Every `forwarded` line is the Forwarder swapping the sentinel for the real token |
-| ~T+1:35 | Reload the queue | **OPS-n** in the queue, status Open, Sev-2, Source Monitoring systems | Open it. Summary from the alert name and instance; Description with the annotations and the generator link; the `fp-` label; the opening comment with the value. The Run took about 30s |
-| ~T+2:20 | Nothing | Log: second `run ... started` | This is the repeat: the policy resends a Firing Alert every minute. The Run finds the Match this time |
-| ~T+2:45 | Reload the Incident | A trend comment: `Still firing. value=0 (previous value=0, unchanged). Open for 1m..`; status **Work in progress** | The comment reports value, change, time open, all read off Jira's clock. First repeat moves it on; later repeats only comment |
-| ~T+2:50 | In the hidden shell: `docker compose start traffic` | Nothing yet | Traffic is back. Grafana needs one evaluation to see the rate, then sends the Resolved on the next group tick |
-| ~T+3:05 | Nothing | Grafana: **Normal**; log: third `run ... started` | The Run is closing it: one comment with total duration and Firing count, then the `Resolve` transition with resolution Done |
-| ~T+3:35 | Wait 20s, then reload the queue | Queue **empty**; the Incident is **Completed** with resolution Done | Completed, not Closed: a human closes, and Completed is the clean trigger for chapter three |
+| 1. Fault and Cascade | System telemetry and Grafana Alert list | One Fault raises distinct, correlated symptoms. Show the Notification arrival count without treating every Alert as a new Incident. | If the selected Fault or collector evidence is not qualified in the intended venue, use labelled recorded material. |
+| 2. Admission | Receiver view of sanitized records and queue/hold state | Durable acknowledgment, latest-admitted status per Fingerprint, bounded coalescing, and a stable work identity across restart. | A journal failure refuses admission; a dispatch hold stays visible. |
+| 3. Match | Candidate Incident Reports and OPS Incident | A Run weighs time-bounded candidates, cites evidence for a Match, and leaves ambiguity explicit. One Incident may accumulate several Fingerprint labels. | A suspected wrong Match or duplicate goes to human correction; the Run does not silently merge. |
+| 4. Investigation | System telemetry, sanitized Run timeline, Report revision | Every observation cites retrieved system evidence; the suggested root cause is marked as inference and judged against the hidden Mechanism by a named human. Show missing evidence as missing. | Incomplete audit or unsupported claims prevent a clean diagnostic pass. |
+| 5. Recovery and budget | Operator-only Run/effect and accounting status | Contrast a clean attempt with a held or uncertain one: confirmed OPS effects survive; retries require reconciliation and a new reservation. Show provider actuals separately from estimates and cloud spend. | Unknown opening balance, outstanding exposure, uncontained child, or uncertain mutation holds dispatch. |
+| 6. Resolve | Incident member state and final Report | Resolve only after every accepted member is Resolved and no correction remains pending. Show the final reviewed Mechanism and reproducible arithmetic. | Forced completion needs explicit human authorization and names unresolved members. |
+| 7. Learning, if qualified | Reviewed Memory audience card and Change stage | Show source/review status, a prior Incident as context, and operator action versus observed Change stage. | Pending review, stale source, missing tenant grants, or uncertain Change stage stays pending/unknown. |
 
-Whole lifecycle, stop to Completed: about three and a half minutes. Jira's search index lags a
-resolution by ten to twenty seconds, so a queue reloaded the instant the log says `finished`
-can still show the Incident. Count to twenty, then reload.
+The Report is not a magic answer: an early revision can be partial, and later Alert evidence can change it through explicit corrections. Run telemetry explains execution and gaps, not the system's cause. Memory is context, not independent confirmation. The Incident remains authoritative in OPS; local journals and cards are not replacement Incident databases.
 
-If a third `run` never starts because the repeat and the resolve landed close together, that is
-Grafana coalescing, not a failure: the Resolved Run still arrives, one group interval later.
+## Evidence gates
 
-Do not `stop traffic` again for a second take until Grafana shows Normal and the queue is empty.
-A re-fire deliberately gets a new Incident, which is the chapter two story, not a duplicate.
+| Before this scene can be live | Required evidence or decision | Current state |
+| --- | --- | --- |
+| Fault/venue | Qualified Fault menu, intended DOKS topology, current cloud allocation, protected teardown and off-cluster handoff. | Venue work is not accepted for this presentation. |
+| Paid Run | Authoritative weekly opening and billing line/adjustment identity, defensible exposure bound, durable reservation writer, current rates/limits, three representative Fault lifecycle qualification samples. | Ledger opens with unknown population and rejects reservation creation; no model is qualified. |
+| Run and effects | Authenticated service grants; one-use dispatch permit at the real Forwarder exchange; native client request/stream evidence; durable intent and receipt writer; containment/reap/read-back; restart reconciliation. | Pure and hold-only local claims exist; no guarded launch/effect path is accepted. |
+| OPS Incident | Dedicated project authority, actual field and transition read-back, candidate Match and uncertain-write reconciliation. | No tenant acceptance or mutation is claimed by this branch. |
+| Report | Trusted Eyes retrieval, private audit capture/redaction and citation links, deterministic prechecks, named human review for each revision. | Local ADF layout and prechecks are not support or causal adjudication. Ticket #19's provider-blocked path stays blocked. |
+| Memory/Confluence/Change/audience | Source identity and conditional update, effective tenant grants, reviewed curation, trusted operator identity and stage observations, audience access and revocation. | Contracts and local candidates exist; no live card, Change authority, or tenant grant is accepted. |
 
-## What to say
+These gates follow [ADRs 0006–0018](adr) and the [local evidence closeout](../.scratch/many-alerts-one-incident/reviews/local-goal-closeout-2026-09-25.md). The planned $150 model envelope and $3 reservation in ADR 0013 are policy inputs, not proof that a request has a hard billing cap or that any current spend is authorized. Cloud spend has a separate approval boundary.
 
-These are the five points the audience is there for, in the order the demo makes them
-available. Each has one thing on screen to point at.
+## Presenter preparation after gates pass
 
-**The Run can only run jira-as.** A Run is headless Claude Code in print mode with
-`--permission-mode dontAsk` and an allow list of exactly two tools: `Bash(jira-as *)` and `Read`.
-Anything else is denied without a prompt, and the denial is printed on a `[DENIED]` line in
-the log window (ADR 0003). Show the command line:
-
-```bash
-python3 -m grafana_jsm_sandbox.run_command skill
-```
-
-The live Runs have so far never tried anything off the list, so the log has shown no denial.
-The recorded Transcript in the repo has one, from a Run that was asked to `ls /etc`; render it
-if the point needs a picture:
-
-```bash
-python3 -m grafana_jsm_sandbox.log_formatter fixtures/run-transcript.jsonl
-```
-
-**The Jira token lives in the Forwarder; the Run holds a sentinel.** The real token exists in
-one process: the Receiver, and the Forwarder thread it owns, bound to the container's loopback.
-Each Run gets an environment built from scratch, not inherited: `JIRA_SITE_URL` pointing at the
-Forwarder over plain http and `JIRA_API_TOKEN` set to a random per-Run sentinel that the
-Forwarder registers when the Run starts and forgets when it ends. The only other thing it inherits
-is the container's trust store, five variables pointing at the one system bundle, so that on the
-work laptop a Run reaches Anthropic through the same proxy the build did. Every `forwarded ... upstream
-said` line in the log is the swap happening; a sentinel copied out of a Transcript is worth
-nothing afterwards (ADR 0002). Show `RunSpawner` in
-[`grafana_jsm_sandbox/run_spawner.py`](../grafana_jsm_sandbox/run_spawner.py) if asked how.
-
-**The container is the boundary, in the shape Anthropic's guide gives it.** The demo service
-runs the way Anthropic's secure-deployment guide says to run a headless agent, and the list is
-short: every capability dropped, no new privileges, a read-only root with tmpfs for the three
-directories a Run writes, a process limit, a memory and a CPU limit, all declared in the compose
-file; a non-root user, from the Dockerfile; no Docker socket; and credentials behind a proxy,
-which is the Forwarder. Say which is whose. All of those controls are the guide's, the
-Forwarder being its credential-proxy recommendation done for Jira. This repo's own are the
-image carrying nothing but Claude Code and `jira-as` (ADR 0005), the sizes of the limits, the
-sentinel the Forwarder swaps, and the `dontAsk` permission mode with its two-tool allow list,
-which the guide is explicit is a permission gate and not a boundary. Two things the guide has
-that the demo does not: a custom seccomp profile (Docker's default one is what runs) and
-`--network none`, because the Receiver must accept Grafana's Notifications and reach Jira and
-Anthropic; an egress allowlist of exactly those hosts is the next step, not what is running. The pre-demo check read every control back from the
-container's kernel; the one-liner, in the hidden shell, prints `Read-only file system` from
-inside the directory the Run user owns:
-
-```bash
-docker compose exec -T demo sh -c 'touch /app/probe'
-```
-
-**The one credential that is not masked.** Say it plainly: the Anthropic OAuth token is in the
-Run's environment, because the Run is Claude Code and that is how it authenticates. Nothing
-documented masks it. Claude Code's native sandbox credential masking is the built-in equivalent
-of the Forwarder, and it is the stretch goal, not what is running.
-
-**What comes next.** Every Incident carries its Fingerprint label from day one, so chapter two,
-grouping repeated Incidents of the same Alert under one Problem with the `is caused by` link, is
-a lookup and one link, not a matching design. Chapter three drafts the post-incident review from
-the comment history when an Incident Completes; that is why the automation stops at Completed
-and never Closes.
-
-Honest small print, if it comes up: the Description's Dashboard and Panel lines are empty
-because the rule is linked to no dashboard; the repeat's value is the same zero as the first
-Firing, so the trend reads `unchanged`; a lifecycle is three Runs and about fifty cents.
-
-## Fallback: the replay
-
-Switch to it when any of these happens. Nothing is restarted.
-
-- Grafana has not shown Pending within a minute of the stop, or Firing within two.
-- The log shows no `run ... started` within two minutes of Firing.
-- Grafana's page is down or will not load.
-
-Two commands in the hidden shell, in this order:
-
-```bash
-docker compose start traffic
-```
-
-```bash
-python3 -m grafana_jsm_sandbox.replay --receiver http://localhost:8080 --pause 45
-```
-
-Traffic first, so that if Grafana wakes up mid-replay it goes Normal and sends at most a
-Resolved, which a Run skips when the Incident is already Completed. The replay then posts the
-three Notifications Grafana sent in a real rehearsal, Firing, repeat, Resolved, forty-five
-seconds apart, and the log, the queue and the Incident do exactly what the table above says,
-minus Grafana's own state changes. It runs about two and a half minutes.
-
-The fixtures carry the real Alert's Fingerprint. If the live Firing had already opened an
-Incident before Grafana went quiet, the replayed Firing comments on it instead of opening a
-second: that is the Match working, and the demo is intact. The one thing not to do is run the
-replay while Grafana is still Firing and posting.
-
-## Reset: between takes, or after a bad one
-
-```bash
-python3 -m grafana_jsm_sandbox.reset
-```
-
-It finds every open OPS Incident carrying an `fp-` label, takes each out of the queue the only
-clean way this workflow has, `Resolve` with resolution Done and then `Close`, leaves a comment
-saying the reset did it, and then starts the traffic service so that the rule returns to Normal.
-It prints what it did per key and ends with `queue is empty` and exit 0, or names what it left:
-an `fp-` Incident with no road to Completed from where it is (`Pending`, which only a human
-uses), an open Incident with no `fp-` label, which is not a Run's and is not touched, or a done
-Incident with no resolution, which nothing but deletion can take out of the queue and which it
-prints the delete command for. It does not cancel anything: `Canceled` carries no resolution and
-stays in the queue for good (ADR 0004). It does not delete anything either.
-
-After a clean take nothing is open and the reset only starts traffic. After an abandoned take,
-run it, then wait for Grafana to show Normal before the next `stop traffic`. If a Run is still
-in progress in the log, let it finish first; a stuck one is killed by the Receiver after five
-minutes and the queue moves on.
-
-A change to a provisioning file is the one thing the reset cannot fix: `docker compose restart
-lgtm`, then a minute for Grafana to come back.
-
-## Rehearsal record
-
-See the ticket, [`.scratch/alert-to-incident-sync/issues/08-demo-runbook-and-rehearsal.md`](../.scratch/alert-to-incident-sync/issues/08-demo-runbook-and-rehearsal.md),
-for the timed run this runbook's numbers come from and the hiccups it found.
+Once the exact evidence above is accepted, write a new operational runbook against the qualified model, venue, tenant and launcher. It should pin the Fault and its hidden Mechanism, the audience surfaces and access, the clean baseline, timed observations and expected gaps, the stop/reconcile/teardown actions, and an authorized replay fallback. A complete rehearsal must use the intended API auth and venue and retain its billing, effect, audit and human-review receipts. Until then, this document is the reviewable design for that runbook.
