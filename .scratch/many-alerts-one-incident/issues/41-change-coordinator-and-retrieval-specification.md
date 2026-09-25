@@ -30,3 +30,15 @@ See the [cross-ticket integration review](../reviews/telemetry-change-reference-
 Accepted ADR policy is separate from proposed implementation choices and current
 public documentation from intended-venue or tenant evidence. The ticket remains
 open for unresolved inputs and final integration; no runtime acceptance is claimed.
+
+## Local request-screen boundary, 2026-09-25: unit 41a
+
+The [41a reviewed design](../reviews/ticket-41/design-41a-unqualified-request-screen.md)
+limits any future offline request screen to held, unqualified findings. It
+requires the full Change/request/digest tuple for exact replay and treats
+one-sided ID reuse as conflict. Independent Standards and Spec source reviews
+pass. No checker was implemented because the closed candidate grammar,
+snapshot bounds/owner, current target manifest and authenticated durable
+journal are not yet pinned. This design supplies no global action lock,
+accepted Change, stage intent, mutation or undo authority. Native, tenant,
+venue and human/operator acceptance are **NOT RUN**; this ticket stays open.
