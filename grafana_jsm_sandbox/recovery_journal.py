@@ -70,6 +70,7 @@ from .journal_reducer import (
     plan_operator_resume,
     plan_restart,
     plan_run_hold,
+    private_claims_outstanding,
     process_observation_claim_digest,
     reconciliation_observations_claim_digest,
     release_intent_claim_digest,
@@ -705,6 +706,8 @@ class RecoveryJournal:
         latch exactly as for restart, and ``resumed_this_boot`` stays None.
         """
         if "restart_recovery" not in self._projection.dispatch_holds:
+            return
+        if private_claims_outstanding(self._projection):
             return
         new_event_id = _mint_id(self._id_factory)
         if new_event_id is None:

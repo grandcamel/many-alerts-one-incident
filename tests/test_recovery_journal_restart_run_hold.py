@@ -70,7 +70,7 @@ def test_restart_hold_commits_once_and_survives_reopen_and_later_admission(tmp_p
     assert journaled_receiver.MODE == 'journaled-admission-only'
 
 
-def test_exact_retry_survives_operator_resume_but_conflicting_job_latches(tmp_path):
+def test_run_hold_blocks_v1_resume_but_exact_retry_survives(tmp_path):
     directory, clock, ids, journal, admission = _pending_journal(tmp_path)
     journal.close()
     with reopen(directory, clock, ids) as restarted:
@@ -80,17 +80,17 @@ def test_exact_retry_survives_operator_resume_but_conflicting_job_latches(tmp_pa
         directory, wall_clock=clock.wall, mono_clock=clock.mono, id_factory=ids,
         resume=ResumeRequest(token=token, operator='local-operator'),
     ) as resumed:
-        assert resumed.dispatch_holds == ()
+        assert resumed.dispatch_holds == ('restart_recovery',)
+        assert resumed.resumed_this_boot is None
+        assert [row.event_type for row in resumed._store.rows()][-1] == 'restart_recovery'
         before = resumed.snapshot()['head']
         retry = resumed.record_restart_run_hold(JOB, admission.admission_id)
         assert retry.state == 'already_recorded'
         assert retry.since_commit_seq == receipt.since_commit_seq
         assert resumed.snapshot()['head'] == before
         another = resumed.admit(source(CG2_KEY, (PC, 'firing', (('B', '2'),))))
-        before = resumed.snapshot()['head']
-        with pytest.raises(JournalError, match='run_hold_not_required'):
-            resumed.record_restart_run_hold('job-restart-3', another.admission_id)
-        assert resumed.snapshot()['head'] == before
+        assert another.decision == 'held'
+        assert resumed.dispatch_holds == ('restart_recovery',)
         assert resumed.state == 'ready'
         with pytest.raises(JournalError, match='journal_divergence'):
             resumed.record_restart_run_hold('job-restart-2', admission.admission_id)

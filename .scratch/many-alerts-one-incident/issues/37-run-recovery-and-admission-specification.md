@@ -398,3 +398,28 @@ and a prior release acknowledgment may still append. Independent Standards
 and Spec reviews and local verification pass. No action writer, stable group
 witness, actual callback, early-stop proof or clean Run was added. The
 accounting and venue gates remain open; this ticket stays open.
+
+## Local execution and reconciliation claim replay, 2026-09-25: units 19s-19u
+
+The [19s outcome](../reviews/run-recovery/outcome-19s-no-writer-execution-assessment.md)
+adds unqualified process, terminal and execution-assessment claims. The
+[19t outcome](../reviews/run-recovery/outcome-19t-no-writer-reconciliation-observation.md)
+adds bounded Jira OPS read-back claims for original-boot mutation intents;
+the [19u outcome](../reviews/run-recovery/outcome-19u-no-writer-restart-reconciliation.md)
+allows an append-only read-back claim after Receiver restart. Each remains a
+claim without a writer or effect settlement. Independent Standards and Spec
+reviews and full local suites pass through 19u (**5,624 passed, 39 skipped**).
+No child, callback, actual process/capture source or OPS state change was
+observed. This ticket stays open.
+
+## Local restart resume safety fence, 2026-09-25: unit 19v
+
+The [19v outcome](../reviews/run-recovery/outcome-19v-restart-resume-fence.md)
+prevents v1 operator resume from clearing `restart_recovery` over any later
+private reservation, Run, launch, effect or recovery claim. Pure planning,
+verified replay and real-store open agree; a stored unsafe resume fails open
+verification. Independent source reviews, 356 focused tests, Ruff and the
+full local suite (**5,628 passed, 39 skipped**) pass. There is no positive
+disposition transition or automatic release of obligations. Accounting,
+intended-venue and authenticated effect gates remain open; this ticket stays
+open.

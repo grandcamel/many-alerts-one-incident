@@ -612,6 +612,24 @@ def new_projection() -> Projection:
     return Projection()
 
 
+def private_claims_outstanding(p: Projection) -> bool:
+    """Whether v1 resume would bypass a later, unsettled local claim family.
+
+    These append-only claims have no authenticated positive disposition. Even
+    an observation reporting success or absence leaves the fence in place.
+    """
+    return any((
+        p.run_holds, p.intents, p.confirmations,
+        p.initial_intents, p.initial_confirmations,
+        p.run_intent, p.launch_claim, p.spawn_attestation,
+        p.release_intent, p.release_observation,
+        p.effect_intents, p.effect_receipts,
+        p.supervision_action_intents, p.supervision_action_results,
+        p.process_observation, p.terminal_observation, p.execution_assessment,
+        p.reconciliation_observations, p.restart_reconciliations,
+    ))
+
+
 # --- The decision function (shared by plan_admission and verify_commit) -------
 
 
@@ -898,6 +916,8 @@ def plan_ingress_refusal(
 def plan_operator_resume(
     p: Projection, *, event_id: str, stamp: Stamp, operator: str, reason: str,
 ) -> Plan | CapacityRefusal:
+    if private_claims_outstanding(p):
+        _fail_replay("replay_mismatch")
     since_commit_seq = p.dispatch_holds["restart_recovery"]
     inspected = {
         "commit_seq": p.boot_recovered.commit_seq, "event_seq": p.boot_recovered.event_seq,
@@ -2431,7 +2451,8 @@ def _verify_operator_action(p: Projection, record: Record, commit_seq: int) -> D
     data = record.data
     hold = data["hold"]
     # Replay re-checks the validator's own rule: a resume never clears a capacity hold.
-    if hold not in RESUMABLE_HOLDS or hold not in p.dispatch_holds:
+    if (hold not in RESUMABLE_HOLDS or hold not in p.dispatch_holds
+            or private_claims_outstanding(p)):
         _fail_replay("replay_mismatch")
     if data["since_commit_seq"] != p.dispatch_holds[hold]:
         _fail_replay("replay_mismatch")

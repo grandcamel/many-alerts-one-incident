@@ -284,7 +284,9 @@ three Runs and reads no journal state.
   `journal_clock_invalid`, `journal_divergence` and `journal_capacity_recovery`.
 - **Dispatch holds** leave admission running: `restart_recovery` after every
   open, and one capacity code per exhausted bound. An operator resume at open
-  clears `restart_recovery`; the capacity holds stay.
+  clears `restart_recovery` only for a v1-only prefix; the capacity holds stay.
+  A later private reservation, Run, effect or recovery claim keeps the restart
+  hold until a separately specified authenticated disposition exists.
 
 The journaled front door maps every code `admit` raises to 503 with
 `Retry-After: 10`, except `source_invalid` (500), which is a caller bug. The unit-17a codes
@@ -335,14 +337,14 @@ resumes. The steps are:
 3. **Checks.**
    - The request is validated before any file is touched, including `lock`. The token must be 64 lowercase hex characters, and `operator` and `reason` must follow the ID grammar. Otherwise the open raises `resume_invalid`.
    - After replay and before anything is written, the token is compared with the verified head. A mismatch raises `resume_stale`. That writes nothing to a journal whose WAL exists; a journal with no WAL gains an empty one from the store's connect.
-4. **Commits.** A clean open commits its `restart_recovery`, then exactly one `operator_action` in its own commit. The record is written by `operator`, belongs to the recovery class and is charged to the total region, so a resume works even after the ordinary region is exhausted. Its data holds:
+4. **Commits.** For a v1-only prefix, a clean open commits its `restart_recovery`, then exactly one `operator_action` in its own commit. If any private reservation, Run, launch, effect, supervision, execution or reconciliation claim has been recorded, the open keeps `restart_recovery` and records no resume action or receipt. A claimed success, absence or confirmation does not resolve that obligation. The v1 record is written by `operator`, belongs to the recovery class and is charged to the total region, so an eligible resume works even after the ordinary region is exhausted. Its data holds:
    - `action` (`resume`) and `rule` (`resume-at-open-v1`);
    - `hold` (`restart_recovery`) and the hold's `since_commit_seq`;
    - `inspected`: the head this boot's restart recovered, which the token matched;
    - `pending_digest`;
    - `operator` and `reason`.
 
-   Replay requires the resume to be the first commit after the restart that started its boot. It re-derives the hold, `since`, `inspected` and `pending_digest`, so nothing can be admitted between the inspected state and the resume.
+   Replay requires the resume to be the first commit after the restart that started its boot. It re-derives the hold, `since`, `inspected` and `pending_digest`, and rejects a resume after any private claim, so nothing can be admitted between the inspected state and the resume.
 5. **Effect.** Only `restart_recovery` is removed. Capacity holds stay, a durable recovery hold is never lifted, and the next open adds `restart_recovery` again.
 
 `resumed_this_boot` returns the `ResumeReceipt`. If the open ends held, the
