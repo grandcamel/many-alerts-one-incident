@@ -15,6 +15,15 @@ hard-link, malformed row or physical-head mismatch is refused. Inspect takes
 the lock and reports a verified head or a fixed reason code without appending
 an event; an absent lock file is the only file it may create.
 
+`LedgerStore.inspect_reservation_view(directory)` uses the same query-only
+verification and checked handle release. A `ready` view contains the anchored
+head, ledger identity and generation, experiment ID, `population=unknown`, and
+an empty reservation tuple. This v1 format rejects fixture genesis and every
+`reservation_created` row, so the empty tuple is verified negative evidence;
+it cannot supply a durable positive reservation fact. Held or unverified views
+release no identity, head or reservation facts. This read is one stopped-image
+observation, not a continuing lease or a reservation permit.
+
 An append replays the proposed event against the current projection while the
 writer lock is held. It commits one row, fully syncs the next anchor slot and
 reads both back before returning an `EventReceipt`. Exact event-byte retries

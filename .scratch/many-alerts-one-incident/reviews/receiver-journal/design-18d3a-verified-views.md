@@ -31,6 +31,10 @@ report remains count/digest only. An anchor lag of one commit is a mandatory
 `unverified` result with no claim facts for this view, although the existing
 inspection report can describe a later reanchor. The view never acknowledges
 or adopts a lagging anchor.
+The WAL-presence check is repeated after the store lock is taken and before
+SQLite opens, then the opened store's WAL observation is checked before facts
+are released. This closes the preflight/open disappearance window for the
+stopped-image contract.
 The view is a reading of one stopped image, not a continuing lease on it.
 
 ## Ledger view

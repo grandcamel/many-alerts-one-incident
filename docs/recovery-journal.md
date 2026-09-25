@@ -376,6 +376,18 @@ For any other verdict those fields are null and `references` is empty, even
 when a prefix verified before the finding. Inspect of a live journal fails with
 `journal_locked`.
 
+`inspect_reservation_claim_view(directory)` shares the custody preflight and
+full replay but returns immutable intent and confirmation tuples, journal
+identity, anchored head and a claim digest only when verification succeeds
+with zero anchor lag. A one-commit lag remains `ready` in the ordinary report
+because the next open can reanchor it; the claim view reports `unverified`
+without facts. The claim view checks WAL presence again after taking the
+store lock and checks the opened store's observed WAL before releasing facts.
+Held images, WAL absence, and detectable close failure also
+release no claim facts. Neither inspection appends, acknowledges, reserves or
+authorizes dispatch. Each view describes one stopped image, not a continuing
+lease or an atomic cross-store snapshot.
+
 ## Crash windows
 
 | Window | Next open |

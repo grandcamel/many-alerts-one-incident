@@ -731,7 +731,7 @@ class JournalStore:
         return cls._locked(directory, lambda store: store._create_files(genesis, journal_uuid))
 
     @classmethod
-    def open(cls, directory: Path) -> JournalStore:
+    def open(cls, directory: Path, *, require_wal: bool = False) -> JournalStore:
         if not _capability_ok():
             raise StoreError("sqlite_unsupported")
         if not isinstance(directory, Path):
@@ -742,7 +742,17 @@ class JournalStore:
         names = (DB_FILENAME, WAL_FILENAME, ANCHOR_FILENAME)
         if not any(_maybe_present(directory / name) for name in names):
             raise StoreError("journal_missing")
-        return cls._locked(directory, cls._open_steps)
+        if not require_wal:
+            return cls._locked(directory, cls._open_steps)
+
+        def inspect_step(store: JournalStore) -> None:
+            # The claim view's earlier preflight is outside the store lock.
+            # Recheck here before SQLite can recreate a missing WAL.
+            if not _maybe_present(directory / WAL_FILENAME):
+                raise StoreError("wal_absent")
+            store._open_steps()
+
+        return cls._locked(directory, inspect_step)
 
     @classmethod
     def _locked(cls, directory: Path, step: Callable[[JournalStore], None]) -> JournalStore:

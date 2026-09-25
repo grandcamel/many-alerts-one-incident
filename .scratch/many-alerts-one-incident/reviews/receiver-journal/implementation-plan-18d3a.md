@@ -13,7 +13,9 @@ remain unchanged.
    and verify-only file/anchor read-back. Held/unverified views must have no
    facts; existing `inspect_recovery_journal` report remains exact.
 2. Refactor `recovery_journal.py`'s private verify-only replay path just enough
-   to share custody and replay between the old report and new view. Keep the
+   to share custody and replay between the old report and new view. Add a
+   `journal_store.py` locked WAL-presence option for the new view, with a
+   post-open WAL observation guard and a race-injection regression. Keep the
    current report shape, error classification, lock-file exception and
    closed-handle behavior. Translate detectable close failure only in the
    new view and drop every partial fact. Run focused journal tests and Ruff

@@ -1,0 +1,4 @@
+Command: env -u DEMO_CONTAINER -u DEMO_END_TO_END pytest -q
+Result: 5260 passed, 39 skipped in 371.20s (0:06:11)
+Exit: 0
+Scope: local repository test suite; no native/provider, tenant, venue, paid or power-loss qualification.

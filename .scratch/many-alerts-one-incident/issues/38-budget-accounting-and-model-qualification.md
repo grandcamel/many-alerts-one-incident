@@ -77,3 +77,16 @@ ledger events and rollback can still create liability. The Receiver ledger
 continues to reject `reservation_created` while opening population is
 unknown. Production reserve, provider billing evidence, continuity witness,
 archive policy and dispatch gates remain open. This ticket stays open.
+
+## Local verified-view progress, 2026-09-25
+
+Unit [18d3a](../reviews/receiver-journal/outcome-18d3a.md) adds an
+independently verified, query-only v1 ledger view. It releases an anchored
+Receiver/`unknown` identity and an empty reservation tuple, and no facts on
+held or unverified images. A fixture genesis or crafted reservation row is
+rejected by replay. The companion journal view releases its claims only
+from an exact anchored head. This is negative evidence for the current store
+format, not a production reservation or a positive cross-store join.
+Independent source reviews and the full local suite pass. Opening history,
+provider identity/coverage/lag, liability U, continuity witness and
+archive/repair policy remain unresolved. The ticket stays open.

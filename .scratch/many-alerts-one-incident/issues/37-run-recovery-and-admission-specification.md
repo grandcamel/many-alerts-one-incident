@@ -129,3 +129,15 @@ authenticate the separate accounting ledger. Independent
 [source review](../reviews/receiver-journal/review-18d2-source.md) found no
 remaining blocker. There is no application writer, Run intent, dispatch
 permit, launch or Forwarder effect path. The ticket remains open.
+
+## Local verification progress, 2026-09-25: unit 18d3a
+
+Unit [18d3a](../reviews/receiver-journal/outcome-18d3a.md) adds a read-only
+journal claim view that releases replayed intent/confirmation facts only from
+an exact anchored head. It withholds facts on one-commit lag, WAL absence,
+custody/replay findings and detectable close failure; the original public
+inspection report is unchanged. A locked WAL recheck closes the observed
+preflight/open disappearance window. Independent Standards and Spec reviews
+pass; the full local suite passed 5260 tests with 39 skipped. There is no
+application writer, reservation, Run/effect record, dispatch permit or launch
+path. The ticket remains open.

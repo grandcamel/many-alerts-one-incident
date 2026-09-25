@@ -10,12 +10,14 @@ import subprocess
 import sys
 import time
 from dataclasses import replace
+from datetime import UTC, datetime
 from uuid import UUID
 
 import pytest
 
 import grafana_jsm_sandbox.accounting_store as storage
 from grafana_jsm_sandbox.accounting_events import ZERO, encode_event
+from grafana_jsm_sandbox.accounting_policy import week_for
 from grafana_jsm_sandbox.accounting_store import LedgerError, LedgerStore
 
 LEDGER = '11111111-1111-1111-1111-111111111111'
@@ -142,9 +144,18 @@ def test_committed_unanchored_tail_becomes_durable_hold(tmp_path):
         (2, BINDING, 'journal_bound', binding.raw, binding.digest),
     )
     connection.close()
+    view = LedgerStore.inspect_reservation_view(directory)
+    assert (view.state, view.code, view.head, view.reservations) == (
+        'unverified', 'ledger_tail_unverified', None, (),
+    )
     with pytest.raises(LedgerError, match='ledger_held'):
         LedgerStore.open(directory)
     assert LedgerStore.inspect(directory).code == 'tail_adopted_unreconciled'
+    held_view = LedgerStore.inspect_reservation_view(directory)
+    assert (held_view.state, held_view.code, held_view.head,
+            held_view.reservations) == (
+                'held', 'tail_adopted_unreconciled', None, (),
+            )
     raw = (directory / 'anchor').read_bytes()
     assert storage._slot_body(raw[:4096])[1]['hold'] == (
         storage._slot_body(raw[4096:])[1]['hold'])
@@ -160,8 +171,15 @@ def test_inspect_reports_verified_head_without_changing_store_files(tmp_path):
     names = ('ledger.sqlite3', 'ledger.sqlite3-wal', 'anchor')
     before = {name: (directory / name).read_bytes() for name in names}
     report = LedgerStore.inspect(directory)
+    view = LedgerStore.inspect_reservation_view(directory)
     assert (report.state, report.code, report.head) == (
         'ready', None, (1, genesis.digest))
+    assert (view.state, view.code, view.head, view.ledger_uuid,
+            view.generation, view.experiment_id, view.population,
+            view.reservations) == (
+                'ready', None, (1, genesis.digest), LEDGER, 1,
+                EXPERIMENT, 'unknown', (),
+            )
     assert {name: (directory / name).read_bytes() for name in names} == before
     assert not (directory / 'ledger.sqlite3-shm').exists()
 
@@ -190,7 +208,11 @@ def test_missing_wal_is_unverified_without_recreation(tmp_path):
     wal.unlink()
     anchor = (directory / 'anchor').read_bytes()
     report = LedgerStore.inspect(directory)
+    view = LedgerStore.inspect_reservation_view(directory)
     assert (report.state, report.code) == ('unverified', 'ledger_wal_absent')
+    assert (view.state, view.code, view.head, view.reservations) == (
+        'unverified', 'ledger_wal_absent', None, (),
+    )
     with pytest.raises(LedgerError, match='ledger_wal_absent'):
         LedgerStore.open(directory)
     assert not wal.exists()
@@ -235,6 +257,10 @@ def test_damaged_v1_anchor_is_recovery_hold_without_repair(tmp_path, change):
         raw[1024] = 1
     path.write_bytes(raw)
     before = path.read_bytes()
+    view = LedgerStore.inspect_reservation_view(directory)
+    assert (view.state, view.code, view.head, view.reservations) == (
+        'held', 'ledger_anchor_invalid', None, (),
+    )
     with pytest.raises(LedgerError, match='ledger_anchor_invalid'):
         LedgerStore.open(directory)
     assert (LedgerStore.inspect(directory).state,
@@ -279,7 +305,11 @@ def test_inspect_close_failure_is_fixed_code_and_releases_lock(tmp_path, monkeyp
     with monkeypatch.context() as patcher:
         patcher.setattr(storage, '_connect', lambda path: FailedClose(real_connect(path)))
         report = LedgerStore.inspect(directory)
+        view = LedgerStore.inspect_reservation_view(directory)
     assert (report.state, report.code) == ('unverified', 'ledger_close_failed')
+    assert (view.state, view.code, view.head, view.reservations) == (
+        'unverified', 'ledger_close_failed', None, (),
+    )
     with LedgerStore.open(directory):
         pass
 
@@ -500,6 +530,10 @@ def test_store_refuses_unowned_custody_and_linked_wal(tmp_path, monkeypatch):
         pass
     with monkeypatch.context() as patcher:
         patcher.setattr(storage.os, 'geteuid', lambda: os.getuid() + 1)
+        view = LedgerStore.inspect_reservation_view(directory)
+        assert (view.state, view.code, view.head, view.reservations) == (
+            'unverified', 'ledger_permissions', None, (),
+        )
         with pytest.raises(LedgerError, match='ledger_permissions'):
             LedgerStore.open(directory)
     os.link(directory / 'ledger.sqlite3-wal', tmp_path / 'linked-wal')
@@ -930,8 +964,65 @@ def test_fixture_genesis_copied_into_physical_store_is_refused_on_open(tmp_path)
     checksum = hashlib.sha256(b'acct.anchor.v1\0' + header + payload).digest()
     raw[:4096] = (header + payload + checksum).ljust(4096, b'\0')
     anchor_path.write_bytes(raw)
+    view = LedgerStore.inspect_reservation_view(directory)
+    assert (view.state, view.code, view.head, view.reservations) == (
+        'held', 'ledger_event_invalid', None, (),
+    )
     with pytest.raises(LedgerError, match='ledger_event_invalid'):
         LedgerStore.open(directory)
+
+
+def test_crafted_reservation_row_is_not_a_verified_store_fact(tmp_path):
+    directory = tmp_path / 'ledger'
+    genesis = receiver_genesis()
+    with LedgerStore.create(directory, genesis):
+        pass
+    week = week_for(datetime(2026, 9, 21, 12, tzinfo=UTC))
+    crafted = encode_event(
+        ledger_uuid=LEDGER, ledger_generation=1, experiment_id=EXPERIMENT,
+        sequence=2, previous_digest=genesis.digest, event_id=BINDING,
+        recorded_at_utc='2026-09-24T12:01:00.000000Z', actor_kind='receiver',
+        event_type='reservation_created', data={
+            'journal_uuid': JOURNAL, 'journal_generation': 1,
+            'admission_id': '66666666-6666-6666-6666-666666666666',
+            'intent_id': '77777777-7777-7777-7777-777777777777',
+            'intent_digest': 'a' * 64,
+            'attempt_id': '88888888-8888-8888-8888-888888888888',
+            'reservation_id': '99999999-9999-9999-9999-999999999999',
+            'run_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'lease_id': 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+            'kind': 'initial',
+            'lifecycle_id': 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+            'predecessor_id': None, 'effects_reconciled': False,
+            'profile': {
+                'model_id': 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+                'auth_id': 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+                'venue_id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+            },
+            'week': {
+                'key': week.key,
+                'start_utc': week.start_utc.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'end_utc': week.end_utc.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'timezone': week.timezone,
+            },
+            'reservation_usd_micros': 3_000_000,
+            'liability_usd_micros': 3_000_000, 'currency': 'USD',
+            'valid_until_utc': '2026-09-25T14:00:00.000000Z',
+            'policy_revision': 'accounting-v1',
+        },
+    )
+    connection = sqlite3.connect(directory / 'ledger.sqlite3', isolation_level=None)
+    connection.setconfig(sqlite3.SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, True)
+    connection.execute(
+        'INSERT INTO ledger_events '
+        '(sequence, event_id, event_type, body, event_digest) VALUES (?, ?, ?, ?, ?)',
+        (2, BINDING, 'reservation_created', crafted.raw, crafted.digest),
+    )
+    connection.close()
+    view = LedgerStore.inspect_reservation_view(directory)
+    assert (view.state, view.code, view.head, view.reservations) == (
+        'held', 'ledger_event_invalid', None, (),
+    )
 
 
 def test_physical_schema_and_format_identity_match_reviewed_v1(tmp_path):

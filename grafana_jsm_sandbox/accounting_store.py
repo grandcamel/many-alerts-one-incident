@@ -102,6 +102,20 @@ class Inspection:
     experiment_id: str | None
 
 
+@dataclass(frozen=True, slots=True)
+class ReservationView:
+    """A stopped v1 Receiver ledger's verified reservation evidence."""
+
+    state: str
+    code: str | None
+    head: tuple[int, str] | None = None
+    ledger_uuid: str | None = None
+    generation: int | None = None
+    experiment_id: str | None = None
+    population: str | None = None
+    reservations: tuple = ()
+
+
 def _require(condition, code='ledger_argument'):
     if not condition:
         raise LedgerError(code)
@@ -711,8 +725,29 @@ class LedgerStore:
     @classmethod
     def inspect(cls, directory):
         """Verify a stopped image without appending or acknowledging an event."""
+        report, _projection = cls._inspect_verified(directory)
+        return report
+
+    @classmethod
+    def inspect_reservation_view(cls, directory):
+        """Expose only facts verified by v1 replay and the exact current anchor."""
+        report, projection = cls._inspect_verified(directory)
+        if report.state != 'ready':
+            return ReservationView(report.state, report.code)
+        # _read_rows rejects every reservation_created row and fixture origin;
+        # the v1 store can therefore release only a verified empty tuple.
+        return ReservationView(
+            'ready', None, report.head, projection.ledger_uuid,
+            projection.ledger_generation, projection.experiment_id,
+            projection.population, (),
+        )
+
+    @classmethod
+    def _inspect_verified(cls, directory):
+        """Shared query-only verification; the projection never escapes a bad close."""
         lock_fd = None
         connection = None
+        projection = None
         try:
             _capability()
             _check_directory(directory)
@@ -754,8 +789,8 @@ class LedgerStore:
         finally:
             close_failed = _release_handles(connection, lock_fd)
         if close_failed:
-            return Inspection('unverified', 'ledger_close_failed', None, None, None)
-        return result
+            return Inspection('unverified', 'ledger_close_failed', None, None, None), None
+        return result, projection if result.state == 'ready' else None
 
     def close(self):
         if not self._closed:
@@ -770,4 +805,4 @@ class LedgerStore:
         self.close()
 
 
-__all__ = ['EventReceipt', 'Inspection', 'LedgerError', 'LedgerStore']
+__all__ = ['EventReceipt', 'Inspection', 'LedgerError', 'LedgerStore', 'ReservationView']

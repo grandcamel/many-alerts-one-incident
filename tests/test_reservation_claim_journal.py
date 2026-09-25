@@ -410,6 +410,15 @@ def test_committed_claim_history_reopens_and_inspects_without_permit(tmp_path):
     finally:
         store.close()
     inspected = recovery_journal.inspect_recovery_journal(directory)
+    view = recovery_journal.inspect_reservation_claim_view(directory)
+    expected = reducer.replay(history + intent.records + confirmation.records)
+    assert (view.state, view.code, view.journal_uuid, view.generation) == (
+        'ready', None, JOURNAL, 1,
+    )
+    assert view.head == expected.head
+    assert view.intents == (expected.intents[INTENT],)
+    assert view.confirmations == (expected.confirmations[INTENT],)
+    assert view.digest == reducer.reservation_claims_digest(expected)
     assert inspected.report['verdict'] == 'ready'
     claims = inspected.report['journal']['reservation_claims']
     assert claims['intents'] == 1
@@ -436,6 +445,13 @@ def test_intent_only_crash_image_reopens_as_unconfirmed_claim(tmp_path):
     finally:
         store.close()
     inspected = recovery_journal.inspect_recovery_journal(directory)
+    view = recovery_journal.inspect_reservation_claim_view(directory)
+    assert view.state == 'ready'
+    assert len(view.intents) == 1 and view.intents[0].intent_id == INTENT
+    assert view.confirmations == ()
+    assert view.digest == reducer.reservation_claims_digest(
+        reducer.replay(history + intent.records)
+    )
     assert inspected.report['verdict'] == 'ready'
     assert inspected.report['journal']['reservation_claims']['intents'] == 1
     assert inspected.report['journal']['reservation_claims']['confirmations'] == 0
@@ -457,9 +473,116 @@ def test_pre_intent_crash_image_has_no_claim(tmp_path):
     finally:
         store.close()
     inspected = recovery_journal.inspect_recovery_journal(directory)
+    view = recovery_journal.inspect_reservation_claim_view(directory)
+    assert (view.state, view.intents, view.confirmations) == ('ready', (), ())
+    assert view.digest == reducer.reservation_claims_digest(reducer.replay(history))
     assert inspected.report['verdict'] == 'ready'
     assert 'reservation_claims' not in inspected.report['journal']
     assert inspected.report['journal']['run_holds']['count'] == 1
+
+
+def test_claim_view_refuses_one_commit_anchor_lag_without_changing_old_report(tmp_path):
+    p, history, _ = admitted_and_held()
+    intent = plan_intent(p)
+    directory = tmp_path / 'journal'
+    directory.mkdir(mode=0o700)
+    store = store_module.JournalStore.create(directory, history[0], journal_uuid=JOURNAL)
+    try:
+        store.append(history[1:], sync_directory=False)
+        store._commit_sql(intent.records)  # a stopped crash image before anchor write
+    finally:
+        store.close()
+    before = {path.name: path.read_bytes() for path in directory.iterdir() if path.is_file()}
+    old = recovery_journal.inspect_recovery_journal(directory)
+    view = recovery_journal.inspect_reservation_claim_view(directory)
+    assert old.report['verdict'] == 'ready'
+    assert old.report['anchor']['lag'] == 1
+    assert (view.state, view.code, view.head, view.intents, view.digest) == (
+        'unverified', 'journal_tail_unverified', None, (), None,
+    )
+    assert {path.name: path.read_bytes() for path in directory.iterdir() if path.is_file()} == before
+
+
+def test_claim_view_wal_absence_and_detectable_close_failure_withhold_all_facts(
+    tmp_path, monkeypatch,
+):
+    _, history, _ = admitted_and_held()
+    directory = tmp_path / 'journal'
+    directory.mkdir(mode=0o700)
+    store = store_module.JournalStore.create(directory, history[0], journal_uuid=JOURNAL)
+    try:
+        store.append(history[1:], sync_directory=False)
+    finally:
+        store.close()
+    real_close = store_module.JournalStore.close
+
+    def close_then_fail(self):
+        real_close(self)
+        raise OSError('injected close fault')
+
+    with monkeypatch.context() as patcher:
+        patcher.setattr(store_module.JournalStore, 'close', close_then_fail)
+        failed = recovery_journal.inspect_reservation_claim_view(directory)
+    assert (failed.state, failed.code, failed.head, failed.digest) == (
+        'unverified', 'journal_close_failed', None, None,
+    )
+    wal = directory / store_module.WAL_FILENAME
+    wal.unlink()
+    absent = recovery_journal.inspect_reservation_claim_view(directory)
+    assert (absent.state, absent.code, absent.head, absent.intents) == (
+        'unverified', 'wal_absent', None, (),
+    )
+    assert not wal.exists()
+
+
+def test_claim_view_rechecks_wal_under_lock_after_preflight(tmp_path, monkeypatch):
+    _, history, _ = admitted_and_held()
+    directory = tmp_path / 'journal'
+    directory.mkdir(mode=0o700)
+    store = store_module.JournalStore.create(directory, history[0], journal_uuid=JOURNAL)
+    try:
+        store.append(history[1:], sync_directory=False)
+    finally:
+        store.close()
+    wal = directory / store_module.WAL_FILENAME
+    real_preflight = recovery_journal._inspect_preflight
+
+    def remove_after_preflight(path):
+        result = real_preflight(path)
+        wal.unlink()
+        return result
+
+    monkeypatch.setattr(recovery_journal, '_inspect_preflight', remove_after_preflight)
+    view = recovery_journal.inspect_reservation_claim_view(directory)
+    assert (view.state, view.code, view.head, view.intents, view.digest) == (
+        'unverified', 'wal_absent', None, (), None,
+    )
+    assert not wal.exists()
+
+
+def test_claim_view_custody_and_anchor_damage_release_no_facts(tmp_path):
+    _, history, _ = admitted_and_held()
+    directory = tmp_path / 'journal'
+    directory.mkdir(mode=0o700)
+    store = store_module.JournalStore.create(directory, history[0], journal_uuid=JOURNAL)
+    try:
+        store.append(history[1:], sync_directory=False)
+    finally:
+        store.close()
+    directory.chmod(0o755)
+    try:
+        custody = recovery_journal.inspect_reservation_claim_view(directory)
+    finally:
+        directory.chmod(0o700)
+    assert (custody.state, custody.code, custody.head, custody.intents) == (
+        'unverified', 'journal_permissions', None, (),
+    )
+    (directory / store_module.ANCHOR_FILENAME).write_bytes(b'bad anchor')
+    damaged = recovery_journal.inspect_reservation_claim_view(directory)
+    assert damaged.state == 'held'
+    assert (damaged.head, damaged.intents, damaged.confirmations, damaged.digest) == (
+        None, (), (), None,
+    )
 
 
 def test_restart_between_intent_and_confirmation_keeps_claim_held():
@@ -502,8 +625,13 @@ def test_resigned_false_intent_in_store_is_not_ready(tmp_path):
     finally:
         store.close()
     inspected = recovery_journal.inspect_recovery_journal(directory)
+    view = recovery_journal.inspect_reservation_claim_view(directory)
     assert inspected.report['verdict'] != 'ready'
     assert inspected.report['journal'] is None
+    assert view.state == 'held'
+    assert (view.head, view.intents, view.confirmations, view.digest) == (
+        None, (), (), None,
+    )
 
 
 def test_future_claim_pair_is_a_nonpersisted_process_hold():

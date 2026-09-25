@@ -46,6 +46,8 @@ from .journal_reducer import (
     JournalBounds,
     RefusalNotRecorded,
     ReplayError,
+    ReservationConfirmationClaim,
+    ReservationIntentClaim,
     apply_delta,
     dispatch_holds,
     front_door_digest,
@@ -190,6 +192,20 @@ class Inspection:
 
     report: dict
     references: frozenset[str]
+
+
+@dataclasses.dataclass(frozen=True)
+class ReservationClaimView:
+    """Facts from one fully anchored, verify-only journal replay."""
+
+    state: str
+    code: str | None
+    journal_uuid: str | None = None
+    generation: int | None = None
+    head: Head | None = None
+    intents: tuple[ReservationIntentClaim, ...] = ()
+    confirmations: tuple[ReservationConfirmationClaim, ...] = ()
+    digest: str | None = None
 
 
 def _resume_token_ok(value: object) -> bool:
@@ -1015,14 +1031,8 @@ def _ready_report(
     }
 
 
-def inspect_recovery_journal(directory: Path) -> Inspection:
-    """Verify-only: replays and checks the image exactly as a real open does,
-    but writes nothing except an absent ``lock``, and returns ``unverified``
-    without opening SQLite for a WAL-absent, full-size DB (V11; plan Deferred
-    6; critic 14). Never calls
-    ``finish_open``, ``write_anchor``, ``persist_hold``, ``plan_restart`` or
-    ``append``; the store, once opened, is always closed in a ``finally``.
-    """
+def _inspect_preflight(directory: Path) -> tuple[bool, bool]:
+    """Return WAL-absent uncertainty and prior lock absence for both inspectors."""
     if not isinstance(directory, Path):
         raise JournalError("journal_argument")
     code, unverified, lock_absent_before = None, False, False
@@ -1040,6 +1050,18 @@ def inspect_recovery_journal(directory: Path) -> Inspection:
         code = "journal_path_invalid"
     if code is not None:
         raise JournalError(code) from None
+    return unverified, lock_absent_before
+
+
+def inspect_recovery_journal(directory: Path) -> Inspection:
+    """Verify-only: replays and checks the image exactly as a real open does,
+    but writes nothing except an absent ``lock``, and returns ``unverified``
+    without opening SQLite for a WAL-absent, full-size DB (V11; plan Deferred
+    6; critic 14). Never calls
+    ``finish_open``, ``write_anchor``, ``persist_hold``, ``plan_restart`` or
+    ``append``; the store, once opened, is always closed in a ``finally``.
+    """
+    unverified, lock_absent_before = _inspect_preflight(directory)
     if unverified:
         # A WAL-absent image with a full-size DB: opening could create an
         # empty WAL and change the next restart's `wal_found` (J1 p1, p2).
@@ -1055,6 +1077,7 @@ def inspect_recovery_journal(directory: Path) -> Inspection:
     # `journal_truncated`), so opening it here creates no WAL.
 
     store = None
+    code = None
     try:
         store = JournalStore.open(directory)
     except StoreError as error:
@@ -1103,6 +1126,58 @@ def inspect_recovery_journal(directory: Path) -> Inspection:
     return Inspection(report=report, references=references)
 
 
+def inspect_reservation_claim_view(directory: Path) -> ReservationClaimView:
+    """Release replayed claims only from a closed, zero-lag verified image."""
+    preflight_code = None
+    try:
+        wal_absent, _lock_absent = _inspect_preflight(directory)
+    except JournalError as error:
+        preflight_code = error.code
+    if preflight_code is not None:
+        return ReservationClaimView("unverified", preflight_code)
+    if wal_absent:
+        return ReservationClaimView("unverified", "wal_absent")
+    store = None
+    open_code = None
+    try:
+        store = JournalStore.open(directory, require_wal=True)
+    except StoreError as error:
+        open_code = error.code
+    except OSError:
+        open_code = "journal_open_failed"
+    if open_code is not None:
+        return ReservationClaimView("unverified", open_code)
+
+    result = ReservationClaimView("unverified", "journal_tail_unverified")
+    close_failed = False
+    try:
+        candidate = new_projection()
+        finding = store.finding
+        lag = None
+        if finding is None:
+            finding, lag = _replay_finding(store, candidate)
+        if finding is not None:
+            result = ReservationClaimView("held", finding.code)
+        elif store.wal_found is None:
+            result = ReservationClaimView("unverified", "wal_absent")
+        elif lag == 0:
+            result = ReservationClaimView(
+                "ready", None, candidate.journal_uuid, candidate.generation,
+                candidate.head,
+                tuple(claim for _, claim in sorted(candidate.intents.items())),
+                tuple(claim for _, claim in sorted(candidate.confirmations.items())),
+                reservation_claims_digest(candidate),
+            )
+    finally:
+        try:
+            store.close()
+        except OSError:
+            close_failed = True
+    if close_failed:
+        return ReservationClaimView("unverified", "journal_close_failed")
+    return result
+
+
 __all__ = [
     "HOLD_SCOPES",
     "JOURNAL_ERROR_CODES",
@@ -1111,10 +1186,12 @@ __all__ = [
     "Inspection",
     "JournalError",
     "RecoveryJournal",
+    "ReservationClaimView",
     "ResumeReceipt",
     "ResumeRequest",
     "create_recovery_journal",
     "inspect_recovery_journal",
+    "inspect_reservation_claim_view",
     "new_id",
     "open_recovery_journal",
 ]
