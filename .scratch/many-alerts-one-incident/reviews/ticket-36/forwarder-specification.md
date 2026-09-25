@@ -219,25 +219,40 @@ recovery decision; the sole shorter Report path still requires NOT_DISPATCHED.
 ### Trusted dispatch permit
 
 Before any Jira/Confluence mutation or billable Anthropic request, the Forwarder
-uses the existing authenticated Receiver control connection for a bounded
-`AuthorizeDispatch` exchange. It supplies the registered lease/attempt, route,
+uses a proposed separate Receiver-owned authenticated Unix endpoint for a
+bounded `AuthorizeDispatch` exchange. The existing control session is
+Receiver-command/Forwarder-reply only and cannot carry an unsolicited reverse
+request. The exchange supplies the registered lease/attempt, route,
 canonical request digest and sanitized operation target/plan. The Receiver must
 resolve this to its admitted logical operation ID, not an ID asserted by the
 Run. If the selected native-tool adapter cannot establish that binding, hold the
 route; do not invent an identity from a successful-looking response.
 
-The Receiver commits ticket-37 intent and applicable ticket-38 exposure admission
-before returning a one-use permit bound to lease, boot/generation, attempt,
+The Receiver commits and reads back ticket-37 intent and applicable ticket-38
+exposure admission under a defined global store order, then freshly verifies
+the new journal head and current ledger reservation/exposure before returning
+a one-use permit bound to lease, boot/generation, attempt,
 operation, intent, request digest and monotonic expiry. The Forwarder consumes
-the permit atomically with its final lease check before the first possible
-upstream write. Duplicate same-operation/digest requests return recorded status;
-conflicting reuse is held. Missing/late control approval means NOT_DISPATCHED.
-A crash after intent or permit consumption holds reconciliation and never revives
-a permit. This does not promise an atomic commit with the upstream service.
+the permit at L1 admission with its final lease check, then re-verifies the
+same consumed permit, grant, route, digest, target and deadline at L2 before
+the first possible upstream byte. Duplicate same-operation/digest requests
+return recorded status, not another live permit; conflicting reuse is held.
+Missing/late approval before L1 is NOT_DISPATCHED only with trusted
+no-connect evidence and a finalized receipt. A denial after L1 but before L2
+is FAILED only with trusted zero-byte evidence and a finalized receipt;
+deadline sweep or receipt failure remains dispatch-unknown and holds. No
+post-L1 denial qualifies for the shorter Report path. A crash after intent or permit
+consumption holds reconciliation and never revives a permit. This does not
+promise an atomic commit with the upstream service. The detailed
+[19k seam](../run-recovery/design-19k-dispatch-permit-seam.md) keeps current
+permit routes closed until Receiver and accounting authority exist.
 
-Control frames are proposed <=16 KiB, one outstanding authorization per service,
+Authorization frames are proposed <=8,192 bytes, one outstanding authorization per service,
 with a five-second deadline clipped to the work lease; they carry no raw body or
-credential. Capacity comes from the existing bounded control/receipt allocation.
+credential. The separate Receiver endpoint needs its own measured connection,
+file-descriptor, buffer and pending-request allocation. Exhaustion denies and
+holds; it cannot borrow capacity from the existing opposite-direction control
+session.
 Persist only correlation and digests under ticket 37/38; private audit capture
 uses ticket 39. Final client-to-logical-operation binding remains an explicit
 acceptance gate.

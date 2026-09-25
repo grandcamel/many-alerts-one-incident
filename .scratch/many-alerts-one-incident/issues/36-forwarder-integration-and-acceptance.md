@@ -227,3 +227,13 @@ unqualified. Independent source reviews, 267 focused tests and the full
 local suite (**5,496 passed, 39 skipped**) pass. No actual Forwarder grant,
 sentinel, registration, launch, permit or native route is present. This ticket stays
 open.
+
+## Local permit-fence contract, 2026-09-25: unit 19k
+
+The [19k proposed design](../reviews/run-recovery/design-19k-dispatch-permit-seam.md)
+reconciles the Forwarder draft with the reviewed L1/L2 recovery order: consume
+once at L1, recheck at L2, and preserve distinct trusted pre-L1
+NOT_DISPATCHED and post-L1 FAILED evidence, holding on receipt ambiguity.
+Current permit routes still deny. Receiver effect
+writer, accounting qualification, logical-operation binding and native/venue
+evidence remain open; this ticket stays open.

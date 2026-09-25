@@ -295,3 +295,12 @@ and Spec source reviews, 267 focused tests, Ruff and the full local suite
 (**5,496 passed, 39 skipped**) pass. The claimed ledger head is not
 reservation evidence, and there is no writer, launch, effect or permit. External accounting and venue
 gates remain open; this ticket stays open.
+
+## Local permit-fence contract, 2026-09-25: unit 19k
+
+The [19k proposed design](../reviews/run-recovery/design-19k-dispatch-permit-seam.md)
+binds the future effect intent and one-use permit to Receiver-resolved
+operation identity, exact prepared request, grant and deadline. A Receiver
+reply cannot substitute for Forwarder L1/L2 evidence. No effect writer,
+authorization handler or positive permit is implemented; this ticket stays
+open.
