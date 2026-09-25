@@ -266,3 +266,14 @@ passed, 39 skipped**) pass. The model accepts caller-staged claims and is not
 imported by the runtime gate or exchange. It supplies no authenticated
 permit, effect writer, reservation qualification or available mutation route.
 Native and venue acceptance remain NOT RUN; this ticket stays open.
+
+## Local unqualified effect-claim replay, 2026-09-25: unit 19q
+
+The [19q outcome](../reviews/run-recovery/outcome-19q-no-writer-effect-replay.md)
+binds a claimed effect intent to a fixed route/service identity and claimed
+grant, then replays one syntactically compatible claimed Forwarder receipt.
+The reducer does not import live route state; parity is covered locally.
+Independent Standards and Spec reviews and local verification pass. This
+does not register a real grant, authorize dispatch, authenticate a receipt,
+open a mutation route or demonstrate native/venue acceptance. This ticket
+stays open.

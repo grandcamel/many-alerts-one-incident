@@ -52,6 +52,8 @@ from .journal_reducer import (
     ReservationIntentClaim,
     apply_delta,
     dispatch_holds,
+    effect_intents_claim_digest,
+    effect_receipts_claim_digest,
     front_door_digest,
     group_commits,
     initial_confirmations_digest,
@@ -103,6 +105,20 @@ def _spawn_release_claim_summary(projection: Projection) -> dict[str, object] | 
     return {
         "claimed_phase": phase, "digest": digest,
         "state": "outstanding_unqualified_launch_claim",
+    }
+
+
+def _effect_claim_summary(projection: Projection) -> dict[str, object] | None:
+    """Replay counts only; a claimed Forwarder state is not a trusted receipt."""
+    if not projection.effect_intents and not projection.effect_receipts:
+        return None
+    return {
+        "intents": len(projection.effect_intents),
+        "receipts": len(projection.effect_receipts),
+        "unmatched_intents": len(projection.effect_intents) - len(projection.effect_receipts),
+        "intents_digest": effect_intents_claim_digest(projection),
+        "receipts_digest": effect_receipts_claim_digest(projection),
+        "state": "effects_unqualified",
     }
 
 
@@ -1030,6 +1046,8 @@ class RecoveryJournal:
                     "count": 1, "digest": release_observation_claim_digest(p),
                     "state": "outstanding_unqualified_launch_claim",
                 }
+            if p.effect_intents or p.effect_receipts:
+                result["effect_claims"] = _effect_claim_summary(p)
             return result
 
     def close(self) -> None:
@@ -1181,6 +1199,8 @@ def _ready_report(
             "count": 1, "digest": release_observation_claim_digest(candidate),
             "state": "outstanding_unqualified_launch_claim",
         }
+    if candidate.effect_intents or candidate.effect_receipts:
+        journal_json["effect_claims"] = _effect_claim_summary(candidate)
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,
         "reserve": REFUSAL_RESOLVED_RESERVE,

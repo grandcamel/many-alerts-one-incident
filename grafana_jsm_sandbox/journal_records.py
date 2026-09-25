@@ -52,6 +52,7 @@ FRONT_DOOR_EVENT_TYPES = ("ingress_refusal", "operator_action")
 RUN_EVENT_TYPES_V2 = ("run_hold",)
 RUN_EVENT_TYPES_V3 = ("run_intent", "launch_claim")
 SPAWN_EVENT_TYPES_V3 = ("spawn_attestation", "release_intent", "release_observation")
+EFFECT_EVENT_TYPES_V3 = ("effect_intent", "effect_receipt")
 REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
@@ -69,6 +70,9 @@ RUN_RECORD_CLASS_V3 = MappingProxyType({
 SPAWN_RECORD_CLASS_V3 = MappingProxyType({
     "spawn_attestation": "ordinary", "release_intent": "ordinary",
     "release_observation": "recovery",
+})
+EFFECT_RECORD_CLASS_V3 = MappingProxyType({
+    "effect_intent": "ordinary", "effect_receipt": "recovery",
 })
 RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
@@ -123,6 +127,8 @@ MAX_LAUNCH_CLAIM_RECORD_BYTES = 6_144
 MAX_SPAWN_ATTESTATION_RECORD_BYTES = 4_096
 MAX_RELEASE_INTENT_RECORD_BYTES = 4_096
 MAX_RELEASE_OBSERVATION_RECORD_BYTES = 2_048
+MAX_EFFECT_INTENT_RECORD_BYTES = 4_096
+MAX_EFFECT_RECEIPT_RECORD_BYTES = 2_048
 
 # Private copies of journal_ingress/journal_source vocabulary the strict
 # refusal-summary checker needs; never imported (A12's import pin).
@@ -427,6 +433,39 @@ _RELEASE_OBSERVATION_DATA_KEYS = frozenset({
     "rule", "based_on_commit_seq", "based_on_record_digest",
     "release_intent_event_id", "release_intent_digest", "release_intent_commit_seq",
     "receiver_boot_id", "observed_us", "ack_digest", "release_observation_digest",
+})
+_EFFECT_INTENT_IDS_KEYS = frozenset({
+    "journal_uuid", "run_id", "attempt_id", "reservation_id", "operation_id",
+})
+_EFFECT_INTENT_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "release_observation_event_id", "release_observation_digest",
+    "release_observation_commit_seq", "receiver_boot_id",
+    "forwarder_generation", "service", "route_id", "grant_id", "scope_digest",
+    "flight_id", "forwarder_receipt_id", "request_digest", "target_digest",
+    "observed_us", "expires_us", "effect_intent_digest",
+})
+_EFFECT_RECEIPT_IDS_KEYS = frozenset({"run_id", "attempt_id", "operation_id"})
+_EFFECT_RECEIPT_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "effect_intent_event_id", "effect_intent_digest", "effect_intent_commit_seq",
+    "receiver_boot_id", "service", "grant_id", "flight_id",
+    "forwarder_receipt_id", "claimed_dispatch_state", "claimed_reason",
+    "finalized_receipt_digest", "observed_us", "effect_receipt_digest",
+})
+# A closed syntax copy of the current Forwarder receipt state/reason pairs.
+# It validates a claim's shape; it does not authenticate its source or facts.
+EFFECT_CLAIM_REASONS = MappingProxyType({
+    "NOT_DISPATCHED": frozenset({
+        "request_rejected", "lease_denied", "route_denied", "permit_denied",
+        "deadline", "abandoned",
+    }),
+    "FAILED": frozenset({"connect_failed", "upstream_tls_failed"}),
+    "DISPATCHED_UNKNOWN": frozenset({
+        "write_failed", "receive_failed", "malformed_response", "abandoned", "deadline",
+    }),
+    "PARTIAL": frozenset({"response_incomplete", "response_overflow"}),
+    "TRANSPORT_CONFIRMED": frozenset({"ok", "response_policy_rejected"}),
 })
 
 
@@ -991,6 +1030,58 @@ def _validate_release_observation_v3(ids: object, data: object, event_id: str) -
         _fail_record("record_field")
 
 
+def _validate_effect_intent_v3(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _EFFECT_INTENT_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    data = _require_keys(data, _EFFECT_INTENT_DATA_KEYS)
+    _require_literal(data["rule"], "effect-intent-v3", "record_unsupported")
+    for key in ("based_on_commit_seq", "release_observation_commit_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "release_observation_digest",
+                "scope_digest", "request_digest", "target_digest", "effect_intent_digest"):
+        _require_hex64(data[key])
+    _require_uuid(data["release_observation_event_id"])
+    for key in ("receiver_boot_id", "forwarder_generation", "route_id", "grant_id",
+                "flight_id", "forwarder_receipt_id"):
+        validate_id(data[key])
+    if type(data["service"]) is not str or data["service"] not in _RUN_INTENT_ALLOWED_SERVICES:
+        _fail_record("record_field")
+    observed = _require_bound_int(data["observed_us"], 0, MAX_SEQ, "record_field")
+    expiry = _require_bound_int(data["expires_us"], 0, MAX_SEQ, "record_field")
+    if expiry <= observed or len({*ids.values(), event_id,
+                                  data["release_observation_event_id"]}) != len(ids) + 2:
+        _fail_record("record_field")
+
+
+def _validate_effect_receipt_v3(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _EFFECT_RECEIPT_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    data = _require_keys(data, _EFFECT_RECEIPT_DATA_KEYS)
+    _require_literal(data["rule"], "effect-receipt-v3", "record_unsupported")
+    for key in ("based_on_commit_seq", "effect_intent_commit_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "effect_intent_digest",
+                "finalized_receipt_digest", "effect_receipt_digest"):
+        _require_hex64(data[key])
+    _require_uuid(data["effect_intent_event_id"])
+    for key in ("receiver_boot_id", "grant_id", "flight_id", "forwarder_receipt_id"):
+        validate_id(data[key])
+    if type(data["service"]) is not str or data["service"] not in _RUN_INTENT_ALLOWED_SERVICES:
+        _fail_record("record_field")
+    state, reason = data["claimed_dispatch_state"], data["claimed_reason"]
+    if type(state) is not str or type(reason) is not str or (
+        state not in EFFECT_CLAIM_REASONS or reason not in EFFECT_CLAIM_REASONS[state]
+    ):
+        _fail_record("record_field")
+    _require_bound_int(data["observed_us"], 0, MAX_SEQ, "record_field")
+    if len({*ids.values(), event_id, data["effect_intent_event_id"]}) != len(ids) + 2:
+        _fail_record("record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -1013,6 +1104,8 @@ _V3_TYPE_VALIDATORS = MappingProxyType({
     ("spawn_attestation", 3): _validate_spawn_attestation_v3,
     ("release_intent", 3): _validate_release_intent_v3,
     ("release_observation", 3): _validate_release_observation_v3,
+    ("effect_intent", 3): _validate_effect_intent_v3,
+    ("effect_receipt", 3): _validate_effect_receipt_v3,
 })
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
@@ -1036,6 +1129,8 @@ _V3_TYPE_ACTORS = MappingProxyType({
     ("spawn_attestation", 3): "receiver",
     ("release_intent", 3): "receiver",
     ("release_observation", 3): "receiver",
+    ("effect_intent", 3): "receiver",
+    ("effect_receipt", 3): "receiver",
 })
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
@@ -1152,6 +1247,8 @@ def seal(
         ("spawn_attestation", 3): MAX_SPAWN_ATTESTATION_RECORD_BYTES,
         ("release_intent", 3): MAX_RELEASE_INTENT_RECORD_BYTES,
         ("release_observation", 3): MAX_RELEASE_OBSERVATION_RECORD_BYTES,
+        ("effect_intent", 3): MAX_EFFECT_INTENT_RECORD_BYTES,
+        ("effect_receipt", 3): MAX_EFFECT_RECEIPT_RECORD_BYTES,
     }.get((draft.event_type, schema_version), MAX_RUN_HOLD_RECORD_BYTES)
     if schema_version in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
@@ -1194,6 +1291,8 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
         ("spawn_attestation", 3): MAX_SPAWN_ATTESTATION_RECORD_BYTES,
         ("release_intent", 3): MAX_RELEASE_INTENT_RECORD_BYTES,
         ("release_observation", 3): MAX_RELEASE_OBSERVATION_RECORD_BYTES,
+        ("effect_intent", 3): MAX_EFFECT_INTENT_RECORD_BYTES,
+        ("effect_receipt", 3): MAX_EFFECT_RECEIPT_RECORD_BYTES,
     }.get((envelope["event_type"], envelope["schema_version"]),
           MAX_RUN_HOLD_RECORD_BYTES)
     if envelope["schema_version"] in (2, 3) and len(body) > private_cap:
@@ -1243,11 +1342,16 @@ __all__ = [
     "DEDUPE_RESULTS",
     "DEDUPE_RULE",
     "DISPATCH_HOLD_CODES",
+    "EFFECT_CLAIM_REASONS",
+    "EFFECT_EVENT_TYPES_V3",
+    "EFFECT_RECORD_CLASS_V3",
     "EVENT_TYPES",
     "FRONT_DOOR_EVENT_TYPES",
     "IDENTITY_KEYS",
     "INGRESS_REFUSAL_CODES_V1",
     "MAX_COMMIT_RECORDS",
+    "MAX_EFFECT_INTENT_RECORD_BYTES",
+    "MAX_EFFECT_RECEIPT_RECORD_BYTES",
     "MAX_GENERATION",
     "MAX_ID_BYTES",
     "MAX_LAUNCH_CLAIM_RECORD_BYTES",

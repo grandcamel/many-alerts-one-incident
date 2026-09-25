@@ -715,6 +715,20 @@ The versioned claim tests are in `tests/test_reservation_claim_journal.py`,
 and `tests/test_spawn_release_claim_journal.py`; the full repository suite
 includes them.
 
+`tests/test_effect_claim_journal.py` covers the separate private v3
+`effect_intent` and `effect_receipt` claim family. Each intent binds one
+claimed logical operation to the current journal/Run/attempt, a claimed
+release, fixed route ID/service, grant, flight, Forwarder receipt ID and
+prepared-request/target digests. A receipt claim names exactly one intent
+and a syntactically compatible Forwarder state/reason; it does not make the
+Forwarder evidence trusted or the OPS effect confirmed. New intents use
+ordinary capacity with a 64-operation local ceiling. A receipt uses recovery
+capacity and may preserve historical evidence after a hold or deadline.
+Live and stopped inspection report intent/receipt counts, unmatched intents
+and separate digests under `effects_unqualified`. There is no application
+writer, authorization endpoint, permit, open mutation route or receipt
+reconciliation path for these records.
+
 The private v3 `spawn_attestation`, `release_intent` and
 `release_observation` records replay after a launch claim with exact
 predecessor identity, same-boot monotonic order and bounded byte charges.

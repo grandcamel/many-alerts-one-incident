@@ -377,3 +377,14 @@ clearing either. Independent source reviews, 317 focused journal regressions
 pass. There is no protected anchor, stable witness, child, release byte,
 capacity escrow, effect writer or production Run. Accounting and intended-
 venue gates remain open; this ticket stays open.
+
+## Local unqualified effect-claim replay, 2026-09-25: unit 19q
+
+The [19q outcome](../reviews/run-recovery/outcome-19q-no-writer-effect-replay.md)
+adds strict no-writer replay for bounded effect-intent and receipt claims,
+with separate ordinary/recovery capacity and stopped/live unqualified
+inspection. A historical receipt can append after a hold or deadline but
+does not clear either. Independent Standards and Spec reviews and local
+verification pass. There is no effect writer, authenticated permit, trusted
+Forwarder receipt, OPS read-back or production Run. Accounting and venue
+gates remain open; this ticket stays open.

@@ -26,6 +26,9 @@ from .forwarder_json import canonical_json, tagged_digest
 from .journal_records import (
     CAPACITY_CODES,
     DEDUPE_RULE,
+    EFFECT_CLAIM_REASONS,
+    MAX_EFFECT_INTENT_RECORD_BYTES,
+    MAX_EFFECT_RECEIPT_RECORD_BYTES,
     MAX_ID_BYTES,
     MAX_LAUNCH_CLAIM_RECORD_BYTES,
     MAX_REFUSAL_RECORDS,
@@ -92,6 +95,28 @@ RELEASE_INTENT_TAG = "rj.release-intent.v3"
 RELEASE_INTENT_STATE_TAG = "rj.release-intent-state.v3"
 RELEASE_OBSERVATION_TAG = "rj.release-observation.v3"
 RELEASE_OBSERVATION_STATE_TAG = "rj.release-observation-state.v3"
+MAX_EFFECT_CLAIMS = 64
+EFFECT_INTENT_TAG = "rj.effect-intent.v3"
+EFFECT_INTENTS_STATE_TAG = "rj.effect-intents-state.v3"
+EFFECT_RECEIPT_TAG = "rj.effect-receipt.v3"
+EFFECT_RECEIPTS_STATE_TAG = "rj.effect-receipts-state.v3"
+EFFECT_ROUTE_SERVICE_V3 = MappingProxyType({
+    "anthropic.messages": "anthropic",
+    "draft.create": "confluence", "draft.read": "confluence",
+    "draft.update": "confluence",
+    "eyes.change_query": "grafana", "eyes.run_telemetry_query": "grafana",
+    "grafana_health": "grafana",
+    "jira.comment.add": "jira", "jira.comment.get": "jira",
+    "jira.comments.list": "jira", "jira.issue.create": "jira",
+    "jira.issue.get": "jira", "jira.issue.update": "jira",
+    "jira.search": "jira", "jira.transition": "jira",
+    "logs_range": "grafana", "metrics_instant": "grafana",
+    "metrics_range": "grafana",
+    "pod_events": "kubernetes", "pod_list": "kubernetes",
+    "pod_status": "kubernetes", "service_endpoints": "kubernetes",
+    "reference.read": "confluence",
+    "trace_get": "grafana", "traces_search": "grafana",
+})
 _UUID_DASHES = frozenset({8, 13, 18, 23})
 _UUID_HEX = frozenset("0123456789abcdef")
 
@@ -286,6 +311,42 @@ class ReleaseObservationClaim:
 
 
 @dataclasses.dataclass(frozen=True)
+class EffectIntentClaim:
+    event_id: str
+    claim_digest: str
+    operation_id: str
+    run_id: str
+    attempt_id: str
+    receiver_boot_id: str
+    forwarder_generation: str
+    service: str
+    route_id: str
+    grant_id: str
+    scope_digest: str
+    flight_id: str
+    forwarder_receipt_id: str
+    request_digest: str
+    target_digest: str
+    observed_us: int
+    expires_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
+class EffectReceiptClaim:
+    event_id: str
+    claim_digest: str
+    operation_id: str
+    intent_event_id: str
+    receiver_boot_id: str
+    claimed_dispatch_state: str
+    claimed_reason: str
+    finalized_receipt_digest: str
+    observed_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -341,6 +402,8 @@ class Delta:
     spawn_attestation_add: SpawnAttestationClaim | None = None
     release_intent_add: ReleaseIntentClaim | None = None
     release_observation_add: ReleaseObservationClaim | None = None
+    effect_intent_add: EffectIntentClaim | None = None
+    effect_receipt_add: EffectReceiptClaim | None = None
 
 
 class Projection:
@@ -372,6 +435,8 @@ class Projection:
         self.spawn_attestation: SpawnAttestationClaim | None = None
         self.release_intent: ReleaseIntentClaim | None = None
         self.release_observation: ReleaseObservationClaim | None = None
+        self.effect_intents: dict[str, EffectIntentClaim] = {}
+        self.effect_receipts: dict[str, EffectReceiptClaim] = {}
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -1298,6 +1363,9 @@ def _claim_event_id_ok(p: Projection, event_id: str) -> bool:
     for claim in (p.spawn_attestation, p.release_intent, p.release_observation):
         if claim is not None:
             used.add(claim.event_id)
+    used.update(p.effect_intents)
+    used.update(claim.event_id for claim in p.effect_intents.values())
+    used.update(claim.event_id for claim in p.effect_receipts.values())
     return _canonical_uuid(event_id) and event_id not in used
 
 
@@ -1462,6 +1530,127 @@ def plan_release_observation(
     }))
 
 
+def plan_effect_intent(
+    p: Projection, *, event_id: str, operation_id: str, service: str,
+    route_id: str, grant_id: str, scope_digest: str, flight_id: str,
+    forwarder_receipt_id: str, request_digest: str, target_digest: str,
+    expires_us: int, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Record an untrusted exact-operation claim, never issue a permit."""
+    launch = _claim_pre_release(p, stamp)
+    if type(service) is not str:
+        _fail_replay("replay_mismatch")
+    released = p.release_observation
+    route_service = EFFECT_ROUTE_SERVICE_V3.get(route_id) if type(route_id) is str else None
+    grant = next((row for row in launch.grants if row[0] == service), None)
+    used_flights = {claim.flight_id for claim in p.effect_intents.values()}
+    used_receipts = {claim.forwarder_receipt_id for claim in p.effect_intents.values()}
+    if (released is None or released.receiver_boot_id != stamp.boot_id
+        or released.observed_us > stamp.mono_us
+        or not _claim_event_id_ok(p, event_id)
+        or not _canonical_uuid(operation_id)
+        or not _claim_event_id_ok(p, operation_id)
+        or operation_id == event_id
+        or route_service != service
+        or grant is None or not _safe_grant_id(grant_id)
+        or not _digest64(scope_digest)
+        or grant[3] != grant_id or grant[2] != scope_digest
+        or not _safe_grant_id(flight_id) or not _safe_grant_id(forwarder_receipt_id)
+        or flight_id == forwarder_receipt_id
+        or flight_id in used_flights or forwarder_receipt_id in used_receipts
+        or not _digest64(request_digest) or not _digest64(target_digest)
+        or type(expires_us) is not int
+        or not stamp.mono_us < expires_us <= min(launch.work_deadline_us, grant[4])):
+        _fail_replay("replay_mismatch")
+    if len(p.effect_intents) >= MAX_EFFECT_CLAIMS:
+        return CapacityRefusal(
+            "capacity_effect_claims", MAX_EFFECT_CLAIMS, len(p.effect_intents), 1,
+        )
+    ids = {
+        "journal_uuid": launch.journal_uuid, "run_id": launch.run_id,
+        "attempt_id": launch.attempt_id, "reservation_id": launch.reservation_id,
+        "operation_id": operation_id,
+    }
+    data = {
+        "rule": "effect-intent-v3", "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "release_observation_event_id": released.event_id,
+        "release_observation_digest": released.claim_digest,
+        "release_observation_commit_seq": released.committed_at_seq,
+        "receiver_boot_id": p.boot_id,
+        "forwarder_generation": launch.forwarder_generation,
+        "service": service, "route_id": route_id, "grant_id": grant_id,
+        "scope_digest": scope_digest, "flight_id": flight_id,
+        "forwarder_receipt_id": forwarder_receipt_id,
+        "request_digest": request_digest, "target_digest": target_digest,
+        "observed_us": stamp.mono_us, "expires_us": expires_us,
+    }
+    data["effect_intent_digest"] = tagged_digest(
+        EFFECT_INTENT_TAG, {"event_id": event_id, "ids": ids, "data": data},
+    )
+    record = seal(Draft(event_id, "effect_intent", "receiver", ids, data),
+                  _single_position(p), stamp, schema_version=3)
+    if len(record.body) > MAX_EFFECT_INTENT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.ordinary_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.ordinary_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "effects_unqualified", "operation_id": operation_id,
+    }))
+
+
+def plan_effect_receipt(
+    p: Projection, *, event_id: str, operation_id: str,
+    claimed_dispatch_state: str, claimed_reason: str,
+    finalized_receipt_digest: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Preserve an untrusted finalized-receipt claim after an exact intent."""
+    intent = p.effect_intents.get(operation_id) if type(operation_id) is str else None
+    if (p.head is None or p.bounds is None or intent is None
+        or operation_id in p.effect_receipts or not _claim_event_id_ok(p, event_id)
+        or p.boot_id != stamp.boot_id or intent.receiver_boot_id != stamp.boot_id
+        or type(stamp.mono_us) is not int
+        or not max(p.last_mono_us, intent.observed_us) <= stamp.mono_us <= MAX_SEQ
+        or type(claimed_dispatch_state) is not str
+        or type(claimed_reason) is not str
+        or claimed_dispatch_state not in EFFECT_CLAIM_REASONS
+        or claimed_reason not in EFFECT_CLAIM_REASONS[claimed_dispatch_state]
+        or not _digest64(finalized_receipt_digest)):
+        _fail_replay("replay_mismatch")
+    ids = {
+        "run_id": intent.run_id, "attempt_id": intent.attempt_id,
+        "operation_id": operation_id,
+    }
+    data = {
+        "rule": "effect-receipt-v3", "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "effect_intent_event_id": intent.event_id,
+        "effect_intent_digest": intent.claim_digest,
+        "effect_intent_commit_seq": intent.committed_at_seq,
+        "receiver_boot_id": p.boot_id, "service": intent.service,
+        "grant_id": intent.grant_id, "flight_id": intent.flight_id,
+        "forwarder_receipt_id": intent.forwarder_receipt_id,
+        "claimed_dispatch_state": claimed_dispatch_state,
+        "claimed_reason": claimed_reason,
+        "finalized_receipt_digest": finalized_receipt_digest,
+        "observed_us": stamp.mono_us,
+    }
+    data["effect_receipt_digest"] = tagged_digest(
+        EFFECT_RECEIPT_TAG, {"event_id": event_id, "ids": ids, "data": data},
+    )
+    record = seal(Draft(event_id, "effect_receipt", "receiver", ids, data),
+                  _single_position(p), stamp, schema_version=3)
+    if len(record.body) > MAX_EFFECT_RECEIPT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "effects_unqualified", "operation_id": operation_id,
+    }))
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -1493,6 +1682,10 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "release_intent"
     if types == ("release_observation",):
         return "release_observation"
+    if types == ("effect_intent",):
+        return "effect_intent"
+    if types == ("effect_receipt",):
+        return "effect_receipt"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -1913,6 +2106,8 @@ def _claim_delta(
     attestation: SpawnAttestationClaim | None = None,
     intent: ReleaseIntentClaim | None = None,
     observation: ReleaseObservationClaim | None = None,
+    effect_intent: EffectIntentClaim | None = None,
+    effect_receipt: EffectReceiptClaim | None = None,
 ) -> Delta:
     return Delta(
         head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
@@ -1922,6 +2117,7 @@ def _claim_delta(
         last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
         dispatch_hold_add=None, spawn_attestation_add=attestation,
         release_intent_add=intent, release_observation_add=observation,
+        effect_intent_add=effect_intent, effect_receipt_add=effect_receipt,
     )
 
 
@@ -1985,6 +2181,58 @@ def _verify_release_observation(p: Projection, record: Record, commit_seq: int) 
         committed_at_seq=commit_seq,
     )
     return _claim_delta(p, record, commit_seq, plan.charge, observation=claim)
+
+
+def _verify_effect_intent(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_EFFECT_INTENT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_effect_intent(
+        p, event_id=record.event_id, operation_id=record.ids["operation_id"],
+        service=data["service"], route_id=data["route_id"],
+        grant_id=data["grant_id"], scope_digest=data["scope_digest"],
+        flight_id=data["flight_id"],
+        forwarder_receipt_id=data["forwarder_receipt_id"],
+        request_digest=data["request_digest"], target_digest=data["target_digest"],
+        expires_us=data["expires_us"], stamp=record.stamp,
+    ), record)
+    claim = EffectIntentClaim(
+        event_id=record.event_id, claim_digest=data["effect_intent_digest"],
+        operation_id=record.ids["operation_id"], run_id=record.ids["run_id"],
+        attempt_id=record.ids["attempt_id"], receiver_boot_id=data["receiver_boot_id"],
+        forwarder_generation=data["forwarder_generation"],
+        service=data["service"], route_id=data["route_id"],
+        grant_id=data["grant_id"], scope_digest=data["scope_digest"],
+        flight_id=data["flight_id"],
+        forwarder_receipt_id=data["forwarder_receipt_id"],
+        request_digest=data["request_digest"], target_digest=data["target_digest"],
+        observed_us=data["observed_us"], expires_us=data["expires_us"],
+        committed_at_seq=commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, effect_intent=claim)
+
+
+def _verify_effect_receipt(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_EFFECT_RECEIPT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_effect_receipt(
+        p, event_id=record.event_id, operation_id=record.ids["operation_id"],
+        claimed_dispatch_state=data["claimed_dispatch_state"],
+        claimed_reason=data["claimed_reason"],
+        finalized_receipt_digest=data["finalized_receipt_digest"], stamp=record.stamp,
+    ), record)
+    claim = EffectReceiptClaim(
+        event_id=record.event_id, claim_digest=data["effect_receipt_digest"],
+        operation_id=record.ids["operation_id"],
+        intent_event_id=data["effect_intent_event_id"],
+        receiver_boot_id=data["receiver_boot_id"],
+        claimed_dispatch_state=data["claimed_dispatch_state"],
+        claimed_reason=data["claimed_reason"],
+        finalized_receipt_digest=data["finalized_receipt_digest"],
+        observed_us=data["observed_us"], committed_at_seq=commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, effect_receipt=claim)
 
 
 def _verify_admission_pair(
@@ -2126,6 +2374,10 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_release_intent(p, records[0], commit_seq)
     if shape == "release_observation":
         return _verify_release_observation(p, records[0], commit_seq)
+    if shape == "effect_intent":
+        return _verify_effect_intent(p, records[0], commit_seq)
+    if shape == "effect_receipt":
+        return _verify_effect_receipt(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -2189,6 +2441,12 @@ def apply_delta(p: Projection, delta: Delta) -> None:
         p.release_intent = delta.release_intent_add
     if delta.release_observation_add is not None:
         p.release_observation = delta.release_observation_add
+    if delta.effect_intent_add is not None:
+        claim = delta.effect_intent_add
+        p.effect_intents[claim.operation_id] = claim
+    if delta.effect_receipt_add is not None:
+        claim = delta.effect_receipt_add
+        p.effect_receipts[claim.operation_id] = claim
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -2323,6 +2581,16 @@ def release_observation_claim_digest(p: Projection) -> str:
     )
 
 
+def effect_intents_claim_digest(p: Projection) -> str:
+    claims = [dataclasses.asdict(claim) for _, claim in sorted(p.effect_intents.items())]
+    return tagged_digest(EFFECT_INTENTS_STATE_TAG, claims)
+
+
+def effect_receipts_claim_digest(p: Projection) -> str:
+    claims = [dataclasses.asdict(claim) for _, claim in sorted(p.effect_receipts.items())]
+    return tagged_digest(EFFECT_RECEIPTS_STATE_TAG, claims)
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -2360,10 +2628,13 @@ def front_door_digest(p: Projection) -> str:
 
 __all__ = [
     "DEFAULT_BOUNDS",
+    "EFFECT_INTENTS_STATE_TAG",
+    "EFFECT_RECEIPTS_STATE_TAG",
     "FRONT_DOOR_STATE_TAG",
     "INITIAL_CONFIRMATIONS_STATE_TAG",
     "INITIAL_INTENTS_STATE_TAG",
     "LAUNCH_CLAIM_STATE_TAG",
+    "MAX_EFFECT_CLAIMS",
     "MAX_RESERVATION_CLAIMS",
     "MAX_RUN_HOLDS",
     "RECORD_OVERHEAD_BYTES",
@@ -2376,6 +2647,8 @@ __all__ = [
     "Baseline",
     "CapacityRefusal",
     "Delta",
+    "EffectIntentClaim",
+    "EffectReceiptClaim",
     "InitialReservationIntentClaim",
     "JournalBounds",
     "LaunchClaim",
@@ -2393,6 +2666,8 @@ __all__ = [
     "SpawnAttestationClaim",
     "apply_delta",
     "dispatch_holds",
+    "effect_intents_claim_digest",
+    "effect_receipts_claim_digest",
     "front_door_digest",
     "group_commits",
     "initial_confirmations_digest",
@@ -2403,6 +2678,8 @@ __all__ = [
     "pending_entries",
     "plan_admission",
     "plan_capacity_hold",
+    "plan_effect_intent",
+    "plan_effect_receipt",
     "plan_genesis",
     "plan_ingress_refusal",
     "plan_initial_reservation_confirmation",
