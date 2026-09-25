@@ -75,6 +75,7 @@ from .journal_reducer import (
     release_intent_claim_digest,
     release_observation_claim_digest,
     reservation_claims_digest,
+    restart_reconciliations_claim_digest,
     run_holds_digest,
     run_intent_claim_digest,
     spawn_attestation_claim_digest,
@@ -176,6 +177,28 @@ def _reconciliation_claim_summary(projection: Projection) -> dict[str, object] |
         "operations": [
             {"operation_id": operation_id,
              "reported_states": [claim.reported_state for claim in claims]}
+            for operation_id, claims in sorted(observations.items())
+        ],
+    }
+
+
+def _restart_reconciliation_summary(projection: Projection) -> dict[str, object] | None:
+    observations = projection.restart_reconciliations
+    if not observations:
+        return None
+    return {
+        "state": "reconciliation_unqualified",
+        "count": sum(len(claims) for claims in observations.values()),
+        "digest": restart_reconciliations_claim_digest(projection),
+        "operations": [
+            {"operation_id": operation_id,
+             "reports": [
+                 {"receiver_boot_id": claim.receiver_boot_id,
+                  "prior_effect_boot_id": claim.prior_effect_boot_id,
+                  "restart_commit_seq": claim.restart_commit_seq,
+                  "reported_state": claim.reported_state}
+                 for claim in claims
+             ]}
             for operation_id, claims in sorted(observations.items())
         ],
     }
@@ -1113,6 +1136,8 @@ class RecoveryJournal:
                 result["execution_claims"] = _execution_claim_summary(p)
             if p.reconciliation_observations:
                 result["reconciliation_claims"] = _reconciliation_claim_summary(p)
+            if p.restart_reconciliations:
+                result["restart_reconciliation_claims"] = _restart_reconciliation_summary(p)
             return result
 
     def close(self) -> None:
@@ -1272,6 +1297,10 @@ def _ready_report(
         journal_json["execution_claims"] = _execution_claim_summary(candidate)
     if candidate.reconciliation_observations:
         journal_json["reconciliation_claims"] = _reconciliation_claim_summary(candidate)
+    if candidate.restart_reconciliations:
+        journal_json["restart_reconciliation_claims"] = (
+            _restart_reconciliation_summary(candidate)
+        )
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,
         "reserve": REFUSAL_RESOLVED_RESERVE,

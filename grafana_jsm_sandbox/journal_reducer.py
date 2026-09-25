@@ -45,6 +45,7 @@ from .journal_records import (
     MAX_REFUSAL_RECORDS,
     MAX_RELEASE_INTENT_RECORD_BYTES,
     MAX_RELEASE_OBSERVATION_RECORD_BYTES,
+    MAX_RESTART_RECONCILIATION_RECORD_BYTES,
     MAX_RUN_HOLD_RECORD_BYTES,
     MAX_RUN_INTENT_RECORD_BYTES,
     MAX_SEQ,
@@ -130,6 +131,9 @@ EXECUTION_ASSESSMENT_STATE_TAG = "rj.execution-assessment-state.v3"
 RECONCILIATION_OBSERVATION_TAG = "rj.reconciliation-observation.v3"
 RECONCILIATION_OBSERVATIONS_STATE_TAG = "rj.reconciliation-observations-state.v3"
 MAX_RECONCILIATION_PER_OPERATION = 4
+RESTART_RECONCILIATION_OBSERVATION_TAG = "rj.restart-reconciliation-observation.v3"
+RESTART_RECONCILIATION_STATE_TAG = "rj.restart-reconciliation-state.v3"
+MAX_RESTART_RECONCILIATION_PER_OPERATION = 4
 EFFECT_ROUTE_SERVICE_V3 = MappingProxyType({
     "anthropic.messages": "anthropic",
     "draft.create": "confluence", "draft.read": "confluence",
@@ -461,6 +465,26 @@ class ReconciliationObservationClaim:
 
 
 @dataclasses.dataclass(frozen=True)
+class RestartReconciliationClaim:
+    event_id: str
+    claim_digest: str
+    operation_id: str
+    intent_event_id: str
+    receiver_boot_id: str
+    prior_effect_boot_id: str
+    restart_commit_seq: int
+    restart_record_digest: str
+    observation_index: int
+    source_kind: str
+    reported_state: str
+    source_evidence_digest: str
+    target_digest: str
+    version_digest: str | None
+    observed_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -524,6 +548,7 @@ class Delta:
     terminal_observation_add: TerminalObservationClaim | None = None
     execution_assessment_add: ExecutionAssessmentClaim | None = None
     reconciliation_observation_add: ReconciliationObservationClaim | None = None
+    restart_reconciliation_add: RestartReconciliationClaim | None = None
 
 
 class Projection:
@@ -565,6 +590,9 @@ class Projection:
         self.reconciliation_observations: dict[
             str, tuple[ReconciliationObservationClaim, ...]
         ] = {}
+        self.restart_reconciliations: dict[
+            str, tuple[RestartReconciliationClaim, ...]
+        ] = {}
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -576,6 +604,7 @@ class Projection:
         # Boot fields: set only in apply_delta, from the existing genesis and
         # restart deltas.
         self.boot_start_commit_seq: int | None = None
+        self.boot_start_record_digest: str | None = None
         self.boot_recovered: Head | None = None
 
 
@@ -1503,6 +1532,8 @@ def _claim_event_id_ok(p: Projection, event_id: str) -> bool:
             used.add(claim.event_id)
     used.update(claim.event_id for claims in p.reconciliation_observations.values()
                 for claim in claims)
+    used.update(claim.event_id for claims in p.restart_reconciliations.values()
+                for claim in claims)
     return _canonical_uuid(event_id) and event_id not in used
 
 
@@ -2146,6 +2177,83 @@ def plan_reconciliation_observation(
     }))
 
 
+def plan_restart_reconciliation_observation(
+    p: Projection, *, event_id: str, operation_id: str,
+    reported_state: str, source_evidence_digest: str,
+    version_digest: str | None, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Record an untrusted new-boot read-back without reviving old authority."""
+    intent = p.effect_intents.get(operation_id) if type(operation_id) is str else None
+    launch = p.launch_claim
+    recovered = p.boot_recovered
+    source_kind = (RECONCILIATION_SOURCE_BY_ROUTE.get(intent.route_id)
+                   if intent is not None else None)
+    if (p.head is None or p.bounds is None or intent is None or launch is None
+        or recovered is None or source_kind is None
+        or p.boot_start_commit_seq is None or p.boot_start_record_digest is None
+        or "restart_recovery" not in p.dispatch_holds
+        or not _claim_event_id_ok(p, event_id)
+        or p.boot_id != stamp.boot_id or intent.receiver_boot_id == stamp.boot_id
+        or type(stamp.mono_us) is not int
+        or not p.last_mono_us <= stamp.mono_us <= MAX_SEQ
+        or intent.committed_at_seq >= p.boot_start_commit_seq
+        or recovered.commit_seq + 1 != p.boot_start_commit_seq
+        or type(reported_state) is not str
+        or reported_state not in RECONCILIATION_REPORTED_STATES
+        or not _digest64(source_evidence_digest)
+        or (reported_state in ("confirmed", "conflict")
+            and not _digest64(version_digest))
+        or (reported_state in ("absent", "unavailable")
+            and version_digest is not None)):
+        _fail_replay("replay_mismatch")
+    previous = p.restart_reconciliations.get(operation_id, ())
+    if len(previous) >= MAX_RESTART_RECONCILIATION_PER_OPERATION:
+        return CapacityRefusal(
+            "capacity_restart_reconciliation_claims",
+            MAX_RESTART_RECONCILIATION_PER_OPERATION, len(previous), 1,
+        )
+    ids = {
+        "journal_uuid": launch.journal_uuid, "run_id": launch.run_id,
+        "attempt_id": launch.attempt_id, "operation_id": operation_id,
+    }
+    data = {
+        "rule": "restart-reconciliation-observation-v3",
+        "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "launch_claim_event_id": launch.launch_claim_id,
+        "launch_claim_digest": launch.launch_claim_digest,
+        "effect_intent_event_id": intent.event_id,
+        "effect_intent_digest": intent.claim_digest,
+        "effect_intent_commit_seq": intent.committed_at_seq,
+        "receiver_boot_id": p.boot_id, "observed_us": stamp.mono_us,
+        "prior_effect_boot_id": intent.receiver_boot_id,
+        "restart_commit_seq": p.boot_start_commit_seq,
+        "restart_record_digest": p.boot_start_record_digest,
+        "recovered_commit_seq": recovered.commit_seq,
+        "recovered_event_seq": recovered.event_seq,
+        "recovered_record_digest": recovered.record_digest,
+        "observation_index": len(previous) + 1,
+        "source_kind": source_kind, "reported_state": reported_state,
+        "source_evidence_digest": source_evidence_digest,
+        "target_digest": intent.target_digest, "version_digest": version_digest,
+    }
+    data["restart_reconciliation_observation_digest"] = tagged_digest(
+        RESTART_RECONCILIATION_OBSERVATION_TAG,
+        {"event_id": event_id, "ids": ids, "data": data},
+    )
+    record = seal(Draft(
+        event_id, "restart_reconciliation_observation", "receiver", ids, data,
+    ), _single_position(p), stamp, schema_version=3)
+    if len(record.body) > MAX_RESTART_RECONCILIATION_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "reconciliation_unqualified", "operation_id": operation_id,
+    }))
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -2193,6 +2301,8 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "execution_assessment"
     if types == ("reconciliation_observation",):
         return "reconciliation_observation"
+    if types == ("restart_reconciliation_observation",):
+        return "restart_reconciliation_observation"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -2621,6 +2731,7 @@ def _claim_delta(
     terminal_observation: TerminalObservationClaim | None = None,
     execution_assessment: ExecutionAssessmentClaim | None = None,
     reconciliation_observation: ReconciliationObservationClaim | None = None,
+    restart_reconciliation: RestartReconciliationClaim | None = None,
 ) -> Delta:
     return Delta(
         head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
@@ -2637,6 +2748,7 @@ def _claim_delta(
         terminal_observation_add=terminal_observation,
         execution_assessment_add=execution_assessment,
         reconciliation_observation_add=reconciliation_observation,
+        restart_reconciliation_add=restart_reconciliation,
     )
 
 
@@ -2886,6 +2998,32 @@ def _verify_reconciliation_observation(
     )
 
 
+def _verify_restart_reconciliation_observation(
+    p: Projection, record: Record, commit_seq: int,
+) -> Delta:
+    if (record.schema_version != 3
+        or len(record.body) > MAX_RESTART_RECONCILIATION_RECORD_BYTES):
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_restart_reconciliation_observation(
+        p, event_id=record.event_id, operation_id=record.ids["operation_id"],
+        reported_state=data["reported_state"],
+        source_evidence_digest=data["source_evidence_digest"],
+        version_digest=data["version_digest"], stamp=record.stamp,
+    ), record)
+    claim = RestartReconciliationClaim(
+        record.event_id, data["restart_reconciliation_observation_digest"],
+        record.ids["operation_id"], data["effect_intent_event_id"],
+        data["receiver_boot_id"], data["prior_effect_boot_id"],
+        data["restart_commit_seq"],
+        data["restart_record_digest"], data["observation_index"],
+        data["source_kind"], data["reported_state"],
+        data["source_evidence_digest"], data["target_digest"],
+        data["version_digest"], data["observed_us"], commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, restart_reconciliation=claim)
+
+
 def _verify_admission_pair(
     p: Projection, admission: Record, dedupe: Record, commit_seq: int,
 ) -> Delta:
@@ -3041,6 +3179,8 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_execution_assessment(p, records[0], commit_seq)
     if shape == "reconciliation_observation":
         return _verify_reconciliation_observation(p, records[0], commit_seq)
+    if shape == "restart_reconciliation_observation":
+        return _verify_restart_reconciliation_observation(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -3050,6 +3190,7 @@ def apply_delta(p: Projection, delta: Delta) -> None:
         # (None at genesis), and the commit that started this boot.
         p.boot_recovered = p.head
         p.boot_start_commit_seq = delta.head.commit_seq
+        p.boot_start_record_digest = delta.head.record_digest
     p.head = delta.head
     p.generation = delta.generation
     if delta.journal_uuid is not None:
@@ -3126,6 +3267,10 @@ def apply_delta(p: Projection, delta: Delta) -> None:
         claim = delta.reconciliation_observation_add
         prior = p.reconciliation_observations.get(claim.operation_id, ())
         p.reconciliation_observations[claim.operation_id] = prior + (claim,)
+    if delta.restart_reconciliation_add is not None:
+        claim = delta.restart_reconciliation_add
+        prior = p.restart_reconciliations.get(claim.operation_id, ())
+        p.restart_reconciliations[claim.operation_id] = prior + (claim,)
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -3312,6 +3457,15 @@ def reconciliation_observations_claim_digest(p: Projection) -> str:
     return tagged_digest(RECONCILIATION_OBSERVATIONS_STATE_TAG, claims)
 
 
+def restart_reconciliations_claim_digest(p: Projection) -> str:
+    claims = [
+        dataclasses.asdict(claim)
+        for _, observations in sorted(p.restart_reconciliations.items())
+        for claim in observations
+    ]
+    return tagged_digest(RESTART_RECONCILIATION_STATE_TAG, claims)
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -3364,6 +3518,7 @@ __all__ = [
     "RELEASE_INTENT_STATE_TAG",
     "RELEASE_OBSERVATION_STATE_TAG",
     "REPLAY_ERROR_CODES",
+    "RESTART_RECONCILIATION_STATE_TAG",
     "RUN_INTENT_STATE_TAG",
     "SPAWN_ATTESTATION_STATE_TAG",
     "SUPERVISION_ACTION_INTENTS_STATE_TAG",
@@ -3388,6 +3543,7 @@ __all__ = [
     "ReplayError",
     "ReservationConfirmationClaim",
     "ReservationIntentClaim",
+    "RestartReconciliationClaim",
     "RunHold",
     "RunIntentClaim",
     "SpawnAttestationClaim",
@@ -3425,6 +3581,7 @@ __all__ = [
     "plan_reservation_confirmation",
     "plan_reservation_intent",
     "plan_restart",
+    "plan_restart_reconciliation_observation",
     "plan_run_hold",
     "plan_run_intent",
     "plan_spawn_attestation",
@@ -3438,6 +3595,7 @@ __all__ = [
     "release_observation_claim_digest",
     "replay",
     "reservation_claims_digest",
+    "restart_reconciliations_claim_digest",
     "run_holds_digest",
     "run_intent_claim_digest",
     "spawn_attestation_claim_digest",

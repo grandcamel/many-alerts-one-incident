@@ -60,6 +60,7 @@ EXECUTION_EVENT_TYPES_V3 = (
     "process_observation", "terminal_observation", "execution_assessment",
 )
 RECONCILIATION_EVENT_TYPES_V3 = ("reconciliation_observation",)
+RESTART_RECONCILIATION_EVENT_TYPES_V3 = ("restart_reconciliation_observation",)
 REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
@@ -91,6 +92,9 @@ EXECUTION_RECORD_CLASS_V3 = MappingProxyType({
 })
 RECONCILIATION_RECORD_CLASS_V3 = MappingProxyType({
     "reconciliation_observation": "recovery",
+})
+RESTART_RECONCILIATION_RECORD_CLASS_V3 = MappingProxyType({
+    "restart_reconciliation_observation": "recovery",
 })
 RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
@@ -153,6 +157,7 @@ MAX_PROCESS_OBSERVATION_RECORD_BYTES = 4_096
 MAX_TERMINAL_OBSERVATION_RECORD_BYTES = 4_096
 MAX_EXECUTION_ASSESSMENT_RECORD_BYTES = 2_048
 MAX_RECONCILIATION_OBSERVATION_RECORD_BYTES = 2_048
+MAX_RESTART_RECONCILIATION_RECORD_BYTES = 3_072
 
 # Private copies of journal_ingress/journal_source vocabulary the strict
 # refusal-summary checker needs; never imported (A12's import pin).
@@ -528,6 +533,11 @@ _RECONCILIATION_DATA_KEYS = frozenset({
     "reported_state", "source_evidence_digest", "target_digest",
     "version_digest", "reconciliation_observation_digest",
 })
+_RESTART_RECONCILIATION_DATA_KEYS = (_RECONCILIATION_DATA_KEYS | frozenset({
+    "restart_commit_seq", "restart_record_digest", "recovered_commit_seq",
+    "recovered_event_seq", "recovered_record_digest", "prior_effect_boot_id",
+    "restart_reconciliation_observation_digest",
+})) - {"reconciliation_observation_digest"}
 RECONCILIATION_SOURCE_BY_ROUTE = MappingProxyType({
     "jira.issue.create": "jira_issue_readback",
     "jira.issue.update": "jira_issue_readback",
@@ -1380,22 +1390,23 @@ def _validate_execution_assessment_v3(ids: object, data: object, event_id: str) 
         _fail_record("record_field")
 
 
-def _validate_reconciliation_observation_v3(
-    ids: object, data: object, event_id: str,
-) -> None:
+def _validate_reconciliation_common(
+    ids: object, data: object, event_id: str, keys: frozenset[str],
+    rule: str, digest_key: str,
+) -> dict:
     ids = _require_keys(ids, _RECONCILIATION_IDS_KEYS)
     for value in ids.values():
         _require_uuid(value)
     _require_uuid(event_id)
     if event_id in ids.values():
         _fail_record("record_field")
-    data = _require_keys(data, _RECONCILIATION_DATA_KEYS)
-    _require_literal(data["rule"], "reconciliation-observation-v3", "record_unsupported")
+    data = _require_keys(data, keys)
+    _require_literal(data["rule"], rule, "record_unsupported")
     for key in ("based_on_commit_seq", "effect_intent_commit_seq"):
         _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
     for key in ("based_on_record_digest", "launch_claim_digest",
                 "effect_intent_digest", "source_evidence_digest", "target_digest",
-                "reconciliation_observation_digest"):
+                digest_key):
         _require_hex64(data[key])
     for key in ("launch_claim_event_id", "effect_intent_event_id"):
         _require_uuid(data[key])
@@ -1411,6 +1422,33 @@ def _validate_reconciliation_observation_v3(
     if data["reported_state"] in ("confirmed", "conflict"):
         _require_hex64(version)
     elif version is not None:
+        _fail_record("record_field")
+    return data
+
+
+def _validate_reconciliation_observation_v3(
+    ids: object, data: object, event_id: str,
+) -> None:
+    _validate_reconciliation_common(
+        ids, data, event_id, _RECONCILIATION_DATA_KEYS,
+        "reconciliation-observation-v3", "reconciliation_observation_digest",
+    )
+
+
+def _validate_restart_reconciliation_observation_v3(
+    ids: object, data: object, event_id: str,
+) -> None:
+    data = _validate_reconciliation_common(
+        ids, data, event_id, _RESTART_RECONCILIATION_DATA_KEYS,
+        "restart-reconciliation-observation-v3",
+        "restart_reconciliation_observation_digest",
+    )
+    for key in ("restart_commit_seq", "recovered_commit_seq", "recovered_event_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("restart_record_digest", "recovered_record_digest"):
+        _require_hex64(data[key])
+    validate_id(data["prior_effect_boot_id"])
+    if data["recovered_commit_seq"] >= data["restart_commit_seq"]:
         _fail_record("record_field")
 
 
@@ -1444,6 +1482,9 @@ _V3_TYPE_VALIDATORS = MappingProxyType({
     ("terminal_observation", 3): _validate_terminal_observation_v3,
     ("execution_assessment", 3): _validate_execution_assessment_v3,
     ("reconciliation_observation", 3): _validate_reconciliation_observation_v3,
+    ("restart_reconciliation_observation", 3): (
+        _validate_restart_reconciliation_observation_v3
+    ),
 })
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
@@ -1475,6 +1516,7 @@ _V3_TYPE_ACTORS = MappingProxyType({
     ("terminal_observation", 3): "receiver",
     ("execution_assessment", 3): "receiver",
     ("reconciliation_observation", 3): "receiver",
+    ("restart_reconciliation_observation", 3): "receiver",
 })
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
@@ -1599,6 +1641,7 @@ def seal(
         ("terminal_observation", 3): MAX_TERMINAL_OBSERVATION_RECORD_BYTES,
         ("execution_assessment", 3): MAX_EXECUTION_ASSESSMENT_RECORD_BYTES,
         ("reconciliation_observation", 3): MAX_RECONCILIATION_OBSERVATION_RECORD_BYTES,
+        ("restart_reconciliation_observation", 3): MAX_RESTART_RECONCILIATION_RECORD_BYTES,
     }.get((draft.event_type, schema_version), MAX_RUN_HOLD_RECORD_BYTES)
     if schema_version in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
@@ -1649,6 +1692,7 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
         ("terminal_observation", 3): MAX_TERMINAL_OBSERVATION_RECORD_BYTES,
         ("execution_assessment", 3): MAX_EXECUTION_ASSESSMENT_RECORD_BYTES,
         ("reconciliation_observation", 3): MAX_RECONCILIATION_OBSERVATION_RECORD_BYTES,
+        ("restart_reconciliation_observation", 3): MAX_RESTART_RECONCILIATION_RECORD_BYTES,
     }.get((envelope["event_type"], envelope["schema_version"]),
           MAX_RUN_HOLD_RECORD_BYTES)
     if envelope["schema_version"] in (2, 3) and len(body) > private_cap:
@@ -1720,6 +1764,7 @@ __all__ = [
     "MAX_REFUSAL_RECORDS",
     "MAX_RELEASE_INTENT_RECORD_BYTES",
     "MAX_RELEASE_OBSERVATION_RECORD_BYTES",
+    "MAX_RESTART_RECONCILIATION_RECORD_BYTES",
     "MAX_RUN_HOLD_RECORD_BYTES",
     "MAX_RUN_INTENT_RECORD_BYTES",
     "MAX_SEQ",
@@ -1740,6 +1785,8 @@ __all__ = [
     "REGISTERED_EVENT_TYPES",
     "RESERVATION_RECORD_CLASS_V2",
     "RESERVATION_RECORD_CLASS_V3",
+    "RESTART_RECONCILIATION_EVENT_TYPES_V3",
+    "RESTART_RECONCILIATION_RECORD_CLASS_V3",
     "RESUMABLE_HOLDS",
     "RESUME_RULE",
     "RUN_EVENT_TYPES_V2",
