@@ -71,6 +71,7 @@ from .journal_reducer import (
     plan_restart,
     plan_run_hold,
     process_observation_claim_digest,
+    reconciliation_observations_claim_digest,
     release_intent_claim_digest,
     release_observation_claim_digest,
     reservation_claims_digest,
@@ -161,6 +162,22 @@ def _execution_claim_summary(projection: Projection) -> dict[str, object] | None
             "count": 1, "digest": execution_assessment_claim_digest(projection),
             "derived_state": assessment.assessment.state,
         },
+    }
+
+
+def _reconciliation_claim_summary(projection: Projection) -> dict[str, object] | None:
+    observations = projection.reconciliation_observations
+    if not observations:
+        return None
+    return {
+        "state": "reconciliation_unqualified",
+        "count": sum(len(claims) for claims in observations.values()),
+        "digest": reconciliation_observations_claim_digest(projection),
+        "operations": [
+            {"operation_id": operation_id,
+             "reported_states": [claim.reported_state for claim in claims]}
+            for operation_id, claims in sorted(observations.items())
+        ],
     }
 
 
@@ -1094,6 +1111,8 @@ class RecoveryJournal:
                 result["supervision_action_claims"] = _supervision_action_summary(p)
             if p.process_observation is not None:
                 result["execution_claims"] = _execution_claim_summary(p)
+            if p.reconciliation_observations:
+                result["reconciliation_claims"] = _reconciliation_claim_summary(p)
             return result
 
     def close(self) -> None:
@@ -1251,6 +1270,8 @@ def _ready_report(
         journal_json["supervision_action_claims"] = _supervision_action_summary(candidate)
     if candidate.process_observation is not None:
         journal_json["execution_claims"] = _execution_claim_summary(candidate)
+    if candidate.reconciliation_observations:
+        journal_json["reconciliation_claims"] = _reconciliation_claim_summary(candidate)
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,
         "reserve": REFUSAL_RESOLVED_RESERVE,
