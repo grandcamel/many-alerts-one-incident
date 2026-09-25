@@ -31,6 +31,8 @@ both stores after restart.
 The projection is pure memory state. The caller supplies every event, digest,
 ID and time. No storage, lock, filesystem sync, provider import, actual cost
 settlement, hold clearing, archive, lease or launch operation exists here.
+A separate [non-reserving durable ledger](accounting-ledger.md) now stores only
+receiver-origin v1 events; it does not change this module's synthetic proof.
 A presented valid prefix cannot prove it is the latest durable head. The
 8,192-event cap bounds replay input only. The 18a 512-attempt guard counts
 full history, but the strict lifetime $50 cap limits this no-settlement subset
