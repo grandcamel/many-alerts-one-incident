@@ -197,3 +197,15 @@ hold. Independent source/spec review and the full local suite pass. Process
 containment, reservation, dispatch permits, Run/effect records and the guarded
 launcher remain open; intended-venue and external accounting gates remain
 unrun. This ticket stays open.
+
+## Local restart Run-hold writer progress, 2026-09-25: unit 19g
+
+The [19g local outcome](../reviews/run-recovery/outcome-19g-restart-run-hold-writer.md)
+adds a durable no-launch writer for a pending admission under the journal's
+own replayed `restart_recovery` hold. Exact retries remain idempotent after
+operator resume; conflicting ownership and uncertain writes latch. Independent
+source/spec review, focused real-store tests and the full local suite pass.
+There is no Run caller, positive reservation, effect record, dispatch permit,
+worker containment or guarded launcher. Native, provider, tenant, paid,
+venue, deployment, power-loss and human adjudication are NOT RUN. This ticket
+stays open.

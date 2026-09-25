@@ -61,6 +61,7 @@ from .journal_reducer import (
     plan_ingress_refusal,
     plan_operator_resume,
     plan_restart,
+    plan_run_hold,
     reservation_claims_digest,
     run_holds_digest,
     state_digest,
@@ -86,6 +87,7 @@ JOURNAL_ERROR_CODES = frozenset({
     "capacity_admissions", "capacity_pending", "capacity_bytes", "journal_write_failed",
     "journal_clock_invalid", "journal_divergence", "journal_capacity_recovery",
     "refusal_invalid", "resume_invalid", "resume_stale",
+    "run_hold_invalid", "run_hold_not_required",
 })
 
 # record_refusal's outcomes, and verify-only inspect's bounds (unit 17).
@@ -179,6 +181,18 @@ class ResumeReceipt:
     pending_digest: str
     operator: str
     reason: str
+
+
+@dataclasses.dataclass(frozen=True)
+class RunHoldReceipt:
+    """One replayed no-launch obligation, never a Run or permit receipt."""
+
+    job_id: str
+    admission_id: str
+    reason: str
+    since_commit_seq: int
+    member_digest: str
+    state: str  # recorded | already_recorded
 
 
 @dataclasses.dataclass(frozen=True)
@@ -694,6 +708,65 @@ class RecoveryJournal:
                 superseded=outcome["superseded"],
             )
 
+    def record_restart_run_hold(self, job_id: str, admission_id: str) -> RunHoldReceipt:
+        """Persist one pending job's restart hold, without admitting a Run.
+
+        The reason comes from this journal's replayed dispatch hold. An exact
+        retry reads the existing held job without spending another record.
+        """
+        with self._lock:
+            if self._closed:
+                raise JournalError("journal_closed")
+            if self._hold_detail is not None:
+                raise JournalError("journal_held")
+            valid = True
+            try:
+                validate_id(job_id)
+                validate_id(admission_id)
+            except RecordError:
+                valid = False
+            if not valid or job_id == admission_id:
+                raise JournalError("run_hold_invalid") from None
+            p = self._projection
+            existing = p.run_holds.get(job_id)
+            if existing is not None:
+                if existing.admission_id != admission_id or existing.reason != "restart_recovery":
+                    raise self._latched_error("journal_divergence")
+                return RunHoldReceipt(
+                    job_id, admission_id, existing.reason, existing.since_commit_seq,
+                    existing.member_digest, "already_recorded",
+                )
+            if any(held.admission_id == admission_id for held in p.run_holds.values()):
+                raise self._latched_error("journal_divergence")
+            if "restart_recovery" not in p.dispatch_holds:
+                raise JournalError("run_hold_not_required")
+            stamp = self._read_admit_stamp()
+            if stamp is None:
+                raise self._latched_error("journal_clock_invalid")
+            event_id = _mint_id(self._id_factory)
+            if event_id is None or event_id in (job_id, admission_id):
+                raise self._latched_error("journal_divergence")
+            plan = None
+            try:
+                plan = plan_run_hold(
+                    p, job_id=job_id, admission_id=admission_id,
+                    event_id=event_id, reason="restart_recovery", stamp=stamp,
+                )
+            except (RecordError, ReplayError):
+                pass
+            if plan is None:
+                raise self._latched_error("journal_divergence") from None
+            if isinstance(plan, CapacityRefusal):
+                raise self._latched_error("journal_capacity_recovery")
+            self._commit(plan, sync_directory=False)
+            held = p.run_holds.get(job_id)
+            if held is None or held.admission_id != admission_id:
+                raise self._latched_error("journal_divergence")
+            return RunHoldReceipt(
+                job_id, admission_id, held.reason, held.since_commit_seq,
+                held.member_digest, "recorded",
+            )
+
     def _capacity_refusal(
         self, refusal: CapacityRefusal, *, source: SourceRecord, stamp: Stamp,
     ) -> JournalError:
@@ -1189,6 +1262,7 @@ __all__ = [
     "ReservationClaimView",
     "ResumeReceipt",
     "ResumeRequest",
+    "RunHoldReceipt",
     "create_recovery_journal",
     "inspect_recovery_journal",
     "inspect_reservation_claim_view",

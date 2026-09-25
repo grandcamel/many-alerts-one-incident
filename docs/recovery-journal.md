@@ -173,13 +173,18 @@ encodings and `rj.state.v1` digest formula remain unchanged; a separate
 `rj.run-holds.v2` digest covers held-job state. Verify-only inspect and journal
 snapshots expose the count and digest when v2 holds exist.
 
-This extension has no application writer or Run caller. It cannot reserve
-budget, clear a dispatch hold, mint a permit, launch a process, confirm an
-effect or authorize a retry. Its per-job projection is separate from the
-existing global `dispatch_holds`; a future writer and permit gate must bind
-and check both before dispatch. At most 1024 v2 holds can be recorded per
+The journal handle has a narrow `record_restart_run_hold` writer that derives
+only the `restart_recovery` reason from its own replayed global hold. It binds
+one current pending admission, returns an existing matching hold on exact
+retry and latches an uncertain write or capacity refusal as a process hold.
+There is no front-door or Run caller. Other reasons still need an independently
+verified evidence binding before a writer can expose them. This method cannot
+reserve budget, clear a dispatch hold, mint a permit, launch a process,
+confirm an effect or authorize a retry. Its per-job projection is separate
+from the existing global `dispatch_holds`; a future permit gate must bind and
+check both before dispatch. At most 1024 v2 holds can be recorded per
 generation, each with a body at most 2048 bytes. A refused plan writes
-nothing; a future integrated writer must surface a capacity hold without
+nothing; the writer surfaces a process hold without
 dropping the underlying admission. Older binaries encountering v2 remain on
 the non-persisted `journal_schema_unsupported` process hold.
 
