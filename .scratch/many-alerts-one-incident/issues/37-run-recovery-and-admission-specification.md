@@ -304,3 +304,15 @@ operation identity, exact prepared request, grant and deadline. A Receiver
 reply cannot substitute for Forwarder L1/L2 evidence. No effect writer,
 authorization handler or positive permit is implemented; this ticket stays
 open.
+
+## Local closed synthetic startup barrier, 2026-09-25: unit 19l
+
+The [19l outcome](../reviews/run-recovery/outcome-19l-synthetic-startup-barrier.md)
+and fixed Python fixture exercise an inherited pipe handoff: the child stays
+blocked before an exact release byte, and closure or a malformed decision exits
+without its inert action. Independent Standards and Spec reviews, eight
+focused tests, Ruff and the full local suite (**5,504 passed, 39 skipped**)
+pass. This is a synthetic process test, not a production launcher or stable
+containment proof. Guarded Run launch, durable spawn
+attestation, real grants and accounting authority remain open; this ticket
+stays open.
