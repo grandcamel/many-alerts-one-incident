@@ -61,6 +61,10 @@ RECORD_CLASS = MappingProxyType({
     "operator_action": "recovery",
 })
 RUN_RECORD_CLASS_V2 = MappingProxyType({"run_hold": "recovery"})
+RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
+    "reservation_intent": "recovery",
+    "reservation_confirmation": "recovery",
+})
 
 ACTORS = ("receiver", "spawner", "forwarder", "operator")
 
@@ -347,6 +351,18 @@ _RUN_HOLD_DATA_KEYS = frozenset({
     "rule", "reason", "based_on_commit_seq", "pending_digest",
     "member_count", "member_digest",
 })
+_RESERVATION_INTENT_IDS_KEYS = frozenset({
+    "job_id", "admission_id", "intent_id", "attempt_id", "reservation_id",
+    "run_id", "lease_id",
+})
+_RESERVATION_INTENT_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "intent_digest",
+})
+_RESERVATION_CONFIRMATION_IDS_KEYS = frozenset({"intent_id"})
+_RESERVATION_CONFIRMATION_DATA_KEYS = frozenset({
+    "rule", "intent_digest", "ledger_uuid", "ledger_generation",
+    "ledger_event_id", "sequence", "event_digest",
+})
 
 
 # The per-type validators below share a handful of two-line "check shape or
@@ -367,6 +383,12 @@ def _require_keys(value: object, keys: frozenset) -> dict:
 
 def _require_hex64(value: object) -> str:
     if not _hex64_ok(value):
+        _fail_record("record_field")
+    return value
+
+
+def _require_uuid(value: object) -> str:
+    if type(value) is not str or not _UUID_PATTERN.fullmatch(value):
         _fail_record("record_field")
     return value
 
@@ -660,6 +682,39 @@ def _validate_run_hold_v2(ids: object, data: object, event_id: str) -> None:
     _require_hex64(data["member_digest"])
 
 
+def _validate_reservation_intent_v2(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _RESERVATION_INTENT_IDS_KEYS)
+    validate_id(ids["job_id"])
+    for key in (
+        "admission_id", "intent_id", "attempt_id", "reservation_id", "run_id", "lease_id",
+    ):
+        _require_uuid(ids[key])
+    if ids["intent_id"] != event_id or len(set(ids.values())) != len(ids):
+        _fail_record("record_field")
+    data = _require_keys(data, _RESERVATION_INTENT_DATA_KEYS)
+    _require_literal(data["rule"], "reservation-intent-v2", "record_unsupported")
+    _require_bound_int(data["based_on_commit_seq"], 1, MAX_SEQ, "record_field")
+    _require_hex64(data["intent_digest"])
+
+
+def _validate_reservation_confirmation_v2(
+    ids: object, data: object, event_id: str,
+) -> None:
+    ids = _require_keys(ids, _RESERVATION_CONFIRMATION_IDS_KEYS)
+    _require_uuid(ids["intent_id"])
+    _require_uuid(event_id)
+    data = _require_keys(data, _RESERVATION_CONFIRMATION_DATA_KEYS)
+    _require_literal(data["rule"], "reservation-confirmation-v2", "record_unsupported")
+    _require_hex64(data["intent_digest"])
+    _require_uuid(data["ledger_uuid"])
+    _require_bound_int(data["ledger_generation"], 1, MAX_GENERATION, "record_field")
+    _require_uuid(data["ledger_event_id"])
+    _require_bound_int(data["sequence"], 1, MAX_SEQ, "record_field")
+    _require_hex64(data["event_digest"])
+    if len({ids["intent_id"], event_id, data["ledger_uuid"], data["ledger_event_id"]}) != 4:
+        _fail_record("record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -669,7 +724,11 @@ _TYPE_VALIDATORS = MappingProxyType({
     ("ingress_refusal", 1): _validate_ingress_refusal,
     ("operator_action", 1): _validate_operator_action,
 })
-_V2_TYPE_VALIDATORS = MappingProxyType({("run_hold", 2): _validate_run_hold_v2})
+_V2_TYPE_VALIDATORS = MappingProxyType({
+    ("run_hold", 2): _validate_run_hold_v2,
+    ("reservation_intent", 2): _validate_reservation_intent_v2,
+    ("reservation_confirmation", 2): _validate_reservation_confirmation_v2,
+})
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
     ("restart_recovery", 1): "receiver",
@@ -679,7 +738,11 @@ TYPE_ACTORS = MappingProxyType({
     ("ingress_refusal", 1): "receiver",
     ("operator_action", 1): "operator",
 })
-_V2_TYPE_ACTORS = MappingProxyType({("run_hold", 2): "receiver"})
+_V2_TYPE_ACTORS = MappingProxyType({
+    ("run_hold", 2): "receiver",
+    ("reservation_intent", 2): "receiver",
+    ("reservation_confirmation", 2): "receiver",
+})
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
 
@@ -881,6 +944,7 @@ __all__ = [
     "REFUSAL_RESOLVED_RESERVE",
     "REFUSAL_RULE",
     "REGISTERED_EVENT_TYPES",
+    "RESERVATION_RECORD_CLASS_V2",
     "RESUMABLE_HOLDS",
     "RESUME_RULE",
     "RUN_EVENT_TYPES_V2",

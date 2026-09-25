@@ -1,0 +1,5 @@
+python -m ruff check journal_records.py journal_reducer.py recovery_journal.py test_reservation_claim_journal.py: PASS (full repository paths in validation record)
+100-character line check for changed Python files: PASS
+git diff --check: PASS
+Application caller import scan: PASS; no application caller invokes the new planners.
+Reducer exact import allowlist: PASS in guarded focused tests.

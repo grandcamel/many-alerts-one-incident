@@ -1,0 +1,85 @@
+{
+  "artifacts": {
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "9cf96e987919146f1d04730f74702390d5b1e58f53adc50d4a5ef028e7f90ccb",
+    ".scratch/many-alerts-one-incident/issues/38-budget-accounting-and-model-qualification.md": "17ebb13f697b99d1a0e19048dd2d2dfc7c025e56b88c0969664d4e148be1a5a5",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/design-18d2-journal-claims.md": "2cc06defe8ab34b82736966eef5ea399c7a9337969cc5cbf7dccf495ed551f0b",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/focused-tests-18d2.txt": "63dbb307e8936fb8e7017added401c529ac5a065c2ba4f41886f867c85a741ea",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/full-suite-18d2.txt": "bd5725947ba63c9728bbf06d3f0e258d2268a2be3b7eaa5ebc83842180b9299b",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18d2.md": "85cb346eb9776766e0b7c31031c3688ba5f08c25b2828f2b759ab5bb44730aea",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/outcome-18d2.md": "7038893d94facd24d6f201fa7e67bd420d58429b227c2fc2555125043a701d55",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-18d2-plan.md": "f037596b9c9e98b21c2cdda1d1760bb557c9f6a0ba5b198d1ac877aa9b04284b",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/review-18d2-source.md": "6b2bba312e3f73b40c31a0cb4edb5288a71ce64a060f2b04a34c462eec1207f1",
+    ".scratch/many-alerts-one-incident/reviews/receiver-journal/static-checks-18d2.txt": "4e316d4027021c8c2d90c4900e87d88603db4026465dee32f2fe72b682f32e7c",
+    "docs/recovery-journal.md": "69bf1a4c2d61d51e0caafe4a2f608db9c5d1f48ecaa852c62e6320f015032825",
+    "grafana_jsm_sandbox/journal_records.py": "03e520a06dfbf057ab0da58f3912a003d43ccfce8ee2fcb161da21efb0eb09db",
+    "grafana_jsm_sandbox/journal_reducer.py": "ad07ce022e02e454f156b6e3d6d0c39ae5fb0ff2c14758a8503e7bb605783990",
+    "grafana_jsm_sandbox/recovery_journal.py": "72cd1054ad02fe3960d3d969926eabbfdced97aaf8e39b79a3d2440cf9910cc2",
+    "tests/test_reservation_claim_journal.py": "0aa85a6b5f366d4a5804c39aa63f76dacc0230a976d9f9b09ed74ba2134110fc"
+  },
+  "evidence_scope": "local source/static and synthetic SQLite journal replay only",
+  "fixed_point": "f1071203dfe22a3f19f91a4167bbab49dadf41ad",
+  "focused_suite": {
+    "command": "python /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_journal_records.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_run_hold_journal.py tests/test_reservation_claim_journal.py",
+    "exit": 0,
+    "non_loopback_attempts": [],
+    "passed": 218
+  },
+  "full_run_inputs": {
+    "grafana_jsm_sandbox/journal_records.py": "03e520a06dfbf057ab0da58f3912a003d43ccfce8ee2fcb161da21efb0eb09db",
+    "grafana_jsm_sandbox/journal_reducer.py": "ad07ce022e02e454f156b6e3d6d0c39ae5fb0ff2c14758a8503e7bb605783990",
+    "grafana_jsm_sandbox/recovery_journal.py": "72cd1054ad02fe3960d3d969926eabbfdced97aaf8e39b79a3d2440cf9910cc2",
+    "tests/test_reservation_claim_journal.py": "0aa85a6b5f366d4a5804c39aa63f76dacc0230a976d9f9b09ed74ba2134110fc"
+  },
+  "full_suite": {
+    "command": "env -u DEMO_END_TO_END -u DEMO_CONTAINER pytest -q -p no:cacheprovider",
+    "exit": 0,
+    "passed": 5255,
+    "seconds": 368.08,
+    "skipped": 39
+  },
+  "not_qualified": [
+    "verified ledger history adapter",
+    "production accounting reservation",
+    "Run intent or dispatch permit",
+    "effect record or Forwarder mutation",
+    "actual older-binary execution",
+    "trusted opening history or authoritative provider coverage",
+    "external rollback witness or power-loss durability",
+    "native/provider/tenant/venue/paid execution",
+    "human Report adjudication"
+  ],
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "preserved_panel": {
+    "regular_file_count": 76,
+    "relative_path_sha256_lf_manifest_digest": "0cf9c0e9ef79fc1d0e8727bb398bd529d3ebcf2f5630bdd7af10fb9ba17712ae",
+    "total_bytes": 617831
+  },
+  "prior_failed_guarded_block": {
+    "cause": "new re import violated exact reducer import allowlist; removed before final run",
+    "failed": 1,
+    "passed": 211
+  },
+  "publication": "LOCAL_ONLY",
+  "reviews": {
+    "final": "PASS_LOCAL_CLAIM_REPLAY",
+    "plan_spec": "NO_CONCRETE_REMAINING_BLOCKER",
+    "plan_standards": "NO_CONCRETE_REMAINING_BLOCKER",
+    "source_spec": "NO_CONCRETE_REMAINING_BLOCKER",
+    "source_standards": "NO_CONCRETE_REMAINING_BLOCKER"
+  },
+  "schema_version": 1,
+  "static_checks": {
+    "application_caller_import_scan": "PASS",
+    "git_diff_check": "PASS",
+    "line_length_changed_python": "PASS",
+    "reducer_import_allowlist": "PASS",
+    "ruff_changed_python": "PASS"
+  },
+  "status": "PASS_LOCAL_CLAIM_REPLAY",
+  "unit": "18d2-journal-claims"
+}

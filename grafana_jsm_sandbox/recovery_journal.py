@@ -59,6 +59,7 @@ from .journal_reducer import (
     plan_ingress_refusal,
     plan_operator_resume,
     plan_restart,
+    reservation_claims_digest,
     run_holds_digest,
     state_digest,
     verify_commit,
@@ -867,6 +868,11 @@ class RecoveryJournal:
                 result["run_holds"] = {
                     "count": len(p.run_holds), "digest": run_holds_digest(p),
                 }
+            if p.intents or p.confirmations:
+                result["reservation_claims"] = {
+                    "intents": len(p.intents), "confirmations": len(p.confirmations),
+                    "digest": reservation_claims_digest(p),
+                }
             return result
 
     def close(self) -> None:
@@ -973,6 +979,12 @@ def _ready_report(
     if candidate.run_holds:
         journal_json["run_holds"] = {
             "count": len(candidate.run_holds), "digest": run_holds_digest(candidate),
+        }
+    if candidate.intents or candidate.confirmations:
+        journal_json["reservation_claims"] = {
+            "intents": len(candidate.intents),
+            "confirmations": len(candidate.confirmations),
+            "digest": reservation_claims_digest(candidate),
         }
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,

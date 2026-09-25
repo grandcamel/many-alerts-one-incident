@@ -65,3 +65,15 @@ permit. The [source review](../reviews/receiver-journal/review-18d1-source.md)
 found no local blocker. Verified history adapters, versioned writers and crash
 ordering are still local work; authoritative opening/billing evidence and the
 other gates in the 18c record remain unresolved. This ticket stays open.
+
+## Local journal claim progress, 2026-09-25
+
+The [18d2 journal claims](../reviews/receiver-journal/design-18d2-journal-claims.md)
+make versioned intent and confirmation records replayable without a writer.
+They preserve a held job and expose only count/digest inspection. A journal
+confirmation remains unauthenticated until a separate read-only adapter
+compares independently verified current journal and ledger histories; orphan
+ledger events and rollback can still create liability. The Receiver ledger
+continues to reject `reservation_created` while opening population is
+unknown. Production reserve, provider billing evidence, continuity witness,
+archive policy and dispatch gates remain open. This ticket stays open.

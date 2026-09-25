@@ -68,6 +68,11 @@ _ADMISSION_PAIR_SHAPE = ("admission", "dedupe_decision")
 MAX_RUN_HOLDS = 1_024
 RUN_HOLD_MEMBERS_TAG = "rj.run-hold-members.v2"
 RUN_HOLDS_STATE_TAG = "rj.run-holds.v2"
+MAX_RESERVATION_CLAIMS = 256
+RESERVATION_INTENT_TAG = "rj.reservation-intent.v2"
+RESERVATION_CLAIMS_TAG = "rj.reservation-claims.v2"
+_UUID_DASHES = frozenset({8, 13, 18, 23})
+_UUID_HEX = frozenset("0123456789abcdef")
 
 
 class ReplayError(ValueError):
@@ -125,6 +130,35 @@ class RunHold:
 
 
 @dataclasses.dataclass(frozen=True)
+class ReservationIntentClaim:
+    journal_uuid: str
+    journal_generation: int
+    admission_id: str
+    job_id: str
+    intent_id: str
+    attempt_id: str
+    reservation_id: str
+    run_id: str
+    lease_id: str
+    intent_digest: str
+    based_on_commit_seq: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
+class ReservationConfirmationClaim:
+    intent_id: str
+    confirmation_event_id: str
+    intent_digest: str
+    ledger_uuid: str
+    ledger_generation: int
+    ledger_event_id: str
+    sequence: int
+    event_digest: str
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -171,6 +205,8 @@ class Delta:
     dispatch_hold_clear: str | None = None
     resume_commit_seq: int | None = None
     run_hold_add: tuple[str, RunHold] | None = None
+    reservation_intent_add: ReservationIntentClaim | None = None
+    reservation_confirmation_add: ReservationConfirmationClaim | None = None
 
 
 class Projection:
@@ -193,6 +229,8 @@ class Projection:
         self.baselines: dict[str, Baseline] = {}
         self.pending: dict[str, PendingEntry] = {}
         self.run_holds: dict[str, RunHold] = {}
+        self.intents: dict[str, ReservationIntentClaim] = {}
+        self.confirmations: dict[str, ReservationConfirmationClaim] = {}
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -569,6 +607,156 @@ def plan_run_hold(
     }))
 
 
+def _canonical_uuid(value: object) -> bool:
+    return type(value) is str and len(value) == 36 and all(
+        character == "-" if index in _UUID_DASHES else character in _UUID_HEX
+        for index, character in enumerate(value)
+    )
+
+
+def _single_position(p: Projection) -> Position:
+    return Position(
+        journal_generation=p.generation, event_seq=p.head.event_seq + 1,
+        commit_seq=p.head.commit_seq + 1, commit_index=0, commit_size=1,
+        prev_record_digest=p.head.record_digest,
+    )
+
+
+def _intent_digest_fields(
+    p: Projection, *, job_id: str, admission_id: str, intent_id: str,
+    attempt_id: str, reservation_id: str, run_id: str, lease_id: str,
+) -> dict[str, object]:
+    return {
+        "journal_uuid": p.journal_uuid, "journal_generation": p.generation,
+        "admission_id": admission_id, "job_id": job_id, "intent_id": intent_id,
+        "attempt_id": attempt_id, "reservation_id": reservation_id,
+        "run_id": run_id, "lease_id": lease_id,
+        "based_on_commit_seq": p.head.commit_seq,
+    }
+
+
+def plan_reservation_intent(
+    p: Projection, *, job_id: str, admission_id: str, intent_id: str,
+    attempt_id: str, reservation_id: str, run_id: str, lease_id: str,
+    stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Build a journal claim; no ledger receipt or dispatch authority."""
+    if p.head is None or p.bounds is None or p.boot_id != stamp.boot_id:
+        _fail_replay("replay_mismatch")
+    if len(p.intents) >= MAX_RESERVATION_CLAIMS:
+        return CapacityRefusal(
+            "capacity_reservation_intents", MAX_RESERVATION_CLAIMS, len(p.intents), 1,
+        )
+    held = p.run_holds.get(job_id)
+    members = tuple(sorted(
+        fingerprint for fingerprint, entry in p.pending.items()
+        if entry.admission_id == admission_id
+    ))
+    identifiers = (
+        p.journal_uuid, admission_id, job_id, intent_id,
+        attempt_id, reservation_id, run_id, lease_id,
+    )
+    if (
+        held is None or held.admission_id != admission_id or not members
+        or tagged_digest(RUN_HOLD_MEMBERS_TAG, members) != held.member_digest
+        or not all(type(value) is str for value in identifiers)
+        or len(set(identifiers)) != len(identifiers)
+        or not all(_canonical_uuid(value) for value in (
+            p.journal_uuid, admission_id, intent_id, attempt_id,
+            reservation_id, run_id, lease_id,
+        ))
+        or intent_id in p.intents
+    ):
+        _fail_replay("replay_mismatch")
+    fresh = {intent_id, attempt_id, reservation_id, run_id, lease_id}
+    for prior in p.intents.values():
+        prior_ids = {
+            prior.intent_id, prior.attempt_id, prior.reservation_id,
+            prior.run_id, prior.lease_id,
+        }
+        if fresh & prior_ids:
+            _fail_replay("replay_mismatch")
+    digest = tagged_digest(RESERVATION_INTENT_TAG, _intent_digest_fields(
+        p, job_id=job_id, admission_id=admission_id, intent_id=intent_id,
+        attempt_id=attempt_id, reservation_id=reservation_id,
+        run_id=run_id, lease_id=lease_id,
+    ))
+    record = seal(
+        Draft(
+            event_id=intent_id, event_type="reservation_intent", actor="receiver",
+            ids={
+                "job_id": job_id, "admission_id": admission_id, "intent_id": intent_id,
+                "attempt_id": attempt_id, "reservation_id": reservation_id,
+                "run_id": run_id, "lease_id": lease_id,
+            },
+            data={
+                "rule": "reservation-intent-v2",
+                "based_on_commit_seq": p.head.commit_seq,
+                "intent_digest": digest,
+            },
+        ), _single_position(p), stamp, schema_version=2,
+    )
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan(records=(record,), charge=charge, outcome=MappingProxyType({
+        "intent_id": intent_id, "intent_digest": digest,
+    }))
+
+
+def plan_reservation_confirmation(
+    p: Projection, *, intent_id: str, event_id: str, ledger_uuid: str,
+    ledger_generation: int, ledger_event_id: str, sequence: int,
+    event_digest: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Build an unverified ledger observation claim; never a permit."""
+    if p.head is None or p.bounds is None or p.boot_id != stamp.boot_id:
+        _fail_replay("replay_mismatch")
+    if len(p.confirmations) >= MAX_RESERVATION_CLAIMS:
+        return CapacityRefusal(
+            "capacity_reservation_confirmations", MAX_RESERVATION_CLAIMS,
+            len(p.confirmations), 1,
+        )
+    claimed = p.intents.get(intent_id)
+    if claimed is None or intent_id in p.confirmations:
+        _fail_replay("replay_mismatch")
+    identifiers = (
+        claimed.journal_uuid, claimed.admission_id, claimed.job_id,
+        claimed.intent_id, claimed.attempt_id, claimed.reservation_id,
+        claimed.run_id, claimed.lease_id, event_id, ledger_uuid, ledger_event_id,
+    )
+    if not all(type(value) is str for value in identifiers) or (
+        len(set(identifiers)) != len(identifiers)
+    ) or not all(
+        _canonical_uuid(value) for value in (event_id, ledger_uuid, ledger_event_id)
+    ):
+        _fail_replay("replay_mismatch")
+    for prior in p.confirmations.values():
+        if prior.ledger_event_id == ledger_event_id or (
+            prior.ledger_uuid, prior.ledger_generation, prior.sequence,
+        ) == (ledger_uuid, ledger_generation, sequence):
+            _fail_replay("replay_mismatch")
+    record = seal(
+        Draft(
+            event_id=event_id, event_type="reservation_confirmation", actor="receiver",
+            ids={"intent_id": intent_id},
+            data={
+                "rule": "reservation-confirmation-v2",
+                "intent_digest": claimed.intent_digest,
+                "ledger_uuid": ledger_uuid, "ledger_generation": ledger_generation,
+                "ledger_event_id": ledger_event_id, "sequence": sequence,
+                "event_digest": event_digest,
+            },
+        ), _single_position(p), stamp, schema_version=2,
+    )
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan(records=(record,), charge=charge, outcome=MappingProxyType({
+        "intent_id": intent_id, "claim_event_id": event_id,
+    }))
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -586,6 +774,10 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "operator_action"
     if types == ("run_hold",):
         return "run_hold"
+    if types == ("reservation_intent",):
+        return "reservation_intent"
+    if types == ("reservation_confirmation",):
+        return "reservation_confirmation"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -778,6 +970,76 @@ def _verify_run_hold(p: Projection, record: Record, commit_seq: int) -> Delta:
     )
 
 
+def _verify_reservation_intent(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 2:
+        _fail_replay("replay_mismatch")
+    plan = plan_reservation_intent(
+        p, job_id=record.ids["job_id"], admission_id=record.ids["admission_id"],
+        intent_id=record.ids["intent_id"], attempt_id=record.ids["attempt_id"],
+        reservation_id=record.ids["reservation_id"], run_id=record.ids["run_id"],
+        lease_id=record.ids["lease_id"], stamp=record.stamp,
+    )
+    if isinstance(plan, CapacityRefusal) or (
+        plan.records[0].body != record.body
+        or plan.records[0].record_digest != record.record_digest
+    ):
+        _fail_replay("replay_mismatch")
+    claim = ReservationIntentClaim(
+        journal_uuid=p.journal_uuid, journal_generation=p.generation,
+        admission_id=record.ids["admission_id"], job_id=record.ids["job_id"],
+        intent_id=record.ids["intent_id"], attempt_id=record.ids["attempt_id"],
+        reservation_id=record.ids["reservation_id"], run_id=record.ids["run_id"],
+        lease_id=record.ids["lease_id"], intent_digest=record.data["intent_digest"],
+        based_on_commit_seq=record.data["based_on_commit_seq"],
+        committed_at_seq=commit_seq,
+    )
+    return Delta(
+        head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
+        generation=p.generation, journal_uuid=None, bounds=None,
+        boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
+        logical_bytes=p.logical_bytes + plan.charge, admission_count=p.admission_count,
+        last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
+        dispatch_hold_add=None, reservation_intent_add=claim,
+    )
+
+
+def _verify_reservation_confirmation(
+    p: Projection, record: Record, commit_seq: int,
+) -> Delta:
+    if record.schema_version != 2:
+        _fail_replay("replay_mismatch")
+    plan = plan_reservation_confirmation(
+        p, intent_id=record.ids["intent_id"], event_id=record.event_id,
+        ledger_uuid=record.data["ledger_uuid"],
+        ledger_generation=record.data["ledger_generation"],
+        ledger_event_id=record.data["ledger_event_id"],
+        sequence=record.data["sequence"], event_digest=record.data["event_digest"],
+        stamp=record.stamp,
+    )
+    if isinstance(plan, CapacityRefusal) or (
+        plan.records[0].body != record.body
+        or plan.records[0].record_digest != record.record_digest
+    ):
+        _fail_replay("replay_mismatch")
+    claim = ReservationConfirmationClaim(
+        intent_id=record.ids["intent_id"], confirmation_event_id=record.event_id,
+        intent_digest=record.data["intent_digest"],
+        ledger_uuid=record.data["ledger_uuid"],
+        ledger_generation=record.data["ledger_generation"],
+        ledger_event_id=record.data["ledger_event_id"],
+        sequence=record.data["sequence"], event_digest=record.data["event_digest"],
+        committed_at_seq=commit_seq,
+    )
+    return Delta(
+        head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
+        generation=p.generation, journal_uuid=None, bounds=None,
+        boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
+        logical_bytes=p.logical_bytes + plan.charge, admission_count=p.admission_count,
+        last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
+        dispatch_hold_add=None, reservation_confirmation_add=claim,
+    )
+
+
 def _verify_admission_pair(
     p: Projection, admission: Record, dedupe: Record, commit_seq: int,
 ) -> Delta:
@@ -901,6 +1163,10 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_operator_action(p, records[0], commit_seq)
     if shape == "run_hold":
         return _verify_run_hold(p, records[0], commit_seq)
+    if shape == "reservation_intent":
+        return _verify_reservation_intent(p, records[0], commit_seq)
+    if shape == "reservation_confirmation":
+        return _verify_reservation_confirmation(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -942,6 +1208,12 @@ def apply_delta(p: Projection, delta: Delta) -> None:
     if delta.run_hold_add is not None:
         job_id, held = delta.run_hold_add
         p.run_holds[job_id] = held
+    if delta.reservation_intent_add is not None:
+        claim = delta.reservation_intent_add
+        p.intents[claim.intent_id] = claim
+    if delta.reservation_confirmation_add is not None:
+        claim = delta.reservation_confirmation_add
+        p.confirmations[claim.intent_id] = claim
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -1021,6 +1293,16 @@ def run_holds_digest(p: Projection) -> str:
     return tagged_digest(RUN_HOLDS_STATE_TAG, items)
 
 
+def reservation_claims_digest(p: Projection) -> str:
+    payload = {
+        "intents": [dataclasses.asdict(claim) for _, claim in sorted(p.intents.items())],
+        "confirmations": [
+            dataclasses.asdict(claim) for _, claim in sorted(p.confirmations.items())
+        ],
+    }
+    return tagged_digest(RESERVATION_CLAIMS_TAG, payload)
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -1059,6 +1341,7 @@ def front_door_digest(p: Projection) -> str:
 __all__ = [
     "DEFAULT_BOUNDS",
     "FRONT_DOOR_STATE_TAG",
+    "MAX_RESERVATION_CLAIMS",
     "MAX_RUN_HOLDS",
     "RECORD_OVERHEAD_BYTES",
     "REFUSAL_KEY_TAG",
@@ -1072,6 +1355,8 @@ __all__ = [
     "Projection",
     "RefusalNotRecorded",
     "ReplayError",
+    "ReservationConfirmationClaim",
+    "ReservationIntentClaim",
     "RunHold",
     "apply_delta",
     "dispatch_holds",
@@ -1085,10 +1370,13 @@ __all__ = [
     "plan_genesis",
     "plan_ingress_refusal",
     "plan_operator_resume",
+    "plan_reservation_confirmation",
+    "plan_reservation_intent",
     "plan_restart",
     "plan_run_hold",
     "refusal_key",
     "replay",
+    "reservation_claims_digest",
     "run_holds_digest",
     "state_digest",
     "verify_commit",

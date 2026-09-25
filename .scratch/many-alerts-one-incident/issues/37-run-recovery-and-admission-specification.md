@@ -118,3 +118,14 @@ the exact v1 registry correction; the full suite passed 5193 tests with 39
 skipped. Reservation/ledger confirmation, attempt and effect records, a
 writer that latches failed holds, and the permit gate remain open. This ticket
 stays open.
+
+## Local implementation progress, 2026-09-25: unit 18d2
+
+Unit [18d2](../reviews/receiver-journal/design-18d2-journal-claims.md)
+adds versioned journal reservation intent and confirmation claims with pure
+planners, replay and count/digest inspection. A committed `run_hold` remains
+held, including after partial pending supersession. The confirmation cannot
+authenticate the separate accounting ledger. Independent
+[source review](../reviews/receiver-journal/review-18d2-source.md) found no
+remaining blocker. There is no application writer, Run intent, dispatch
+permit, launch or Forwarder effect path. The ticket remains open.

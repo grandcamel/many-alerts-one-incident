@@ -151,11 +151,10 @@ A record is accepted only if its `(event_type, schema_version)` pair is
 registered, and its actor must be the one registered for that pair:
 `operator` for `operator_action`, `receiver` for every other type. For the five
 unit-15 types these checks accept and reject exactly as before, at the same
-positions and with the same codes. An older binary therefore meets a new type,
-and this binary meets a `schema_version: 2` record of any type, as
-`record_unsupported`. On open, that is the process hold
-`journal_schema_unsupported`, which is never persisted. Every stored
-`schema_version` is still 1.
+positions and with the same codes. The current binary additionally accepts
+the exact private v2 pairs documented below. Unknown future pairs, and these
+v2 pairs in an older binary, produce `record_unsupported`. On open, that is
+the process hold `journal_schema_unsupported`, which is never persisted.
 
 Stored rows are verified in a fixed order: the raw-byte digest before any
 parsing, then a strict parse, the chain link, the columns against the body, and
@@ -183,6 +182,27 @@ generation, each with a body at most 2048 bytes. A refused plan writes
 nothing; a future integrated writer must surface a capacity hold without
 dropping the underlying admission. Older binaries encountering v2 remain on
 the non-persisted `journal_schema_unsupported` process hold.
+
+### Local v2 reservation claims
+
+`(reservation_intent, 2)` and `(reservation_confirmation, 2)` are two more
+Receiver-only, no-writer pairs in the private v2 registry. An intent links a
+currently pending UUID admission to its committed Run hold, immutable attempt,
+reservation, Run and lease IDs, and an exact tagged intent digest. Existing
+non-UUID v1 admissions still replay but cannot form a new ledger-compatible
+intent. A confirmation records a claimed ledger event identity and digest
+after one intent. It does not authenticate the ledger. Replay rejects an
+intent or confirmation with invalid identity, ordering, digest, reuse or
+capacity. A superseded held job remains held.
+
+At most 256 intents and 256 confirmations can exist per generation, each
+with a body at most 2048 bytes. The independent
+`rj.reservation-claims.v2` digest covers the sorted immutable projection.
+Verify-only inspect and journal snapshots show only intent count,
+confirmation count and digest. They do not expose a reserve, ready state,
+permit or launch API. The Receiver-facing accounting ledger still rejects
+`reservation_created` from its unknown population; a later scanner must
+verify both current store histories and hold orphan or mismatched claims.
 
 The sanitized source record (`journal_source`) holds only the group digest,
 per-alert Fingerprint, status and canonical numeric values sorted by refId,
@@ -637,6 +657,9 @@ They run on macOS; the Linux sync primitive is skipped there.
 ```sh
 pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py tests/test_journal_ingress.py tests/test_journal_ingress_corpus.py tests/test_journal_ingress_adversarial.py tests/test_forwarder_json_string_cap.py tests/test_journal_front_door_records.py tests/test_recovery_journal_front_door.py tests/test_journal_spool.py tests/test_journaled_receiver.py tests/test_journal_operator.py tests/test_journaled_receiver_crash.py tests/test_journaled_legacy_identity.py
 ```
+
+The versioned claim tests are in `tests/test_reservation_claim_journal.py`;
+the full repository suite includes them.
 
 Receiver integration is opt-in and admission-only. Dispatch, Runs, effects,
 accounting, reset, retention and reconstruction remain unimplemented here.

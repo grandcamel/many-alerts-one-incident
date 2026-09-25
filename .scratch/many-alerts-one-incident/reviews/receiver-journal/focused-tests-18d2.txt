@@ -1,0 +1,6 @@
+Command: python /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_journal_records.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_run_hold_journal.py tests/test_reservation_claim_journal.py
+Result: 218 passed in 23.38s; exit 0
+NON_LOOPBACK_ATTEMPTS []
+Scope: local journal codec, reducer, store shell and synthetic v2 claim tests.
+The first guarded run found the pinned reducer import allowlist conflict (one
+failure, 211 passed); removing the new re import resolved it before this pass.
