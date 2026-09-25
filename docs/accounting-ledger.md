@@ -51,6 +51,14 @@ at any event rate. The 18a lifetime 512-attempt bound is distinct from ticket
 38's proposed 512-active capacity. Creating a new ledger does not prove zero
 prior spend or clear an old experiment's liability.
 
+The [18e evidence/archive contract](../.scratch/many-alerts-one-incident/reviews/receiver-journal/design-18e-accounting-evidence-archive.md)
+defines only future input and archival failure rules. A candidate envelope
+is a source claim, not authenticated billing. The proposed archive handoff
+needs read-back, an independent continuity witness and an active duplicate
+index covering attempts, reservations and charge lines. If its history is
+unavailable, model reservation and dispatch remain held; bounded Notification
+admission continues. No importer, archive or witness is implemented here.
+
 The [reviewed 18c design](../.scratch/many-alerts-one-incident/reviews/receiver-journal/design-18c.md)
 and [implementation plan](../.scratch/many-alerts-one-incident/reviews/receiver-journal/implementation-plan-18c.md)
 define the physical format and local tests. Local SQLite/restart/crash-image

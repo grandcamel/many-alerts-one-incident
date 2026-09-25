@@ -103,3 +103,16 @@ Independent source reviews and the full local suite pass. Authoritative
 opening/billing evidence, liability U, continuity witness and archive/repair
 policy remain unresolved; provider, paid and venue acceptance are not run.
 The ticket stays open.
+
+## Local evidence/archive contract progress, 2026-09-25
+
+The [18e candidate and archive contract](../reviews/receiver-journal/design-18e-accounting-evidence-archive.md)
+separates untrusted source claims from later source-profile and accounting
+verification. It specifies failure codes and a read-back, witness and active
+index handoff that preserves duplicate uncertainty and holds on missing
+history. This is documentation only: no source profile, importer, archive,
+continuity witness or production reserve exists. The exact authoritative
+source, account scope, line identity, adjustment and lag semantics, opening
+history, liability U, archive registration, independent witness and intended
+venue durability evidence remain decisions. Provider, paid, native, tenant,
+venue and power-loss acceptance are NOT RUN. This ticket stays open.
