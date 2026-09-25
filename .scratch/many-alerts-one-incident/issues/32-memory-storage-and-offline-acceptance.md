@@ -40,3 +40,16 @@ This remains open: native current-member representation/migration, conditional
 updates and read-back, volume/identity/durability choices, and exact source and
 Confluence bindings need evidence. Offline acceptance cases are specified, not
 executed. No runtime, model, tenant, paid experiment or deployment was performed.
+
+## Local prior-candidate preflight, 2026-09-25: unit 32a
+
+The [32a outcome](../reviews/ticket-32/outcome-32a-candidate-preflight.md)
+adds a pure predicate over bounded synthetic OPS pages for the inclusive
+Jira-clock 30-minute prior-Incident hold. It detects incomplete pagination
+and an eligible prior rehearsal without excluding by label or Memory.
+Independent Standards and Spec source reviews, 24 focused tests, Ruff and
+the full local suite (**5,746 passed, 39 skipped**) pass. Every result
+remains `held_unqualified`; actual OPS query coverage, clock and Incident
+read-back, human disposition, native Memory storage and venue durability
+remain open. Native, provider, paid, tenant, venue and human acceptance are
+**NOT RUN**; this ticket stays open.
