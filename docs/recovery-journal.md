@@ -162,6 +162,28 @@ parsing, then a strict parse, the chain link, the columns against the body, and
 only then canonical re-encoding and typed validation. A corrupted byte is
 therefore always a durable digest failure, never a misleading "newer format".
 
+### Local v2 Run hold record
+
+The `(run_hold, 2)` pair is a no-dispatch extension of this chain. It binds a
+job ID to one currently pending admission and stores a closed hold reason,
+the prior commit, pending digest, and count/digest of the admission's current
+Fingerprint members. It contains no raw source body, command, prompt or OPS
+payload. Replay re-derives the membership, pending digest, identity uniqueness
+and capacity. A later admission cannot erase the held job. The v1 record
+encodings and `rj.state.v1` digest formula remain unchanged; a separate
+`rj.run-holds.v2` digest covers held-job state. Verify-only inspect and journal
+snapshots expose the count and digest when v2 holds exist.
+
+This extension has no application writer or Run caller. It cannot reserve
+budget, clear a dispatch hold, mint a permit, launch a process, confirm an
+effect or authorize a retry. Its per-job projection is separate from the
+existing global `dispatch_holds`; a future writer and permit gate must bind
+and check both before dispatch. At most 1024 v2 holds can be recorded per
+generation, each with a body at most 2048 bytes. A refused plan writes
+nothing; a future integrated writer must surface a capacity hold without
+dropping the underlying admission. Older binaries encountering v2 remain on
+the non-persisted `journal_schema_unsupported` process hold.
+
 The sanitized source record (`journal_source`) holds only the group digest,
 per-alert Fingerprint, status and canonical numeric values sorted by refId,
 `starts_at`, `truncated_alerts`, a body digest and fixed provenance. It never

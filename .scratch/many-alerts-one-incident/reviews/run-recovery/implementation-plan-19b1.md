@@ -38,8 +38,9 @@ it does not claim a particular effect was dispatched.
 At most 1024 `run_hold` records may be committed in a generation. Each body
 is at most 2048 bytes, charged as recovery-class under the existing `total_bytes`
 limit. The worst body-plus-overhead charge is 2,490,368 bytes across the
-family, leaving more than 13 MiB of the current 16 MiB recovery reserve for
-other recovery evidence when ordinary bytes are full. A limit or byte refusal
+family. Before other recovery charges, that allocation leaves more than
+13 MiB of the current 16 MiB recovery reserve when ordinary bytes are full.
+A limit or byte refusal
 is a closed no-write result; the absent record is never treated as a completed
 hold. Future writers must latch dispatch and surface capacity/backpressure.
 

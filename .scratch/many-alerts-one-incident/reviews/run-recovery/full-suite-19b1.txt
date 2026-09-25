@@ -1,0 +1,7 @@
+Command: env -u DEMO_END_TO_END -u DEMO_CONTAINER pytest -q -p no:cacheprovider
+Exit: 0
+Final pytest summary: 5193 passed, 39 skipped in 384.82s (0:06:24)
+Prior full run: 16 failed, 5184 passed, 39 skipped in 391.47s. The failures
+were exact v1 registry guards. The v2 pair was moved to separate private
+tables; the formerly failing focused block passed 353 tests before this run.
+Scope: local repository suite; no native, provider, tenant or venue run.

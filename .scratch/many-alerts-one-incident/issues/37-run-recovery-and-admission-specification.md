@@ -105,3 +105,16 @@ conflicting-success-reason regression was added. The full local suite passed
 5183 tests with 39 skipped. Versioned journal Run/effect records and replay,
 Receiver provenance, Forwarder receipts, process containment and cross-store
 dispatch remain open. This ticket stays open.
+
+## Local implementation progress, 2026-09-25: unit 19b1
+
+Unit [19b1](../reviews/run-recovery/outcome-19b1.md) adds an explicit v2
+`run_hold` record and replay projection for a current pending admission. The
+v1 registry, encodings, and goldens remain exact. A held job survives a newer
+admission and a committed mixed-version store reopens and inspects locally.
+The bounded per-job projection has no application writer and is separate from
+the global dispatch hold. Independent Standards and Spec reviews pass after
+the exact v1 registry correction; the full suite passed 5193 tests with 39
+skipped. Reservation/ledger confirmation, attempt and effect records, a
+writer that latches failed holds, and the permit gate remain open. This ticket
+stays open.

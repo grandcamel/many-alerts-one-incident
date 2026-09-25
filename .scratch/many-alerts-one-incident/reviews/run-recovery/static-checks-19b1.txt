@@ -1,0 +1,7 @@
+Ruff on journal_records.py, journal_reducer.py, recovery_journal.py and
+test_run_hold_journal.py: All checks passed!
+Maximum Python line lengths: 100, 100, 100 and 89 respectively.
+git diff --check: PASS.
+Application caller scan: no module outside journal_records.py,
+journal_reducer.py and recovery_journal.py references plan_run_hold or
+run_holds_digest. recovery_journal.py exposes count/digest only; no writer.

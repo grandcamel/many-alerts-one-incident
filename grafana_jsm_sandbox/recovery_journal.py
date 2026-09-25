@@ -59,6 +59,7 @@ from .journal_reducer import (
     plan_ingress_refusal,
     plan_operator_resume,
     plan_restart,
+    run_holds_digest,
     state_digest,
     verify_commit,
 )
@@ -853,7 +854,7 @@ class RecoveryJournal:
                 "max_pending_fingerprints": p.bounds.max_pending_fingerprints,
                 "ordinary_bytes": p.bounds.ordinary_bytes, "total_bytes": p.bounds.total_bytes,
             }
-            return {
+            result = {
                 "state": self._state(), "hold": hold, "journal_uuid": p.journal_uuid,
                 "generation": p.generation, "boot_id": p.boot_id, "head": head_json,
                 "anchor": anchor_json, "wal_found": wal_found_json, "dispatch_holds": holds_json,
@@ -862,6 +863,11 @@ class RecoveryJournal:
                 "verified_state_digest": self._verified_state_digest,
                 "pending_digest": pending_digest(p), "state_digest": state_digest(p),
             }
+            if p.run_holds:
+                result["run_holds"] = {
+                    "count": len(p.run_holds), "digest": run_holds_digest(p),
+                }
+            return result
 
     def close(self) -> None:
         with self._lock:
@@ -964,6 +970,10 @@ def _ready_report(
         "pending_digest": pending_digest(candidate), "state_digest": state_digest(candidate),
         "front_door_digest": front_door_digest(candidate),
     }
+    if candidate.run_holds:
+        journal_json["run_holds"] = {
+            "count": len(candidate.run_holds), "digest": run_holds_digest(candidate),
+        }
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,
         "reserve": REFUSAL_RESOLVED_RESERVE,

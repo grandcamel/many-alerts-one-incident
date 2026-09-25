@@ -27,6 +27,7 @@ from .journal_records import (
     CAPACITY_CODES,
     DEDUPE_RULE,
     MAX_REFUSAL_RECORDS,
+    MAX_RUN_HOLD_RECORD_BYTES,
     REFUSAL_RESOLVED_RESERVE,
     REFUSAL_RULE,
     RESUMABLE_HOLDS,
@@ -64,6 +65,9 @@ REPLAY_ERROR_CODES = frozenset({
 
 _ADMISSIONS_CODE, _PENDING_CODE, _BYTES_CODE = CAPACITY_CODES
 _ADMISSION_PAIR_SHAPE = ("admission", "dedupe_decision")
+MAX_RUN_HOLDS = 1_024
+RUN_HOLD_MEMBERS_TAG = "rj.run-hold-members.v2"
+RUN_HOLDS_STATE_TAG = "rj.run-holds.v2"
 
 
 class ReplayError(ValueError):
@@ -113,6 +117,14 @@ class PendingEntry:
 
 
 @dataclasses.dataclass(frozen=True)
+class RunHold:
+    admission_id: str
+    reason: str
+    since_commit_seq: int
+    member_digest: str
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -158,6 +170,7 @@ class Delta:
     refusal_unreserved: bool = False
     dispatch_hold_clear: str | None = None
     resume_commit_seq: int | None = None
+    run_hold_add: tuple[str, RunHold] | None = None
 
 
 class Projection:
@@ -179,6 +192,7 @@ class Projection:
         self.last_arrival_seq: int = 0
         self.baselines: dict[str, Baseline] = {}
         self.pending: dict[str, PendingEntry] = {}
+        self.run_holds: dict[str, RunHold] = {}
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -511,6 +525,50 @@ def plan_operator_resume(
     return Plan(records=(record,), charge=charge, outcome=outcome)
 
 
+def plan_run_hold(
+    p: Projection, *, job_id: str, admission_id: str, event_id: str,
+    reason: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Describe a durable hold only; this plan has no dispatch authority."""
+    if p.head is None or p.bounds is None or p.boot_id != stamp.boot_id:
+        _fail_replay("replay_mismatch")
+    if job_id in p.run_holds or any(
+        held.admission_id == admission_id for held in p.run_holds.values()
+    ):
+        _fail_replay("replay_mismatch")
+    members = tuple(sorted(
+        fingerprint for fingerprint, entry in p.pending.items()
+        if entry.admission_id == admission_id
+    ))
+    if not 1 <= len(members) <= 32:
+        _fail_replay("replay_mismatch")
+    if len(p.run_holds) >= MAX_RUN_HOLDS:
+        return CapacityRefusal("capacity_run_holds", MAX_RUN_HOLDS, len(p.run_holds), 1)
+    position = Position(
+        journal_generation=p.generation, event_seq=p.head.event_seq + 1,
+        commit_seq=p.head.commit_seq + 1, commit_index=0, commit_size=1,
+        prev_record_digest=p.head.record_digest,
+    )
+    record = seal(
+        Draft(
+            event_id=event_id, event_type="run_hold", actor="receiver",
+            ids={"job_id": job_id, "admission_id": admission_id},
+            data={
+                "rule": "run-hold-v2", "reason": reason,
+                "based_on_commit_seq": p.head.commit_seq,
+                "pending_digest": pending_digest(p), "member_count": len(members),
+                "member_digest": tagged_digest(RUN_HOLD_MEMBERS_TAG, members),
+            },
+        ), position, stamp, schema_version=2,
+    )
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan(records=(record,), charge=charge, outcome=MappingProxyType({
+        "job_id": job_id, "admission_id": admission_id,
+    }))
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -526,6 +584,8 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "ingress_refusal"
     if types == ("operator_action",):
         return "operator_action"
+    if types == ("run_hold",):
+        return "run_hold"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -689,6 +749,35 @@ def _verify_operator_action(p: Projection, record: Record, commit_seq: int) -> D
     )
 
 
+def _verify_run_hold(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 2 or len(record.body) > MAX_RUN_HOLD_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    plan = plan_run_hold(
+        p, job_id=record.ids["job_id"], admission_id=record.ids["admission_id"],
+        event_id=record.event_id, reason=record.data["reason"], stamp=record.stamp,
+    )
+    if isinstance(plan, CapacityRefusal) or (
+        plan.records[0].body != record.body
+        or plan.records[0].record_digest != record.record_digest
+    ):
+        _fail_replay("replay_mismatch")
+    head = Head(
+        generation=p.generation, commit_seq=commit_seq, event_seq=record.position.event_seq,
+        record_digest=record.record_digest,
+    )
+    held = RunHold(
+        admission_id=record.ids["admission_id"], reason=record.data["reason"],
+        since_commit_seq=commit_seq, member_digest=record.data["member_digest"],
+    )
+    return Delta(
+        head=head, generation=p.generation, journal_uuid=None, bounds=None,
+        boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
+        logical_bytes=p.logical_bytes + plan.charge, admission_count=p.admission_count,
+        last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
+        dispatch_hold_add=None, run_hold_add=(record.ids["job_id"], held),
+    )
+
+
 def _verify_admission_pair(
     p: Projection, admission: Record, dedupe: Record, commit_seq: int,
 ) -> Delta:
@@ -810,6 +899,8 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_ingress_refusal(p, records[0], commit_seq)
     if shape == "operator_action":
         return _verify_operator_action(p, records[0], commit_seq)
+    if shape == "run_hold":
+        return _verify_run_hold(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -848,6 +939,9 @@ def apply_delta(p: Projection, delta: Delta) -> None:
             p.refusal_unreserved_count += 1
     if delta.dispatch_hold_clear is not None:
         del p.dispatch_holds[delta.dispatch_hold_clear]
+    if delta.run_hold_add is not None:
+        job_id, held = delta.run_hold_add
+        p.run_holds[job_id] = held
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -919,6 +1013,14 @@ def pending_digest(p: Projection) -> str:
     return _list_digest("rj.pending-set.v1", items)
 
 
+def run_holds_digest(p: Projection) -> str:
+    items = [
+        [job_id, held.admission_id, held.reason, held.since_commit_seq, held.member_digest]
+        for job_id, held in sorted(p.run_holds.items())
+    ]
+    return tagged_digest(RUN_HOLDS_STATE_TAG, items)
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -957,6 +1059,7 @@ def front_door_digest(p: Projection) -> str:
 __all__ = [
     "DEFAULT_BOUNDS",
     "FRONT_DOOR_STATE_TAG",
+    "MAX_RUN_HOLDS",
     "RECORD_OVERHEAD_BYTES",
     "REFUSAL_KEY_TAG",
     "REPLAY_ERROR_CODES",
@@ -969,6 +1072,7 @@ __all__ = [
     "Projection",
     "RefusalNotRecorded",
     "ReplayError",
+    "RunHold",
     "apply_delta",
     "dispatch_holds",
     "front_door_digest",
@@ -982,8 +1086,10 @@ __all__ = [
     "plan_ingress_refusal",
     "plan_operator_resume",
     "plan_restart",
+    "plan_run_hold",
     "refusal_key",
     "replay",
+    "run_holds_digest",
     "state_digest",
     "verify_commit",
 ]

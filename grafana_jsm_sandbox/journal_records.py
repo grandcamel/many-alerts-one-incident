@@ -49,6 +49,7 @@ EVENT_TYPES = (
 # The front door's two record types (unit 17). EVENT_TYPES stays the unit-15
 # five-tuple: F3 replays a journal holding only those and asserts the set.
 FRONT_DOOR_EVENT_TYPES = ("ingress_refusal", "operator_action")
+RUN_EVENT_TYPES_V2 = ("run_hold",)
 REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
@@ -59,6 +60,7 @@ RECORD_CLASS = MappingProxyType({
     "ingress_refusal": "ordinary",
     "operator_action": "recovery",
 })
+RUN_RECORD_CLASS_V2 = MappingProxyType({"run_hold": "recovery"})
 
 ACTORS = ("receiver", "spawner", "forwarder", "operator")
 
@@ -94,6 +96,11 @@ INGRESS_REFUSAL_CODES_V1 = tuple(sorted((
 OPERATOR_ACTIONS = ("resume",)
 RESUME_RULE = "resume-at-open-v1"
 RESUMABLE_HOLDS = ("restart_recovery",)
+RUN_HOLD_REASONS_V2 = (
+    "accounting_unavailable", "restart_recovery", "venue_unready",
+    "reference_revoked", "operator_review", "required_effect_unknown",
+)
+MAX_RUN_HOLD_RECORD_BYTES = 2_048
 
 # Private copies of journal_ingress/journal_source vocabulary the strict
 # refusal-summary checker needs; never imported (A12's import pin).
@@ -194,6 +201,7 @@ class Record:
     stamp: Stamp
     event_id: str
     event_type: str
+    schema_version: int
     actor: str
     ids: Mapping[str, str]
     data: Mapping[str, object]
@@ -334,6 +342,11 @@ _OPERATOR_ACTION_DATA_KEYS = frozenset({
     "operator", "reason",
 })
 _INSPECTED_KEYS = frozenset({"commit_seq", "event_seq", "record_digest"})
+_RUN_HOLD_IDS_KEYS = frozenset({"job_id", "admission_id"})
+_RUN_HOLD_DATA_KEYS = frozenset({
+    "rule", "reason", "based_on_commit_seq", "pending_digest",
+    "member_count", "member_digest",
+})
 
 
 # The per-type validators below share a handful of two-line "check shape or
@@ -634,6 +647,19 @@ def _validate_operator_action(ids: object, data: object, event_id: str) -> None:
             _fail_record("record_field")
 
 
+def _validate_run_hold_v2(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _RUN_HOLD_IDS_KEYS)
+    validate_id(ids["job_id"])
+    validate_id(ids["admission_id"])
+    data = _require_keys(data, _RUN_HOLD_DATA_KEYS)
+    _require_literal(data["rule"], "run-hold-v2", "record_unsupported")
+    _require_enum(data["reason"], RUN_HOLD_REASONS_V2)
+    _require_bound_int(data["based_on_commit_seq"], 1, MAX_SEQ, "record_field")
+    _require_hex64(data["pending_digest"])
+    _require_bound_int(data["member_count"], 1, 32, "record_field")
+    _require_hex64(data["member_digest"])
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -643,6 +669,7 @@ _TYPE_VALIDATORS = MappingProxyType({
     ("ingress_refusal", 1): _validate_ingress_refusal,
     ("operator_action", 1): _validate_operator_action,
 })
+_V2_TYPE_VALIDATORS = MappingProxyType({("run_hold", 2): _validate_run_hold_v2})
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
     ("restart_recovery", 1): "receiver",
@@ -652,6 +679,7 @@ TYPE_ACTORS = MappingProxyType({
     ("ingress_refusal", 1): "receiver",
     ("operator_action", 1): "operator",
 })
+_V2_TYPE_ACTORS = MappingProxyType({("run_hold", 2): "receiver"})
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
 
@@ -662,7 +690,11 @@ def _validate_envelope(envelope: object) -> None:
     if type(schema_version) is not int:
         _fail_record("record_type")
     if schema_version not in SCHEMA_VERSIONS:
-        _fail_record("record_unsupported")
+        proposed_type = envelope["event_type"]
+        if type(proposed_type) is not str or (
+            proposed_type, schema_version
+        ) not in _V2_TYPE_VALIDATORS:
+            _fail_record("record_unsupported")
     _require_bound_int(envelope["journal_generation"], 1, MAX_GENERATION, "record_field")
     event_id = validate_id(envelope["event_id"])
     event_seq = _require_bound_int(envelope["event_seq"], 1, MAX_SEQ, "record_field")
@@ -675,10 +707,15 @@ def _validate_envelope(envelope: object) -> None:
         _fail_record("record_field")
     event_type = envelope["event_type"]
     type_key = (event_type, schema_version)
-    if type(event_type) is not str or type_key not in _TYPE_VALIDATORS:
+    if type(event_type) is not str or (
+        type_key not in _TYPE_VALIDATORS and type_key not in _V2_TYPE_VALIDATORS
+    ):
         _fail_record("record_unsupported")
     actor = envelope["actor"]
-    if type(actor) is not str or actor not in ACTORS or actor != TYPE_ACTORS[type_key]:
+    expected_actor = (
+        TYPE_ACTORS[type_key] if type_key in TYPE_ACTORS else _V2_TYPE_ACTORS[type_key]
+    )
+    if type(actor) is not str or actor not in ACTORS or actor != expected_actor:
         _fail_record("record_field")
     validate_id(envelope["boot_id"])
     _require_wall_time(envelope["wall_time"])
@@ -686,7 +723,11 @@ def _validate_envelope(envelope: object) -> None:
     prev_digest = _require_hex64(envelope["prev_record_digest"])
     if (event_seq == 1) != (prev_digest == ZERO_DIGEST):
         _fail_record("record_field")
-    _TYPE_VALIDATORS[type_key](envelope["ids"], envelope["data"], event_id)
+    validator = (
+        _TYPE_VALIDATORS[type_key] if type_key in _TYPE_VALIDATORS
+        else _V2_TYPE_VALIDATORS[type_key]
+    )
+    validator(envelope["ids"], envelope["data"], event_id)
 
 
 # --- Encode, digest, decode ----------------------------------------------------
@@ -701,17 +742,20 @@ def _build_record(
 ) -> Record:
     return Record(
         position=position, stamp=stamp, event_id=envelope["event_id"],
-        event_type=envelope["event_type"], actor=envelope["actor"],
+        event_type=envelope["event_type"], schema_version=envelope["schema_version"],
+        actor=envelope["actor"],
         ids=_freeze(envelope["ids"]), data=_freeze(envelope["data"]),
         body=body, record_digest=digest,
     )
 
 
-def seal(draft: Draft, position: Position, stamp: Stamp) -> Record:
+def seal(
+    draft: Draft, position: Position, stamp: Stamp, *, schema_version: int = SCHEMA_VERSION,
+) -> Record:
     if type(draft) is not Draft or type(position) is not Position or type(stamp) is not Stamp:
         _fail_record("record_argument")
     envelope = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": schema_version,
         "journal_generation": position.journal_generation,
         "event_id": draft.event_id,
         "event_seq": position.event_seq,
@@ -736,6 +780,8 @@ def seal(draft: Draft, position: Position, stamp: Stamp) -> Record:
     if code is not None:
         _fail_record(code)
     if len(body) > MAX_RECORD_BYTES:
+        _fail_record("record_too_large")
+    if schema_version == 2 and len(body) > MAX_RUN_HOLD_RECORD_BYTES:
         _fail_record("record_too_large")
     return _build_record(envelope, position, stamp, body, _record_digest(body))
 
@@ -770,6 +816,8 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
     if canonical_body != body:
         _fail_record("record_not_canonical")
     _validate_envelope(envelope)
+    if envelope["schema_version"] == 2 and len(body) > MAX_RUN_HOLD_RECORD_BYTES:
+        _fail_record("record_too_large")
     position = Position(
         journal_generation=envelope["journal_generation"],
         event_seq=envelope["event_seq"],
@@ -796,7 +844,7 @@ def content_digest(record: Record) -> str:
     if type(record) is not Record:
         _fail_record("record_argument")
     payload = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": record.schema_version,
         "journal_generation": record.position.journal_generation,
         "event_id": record.event_id,
         "event_type": record.event_type,
@@ -824,6 +872,7 @@ __all__ = [
     "MAX_ID_BYTES",
     "MAX_RECORD_BYTES",
     "MAX_REFUSAL_RECORDS",
+    "MAX_RUN_HOLD_RECORD_BYTES",
     "MAX_SEQ",
     "OPERATOR_ACTIONS",
     "RECORD_CLASS",
@@ -834,6 +883,9 @@ __all__ = [
     "REGISTERED_EVENT_TYPES",
     "RESUMABLE_HOLDS",
     "RESUME_RULE",
+    "RUN_EVENT_TYPES_V2",
+    "RUN_HOLD_REASONS_V2",
+    "RUN_RECORD_CLASS_V2",
     "SCHEMA_VERSION",
     "SCHEMA_VERSIONS",
     "TYPE_ACTORS",

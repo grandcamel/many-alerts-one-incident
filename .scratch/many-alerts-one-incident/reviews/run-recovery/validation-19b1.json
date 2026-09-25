@@ -1,0 +1,78 @@
+{
+  "artifacts": {
+    ".scratch/many-alerts-one-incident/issues/37-run-recovery-and-admission-specification.md": "170d4b41944dc23f2d7ae210d7d7e5b0e1b27a84edd60b9c6aea23461cab7619",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/design-19b-v2.md": "7b9ab47255839848a71a2589d99b9ba905a671afec3c234d207530c1bfac7202",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/focused-tests-19b1.txt": "3d107f822e4095827f225c6c0ca2666ab9963579c1c3c25bb84e4909e4fadbc1",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/full-suite-19b1.txt": "889f47205184acc93f6304efe84ba36dc73f631fbffff2d8aba9ffac844e3e6e",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/implementation-plan-19b1.md": "c6aa159167570e7c4bd1acef64e1913d0e34c544bfd6a75d59ca74541a61b314",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/outcome-19b1.md": "74cc3546b66fcf49d8008bd278e1f410abec3f2350e25358ce7329c3cde725c3",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/review-19b1-source.md": "df66fb288a414f3629ccb82b6eb30e5d325a636b2d90ed5b9305d232ff4c118b",
+    ".scratch/many-alerts-one-incident/reviews/run-recovery/static-checks-19b1.txt": "d0c6909557919652516d5533bdf060e68131ac04558db2f865d4778b2601fecd",
+    "docs/recovery-journal.md": "4c58f50fdebfca23fa6c0ce5bc1073670f8dd4a7467744683c9122feffb30b40",
+    "grafana_jsm_sandbox/journal_records.py": "53266b1f373d9fb1f58066e3c18d336e06282b97ba05032281e74eb159354ceb",
+    "grafana_jsm_sandbox/journal_reducer.py": "b2e7115997c84948541d9e7082ea18a2b40a44a844c9f1434d77df6b7d416800",
+    "grafana_jsm_sandbox/recovery_journal.py": "3bfc567f21d0f4072cf67256638b906feee2dcd3721e3b5f1badf0d161461e81",
+    "tests/test_run_hold_journal.py": "349cef6bdb6336c2c828742f935262ebc93ba61346782be36cf2749ea565fadc"
+  },
+  "baseline_commit": "e464555",
+  "evidence_scope": "local source/static and offline mixed-version durable-journal tests only",
+  "focused_suite": {
+    "command": "python3 /tmp/maoi-handoff-codex/maoi-loopback-guard.py -q -p no:cacheprovider tests/test_journal_front_door_records.py tests/test_recovery_journal_front_door.py tests/test_run_hold_journal.py",
+    "exit": 0,
+    "non_loopback_attempts": [],
+    "passed": 353
+  },
+  "full_run_inputs": {
+    "grafana_jsm_sandbox/journal_records.py": "53266b1f373d9fb1f58066e3c18d336e06282b97ba05032281e74eb159354ceb",
+    "grafana_jsm_sandbox/journal_reducer.py": "b2e7115997c84948541d9e7082ea18a2b40a44a844c9f1434d77df6b7d416800",
+    "grafana_jsm_sandbox/recovery_journal.py": "3bfc567f21d0f4072cf67256638b906feee2dcd3721e3b5f1badf0d161461e81",
+    "tests/test_run_hold_journal.py": "349cef6bdb6336c2c828742f935262ebc93ba61346782be36cf2749ea565fadc"
+  },
+  "full_suite": {
+    "command": "env -u DEMO_END_TO_END -u DEMO_CONTAINER pytest -q -p no:cacheprovider",
+    "exit": 0,
+    "passed": 5193,
+    "seconds": 384.82,
+    "skipped": 39
+  },
+  "not_qualified": [
+    "production run_hold writer and failed-append latch",
+    "global dispatch gate or permit",
+    "accounting reservation and 18d bridge",
+    "spawn/terminal and effect record families",
+    "real worker supervision and launcher",
+    "native/provider/tenant/venue/paid execution",
+    "human Report adjudication"
+  ],
+  "preserved_dirty_artifacts": {
+    ".scratch/many-alerts-one-incident/issues/19-mcp-grafana-behind-the-sentinel.md": "685ebbe4914f6ebee907bd1452486f67b8121b1bb4cf61233dd9adc4283172ec",
+    ".scratch/many-alerts-one-incident/reviews/planning-frontier-2026-09-18.md": "ff7f1b32ff12391367801d1dd6c048f32d3d4d342766ab408a8d2591ad6f0c5f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-execution-draft.md": "94d7de56e4cfde29b72e068cfa9d2b276a3265d876908ed234cbc621d1d62a2f",
+    ".scratch/many-alerts-one-incident/reviews/ticket-19/c2-ingestion-session-outcome.md": "8018369f571d6b550dc58f07a7234c5f1349a9ec24fb294c69f1978ea2abf336"
+  },
+  "preserved_panel": {
+    "regular_file_count": 76,
+    "relative_path_sha256_lf_manifest_digest": "0cf9c0e9ef79fc1d0e8727bb398bd529d3ebcf2f5630bdd7af10fb9ba17712ae",
+    "total_bytes": 617831
+  },
+  "prior_failed_full_suite": {
+    "cause": "v2 pair added to exact v1 public registry; corrected before final full run",
+    "failed": 16,
+    "passed": 5184,
+    "skipped": 39
+  },
+  "publication": "LOCAL_ONLY",
+  "reviews": {
+    "source_spec": "NO_CONCRETE_BLOCKER_AFTER_TEST_AND_REGISTRY_RECHECK",
+    "source_standards": "NO_CONCRETE_BLOCKER_AFTER_REGISTRY_RECHECK"
+  },
+  "schema_version": 1,
+  "static_checks": {
+    "application_caller_import_scan": "PASS_NO_WRITER",
+    "git_diff_check": "PASS",
+    "line_length_changed_python": "PASS",
+    "ruff_changed_python": "PASS"
+  },
+  "status": "PASS_LOCAL_NO_DISPATCH_V2_HOLD",
+  "unit": "19b1"
+}
