@@ -399,6 +399,19 @@ missing, corrupt or unsupported evidence does not create a permit. It maps
 the claimed `ledger_event_id` to a structural comparison field, never to a
 trusted accounting receipt. The scanner has no journal writer or Run caller.
 
+The private `(run_intent, 3)` record is a source-only, ordinary-capacity
+extension. Pure replay binds an existing v3 initial claim and confirmation,
+the unchanged original pending members, a claimed ledger event/head and the
+four mandatory service lease claims. The fifth Confluence claim is optional.
+It has a 4,096-byte type-specific ceiling; earlier private types retain their
+2,048-byte ceiling. Live snapshot and stopped verify-only inspect expose one
+separately tagged `run_intent` count/digest with state
+`outstanding_unqualified`. Neither replay nor a ledger-head reference
+authenticates a reservation. There is no application writer, grant
+registration, launch, effect or permit path for this record; the current
+ledger's unknown population and absent reservation events keep that gate
+closed.
+
 ## Crash windows
 
 | Window | Next open |
@@ -681,8 +694,10 @@ They run on macOS; the Linux sync primitive is skipped there.
 pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_journal_store.py tests/test_journal_reducer.py tests/test_recovery_journal.py tests/test_recovery_journal_crash.py tests/test_recovery_journal_adversarial.py tests/test_journal_ingress.py tests/test_journal_ingress_corpus.py tests/test_journal_ingress_adversarial.py tests/test_forwarder_json_string_cap.py tests/test_journal_front_door_records.py tests/test_recovery_journal_front_door.py tests/test_journal_spool.py tests/test_journaled_receiver.py tests/test_journal_operator.py tests/test_journaled_receiver_crash.py tests/test_journaled_legacy_identity.py
 ```
 
-The versioned claim tests are in `tests/test_reservation_claim_journal.py`;
-the full repository suite includes them.
+The versioned claim tests are in `tests/test_reservation_claim_journal.py`,
+`tests/test_initial_reservation_intent_journal.py` and
+`tests/test_run_intent_claim_journal.py`; the full repository suite includes
+them.
 
 Receiver integration is opt-in and admission-only. Dispatch, Runs, effects,
 accounting, reset, retention and reconstruction remain unimplemented here.

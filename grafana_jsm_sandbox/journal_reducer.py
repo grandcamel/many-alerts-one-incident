@@ -28,6 +28,8 @@ from .journal_records import (
     DEDUPE_RULE,
     MAX_REFUSAL_RECORDS,
     MAX_RUN_HOLD_RECORD_BYTES,
+    MAX_RUN_INTENT_RECORD_BYTES,
+    MAX_SEQ,
     REFUSAL_RESOLVED_RESERVE,
     REFUSAL_RULE,
     RESUMABLE_HOLDS,
@@ -75,6 +77,8 @@ INITIAL_INTENT_MEMBERS_TAG = "rj.initial-intent-members.v3"
 INITIAL_INTENT_TAG = "rj.reservation-intent.v3"
 INITIAL_INTENTS_STATE_TAG = "rj.initial-intents.v3"
 INITIAL_CONFIRMATIONS_STATE_TAG = "rj.initial-confirmations.v3"
+RUN_INTENT_TAG = "rj.run-intent.v3"
+RUN_INTENT_STATE_TAG = "rj.run-intent-state.v3"
 _UUID_DASHES = frozenset({8, 13, 18, 23})
 _UUID_HEX = frozenset("0123456789abcdef")
 
@@ -181,6 +185,34 @@ class ReservationConfirmationClaim:
 
 
 @dataclasses.dataclass(frozen=True)
+class RunIntentClaim:
+    run_intent_id: str
+    journal_uuid: str
+    journal_generation: int
+    admission_id: str
+    job_id: str
+    intent_id: str
+    attempt_id: str
+    reservation_id: str
+    run_id: str
+    model_lease_id: str
+    initial_intent_digest: str
+    confirmation_event_id: str
+    ledger_uuid: str
+    ledger_generation: int
+    ledger_event_id: str
+    ledger_sequence: int
+    ledger_event_digest: str
+    ledger_head_sequence: int
+    ledger_head_digest: str
+    member_count: int
+    member_digest: str
+    services: tuple[tuple[str, str, str], ...]
+    run_intent_digest: str
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -231,6 +263,7 @@ class Delta:
     reservation_confirmation_add: ReservationConfirmationClaim | None = None
     initial_reservation_intent_add: InitialReservationIntentClaim | None = None
     initial_reservation_confirmation_add: ReservationConfirmationClaim | None = None
+    run_intent_add: RunIntentClaim | None = None
 
 
 class Projection:
@@ -257,6 +290,7 @@ class Projection:
         self.confirmations: dict[str, ReservationConfirmationClaim] = {}
         self.initial_intents: dict[str, InitialReservationIntentClaim] = {}
         self.initial_confirmations: dict[str, ReservationConfirmationClaim] = {}
+        self.run_intent: RunIntentClaim | None = None
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -936,6 +970,127 @@ def plan_initial_reservation_confirmation(
     }))
 
 
+def _digest64(value: object) -> bool:
+    return type(value) is str and len(value) == 64 and all(c in _UUID_HEX for c in value)
+
+
+def _known_reservation_ids(p: Projection) -> set[str]:
+    """All replayed identities a new Run event or service claim cannot reuse."""
+    values = {p.journal_uuid, *p.run_holds.keys()}
+    values.update(held.admission_id for held in p.run_holds.values())
+    for claim in (*p.intents.values(), *p.initial_intents.values()):
+        values.update((
+            claim.admission_id, claim.job_id, claim.intent_id, claim.attempt_id,
+            claim.reservation_id, claim.run_id, claim.lease_id,
+        ))
+    for claim in (*p.confirmations.values(), *p.initial_confirmations.values()):
+        values.update((
+            claim.confirmation_event_id, claim.ledger_uuid, claim.ledger_event_id,
+        ))
+    return values
+
+
+def plan_run_intent(
+    p: Projection, *, intent_id: str, event_id: str,
+    ledger_head_sequence: int, ledger_head_digest: str,
+    services: tuple[tuple[str, str, str], ...], stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Plan an outstanding unqualified claim; no ledger verification or writer."""
+    if p.head is None or p.bounds is None or p.boot_id != stamp.boot_id:
+        _fail_replay("replay_mismatch")
+    if p.dispatch_holds or p.run_holds or p.run_intent is not None:
+        _fail_replay("replay_mismatch")
+    initial = p.initial_intents.get(intent_id)
+    confirmation = p.initial_confirmations.get(intent_id)
+    if initial is None or confirmation is None or (
+        confirmation.intent_digest != initial.intent_digest
+        or not initial.committed_at_seq < confirmation.committed_at_seq <= p.head.commit_seq
+    ):
+        _fail_replay("replay_mismatch")
+    members = tuple(sorted(
+        fingerprint for fingerprint, entry in p.pending.items()
+        if entry.admission_id == initial.admission_id
+    ))
+    if len(members) != initial.member_count or (
+        tagged_digest(INITIAL_INTENT_MEMBERS_TAG, members) != initial.member_digest
+    ):
+        _fail_replay("replay_mismatch")
+    if not _canonical_uuid(event_id) or event_id in _known_reservation_ids(p):
+        _fail_replay("replay_mismatch")
+    if (type(ledger_head_sequence) is not int
+        or not confirmation.sequence <= ledger_head_sequence <= MAX_SEQ
+        or not _digest64(ledger_head_digest)
+        or (ledger_head_sequence == confirmation.sequence
+            and ledger_head_digest != confirmation.event_digest)):
+        _fail_replay("replay_mismatch")
+    if type(services) is not tuple or not 4 <= len(services) <= 5 or any(
+        type(item) is not tuple or len(item) != 3 for item in services
+    ):
+        _fail_replay("replay_mismatch")
+    names = tuple(item[0] for item in services)
+    if any(type(name) is not str for name in names) or (
+        names != tuple(sorted(names)) or len(set(names)) != len(names)
+    ) or not (
+        {"anthropic", "jira", "grafana", "kubernetes"} <= set(names)
+    ) or set(names) - {"anthropic", "jira", "grafana", "kubernetes", "confluence"}:
+        _fail_replay("replay_mismatch")
+    if services[0][1] != initial.lease_id or any(
+        type(name) is not str or not _canonical_uuid(lease_claim_id)
+        or not _digest64(scope_digest)
+        for name, lease_claim_id, scope_digest in services
+    ):
+        _fail_replay("replay_mismatch")
+    fresh = (event_id, *(item[1] for item in services[1:]))
+    if len(set(fresh)) != len(fresh) or set(fresh) & _known_reservation_ids(p):
+        _fail_replay("replay_mismatch")
+    ids = {
+        "journal_uuid": initial.journal_uuid, "job_id": initial.job_id,
+        "admission_id": initial.admission_id, "intent_id": initial.intent_id,
+        "attempt_id": initial.attempt_id, "reservation_id": initial.reservation_id,
+        "run_id": initial.run_id, "lease_id": initial.lease_id,
+    }
+    data = {
+        "rule": "run-intent-v3", "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "initial_intent_commit_seq": initial.committed_at_seq,
+        "intent_digest": initial.intent_digest,
+        "confirmation_event_id": confirmation.confirmation_event_id,
+        "confirmation_commit_seq": confirmation.committed_at_seq,
+        "ledger_uuid": confirmation.ledger_uuid,
+        "ledger_generation": confirmation.ledger_generation,
+        "ledger_event_id": confirmation.ledger_event_id,
+        "sequence": confirmation.sequence,
+        "event_digest": confirmation.event_digest,
+        "ledger_head": {
+            "sequence": ledger_head_sequence, "event_digest": ledger_head_digest,
+        },
+        "member_count": initial.member_count, "member_digest": initial.member_digest,
+        "services": [
+            {"service": name, "lease_claim_id": lease_claim_id,
+             "scope_digest": scope_digest}
+            for name, lease_claim_id, scope_digest in services
+        ],
+        "work_deadline_seconds": 270, "flush_deadline_seconds": 290,
+        "hard_deadline_seconds": 300,
+    }
+    data["run_intent_digest"] = tagged_digest(RUN_INTENT_TAG, {
+        "event_id": event_id, "ids": ids, "data": data,
+    })
+    record = seal(
+        Draft(event_id, "run_intent", "receiver", ids, data),
+        _single_position(p), stamp, schema_version=3,
+    )
+    if len(record.body) > MAX_RUN_INTENT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.ordinary_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.ordinary_bytes, p.logical_bytes, charge)
+    return Plan(records=(record,), charge=charge, outcome=MappingProxyType({
+        "run_intent_id": event_id, "run_intent_digest": data["run_intent_digest"],
+        "state": "outstanding_unqualified",
+    }))
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -957,6 +1112,8 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "reservation_intent"
     if types == ("reservation_confirmation",):
         return "reservation_confirmation"
+    if types == ("run_intent",):
+        return "run_intent"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -1262,6 +1419,55 @@ def _verify_reservation_confirmation(
     )
 
 
+def _verify_run_intent(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_RUN_INTENT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    head = record.data["ledger_head"]
+    services = tuple(
+        (item["service"], item["lease_claim_id"], item["scope_digest"])
+        for item in record.data["services"]
+    )
+    plan = plan_run_intent(
+        p, intent_id=record.ids["intent_id"], event_id=record.event_id,
+        ledger_head_sequence=head["sequence"], ledger_head_digest=head["event_digest"],
+        services=services, stamp=record.stamp,
+    )
+    if isinstance(plan, CapacityRefusal) or (
+        plan.records[0].body != record.body
+        or plan.records[0].record_digest != record.record_digest
+    ):
+        _fail_replay("replay_mismatch")
+    claim = RunIntentClaim(
+        run_intent_id=record.event_id,
+        journal_uuid=record.ids["journal_uuid"],
+        journal_generation=p.generation,
+        admission_id=record.ids["admission_id"], job_id=record.ids["job_id"],
+        intent_id=record.ids["intent_id"], attempt_id=record.ids["attempt_id"],
+        reservation_id=record.ids["reservation_id"], run_id=record.ids["run_id"],
+        model_lease_id=record.ids["lease_id"],
+        initial_intent_digest=record.data["intent_digest"],
+        confirmation_event_id=record.data["confirmation_event_id"],
+        ledger_uuid=record.data["ledger_uuid"],
+        ledger_generation=record.data["ledger_generation"],
+        ledger_event_id=record.data["ledger_event_id"],
+        ledger_sequence=record.data["sequence"],
+        ledger_event_digest=record.data["event_digest"],
+        ledger_head_sequence=head["sequence"], ledger_head_digest=head["event_digest"],
+        member_count=record.data["member_count"],
+        member_digest=record.data["member_digest"], services=services,
+        run_intent_digest=record.data["run_intent_digest"],
+        committed_at_seq=commit_seq,
+    )
+    return Delta(
+        head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
+        generation=p.generation, journal_uuid=None, bounds=None,
+        boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
+        logical_bytes=p.logical_bytes + plan.charge, admission_count=p.admission_count,
+        last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
+        dispatch_hold_add=None, run_intent_add=claim,
+    )
+
+
 def _verify_admission_pair(
     p: Projection, admission: Record, dedupe: Record, commit_seq: int,
 ) -> Delta:
@@ -1391,6 +1597,8 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_reservation_intent(p, records[0], commit_seq)
     if shape == "reservation_confirmation":
         return _verify_reservation_confirmation(p, records[0], commit_seq)
+    if shape == "run_intent":
+        return _verify_run_intent(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -1444,6 +1652,8 @@ def apply_delta(p: Projection, delta: Delta) -> None:
     if delta.initial_reservation_confirmation_add is not None:
         claim = delta.initial_reservation_confirmation_add
         p.initial_confirmations[claim.intent_id] = claim
+    if delta.run_intent_add is not None:
+        p.run_intent = delta.run_intent_add
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -1543,6 +1753,13 @@ def initial_confirmations_digest(p: Projection) -> str:
     return tagged_digest(INITIAL_CONFIRMATIONS_STATE_TAG, claims)
 
 
+def run_intent_claim_digest(p: Projection) -> str:
+    return tagged_digest(
+        RUN_INTENT_STATE_TAG,
+        None if p.run_intent is None else dataclasses.asdict(p.run_intent),
+    )
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -1588,6 +1805,7 @@ __all__ = [
     "RECORD_OVERHEAD_BYTES",
     "REFUSAL_KEY_TAG",
     "REPLAY_ERROR_CODES",
+    "RUN_INTENT_STATE_TAG",
     "Baseline",
     "CapacityRefusal",
     "Delta",
@@ -1601,6 +1819,7 @@ __all__ = [
     "ReservationConfirmationClaim",
     "ReservationIntentClaim",
     "RunHold",
+    "RunIntentClaim",
     "apply_delta",
     "dispatch_holds",
     "front_door_digest",
@@ -1621,10 +1840,12 @@ __all__ = [
     "plan_reservation_intent",
     "plan_restart",
     "plan_run_hold",
+    "plan_run_intent",
     "refusal_key",
     "replay",
     "reservation_claims_digest",
     "run_holds_digest",
+    "run_intent_claim_digest",
     "state_digest",
     "verify_commit",
 ]

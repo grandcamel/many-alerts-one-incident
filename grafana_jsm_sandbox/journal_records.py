@@ -50,6 +50,7 @@ EVENT_TYPES = (
 # five-tuple: F3 replays a journal holding only those and asserts the set.
 FRONT_DOOR_EVENT_TYPES = ("ingress_refusal", "operator_action")
 RUN_EVENT_TYPES_V2 = ("run_hold",)
+RUN_EVENT_TYPES_V3 = ("run_intent",)
 REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
@@ -61,6 +62,7 @@ RECORD_CLASS = MappingProxyType({
     "operator_action": "recovery",
 })
 RUN_RECORD_CLASS_V2 = MappingProxyType({"run_hold": "recovery"})
+RUN_RECORD_CLASS_V3 = MappingProxyType({"run_intent": "ordinary"})
 RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
     "reservation_confirmation": "recovery",
@@ -109,6 +111,7 @@ RUN_HOLD_REASONS_V2 = (
     "reference_revoked", "operator_review", "required_effect_unknown",
 )
 MAX_RUN_HOLD_RECORD_BYTES = 2_048
+MAX_RUN_INTENT_RECORD_BYTES = 4_096
 
 # Private copies of journal_ingress/journal_source vocabulary the strict
 # refusal-summary checker needs; never imported (A12's import pin).
@@ -370,6 +373,19 @@ _RESERVATION_CONFIRMATION_DATA_KEYS = frozenset({
     "rule", "intent_digest", "ledger_uuid", "ledger_generation",
     "ledger_event_id", "sequence", "event_digest",
 })
+_RUN_INTENT_IDS_KEYS = _RESERVATION_INTENT_IDS_KEYS | {"journal_uuid"}
+_RUN_INTENT_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "initial_intent_commit_seq", "intent_digest", "confirmation_event_id",
+    "confirmation_commit_seq", "ledger_uuid", "ledger_generation",
+    "ledger_event_id", "sequence", "event_digest", "ledger_head",
+    "member_count", "member_digest", "services", "work_deadline_seconds",
+    "flush_deadline_seconds", "hard_deadline_seconds", "run_intent_digest",
+})
+_RUN_INTENT_LEDGER_HEAD_KEYS = frozenset({"sequence", "event_digest"})
+_RUN_INTENT_SERVICE_KEYS = frozenset({"service", "lease_claim_id", "scope_digest"})
+_RUN_INTENT_MANDATORY_SERVICES = frozenset({"anthropic", "jira", "grafana", "kubernetes"})
+_RUN_INTENT_ALLOWED_SERVICES = _RUN_INTENT_MANDATORY_SERVICES | {"confluence"}
 
 
 # The per-type validators below share a handful of two-line "check shape or
@@ -754,6 +770,59 @@ def _validate_reservation_confirmation_v3(
         _fail_record("record_field")
 
 
+def _validate_run_intent_v3(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _RUN_INTENT_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    data = _require_keys(data, _RUN_INTENT_DATA_KEYS)
+    _require_literal(data["rule"], "run-intent-v3", "record_unsupported")
+    for key in ("based_on_commit_seq", "initial_intent_commit_seq", "confirmation_commit_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "intent_digest", "event_digest",
+                "member_digest", "run_intent_digest"):
+        _require_hex64(data[key])
+    for key in ("confirmation_event_id", "ledger_uuid", "ledger_event_id"):
+        _require_uuid(data[key])
+    _require_bound_int(data["ledger_generation"], 1, MAX_GENERATION, "record_field")
+    _require_bound_int(data["sequence"], 1, MAX_SEQ, "record_field")
+    _require_bound_int(data["member_count"], 1, 32, "record_field")
+    head = _require_keys(data["ledger_head"], _RUN_INTENT_LEDGER_HEAD_KEYS)
+    _require_bound_int(head["sequence"], 1, MAX_SEQ, "record_field")
+    _require_hex64(head["event_digest"])
+    if head["sequence"] < data["sequence"] or (
+        head["sequence"] == data["sequence"] and head["event_digest"] != data["event_digest"]
+    ):
+        _fail_record("record_field")
+    for key, value in (("work_deadline_seconds", 270), ("flush_deadline_seconds", 290),
+                       ("hard_deadline_seconds", 300)):
+        _require_bound_int(data[key], value, value, "record_field")
+    services = data["services"]
+    if type(services) not in (list, tuple) or not 4 <= len(services) <= 5:
+        _fail_record("record_field")
+    names: list[str] = []
+    lease_claims: list[str] = []
+    for item in services:
+        item = _require_keys(item, _RUN_INTENT_SERVICE_KEYS)
+        name = item["service"]
+        if type(name) is not str or name not in _RUN_INTENT_ALLOWED_SERVICES:
+            _fail_record("record_field")
+        names.append(name)
+        lease_claims.append(_require_uuid(item["lease_claim_id"]))
+        _require_hex64(item["scope_digest"])
+    if (names != sorted(names) or len(set(names)) != len(names)
+        or not _RUN_INTENT_MANDATORY_SERVICES.issubset(names)):
+        _fail_record("record_field")
+    if services[0]["lease_claim_id"] != ids["lease_id"]:
+        _fail_record("record_field")
+    identities = (
+        *ids.values(), event_id, data["confirmation_event_id"], data["ledger_uuid"],
+        data["ledger_event_id"], *lease_claims[1:],
+    )
+    if len(set(identities)) != len(identities):
+        _fail_record("record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -771,6 +840,7 @@ _V2_TYPE_VALIDATORS = MappingProxyType({
 _V3_TYPE_VALIDATORS = MappingProxyType({
     ("reservation_intent", 3): _validate_reservation_intent_v3,
     ("reservation_confirmation", 3): _validate_reservation_confirmation_v3,
+    ("run_intent", 3): _validate_run_intent_v3,
 })
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
@@ -789,6 +859,7 @@ _V2_TYPE_ACTORS = MappingProxyType({
 _V3_TYPE_ACTORS = MappingProxyType({
     ("reservation_intent", 3): "receiver",
     ("reservation_confirmation", 3): "receiver",
+    ("run_intent", 3): "receiver",
 })
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
@@ -899,7 +970,11 @@ def seal(
         _fail_record(code)
     if len(body) > MAX_RECORD_BYTES:
         _fail_record("record_too_large")
-    if schema_version in (2, 3) and len(body) > MAX_RUN_HOLD_RECORD_BYTES:
+    private_cap = (
+        MAX_RUN_INTENT_RECORD_BYTES if (draft.event_type, schema_version) == ("run_intent", 3)
+        else MAX_RUN_HOLD_RECORD_BYTES
+    )
+    if schema_version in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
     return _build_record(envelope, position, stamp, body, _record_digest(body))
 
@@ -934,7 +1009,12 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
     if canonical_body != body:
         _fail_record("record_not_canonical")
     _validate_envelope(envelope)
-    if envelope["schema_version"] in (2, 3) and len(body) > MAX_RUN_HOLD_RECORD_BYTES:
+    private_cap = (
+        MAX_RUN_INTENT_RECORD_BYTES
+        if (envelope["event_type"], envelope["schema_version"]) == ("run_intent", 3)
+        else MAX_RUN_HOLD_RECORD_BYTES
+    )
+    if envelope["schema_version"] in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
     position = Position(
         journal_generation=envelope["journal_generation"],
@@ -991,6 +1071,7 @@ __all__ = [
     "MAX_RECORD_BYTES",
     "MAX_REFUSAL_RECORDS",
     "MAX_RUN_HOLD_RECORD_BYTES",
+    "MAX_RUN_INTENT_RECORD_BYTES",
     "MAX_SEQ",
     "OPERATOR_ACTIONS",
     "RECORD_CLASS",
@@ -1004,8 +1085,10 @@ __all__ = [
     "RESUMABLE_HOLDS",
     "RESUME_RULE",
     "RUN_EVENT_TYPES_V2",
+    "RUN_EVENT_TYPES_V3",
     "RUN_HOLD_REASONS_V2",
     "RUN_RECORD_CLASS_V2",
+    "RUN_RECORD_CLASS_V3",
     "SCHEMA_VERSION",
     "SCHEMA_VERSIONS",
     "TYPE_ACTORS",

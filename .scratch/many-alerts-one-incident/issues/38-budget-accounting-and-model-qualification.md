@@ -243,3 +243,14 @@ journal append advances the head. Independent Standards and Spec document
 reviews pass. The current ledger cannot supply the positive event, so no
 reservation, Run-intent writer or dispatch is enabled. External accounting
 decisions remain open; this ticket stays open.
+
+## Local no-writer Run-intent replay, 2026-09-25: unit 19j1
+
+The [19j1 outcome](../reviews/run-recovery/outcome-19j1-run-intent-replay.md)
+persists only a replayable claim shape under an ordinary-capacity bound.
+Its ledger event/head fields are unverified claims; the separate current
+reservation qualification designed in 19j still has no positive input.
+Independent source reviews, 267 focused tests, Ruff and the full local suite
+(**5,496 passed, 39 skipped**) pass. No spend reservation, provider charge
+evidence, capacity release or dispatch authority is established. Opening, billing, continuity,
+archive and venue gates remain open; this ticket stays open.

@@ -283,3 +283,15 @@ post-append qualification before any grant registration. Independent Standards
 and Spec document reviews pass. No record validator, writer, launch, effect or
 permit is implemented by this design, and the accounting gate remains closed.
 This ticket stays open.
+
+## Local no-writer Run-intent replay, 2026-09-25: unit 19j1
+
+The [19j1 outcome](../reviews/run-recovery/outcome-19j1-run-intent-replay.md)
+adds private `(run_intent, 3)` validation, pure planning/replay and a
+separate outstanding-unqualified inspection digest. It requires the exact
+v3 initial claim/confirmation and unchanged original members, charges
+ordinary capacity and holds duplicate service claims. Independent Standards
+and Spec source reviews, 267 focused tests, Ruff and the full local suite
+(**5,496 passed, 39 skipped**) pass. The claimed ledger head is not
+reservation evidence, and there is no writer, launch, effect or permit. External accounting and venue
+gates remain open; this ticket stays open.

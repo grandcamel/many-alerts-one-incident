@@ -216,3 +216,14 @@ model claim; actual Forwarder grants, sentinels, readiness and launch remain
 separate current checks. Independent Standards and Spec document reviews pass.
 No service grant, native client, permit or process is exercised; this ticket
 stays open.
+
+## Local no-writer service claim replay, 2026-09-25: unit 19j1
+
+The [19j1 outcome](../reviews/run-recovery/outcome-19j1-run-intent-replay.md)
+adds a replayed `run_intent` claim for exactly one Anthropic, Jira, Grafana
+and Kubernetes service each, with optional Confluence. Duplicate service
+names and claim identities are rejected, and inspection labels the record
+unqualified. Independent source reviews, 267 focused tests and the full
+local suite (**5,496 passed, 39 skipped**) pass. No actual Forwarder grant,
+sentinel, registration, launch, permit or native route is present. This ticket stays
+open.
