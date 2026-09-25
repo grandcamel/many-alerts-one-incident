@@ -185,3 +185,15 @@ dispatch, Run or effect authority. Physical startup containment, current
 Forwarder closeout, durable journal observations, dispatch permits and the
 guarded launcher remain local integration work. Accounting and intended-venue
 gates remain open; this ticket stays open.
+
+## Local Forwarder closeout-client progress, 2026-09-25: unit 19f
+
+The [19f outcome](../reviews/run-recovery/outcome-19f-control-client.md)
+adds a Receiver-side authenticated control session for heartbeat, revocation
+and closeout observations. Unknown, overdue, malformed, lost or stale replies
+leave the session terminal; closeout counters remain distinct from revocation
+acknowledgment. It does not durably record the observation or release a Run
+hold. Independent source/spec review and the full local suite pass. Process
+containment, reservation, dispatch permits, Run/effect records and the guarded
+launcher remain open; intended-venue and external accounting gates remain
+unrun. This ticket stays open.

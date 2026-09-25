@@ -185,3 +185,14 @@ replaced or closed during installation never writes the sentinel. Revoke and clo
 Independent review passes; the full suite reports 3500 passed, 36 skipped. The
 Receiver client, AuthorizeDispatch permits, Ready, the durable journal and
 deployment remain subsequent work. This planning ticket stays open.
+
+## Local Receiver closeout-client progress, 2026-09-25: unit 19f
+
+The [19f outcome](../reviews/run-recovery/outcome-19f-control-client.md)
+adds an authenticated Receiver-side client for heartbeat, revocation and
+closeout over an already connected Unix socket. It validates full replies and
+closes on ambiguity; no register, activate, permit or Run caller is exposed.
+Independent source/spec review, focused tests and the full local suite pass.
+Endpoint ownership, durable Receiver observations, dispatch permits, Ready,
+guarded launch, native compatibility and deployment remain open. This ticket
+stays open.
