@@ -7,7 +7,9 @@ import pytest
 from grafana_jsm_sandbox import journal_records as records
 from grafana_jsm_sandbox import journal_reducer as reducer
 from grafana_jsm_sandbox import journal_source as source
-from grafana_jsm_sandbox import journal_store, recovery_journal
+from grafana_jsm_sandbox import journal_store, recovery_journal, reservation_scan
+from grafana_jsm_sandbox.accounting_events import ZERO, encode_event
+from grafana_jsm_sandbox.accounting_store import LedgerStore
 from grafana_jsm_sandbox.forwarder_json import tagged_digest
 
 JOURNAL = '11111111-1111-1111-1111-111111111111'
@@ -19,6 +21,9 @@ RESERVATION = '55555555-5555-5555-5555-555555555555'
 RUN = '66666666-6666-6666-6666-666666666666'
 LEASE = '77777777-7777-7777-7777-777777777777'
 FINGERPRINT = '5e8d72dc87b1ff35'
+CONFIRMATION = '88888888-8888-8888-8888-888888888888'
+LEDGER = '99999999-9999-9999-9999-999999999999'
+LEDGER_EVENT = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 
 
 def stamp(mono_us=3):
@@ -57,6 +62,17 @@ def plan(p, **overrides):
     }
     fields.update(overrides)
     return reducer.plan_initial_reservation_intent(p, **fields)
+
+
+def plan_confirmation(p, **overrides):
+    fields = {
+        'intent_id': INTENT, 'event_id': CONFIRMATION,
+        'ledger_uuid': LEDGER, 'ledger_generation': 1,
+        'ledger_event_id': LEDGER_EVENT, 'sequence': 7,
+        'event_digest': 'd' * 64, 'stamp': stamp(6),
+    }
+    fields.update(overrides)
+    return reducer.plan_initial_reservation_confirmation(p, **fields)
 
 
 def test_v3_record_is_private_bounded_and_canonical():
@@ -266,3 +282,202 @@ def test_mixed_history_reopens_and_older_decoder_refuses_v3(tmp_path, monkeypatc
             assert refused.finding.scope == 'process'
         finally:
             refused.close()
+
+
+def test_v3_confirmation_is_a_replayed_unverified_claim():
+    p, history, _ = admitted()
+    initial = plan(p)
+    reducer.apply_delta(p, reducer.verify_commit(p, initial.records))
+    prior_intent_digest = reducer.initial_intents_digest(p)
+    prior_v2_digest = reducer.reservation_claims_digest(p)
+    confirmation = plan_confirmation(p)
+    record = confirmation.records[0]
+    assert (record.schema_version, record.data['rule']) == (
+        3, 'reservation-confirmation-v3',
+    )
+    assert record.data['intent_digest'] == p.initial_intents[INTENT].intent_digest
+    assert len(record.body) <= 2048
+    assert records.open_record(record.body) == record
+    assert records.RESERVATION_RECORD_CLASS_V3['reservation_confirmation'] == 'recovery'
+    reducer.apply_delta(p, reducer.verify_commit(p, confirmation.records))
+    replayed = reducer.replay(history + initial.records + confirmation.records)
+    assert replayed.initial_confirmations == p.initial_confirmations
+    assert reducer.initial_confirmations_digest(p) == tagged_digest(
+        'rj.initial-confirmations.v3', [asdict(p.initial_confirmations[INTENT])],
+    )
+    assert reducer.initial_confirmations_digest(replayed) == (
+        reducer.initial_confirmations_digest(p)
+    )
+    assert reducer.initial_intents_digest(p) == prior_intent_digest
+    assert reducer.reservation_claims_digest(p) == prior_v2_digest
+    assert 'permit' not in confirmation.outcome and 'confirmed' not in confirmation.outcome
+
+
+def test_v3_confirmation_needs_intent_and_rejects_duplicate_and_forgery():
+    p, _, _ = admitted()
+    with pytest.raises(reducer.ReplayError, match='^replay_mismatch$'):
+        plan_confirmation(p)
+    initial = plan(p)
+    reducer.apply_delta(p, reducer.verify_commit(p, initial.records))
+    record = plan_confirmation(p).records[0]
+    forged = records.seal(
+        records.Draft(record.event_id, record.event_type, record.actor,
+                      record.ids, dict(record.data, intent_digest='f' * 64)),
+        record.position, record.stamp, schema_version=3,
+    )
+    with pytest.raises(reducer.ReplayError, match='^replay_mismatch$'):
+        reducer.verify_commit(p, (forged,))
+    with pytest.raises(records.RecordError, match='^record_field$'):
+        records.seal(
+            records.Draft(record.event_id, record.event_type, record.actor,
+                          record.ids, dict(record.data, ledger_event_id=LEDGER)),
+            record.position, record.stamp, schema_version=3,
+        )
+    reducer.apply_delta(p, reducer.verify_commit(p, (record,)))
+    with pytest.raises(reducer.ReplayError, match='^replay_mismatch$'):
+        plan_confirmation(p, event_id='cccccccc-cccc-cccc-cccc-cccccccccccc',
+                          stamp=stamp(7))
+
+
+def _other_v2_intent(p):
+    claim = p.initial_intents[INTENT]
+    return reducer.ReservationIntentClaim(
+        journal_uuid=claim.journal_uuid, journal_generation=claim.journal_generation,
+        admission_id='cccccccc-cccc-cccc-cccc-cccccccccccc',
+        job_id='job-v2', intent_id='dddddddd-dddd-dddd-dddd-dddddddddddd',
+        attempt_id='eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+        reservation_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+        run_id='00000000-0000-0000-0000-000000000020',
+        lease_id='00000000-0000-0000-0000-000000000021',
+        intent_digest='c' * 64, based_on_commit_seq=claim.based_on_commit_seq,
+        committed_at_seq=claim.committed_at_seq,
+    )
+
+
+@pytest.mark.parametrize('collision', ['event', 'sequence'])
+def test_cross_version_ledger_identity_reuse_is_refused_in_both_orders(collision):
+    p, _, _ = admitted()
+    initial = plan(p)
+    reducer.apply_delta(p, reducer.verify_commit(p, initial.records))
+    first = plan_confirmation(p)
+    reducer.apply_delta(p, reducer.verify_commit(p, first.records))
+    other = _other_v2_intent(p)
+    p.intents[other.intent_id] = other  # Future mixed history after a disposition transition.
+    reuse = {'ledger_event_id': LEDGER_EVENT} if collision == 'event' else {'sequence': 7}
+    alternatives = {
+        'ledger_event_id': '00000000-0000-0000-0000-000000000022', 'sequence': 8,
+    }
+    alternatives.update(reuse)
+    with pytest.raises(reducer.ReplayError, match='^replay_mismatch$'):
+        reducer.plan_reservation_confirmation(
+            p, intent_id=other.intent_id,
+            event_id='00000000-0000-0000-0000-000000000023',
+            ledger_uuid=LEDGER, ledger_generation=1,
+            event_digest='d' * 64, stamp=stamp(7), **alternatives,
+        )
+
+    reverse, _, _ = admitted()
+    reverse_initial = plan(reverse)
+    reducer.apply_delta(reverse, reducer.verify_commit(reverse, reverse_initial.records))
+    reverse.confirmations[other.intent_id] = reducer.ReservationConfirmationClaim(
+        intent_id=other.intent_id,
+        confirmation_event_id='00000000-0000-0000-0000-000000000023',
+        intent_digest=other.intent_digest, ledger_uuid=LEDGER, ledger_generation=1,
+        ledger_event_id=LEDGER_EVENT, sequence=7, event_digest='d' * 64,
+        committed_at_seq=reverse.head.commit_seq,
+    )
+    with pytest.raises(reducer.ReplayError, match='^replay_mismatch$'):
+        plan_confirmation(reverse, **alternatives)
+
+
+def test_v3_confirmation_can_use_recovery_bytes_but_respects_total_cap():
+    p, _, _ = admitted()
+    initial = plan(p)
+    reducer.apply_delta(p, reducer.verify_commit(p, initial.records))
+    charge = plan_confirmation(p).charge
+    p.logical_bytes = p.bounds.ordinary_bytes + 1
+    assert isinstance(plan_confirmation(p), reducer.Plan)
+    p.logical_bytes = p.bounds.total_bytes - charge + 1
+    refused = plan_confirmation(p)
+    assert isinstance(refused, reducer.CapacityRefusal)
+    assert (refused.code, refused.limit) == ('capacity_bytes', p.bounds.total_bytes)
+    p.logical_bytes = 0
+    p.confirmations = {f'prior-{index}': None for index in range(256)}
+    refused = plan_confirmation(p)
+    assert isinstance(refused, reducer.CapacityRefusal)
+    assert refused.code == 'capacity_reservation_confirmations'
+
+
+def test_v3_confirmation_reopens_and_is_visible_without_ledger_authority(tmp_path, monkeypatch):
+    p, history, _ = admitted()
+    initial = plan(p)
+    reducer.apply_delta(p, reducer.verify_commit(p, initial.records))
+    confirmation = plan_confirmation(p)
+    reducer.apply_delta(p, reducer.verify_commit(p, confirmation.records))
+    directory = tmp_path / 'journal'
+    directory.mkdir(mode=0o700)
+    stored = journal_store.JournalStore.create(directory, history[0], journal_uuid=JOURNAL)
+    try:
+        stored.append(history[1:], sync_directory=False)
+        stored.append(initial.records, sync_directory=False)
+        stored.append(confirmation.records, sync_directory=False)
+    finally:
+        stored.close()
+    inspection = recovery_journal.inspect_recovery_journal(directory)
+    summary = inspection.report['journal']['initial_reservation_confirmations']
+    assert summary == {
+        'count': 1, 'digest': reducer.initial_confirmations_digest(p),
+        'outstanding': True,
+    }
+    view = recovery_journal.inspect_reservation_claim_view(directory)
+    assert view.state == 'ready' and view.confirmations == ()
+    assert view.initial_confirmations == (p.initial_confirmations[INTENT],)
+    assert view.initial_confirmations_digest == summary['digest']
+    opened = recovery_journal.open_recovery_journal(directory)
+    try:
+        assert opened.snapshot()['initial_reservation_confirmations'] == summary
+    finally:
+        opened.close()
+    with monkeypatch.context() as old_binary:
+        old_binary.setattr(records, '_V3_TYPE_VALIDATORS', {
+            ('reservation_intent', 3): records._validate_reservation_intent_v3,
+        })
+        older = journal_store.JournalStore.open(directory)
+        try:
+            tuple(older.rows())
+            assert older.finding.code == 'journal_schema_unsupported'
+            assert older.finding.scope == 'process'
+        finally:
+            older.close()
+
+
+def test_stopped_negative_scanner_names_existing_v3_claim_as_unsupported(tmp_path):
+    p, history, _ = admitted()
+    initial = plan(p)
+    reducer.apply_delta(p, reducer.verify_commit(p, initial.records))
+    confirmation = plan_confirmation(p)
+    journal_dir = tmp_path / 'journal'
+    journal_dir.mkdir(mode=0o700)
+    stored = journal_store.JournalStore.create(
+        journal_dir, history[0], journal_uuid=JOURNAL,
+    )
+    try:
+        stored.append(history[1:], sync_directory=False)
+        stored.append(initial.records, sync_directory=False)
+        stored.append(confirmation.records, sync_directory=False)
+    finally:
+        stored.close()
+    ledger_dir = tmp_path / 'ledger'
+    genesis = encode_event(
+        ledger_uuid=LEDGER, ledger_generation=1,
+        experiment_id='00000000-0000-0000-0000-000000000012',
+        sequence=1, previous_digest=ZERO,
+        event_id='00000000-0000-0000-0000-000000000013',
+        recorded_at_utc='2026-09-25T00:00:00.000000Z', actor_kind='receiver',
+        event_type='genesis',
+        data={'policy_revision': 'accounting-v1', 'population': 'unknown'},
+    )
+    with LedgerStore.create(ledger_dir, genesis):
+        pass
+    result = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (result.hold, result.reason) == (True, 'v3_unsupported')

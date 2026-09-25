@@ -249,3 +249,14 @@ admission. Independent source/spec reviews, 79 focused tests, Ruff and the
 full suite (**5,473 passed, 39 skipped**) pass. V3 confirmation, the
 cross-store writer, Run/effect records, service grants, permits, containment
 and guarded launch remain open; external acceptance is NOT RUN.
+
+## Local v3 confirmation claim replay, 2026-09-25: unit 19i2
+
+The [19i2 outcome](../reviews/run-recovery/outcome-19i2-confirmation.md)
+adds a no-writer v3 confirmation claim with a shared cross-version ledger
+identity check and recovery-capacity bound. Inspection exposes the claim as
+outstanding, and the stopped scanner now names v3 as unsupported while
+holding. Independent Standards/Spec source reviews, 86 focused tests,
+Ruff and the full suite (**5,480 passed, 39 skipped**) pass. No verified
+ledger counterpart, application writer, Run/effect record, permit or launch
+exists. External acceptance is NOT RUN; this ticket stays open.

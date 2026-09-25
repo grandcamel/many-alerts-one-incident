@@ -74,6 +74,7 @@ RESERVATION_CLAIMS_TAG = "rj.reservation-claims.v2"
 INITIAL_INTENT_MEMBERS_TAG = "rj.initial-intent-members.v3"
 INITIAL_INTENT_TAG = "rj.reservation-intent.v3"
 INITIAL_INTENTS_STATE_TAG = "rj.initial-intents.v3"
+INITIAL_CONFIRMATIONS_STATE_TAG = "rj.initial-confirmations.v3"
 _UUID_DASHES = frozenset({8, 13, 18, 23})
 _UUID_HEX = frozenset("0123456789abcdef")
 
@@ -229,6 +230,7 @@ class Delta:
     reservation_intent_add: ReservationIntentClaim | None = None
     reservation_confirmation_add: ReservationConfirmationClaim | None = None
     initial_reservation_intent_add: InitialReservationIntentClaim | None = None
+    initial_reservation_confirmation_add: ReservationConfirmationClaim | None = None
 
 
 class Projection:
@@ -254,6 +256,7 @@ class Projection:
         self.intents: dict[str, ReservationIntentClaim] = {}
         self.confirmations: dict[str, ReservationConfirmationClaim] = {}
         self.initial_intents: dict[str, InitialReservationIntentClaim] = {}
+        self.initial_confirmations: dict[str, ReservationConfirmationClaim] = {}
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -809,6 +812,20 @@ def plan_initial_reservation_intent(
     }))
 
 
+def _confirmation_ledger_identity_conflict(
+    p: Projection, *, ledger_uuid: str, ledger_generation: int,
+    ledger_event_id: str, sequence: int,
+) -> bool:
+    """One derived cross-version index; neither claim map authenticates a ledger."""
+    claims = (*p.confirmations.values(), *p.initial_confirmations.values())
+    return any(
+        prior.ledger_event_id == ledger_event_id or (
+            prior.ledger_uuid, prior.ledger_generation, prior.sequence,
+        ) == (ledger_uuid, ledger_generation, sequence)
+        for prior in claims
+    )
+
+
 def plan_reservation_confirmation(
     p: Projection, *, intent_id: str, event_id: str, ledger_uuid: str,
     ledger_generation: int, ledger_event_id: str, sequence: int,
@@ -817,10 +834,10 @@ def plan_reservation_confirmation(
     """Build an unverified ledger observation claim; never a permit."""
     if p.head is None or p.bounds is None or p.boot_id != stamp.boot_id:
         _fail_replay("replay_mismatch")
-    if len(p.confirmations) >= MAX_RESERVATION_CLAIMS:
+    if len(p.confirmations) + len(p.initial_confirmations) >= MAX_RESERVATION_CLAIMS:
         return CapacityRefusal(
             "capacity_reservation_confirmations", MAX_RESERVATION_CLAIMS,
-            len(p.confirmations), 1,
+            len(p.confirmations) + len(p.initial_confirmations), 1,
         )
     claimed = p.intents.get(intent_id)
     if claimed is None or intent_id in p.confirmations:
@@ -836,11 +853,14 @@ def plan_reservation_confirmation(
         _canonical_uuid(value) for value in (event_id, ledger_uuid, ledger_event_id)
     ):
         _fail_replay("replay_mismatch")
-    for prior in p.confirmations.values():
-        if prior.ledger_event_id == ledger_event_id or (
-            prior.ledger_uuid, prior.ledger_generation, prior.sequence,
-        ) == (ledger_uuid, ledger_generation, sequence):
-            _fail_replay("replay_mismatch")
+    if _confirmation_ledger_identity_conflict(
+        p, ledger_uuid=ledger_uuid, ledger_generation=ledger_generation,
+        ledger_event_id=ledger_event_id, sequence=sequence,
+    ) or any(
+        prior.confirmation_event_id == event_id
+        for prior in p.initial_confirmations.values()
+    ):
+        _fail_replay("replay_mismatch")
     record = seal(
         Draft(
             event_id=event_id, event_type="reservation_confirmation", actor="receiver",
@@ -853,6 +873,60 @@ def plan_reservation_confirmation(
                 "event_digest": event_digest,
             },
         ), _single_position(p), stamp, schema_version=2,
+    )
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan(records=(record,), charge=charge, outcome=MappingProxyType({
+        "intent_id": intent_id, "claim_event_id": event_id,
+    }))
+
+
+def plan_initial_reservation_confirmation(
+    p: Projection, *, intent_id: str, event_id: str, ledger_uuid: str,
+    ledger_generation: int, ledger_event_id: str, sequence: int,
+    event_digest: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Build an unverified counterpart claim for one v3 initial intent."""
+    if p.head is None or p.bounds is None or p.boot_id != stamp.boot_id:
+        _fail_replay("replay_mismatch")
+    if len(p.confirmations) + len(p.initial_confirmations) >= MAX_RESERVATION_CLAIMS:
+        return CapacityRefusal(
+            "capacity_reservation_confirmations", MAX_RESERVATION_CLAIMS,
+            len(p.confirmations) + len(p.initial_confirmations), 1,
+        )
+    claimed = p.initial_intents.get(intent_id)
+    if claimed is None or intent_id in p.initial_confirmations or intent_id in p.confirmations:
+        _fail_replay("replay_mismatch")
+    identifiers = (
+        claimed.journal_uuid, claimed.admission_id, claimed.job_id,
+        claimed.intent_id, claimed.attempt_id, claimed.reservation_id,
+        claimed.run_id, claimed.lease_id, event_id, ledger_uuid, ledger_event_id,
+    )
+    if not all(_canonical_uuid(value) for value in identifiers) or (
+        len(set(identifiers)) != len(identifiers)
+    ) or any(
+        prior.confirmation_event_id == event_id
+        for prior in (*p.confirmations.values(), *p.initial_confirmations.values())
+    ):
+        _fail_replay("replay_mismatch")
+    if _confirmation_ledger_identity_conflict(
+        p, ledger_uuid=ledger_uuid, ledger_generation=ledger_generation,
+        ledger_event_id=ledger_event_id, sequence=sequence,
+    ):
+        _fail_replay("replay_mismatch")
+    record = seal(
+        Draft(
+            event_id=event_id, event_type="reservation_confirmation", actor="receiver",
+            ids={"intent_id": intent_id},
+            data={
+                "rule": "reservation-confirmation-v3",
+                "intent_digest": claimed.intent_digest,
+                "ledger_uuid": ledger_uuid, "ledger_generation": ledger_generation,
+                "ledger_event_id": ledger_event_id, "sequence": sequence,
+                "event_digest": event_digest,
+            },
+        ), _single_position(p), stamp, schema_version=3,
     )
     charge = len(record.body) + RECORD_OVERHEAD_BYTES
     if p.logical_bytes + charge > p.bounds.total_bytes:
@@ -1148,9 +1222,13 @@ def _verify_initial_reservation_intent(
 def _verify_reservation_confirmation(
     p: Projection, record: Record, commit_seq: int,
 ) -> Delta:
-    if record.schema_version != 2:
+    if record.schema_version not in (2, 3):
         _fail_replay("replay_mismatch")
-    plan = plan_reservation_confirmation(
+    planner = (
+        plan_reservation_confirmation if record.schema_version == 2
+        else plan_initial_reservation_confirmation
+    )
+    plan = planner(
         p, intent_id=record.ids["intent_id"], event_id=record.event_id,
         ledger_uuid=record.data["ledger_uuid"],
         ledger_generation=record.data["ledger_generation"],
@@ -1178,7 +1256,9 @@ def _verify_reservation_confirmation(
         boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
         logical_bytes=p.logical_bytes + plan.charge, admission_count=p.admission_count,
         last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
-        dispatch_hold_add=None, reservation_confirmation_add=claim,
+        dispatch_hold_add=None,
+        reservation_confirmation_add=claim if record.schema_version == 2 else None,
+        initial_reservation_confirmation_add=claim if record.schema_version == 3 else None,
     )
 
 
@@ -1361,6 +1441,9 @@ def apply_delta(p: Projection, delta: Delta) -> None:
     if delta.initial_reservation_intent_add is not None:
         claim = delta.initial_reservation_intent_add
         p.initial_intents[claim.intent_id] = claim
+    if delta.initial_reservation_confirmation_add is not None:
+        claim = delta.initial_reservation_confirmation_add
+        p.initial_confirmations[claim.intent_id] = claim
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -1455,6 +1538,11 @@ def initial_intents_digest(p: Projection) -> str:
     return tagged_digest(INITIAL_INTENTS_STATE_TAG, claims)
 
 
+def initial_confirmations_digest(p: Projection) -> str:
+    claims = [dataclasses.asdict(claim) for _, claim in sorted(p.initial_confirmations.items())]
+    return tagged_digest(INITIAL_CONFIRMATIONS_STATE_TAG, claims)
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -1493,6 +1581,7 @@ def front_door_digest(p: Projection) -> str:
 __all__ = [
     "DEFAULT_BOUNDS",
     "FRONT_DOOR_STATE_TAG",
+    "INITIAL_CONFIRMATIONS_STATE_TAG",
     "INITIAL_INTENTS_STATE_TAG",
     "MAX_RESERVATION_CLAIMS",
     "MAX_RUN_HOLDS",
@@ -1516,6 +1605,7 @@ __all__ = [
     "dispatch_holds",
     "front_door_digest",
     "group_commits",
+    "initial_confirmations_digest",
     "initial_intents_digest",
     "new_projection",
     "pending_digest",
@@ -1524,6 +1614,7 @@ __all__ = [
     "plan_capacity_hold",
     "plan_genesis",
     "plan_ingress_refusal",
+    "plan_initial_reservation_confirmation",
     "plan_initial_reservation_intent",
     "plan_operator_resume",
     "plan_reservation_confirmation",

@@ -720,7 +720,7 @@ def test_negative_scan_reason_set_is_closed():
     assert reservation_scan.SCAN_REASONS == frozenset({
         'bridge_invalid', 'journal_unverified', 'ledger_unverified',
         'ledger_unsupported', 'missing_intent', 'missing_ledger',
-        'identity_conflict', 'scan_invariant',
+        'identity_conflict', 'scan_invariant', 'v3_unsupported',
     })
 
 

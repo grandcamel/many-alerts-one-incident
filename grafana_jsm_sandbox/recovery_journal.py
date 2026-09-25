@@ -53,6 +53,7 @@ from .journal_reducer import (
     dispatch_holds,
     front_door_digest,
     group_commits,
+    initial_confirmations_digest,
     initial_intents_digest,
     new_projection,
     pending_digest,
@@ -224,6 +225,8 @@ class ReservationClaimView:
     digest: str | None = None
     initial_intents: tuple[InitialReservationIntentClaim, ...] = ()
     initial_digest: str | None = None
+    initial_confirmations: tuple[ReservationConfirmationClaim, ...] = ()
+    initial_confirmations_digest: str | None = None
 
 
 def _resume_token_ok(value: object) -> bool:
@@ -971,6 +974,11 @@ class RecoveryJournal:
                     "count": len(p.initial_intents), "digest": initial_intents_digest(p),
                     "outstanding": True,
                 }
+            if p.initial_confirmations:
+                result["initial_reservation_confirmations"] = {
+                    "count": len(p.initial_confirmations),
+                    "digest": initial_confirmations_digest(p), "outstanding": True,
+                }
             return result
 
     def close(self) -> None:
@@ -1088,6 +1096,12 @@ def _ready_report(
         journal_json["initial_reservation_intents"] = {
             "count": len(candidate.initial_intents),
             "digest": initial_intents_digest(candidate),
+            "outstanding": True,
+        }
+    if candidate.initial_confirmations:
+        journal_json["initial_reservation_confirmations"] = {
+            "count": len(candidate.initial_confirmations),
+            "digest": initial_confirmations_digest(candidate),
             "outstanding": True,
         }
     refusals_json = {
@@ -1257,6 +1271,9 @@ def inspect_reservation_claim_view(directory: Path) -> ReservationClaimView:
                 reservation_claims_digest(candidate),
                 tuple(claim for _, claim in sorted(candidate.initial_intents.items())),
                 initial_intents_digest(candidate) if candidate.initial_intents else None,
+                tuple(claim for _, claim in sorted(candidate.initial_confirmations.items())),
+                initial_confirmations_digest(candidate)
+                if candidate.initial_confirmations else None,
             )
     finally:
         try:

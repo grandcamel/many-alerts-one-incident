@@ -206,3 +206,15 @@ Independent source/spec reviews and the full local suite (**5,473 passed,
 verification or dispatch authority was added; the unknown opening
 population and external accounting decisions remain gates. This ticket
 stays open.
+
+## Local v3 confirmation claim replay, 2026-09-25: unit 19i2
+
+The [19i2 outcome](../reviews/run-recovery/outcome-19i2-confirmation.md)
+adds a replayable v3 journal counterpart claim and rejects ledger event
+identity reuse across v2/v3 confirmations. It preserves recovery capacity
+and displays the claim as outstanding; the stopped scanner explicitly holds
+v3 targets as unsupported. Independent source/spec reviews and the full
+local suite (**5,480 passed, 39 skipped**) pass. No ledger authentication,
+positive reservation or production writer exists. Opening population,
+billing semantics, continuity, archive registration and venue gates remain
+open; this ticket stays open.

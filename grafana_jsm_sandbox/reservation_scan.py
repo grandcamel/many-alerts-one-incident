@@ -21,7 +21,7 @@ from .reservation_bridge import (
 SCAN_REASONS = frozenset({
     'bridge_invalid', 'journal_unverified', 'ledger_unverified',
     'ledger_unsupported', 'missing_intent', 'missing_ledger',
-    'identity_conflict', 'scan_invariant',
+    'identity_conflict', 'scan_invariant', 'v3_unsupported',
 })
 _CURRENT_BRIDGE_REASONS = frozenset({
     'missing_intent', 'missing_ledger', 'identity_conflict',
@@ -84,6 +84,8 @@ def scan_reservation(
         return ScanAssessment('ledger_unverified')
     if ledger.population != 'unknown' or ledger.reservations != ():
         return ScanAssessment('ledger_unsupported')
+    if any(claim.intent_id == target_intent_id for claim in journal.initial_intents):
+        return ScanAssessment('v3_unsupported')
 
     intents = tuple(_intent_fact(claim) for claim in journal.intents)
     confirmations = tuple(_confirmation_fact(claim) for claim in journal.confirmations)

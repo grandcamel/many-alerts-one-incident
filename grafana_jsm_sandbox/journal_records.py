@@ -65,7 +65,10 @@ RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
     "reservation_confirmation": "recovery",
 })
-RESERVATION_RECORD_CLASS_V3 = MappingProxyType({"reservation_intent": "ordinary"})
+RESERVATION_RECORD_CLASS_V3 = MappingProxyType({
+    "reservation_intent": "ordinary",
+    "reservation_confirmation": "recovery",
+})
 
 ACTORS = ("receiver", "spawner", "forwarder", "operator")
 
@@ -733,6 +736,24 @@ def _validate_reservation_confirmation_v2(
         _fail_record("record_field")
 
 
+def _validate_reservation_confirmation_v3(
+    ids: object, data: object, event_id: str,
+) -> None:
+    ids = _require_keys(ids, _RESERVATION_CONFIRMATION_IDS_KEYS)
+    _require_uuid(ids["intent_id"])
+    _require_uuid(event_id)
+    data = _require_keys(data, _RESERVATION_CONFIRMATION_DATA_KEYS)
+    _require_literal(data["rule"], "reservation-confirmation-v3", "record_unsupported")
+    _require_hex64(data["intent_digest"])
+    _require_uuid(data["ledger_uuid"])
+    _require_bound_int(data["ledger_generation"], 1, MAX_GENERATION, "record_field")
+    _require_uuid(data["ledger_event_id"])
+    _require_bound_int(data["sequence"], 1, MAX_SEQ, "record_field")
+    _require_hex64(data["event_digest"])
+    if len({ids["intent_id"], event_id, data["ledger_uuid"], data["ledger_event_id"]}) != 4:
+        _fail_record("record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -749,6 +770,7 @@ _V2_TYPE_VALIDATORS = MappingProxyType({
 })
 _V3_TYPE_VALIDATORS = MappingProxyType({
     ("reservation_intent", 3): _validate_reservation_intent_v3,
+    ("reservation_confirmation", 3): _validate_reservation_confirmation_v3,
 })
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
@@ -764,7 +786,10 @@ _V2_TYPE_ACTORS = MappingProxyType({
     ("reservation_intent", 2): "receiver",
     ("reservation_confirmation", 2): "receiver",
 })
-_V3_TYPE_ACTORS = MappingProxyType({("reservation_intent", 3): "receiver"})
+_V3_TYPE_ACTORS = MappingProxyType({
+    ("reservation_intent", 3): "receiver",
+    ("reservation_confirmation", 3): "receiver",
+})
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
 
