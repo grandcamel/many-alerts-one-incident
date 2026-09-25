@@ -388,6 +388,12 @@ release no claim facts. Neither inspection appends, acknowledges, reserves or
 authorizes dispatch. Each view describes one stopped image, not a continuing
 lease or an atomic cross-store snapshot.
 
+`reservation_scan.scan_reservation` reads those claims and the separate
+verified v1 accounting view for one intent. Its closed result always holds:
+missing, corrupt or unsupported evidence does not create a permit. It maps
+the claimed `ledger_event_id` to a structural comparison field, never to a
+trusted accounting receipt. The scanner has no journal writer or Run caller.
+
 ## Crash windows
 
 | Window | Next open |

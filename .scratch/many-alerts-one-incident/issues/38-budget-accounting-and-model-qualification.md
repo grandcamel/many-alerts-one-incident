@@ -90,3 +90,16 @@ format, not a production reservation or a positive cross-store join.
 Independent source reviews and the full local suite pass. Opening history,
 provider identity/coverage/lag, liability U, continuity witness and
 archive/repair policy remain unresolved. The ticket stays open.
+
+## Local negative scan progress, 2026-09-25
+
+Unit [18d3b](../reviews/receiver-journal/outcome-18d3b.md) consumes the
+independently verified 18d3a views and reports only closed hold reasons.
+Real stopped images with no journal claim, an intent, and a confirmation
+remain held against the v1 Receiver/`unknown` ledger's empty reservation
+set. A journal confirmation cannot authenticate spend. The scanner has no
+reservation writer, positive durable triple, permit or Run caller.
+Independent source reviews and the full local suite pass. Authoritative
+opening/billing evidence, liability U, continuity witness and archive/repair
+policy remain unresolved; provider, paid and venue acceptance are not run.
+The ticket stays open.

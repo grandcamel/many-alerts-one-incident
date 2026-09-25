@@ -1,0 +1,5 @@
+Command: ruff check grafana_jsm_sandbox/reservation_scan.py tests/test_reservation_claim_journal.py
+Result: All checks passed!
+Command: git diff --check
+Result: no whitespace errors
+Scope: changed Python and current working diff.

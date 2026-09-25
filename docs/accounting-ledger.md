@@ -24,6 +24,12 @@ it cannot supply a durable positive reservation fact. Held or unverified views
 release no identity, head or reservation facts. This read is one stopped-image
 observation, not a continuing lease or a reservation permit.
 
+`reservation_scan.scan_reservation` combines the two read-only views for one
+intent and always returns a hold. For a verified journal intent, this v1
+ledger can supply only missing reservation evidence; a journal confirmation
+is never treated as a ledger reservation. The views are taken separately, so the
+result is a stopped-image observation and cannot authorize a launch.
+
 An append replays the proposed event against the current projection while the
 writer lock is held. It commits one row, fully syncs the next anchor slot and
 reads both back before returning an `EventReceipt`. Exact event-byte retries

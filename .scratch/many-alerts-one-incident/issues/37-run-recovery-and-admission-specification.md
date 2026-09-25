@@ -141,3 +141,15 @@ preflight/open disappearance window. Independent Standards and Spec reviews
 pass; the full local suite passed 5260 tests with 39 skipped. There is no
 application writer, reservation, Run/effect record, dispatch permit or launch
 path. The ticket remains open.
+
+## Local no-launch scan progress, 2026-09-25: unit 18d3b
+
+Unit [18d3b](../reviews/receiver-journal/outcome-18d3b.md) reads the
+independently verified journal and v1 ledger views for one intent and always
+returns a hold. No claim, intent-only, and journal-confirmed stopped images
+are covered by real SQLite tests; the current ledger contains no verified
+reservation. The scanner neither writes an effect/Run record nor issues a
+dispatch permit. Independent source reviews pass; the full local suite
+passed 5274 tests with 39 skipped. Run/effect recovery, supervision and a
+guarded launcher remain local work, and external accounting gates remain
+unresolved. The ticket stays open.

@@ -1,0 +1,4 @@
+Command: env -u DEMO_CONTAINER -u DEMO_END_TO_END pytest -q tests/test_reservation_bridge.py tests/test_reservation_claim_journal.py tests/test_accounting_store.py tests/test_recovery_journal.py tests/test_journal_store.py
+Result: 350 passed, 2 skipped in 88.98s (0:01:28)
+Exit: 0
+Scope: local bridge, journal and accounting tests; no provider or tenant acceptance.

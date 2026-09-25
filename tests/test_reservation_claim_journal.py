@@ -1,7 +1,8 @@
 """Versioned journal reservation claims remain descriptive and replayable."""
 
 import hashlib
-from dataclasses import asdict, replace
+import sqlite3
+from dataclasses import FrozenInstanceError, asdict, replace
 
 import pytest
 
@@ -9,7 +10,9 @@ from grafana_jsm_sandbox import journal_records as records
 from grafana_jsm_sandbox import journal_reducer as reducer
 from grafana_jsm_sandbox import journal_source as source
 from grafana_jsm_sandbox import journal_store as store_module
-from grafana_jsm_sandbox import recovery_journal
+from grafana_jsm_sandbox import recovery_journal, reservation_scan
+from grafana_jsm_sandbox.accounting_events import ZERO, encode_event
+from grafana_jsm_sandbox.accounting_store import LedgerError, LedgerStore
 from grafana_jsm_sandbox.forwarder_json import canonical_json, tagged_digest
 
 JOURNAL = '11111111-1111-1111-1111-111111111111'
@@ -647,3 +650,180 @@ def test_future_claim_pair_is_a_nonpersisted_process_hold():
     )
     assert decoded is None
     assert (finding.code, finding.scope) == ('journal_schema_unsupported', 'process')
+
+
+def _stopped_scan_images(tmp_path, claim_level=0, *, lag=False):
+    p, history, _ = admitted_and_held()
+    journal_dir = tmp_path / 'journal'
+    journal_dir.mkdir(mode=0o700)
+    store = store_module.JournalStore.create(journal_dir, history[0], journal_uuid=JOURNAL)
+    try:
+        store.append(history[1:], sync_directory=False)
+        if claim_level >= 1:
+            intent = plan_intent(p)
+            reducer.apply_delta(p, reducer.verify_commit(p, intent.records))
+            store.append(intent.records, sync_directory=False)
+        if claim_level >= 2:
+            confirmation = plan_confirmation(p)
+            if lag:
+                store._commit_sql(confirmation.records)
+            else:
+                store.append(confirmation.records, sync_directory=False)
+    finally:
+        store.close()
+
+    ledger_dir = tmp_path / 'ledger'
+    genesis = encode_event(
+        ledger_uuid=LEDGER, ledger_generation=1,
+        experiment_id='00000000-0000-0000-0000-000000000012',
+        sequence=1, previous_digest=ZERO,
+        event_id='00000000-0000-0000-0000-000000000013',
+        recorded_at_utc='2026-09-25T00:00:00.000000Z', actor_kind='receiver',
+        event_type='genesis',
+        data={'policy_revision': 'accounting-v1', 'population': 'unknown'},
+    )
+    with LedgerStore.create(ledger_dir, genesis):
+        pass
+    return journal_dir, ledger_dir
+
+
+@pytest.mark.parametrize('claim_level,reason', [
+    (0, 'missing_intent'), (1, 'missing_ledger'), (2, 'missing_ledger'),
+])
+def test_verified_negative_scan_is_always_held_and_read_only(tmp_path, claim_level, reason):
+    journal_dir, ledger_dir = _stopped_scan_images(tmp_path, claim_level)
+    before = {
+        str(path.relative_to(tmp_path)): path.read_bytes()
+        for path in (*journal_dir.iterdir(), *ledger_dir.iterdir()) if path.is_file()
+    }
+    result = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (result.hold, result.reason) == (True, reason)
+    assert result.reason in reservation_scan.SCAN_REASONS
+    with pytest.raises(FrozenInstanceError):
+        result.reason = 'permitted'
+    for name in ('permit', 'launch', 'amount', 'reservation'):
+        assert not hasattr(result, name)
+    assert {
+        str(path.relative_to(tmp_path)): path.read_bytes()
+        for path in (*journal_dir.iterdir(), *ledger_dir.iterdir()) if path.is_file()
+    } == before
+
+
+def test_negative_scan_rejects_bad_target_before_creating_paths(tmp_path):
+    journal_dir, ledger_dir = tmp_path / 'journal', tmp_path / 'ledger'
+    result = reservation_scan.scan_reservation(journal_dir, ledger_dir, 'bad target')
+    assert (result.hold, result.reason) == (True, 'bridge_invalid')
+    assert not journal_dir.exists() and not ledger_dir.exists()
+
+
+def test_negative_scan_reason_set_is_closed():
+    assert reservation_scan.SCAN_REASONS == frozenset({
+        'bridge_invalid', 'journal_unverified', 'ledger_unverified',
+        'ledger_unsupported', 'missing_intent', 'missing_ledger',
+        'identity_conflict', 'scan_invariant',
+    })
+
+
+@pytest.mark.parametrize('damage,reason', [
+    ('journal_wal', 'journal_unverified'),
+    ('journal_anchor', 'journal_unverified'),
+    ('ledger_wal', 'ledger_unverified'),
+    ('ledger_anchor', 'ledger_unverified'),
+])
+def test_negative_scan_withholds_on_damaged_stopped_images(tmp_path, damage, reason):
+    journal_dir, ledger_dir = _stopped_scan_images(tmp_path, 2)
+    directory = journal_dir if damage.startswith('journal') else ledger_dir
+    name = (
+        store_module.WAL_FILENAME if damage == 'journal_wal' else
+        'ledger.sqlite3-wal' if damage == 'ledger_wal' else 'anchor'
+    )
+    path = directory / name
+    if damage.endswith('wal'):
+        path.unlink()
+    else:
+        path.write_bytes(b'bad anchor')
+    before = {p.name: p.read_bytes() for p in directory.iterdir() if p.is_file()}
+    result = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (result.hold, result.reason) == (True, reason)
+    assert {p.name: p.read_bytes() for p in directory.iterdir() if p.is_file()} == before
+    if damage.endswith('wal'):
+        assert not path.exists()
+
+
+def test_negative_scan_withholds_one_commit_journal_lag(tmp_path):
+    journal_dir, ledger_dir = _stopped_scan_images(tmp_path, 2, lag=True)
+    assert recovery_journal.inspect_recovery_journal(journal_dir).report['verdict'] == 'ready'
+    result = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (result.hold, result.reason) == (True, 'journal_unverified')
+
+
+def test_negative_scan_withholds_persisted_ledger_hold(tmp_path):
+    journal_dir, ledger_dir = _stopped_scan_images(tmp_path, 1)
+    connection = sqlite3.connect(ledger_dir / 'ledger.sqlite3', isolation_level=None)
+    connection.setconfig(sqlite3.SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, True)
+    connection.execute('CREATE TABLE unexpected (id INTEGER)')
+    connection.close()
+    with pytest.raises(LedgerError, match='ledger_schema_invalid'):
+        LedgerStore.open(ledger_dir)
+    assert LedgerStore.inspect(ledger_dir).state == 'held'
+    result = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (result.hold, result.reason) == (True, 'ledger_unverified')
+
+
+def test_negative_scan_rejects_observable_unsupported_view_and_bad_bridge_fact(
+    tmp_path, monkeypatch,
+):
+    journal_dir, ledger_dir = _stopped_scan_images(tmp_path, 1)
+    real_ledger = LedgerStore.inspect_reservation_view(ledger_dir)
+    with monkeypatch.context() as patcher:
+        patcher.setattr(
+            LedgerStore, 'inspect_reservation_view',
+            classmethod(lambda _cls, _directory: replace(
+                real_ledger, population='synthetic_complete',
+            )),
+        )
+        unsupported = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (unsupported.hold, unsupported.reason) == (True, 'ledger_unsupported')
+
+    real_journal = recovery_journal.inspect_reservation_claim_view(journal_dir)
+    bad_claim = replace(real_journal.intents[0], attempt_id='private invalid identity')
+    with monkeypatch.context() as patcher:
+        patcher.setattr(
+            reservation_scan, 'inspect_reservation_claim_view',
+            lambda _directory: replace(real_journal, intents=(bad_claim,)),
+        )
+        invalid = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (invalid.hold, invalid.reason) == (True, 'bridge_invalid')
+
+
+def test_negative_scan_maps_unexpected_comparator_result_to_hold(tmp_path, monkeypatch):
+    journal_dir, ledger_dir = _stopped_scan_images(tmp_path, 1)
+    real_assess = reservation_scan.assess_bridge
+
+    def unexpected(target, intents, ledger, confirmations):
+        result = real_assess(target, intents, ledger, confirmations)
+        return result if not intents else replace(result, hold=False)
+
+    monkeypatch.setattr(reservation_scan, 'assess_bridge', unexpected)
+    result = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (result.hold, result.reason) == (True, 'scan_invariant')
+
+
+def test_negative_scan_uses_claimed_ledger_event_id_not_confirmation_record_id(
+    tmp_path, monkeypatch,
+):
+    journal_dir, ledger_dir = _stopped_scan_images(tmp_path, 2)
+    real_assess = reservation_scan.assess_bridge
+    seen = []
+
+    def inspect_mapping(target, intents, ledger, confirmations):
+        if confirmations:
+            seen.extend(confirmations)
+        return real_assess(target, intents, ledger, confirmations)
+
+    monkeypatch.setattr(reservation_scan, 'assess_bridge', inspect_mapping)
+    result = reservation_scan.scan_reservation(journal_dir, ledger_dir, INTENT)
+    assert (result.hold, result.reason) == (True, 'missing_ledger')
+    assert len(seen) == 1
+    assert seen[0].event_id == LEDGER_EVENT
+    assert seen[0].event_id != CONFIRMATION
