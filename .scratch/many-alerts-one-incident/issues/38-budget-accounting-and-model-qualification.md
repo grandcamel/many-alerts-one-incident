@@ -138,3 +138,13 @@ history, provider source/account scope, charge-line and adjustment identity,
 coverage/lag/finality, liability U, archive registration, witness and venue
 durability remain decisions. Provider, paid, native, tenant, venue and
 power-loss acceptance are NOT RUN. This ticket stays open.
+
+## Local segment-codec progress, 2026-09-25: unit 18g1
+
+The [18g1 local outcome](../reviews/receiver-journal/outcome-18g1-segment-codec.md)
+records a pure, same-generation segment codec and replay check for the proposed
+18g format. Independent source/spec review, focused tests and the full local
+suite pass. This does not create a registered archive, duplicate index,
+independent witness, reservation or dispatch authority. The external evidence
+and durability decisions above remain open; provider, native, tenant, paid,
+venue and power-loss acceptance are NOT RUN. This ticket stays open.
