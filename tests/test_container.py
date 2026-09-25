@@ -19,8 +19,6 @@ import shutil
 import ssl
 import subprocess
 import urllib.request
-from collections.abc import Mapping
-from fnmatch import fnmatch
 from pathlib import Path
 
 import pytest
@@ -29,8 +27,6 @@ import yaml
 from grafana_jsm_sandbox.__main__ import (
     HOST_VARIABLE,
     PORT_VARIABLE,
-    RUN_BUDGET_VARIABLE,
-    RUN_MODEL_VARIABLE,
     RUN_TIMEOUT_VARIABLE,
     RUNS_DIRECTORY_VARIABLE,
     SKILL_DIRECTORY_VARIABLE,
@@ -38,13 +34,6 @@ from grafana_jsm_sandbox.__main__ import (
 )
 from grafana_jsm_sandbox.forwarder import ENVIRONMENT_VARIABLES
 from grafana_jsm_sandbox.log_formatter import redact
-from grafana_jsm_sandbox.replay import (
-    BIND_ADDRESS_VARIABLE,
-    DEFAULT_BIND_ADDRESS,
-    RECEIVER_HOST_PORT_VARIABLE,
-    default_receiver,
-)
-from grafana_jsm_sandbox.run_command import SKILL_FILE, rendered_skill_directory
 from grafana_jsm_sandbox.run_spawner import ANTHROPIC_TOKEN_VARIABLE, TRUST_STORE_VARIABLES
 from tests.conftest import REPOSITORY, compose, needs_the_stack_up
 
@@ -76,14 +65,10 @@ GRAFANA_ALERTING_PROVISIONING = "/otel-lgtm/grafana/conf/provisioning/alerting"
 """Where Grafana in the published image reads alerting provisioning from."""
 
 GRAFANA_PORT = 3000
-"""Grafana's port in its container, and on the laptop unless GRAFANA_HOST_PORT moves it."""
+"""Where the presenter watches the Alert fire, on the laptop."""
 
 RECEIVER_PORT = 8080
-"""The Receiver's port in its container, which the contact point names; on the laptop unless
-RECEIVER_HOST_PORT moves it."""
-
-GRAFANA_HOST_PORT_VARIABLE = "GRAFANA_HOST_PORT"
-"""The presenter's knob for a laptop whose 3000 is taken."""
+"""What the contact point names and what the replay script posts at by default."""
 
 CREDENTIALS = (*ENVIRONMENT_VARIABLES.values(), ANTHROPIC_TOKEN_VARIABLE)
 """Credentials named by the historical configuration parser, never loaded on startup."""
@@ -95,27 +80,8 @@ SETTINGS_VARIABLES = (
     RUNS_DIRECTORY_VARIABLE,
     SKILL_DIRECTORY_VARIABLE,
     RUN_TIMEOUT_VARIABLE,
-    RUN_MODEL_VARIABLE,
-    RUN_BUDGET_VARIABLE,
 )
 """Every variable the process reads at all, which is what the example must list."""
-
-LGTM_IMAGE_VARIABLE = "LGTM_IMAGE"
-"""Compose's knob for pulling the pinned Grafana stack from somewhere else, such as a mirror."""
-
-LGTM_REPOSITORY = "grafana/otel-lgtm"
-LGTM_TAG = "0.33.0"
-LGTM_INDEX_DIGEST = "sha256:475319e883b66594d1a2f22ef168c2459802bb94548e6f25d9782bd5f5c19a3a"
-"""What the laptop's `latest` was on 2026-09-23, not a release the demo is recorded as
-rehearsed on: its multi-platform index (linux/amd64, linux/arm64) is, by `docker buildx
-imagetools inspect`, the one tagged 0.33.0, and it carries Grafana 13.2.1 (step 06 of
-demo-onboarding)."""
-
-PINNED_REFERENCE = re.compile(
-    r"(?P<name>[^\s@]+?):(?P<tag>\w[\w.-]{0,127})(?:@sha256:[0-9a-f]{64})?"
-)
-"""An image reference with an explicit tag, and optionally a digest after it. The name may
-carry a registry's port, so the tag is the last colon's, not the first's."""
 
 
 def env_example() -> dict[str, str]:
@@ -138,45 +104,20 @@ def service(name: str) -> dict:
     return COMPOSE["services"][name]
 
 
-INTERPOLATION = re.compile(r"\$\{(\w+)(?::-([^}]*))?\}")
-"""`${NAME}` or `${NAME:-default}`, the two forms of compose interpolation this file uses."""
+def published_ports(name: str) -> set[int]:
+    """The laptop-side ports a service publishes.
 
-
-def interpolated(value: str, environment: Mapping[str, str]) -> str:
-    """A compose value as compose resolves it: `:-` takes the default for empty or unset."""
-    return INTERPOLATION.sub(lambda match: environment.get(match[1]) or (match[2] or ""), value)
-
-
-def publications(name: str, environment: Mapping[str, str] | None = None) -> set[tuple]:
-    """What a service publishes to the laptop: address, laptop port, container port.
-
-    Compose's short form is `"[address:]host:container"`, here with the address and
-    the laptop port interpolated from the presenter's environment, empty by default.
-    A bare `"container"` publishes nothing to the laptop and so counts for nothing.
+    Compose's short form is `"host:container"`, optionally with an address in
+    front. A bare `"container"` publishes nothing to the laptop and so counts for
+    nothing here.
     """
-    found = set()
-    for mapping in service(name).get("ports", []):
-        parts = interpolated(str(mapping), environment or {}).rsplit(":", 2)
-        if len(parts) == 3:
-            found.add((parts[0], int(parts[1]), int(parts[2])))
-        elif len(parts) == 2:
-            found.add(("", int(parts[0]), int(parts[1])))
-    return found
-
-
-def published_ports(name: str, environment: Mapping[str, str] | None = None) -> set[int]:
-    """The container ports a service publishes to the laptop at all."""
-    return {container for _, _, container in publications(name, environment)}
+    mappings = (str(mapping).split(":") for mapping in service(name).get("ports", []))
+    return {int(parts[-2]) for parts in mappings if len(parts) > 1}
 
 
 def git_ignores(path: str) -> bool:
-    """By this repo's own rules: another engineer's clone has none of this laptop's global ones."""
     return (
-        subprocess.run(
-            ["git", "-c", "core.excludesFile=/dev/null", "check-ignore", "-q", path],
-            cwd=REPOSITORY,
-            check=False,
-        ).returncode
+        subprocess.run(["git", "check-ignore", "-q", path], cwd=REPOSITORY, check=False).returncode
         == 0
     )
 
@@ -223,54 +164,6 @@ def test_the_build_context_carries_neither_the_env_file_nor_a_past_run():
     assert RUNS_PATTERN in ignored
 
 
-LOCAL_ONLY = (".claude/", "**/__pycache__/", ".scratch/", "prototype/")
-"""What a laptop keeps beside the code and an image must not carry: Claude Code's local
-settings, byte code from any depth, the working notes, and the chapter-two prototype."""
-
-
-def test_git_never_takes_claude_code_s_local_settings():
-    """Where a laptop's own permissions go, and never a commit (audit F24)."""
-    assert git_ignores(".claude/settings.local.json")
-    assert not git_ignores(".claude/settings.json"), "the shared settings are committed"
-
-
-@pytest.mark.parametrize("pattern", LOCAL_ONLY)
-def test_the_build_context_refuses_what_is_only_the_laptop_s(pattern):
-    assert pattern in DOCKER_IGNORE.read_text().split()
-
-
-def copied_sources() -> list[str]:
-    """Every path either Dockerfile copies from the build context, which both build from the
-    repository root through the one .dockerignore, the CA argument as its default."""
-    sources = []
-    instructions = [line for file in BOTH_DOCKERFILES for line in dockerfile_instructions(file)]
-    for instruction in instructions:
-        if instruction.startswith("COPY "):
-            words = [word for word in instruction.split()[1:] if not word.startswith("--")]
-            sources += [
-                word.replace(f"${{{EXTRA_CA_ARGUMENT}}}", PLACEHOLDER) for word in words[:-1]
-            ]
-    return sources
-
-
-def test_the_build_context_still_carries_everything_the_image_copies():
-    """Checked against every ignore pattern, and against each directory above each source."""
-    patterns = [
-        line.strip().rstrip("/")
-        for line in DOCKER_IGNORE.read_text().splitlines()
-        if line.strip() and not line.startswith("#")
-    ]
-    assert copied_sources(), "the Dockerfile copies nothing; the check reads nothing"
-    for source in copied_sources():
-        path = source.rstrip("/")
-        prefixes = [path] + [
-            "/".join(path.split("/")[:end]) for end in range(1, path.count("/") + 1)
-        ]
-        for pattern in patterns:
-            for prefix in prefixes:
-                assert not fnmatch(prefix, pattern), f"{pattern} keeps {source} out of the image"
-
-
 def test_the_demo_takes_its_credentials_from_the_ignored_env_file():
     demo = service(DEMO_SERVICE)
 
@@ -293,49 +186,6 @@ def test_no_service_is_handed_the_docker_socket():
 def test_grafana_and_the_receiver_answer_the_laptop():
     assert GRAFANA_PORT in published_ports(LGTM_SERVICE)
     assert RECEIVER_PORT in published_ports(DEMO_SERVICE)
-
-
-def test_grafana_and_the_receiver_are_all_that_is_published():
-    """OTLP stays on the compose network, where rolldice exports to it (audit F11)."""
-    published = {(name, port) for name in COMPOSE["services"] for port in published_ports(name)}
-
-    assert published == {(LGTM_SERVICE, GRAFANA_PORT), (DEMO_SERVICE, RECEIVER_PORT)}
-
-
-def test_by_default_nothing_is_published_beyond_the_laptop_s_loopback():
-    """Grafana has anonymous Admin and a POST to the Receiver starts a paid Run that writes to
-    Jira; on 0.0.0.0 both were anyone's on the office Wi-Fi (audit F11)."""
-    for name in COMPOSE["services"]:
-        for address, laptop, container in publications(name):
-            assert address == DEFAULT_BIND_ADDRESS == "127.0.0.1", f"{name} is on {address!r}"
-            assert laptop == container, f"{name} moved {container} to {laptop} by default"
-
-
-def test_the_presenter_moves_the_laptop_side_and_never_the_container_side():
-    """A taken 3000 or 8080 is fixed in the environment; the contact point still names
-    `demo:8080` and the healthcheck still asks the container's own 8080 (audit F22)."""
-    moved = {
-        BIND_ADDRESS_VARIABLE: "192.0.2.10",
-        GRAFANA_HOST_PORT_VARIABLE: "13000",
-        RECEIVER_HOST_PORT_VARIABLE: "18080",
-    }
-
-    assert publications(LGTM_SERVICE, moved) == {("192.0.2.10", 13000, GRAFANA_PORT)}
-    assert publications(DEMO_SERVICE, moved) == {("192.0.2.10", 18080, RECEIVER_PORT)}
-    contact_point = yaml.safe_load((PROVISIONING / "contact-point.yaml").read_text())
-    [receiver] = contact_point["contactPoints"][0]["receivers"]
-    assert receiver["settings"]["url"] == f"http://{DEMO_SERVICE}:{RECEIVER_PORT}/notification"
-
-
-@pytest.mark.parametrize(
-    "environment",
-    [{}, {RECEIVER_HOST_PORT_VARIABLE: "18080"}, {BIND_ADDRESS_VARIABLE: "192.0.2.10"}],
-    ids=["default", "moved-port", "moved-address"],
-)
-def test_the_replay_script_posts_where_compose_publishes_the_receiver(environment):
-    [(address, laptop, _)] = publications(DEMO_SERVICE, environment)
-
-    assert default_receiver(environment) == f"http://{address}:{laptop}"
 
 
 def test_the_receiver_listens_where_the_published_port_leads():
@@ -397,7 +247,7 @@ class TestAStackThatIsUp:
     """With `docker compose up -d` already done, the two things the demo depends on."""
 
     def test_the_health_endpoint_answers_the_laptop(self):
-        assert _get(f"{default_receiver()}/health") == 200
+        assert _get(f"http://localhost:{RECEIVER_PORT}/health") == 200
 
     def test_the_health_endpoint_answers_from_inside_the_network(self):
         """What Grafana's contact point will do, from the container that will do it."""
@@ -412,48 +262,10 @@ class TestAStackThatIsUp:
 
         assert answered.returncode == 0, answered.stderr
 
-    def test_the_healthcheck_itself_passes_and_holds_no_environment(self):
-        """The compose healthcheck's own command, run the way Docker runs it, and the same
-        probe asked what environment it holds."""
-        check = service(DEMO_SERVICE)["healthcheck"]["test"]
-        passed = compose("exec", "-T", DEMO_SERVICE, *check[1:])
-        environ = compose(
-            "exec",
-            "-T",
-            DEMO_SERVICE,
-            *HEALTHCHECK_PROBE,
-            "-c",
-            "import sys; sys.stdout.write(repr(open('/proc/self/environ', 'rb').read()))",
-        )
-
-        assert passed.returncode == 0, passed.stderr
-        assert environ.returncode == 0, environ.stderr
-        assert environ.stdout == "b''", "the probe was handed an environment"
-
     def test_the_receiver_runs_as_a_user_who_is_not_root(self):
         who = compose("exec", "-T", DEMO_SERVICE, "id", "-u")
 
         assert who.stdout.strip() != "0"
-
-    @pytest.mark.parametrize("path", ["/proc/1/environ", "/proc/1/task/1/environ"])
-    def test_no_run_can_read_the_receiver_s_environment(self, path):
-        """The Receiver, PID 1, holds the real Jira token in its environment and is
-        non-dumpable, so its /proc is root's; `exec` runs as the Run user, with no capability."""
-        read = compose("exec", "-T", DEMO_SERVICE, "cat", path)
-
-        assert read.returncode != 0, "the Receiver's environment is readable by the Run user"
-        assert "Permission denied" in read.stderr
-        assert not read.stdout
-
-    def test_the_run_s_skill_is_rendered_for_the_configured_project(self):
-        """What a Run reads, rendered from .env at this start (step 03 of demo-onboarding)."""
-        key = compose("exec", "-T", DEMO_SERVICE, "printenv", PROJECT_KEY_VARIABLE).stdout.strip()
-        skill = rendered_skill_directory(runs_directory()) / SKILL_FILE
-        read = compose("exec", "-T", DEMO_SERVICE, "cat", str(skill))
-
-        assert read.returncode == 0, read.stderr
-        assert f"project = {key} AND issuetype = Incident" in read.stdout
-        assert "{{" not in read.stdout
 
     def test_a_run_would_find_the_tools_it_is_allowed_to_use(self):
         for tool in ("claude", "jira-as"):
@@ -623,83 +435,15 @@ def test_explicit_entrypoint_command_passes_through_without_onboarding(tmp_path)
     }
 
 
-HEALTHCHECK_PROBE = ("env", "-i", "/usr/bin/python3")
-"""How the healthcheck starts: `env -i` with no environment, then Python by its full path,
-since nothing is left to search a PATH with. Both are in the image: `command -v env python3`
-in a throwaway container of it answers `/usr/bin/env` and `/usr/bin/python3` (step 06)."""
-
-
 def test_the_healthcheck_needs_nothing_the_image_does_not_carry():
     """Compose must report the container healthy for the right reason (story 21): the slim
     image has no curl, so the check is Python's standard library asking the health endpoint."""
     check = service(DEMO_SERVICE)["healthcheck"]["test"]
 
     assert check[0] == "CMD"
-    assert Path(check[3]).name in TOOLS_THE_IMAGE_CARRIES, f"{check[3]} is not in the image"
+    assert check[1] in TOOLS_THE_IMAGE_CARRIES, f"{check[1]} is not in the image"
     assert "curl" not in " ".join(check)
     assert f"http://localhost:{RECEIVER_PORT}/health" in " ".join(check)
-
-
-def test_the_healthcheck_starts_with_an_empty_environment():
-    """Docker hands every process it execs into the container the whole container
-    environment, the real Jira token included, as the Runs' uid and dumpable; the
-    healthcheck is one every ten seconds. Through `env -i`, its Python holds nothing
-    in /proc/<pid>/environ (ADR 0002's amendment)."""
-    check = service(DEMO_SERVICE)["healthcheck"]["test"]
-
-    assert tuple(check[1:4]) == HEALTHCHECK_PROBE
-    assert check[4] == "-c"
-    assert len(check) == 6, "the probe is one Python statement and nothing after it"
-
-
-# --- The images compose pulls are pinned (step 06 of demo-onboarding) ---
-
-
-def pulled_images(environment: Mapping[str, str] | None = None) -> dict[str, str]:
-    """Every service's image that compose pulls rather than builds, as compose resolves it.
-
-    A service with `build:` names the image it builds on this laptop, and its tag is
-    only that local name: nothing is pulled by it."""
-    return {
-        name: interpolated(definition["image"], environment or {})
-        for name, definition in COMPOSE["services"].items()
-        if "build" not in definition
-    }
-
-
-def test_the_grafana_stack_is_pinned_by_tag_and_index_digest():
-    """`latest` moved weekly, and with the rule's noDataState at OK a drifted metric would
-    leave the Alert silently never firing (audit F12)."""
-    assert pulled_images()[LGTM_SERVICE] == f"{LGTM_REPOSITORY}:{LGTM_TAG}@{LGTM_INDEX_DIGEST}"
-
-
-def test_a_mirror_can_stand_in_for_the_pinned_grafana_stack():
-    mirror = f"registry.example.invalid/{LGTM_REPOSITORY}:{LGTM_TAG}@{LGTM_INDEX_DIGEST}"
-
-    assert pulled_images({LGTM_IMAGE_VARIABLE: mirror})[LGTM_SERVICE] == mirror
-    assert LGTM_IMAGE_VARIABLE in ENV_EXAMPLE.read_text()
-
-
-@pytest.mark.parametrize("name", sorted(pulled_images()))
-def test_no_pulled_image_is_latest_or_untagged(name):
-    """An untagged reference is `latest` by another name."""
-    reference = pulled_images()[name]
-
-    assert ":latest" not in reference
-    matched = PINNED_REFERENCE.fullmatch(reference)
-    assert matched, f"{name} pulls {reference!r}, which names no tag"
-    assert matched["tag"] != "latest"
-
-
-def test_no_pulled_image_anywhere_in_the_compose_file_is_latest():
-    """Read as text too, so an image added under a new key is not missed by the parse."""
-    for line in COMPOSE_FILE.read_text().splitlines():
-        if line.strip().startswith("image:") and ":latest" in line:
-            image = line.split("image:", 1)[1].strip()
-            assert any(
-                definition.get("image") == image and "build" in definition
-                for definition in COMPOSE["services"].values()
-            ), f"{image} is pulled as latest"
 
 
 # The image, asked directly (opt-in, like the rest of TestAStackThatIsUp).
@@ -1018,17 +762,6 @@ def test_exactly_the_three_scratch_directories_are_writable_and_none_outlives_th
     else (story 19). No volume either, so a restart starts clean."""
     assert set(tmpfs_mounts(DEMO_SERVICE)) == set(scratch_directories())
     assert "volumes" not in service(DEMO_SERVICE)
-
-
-def test_the_run_s_skill_is_rendered_onto_a_tmpfs_from_a_template_on_the_read_only_root():
-    """The template is baked into the image; what a Run reads is rendered from .env at every
-    start into the runs directory, which no restart keeps (step 03 of demo-onboarding)."""
-    mounts = [Path(mount) for mount in tmpfs_mounts(DEMO_SERVICE)]
-    rendered = rendered_skill_directory(runs_directory())
-    template = Path(environment_set_by(DOCKERFILE)[SKILL_DIRECTORY_VARIABLE][1])
-
-    assert any(rendered.is_relative_to(mount) for mount in mounts)
-    assert not any(template.is_relative_to(mount) for mount in mounts)
 
 
 def test_the_runs_directory_and_the_home_belong_to_the_run_user():

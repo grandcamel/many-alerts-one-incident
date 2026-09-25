@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 from grafana_jsm_sandbox.forwarder import Forwarder, JiraCredential
-from grafana_jsm_sandbox.receiver import Receiver, Run, RunOutcome
+from grafana_jsm_sandbox.receiver import Receiver, Run
 from tests.upstream import FakeUpstream
 
 REPOSITORY = Path(__file__).resolve().parent.parent
@@ -33,70 +33,6 @@ needs_the_stack_up = pytest.mark.skip(
     reason="archival live demo disabled under ADRs 0011-0013; DEMO_CONTAINER cannot enable it",
 )
 """Quarantine former live-container tests even when their old flag is set."""
-
-TESTS = REPOSITORY / "tests"
-
-BASIC_DEMO_OPTION = "--basic-demo"
-
-BASIC_DEMO_TESTS = frozenset(
-    {
-        "test_basic_demo.py",
-        "test_configure.py",
-        "test_container.py",
-        "test_demo_config.py",
-        "test_docs.py",
-        "test_doctor.py",
-        "test_end_to_end.py",
-        "test_fixtures.py",
-        "test_forwarder.py",
-        "test_grafana.py",
-        "test_log_formatter.py",
-        "test_notification_fixtures.py",
-        "test_receiver.py",
-        "test_replay.py",
-        "test_reset.py",
-        "test_run_command.py",
-        "test_run_spawner.py",
-        "test_setup_skill.py",
-        "test_skill_template.py",
-        "test_startup.py",
-        "test_verify.py",
-    }
-)
-"""The test files the basic demo needs, and the only ones `--basic-demo` collects on its own.
-
-The basic demo is chapter one: the Receiver, the Forwarder, the Run and the helpers around
-them. Every other file tests chapter two, the mediated Forwarder chain (`forwarder_*`) and the
-`prototype/` work, which the basic demo never runs. An engineer checking their host before a
-demo should not need chapter two's code to import on their Python, so `--basic-demo` passes over
-those files before they are imported. The list is spelled out rather than matched, so a file
-joins it by decision; `tests/test_basic_demo.py` holds every file to the one rule that decides
-its side. A file named on the command line is still collected: pytest never asks this hook about
-the paths it was given, and whoever names a file asked for it.
-"""
-
-
-def pytest_addoption(parser: pytest.Parser) -> None:
-    parser.addoption(
-        BASIC_DEMO_OPTION,
-        action="store_true",
-        help="collect only the basic demo's test files; chapter two's are never imported",
-    )
-
-
-def pytest_ignore_collect(collection_path: Path, config: pytest.Config) -> bool | None:
-    """Under `--basic-demo`, pass over every test file not in the list, before it is imported.
-
-    Returning None rather than False for a listed file leaves pytest's own `--ignore` and
-    `norecursedirs` in charge of it. Without the option nothing changes.
-    """
-    if not config.getoption(BASIC_DEMO_OPTION):
-        return None
-    if collection_path.is_dir() or not collection_path.name.startswith("test_"):
-        return None
-    if collection_path.resolve().parent == TESTS and collection_path.name in BASIC_DEMO_TESTS:
-        return None
-    return True
 
 
 def compose(*arguments: str) -> subprocess.CompletedProcess:
@@ -143,14 +79,9 @@ class SpawnedRun:
 
 @dataclass
 class RecordingSpawner:
-    """A fake Run spawner that records what the Receiver asked it to start.
-
-    It returns `outcome` when a test sets one, as the real spawner does, and the bare
-    `exit_status` otherwise.
-    """
+    """A fake Run spawner that records what the Receiver asked it to start."""
 
     exit_status: int = 0
-    outcome: RunOutcome | None = None
     spawned: list[SpawnedRun] = field(default_factory=list)
     _progress: threading.Condition = field(default_factory=threading.Condition)
     _release: threading.Event | None = None
@@ -170,7 +101,7 @@ class RecordingSpawner:
             reached = self._progress.wait_for(lambda: len(self.spawned) >= count, timeout)
         assert reached, f"expected {count} spawns, saw {len(self.spawned)}"
 
-    def __call__(self, run) -> RunOutcome | int:
+    def __call__(self, run) -> int:
         with self._progress:
             self.spawned.append(SpawnedRun.record(run))
             error, self._fail_next = self._fail_next, None
@@ -180,7 +111,7 @@ class RecordingSpawner:
             assert release.wait(5.0), "blocked spawn was never released"
         if error is not None:
             raise error
-        return self.exit_status if self.outcome is None else self.outcome
+        return self.exit_status
 
 
 @dataclass

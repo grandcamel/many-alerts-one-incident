@@ -67,9 +67,8 @@ One headless Claude invocation, started by the Receiver to handle Alerts from on
 _Avoid_: harness, agent, session, job
 
 **Skill**:
-The one file that tells a Run the demo project's facts and how to act on an Alert. The repo
-holds it as a template, copied into the image; the Receiver renders it from `.env` at every
-start, and a Run reads that rendering, never the template. Nothing else instructs a Run.
+The one file in this repo, copied into the image, that tells a Run the OPS facts and how to
+act on an Alert. A Run reads it and nothing else instructs it.
 _Avoid_: prompt, playbook, instructions, runbook
 
 **Forwarder**:
@@ -81,7 +80,7 @@ The random token registered with the Forwarder for one Run and one service. It g
 _Avoid_: fake token, dummy credential, placeholder, api key
 
 **Transcript**:
-The stream-json output of one Run, one Run event per line. The Receiver renders it into the container log as it arrives and keeps it raw as `transcript.jsonl` in the Run's working directory, and a recorded Transcript is committed as a fixture.
+The stream-json output of one Run, one Run event per line. The Receiver renders it into the container log as it arrives, and a recorded Transcript is committed as a fixture.
 _Avoid_: log, output, stream, session log
 
 **Run event**:

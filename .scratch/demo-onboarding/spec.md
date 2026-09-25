@@ -1,8 +1,10 @@
 # Spec: another engineer demos chapter one on their own Atlassian site
 
-Status: ready-for-agent
+Status: historical, superseded by the future live design in `docs/demo-runbook.md` on 2026-09-25
 Branch: `demo-onboarding` (worktree `/Users/jasonkrueger/projects/maoi-demo-onboarding`)
 Evidence: [audit-2026-09-23.md](audit-2026-09-23.md) (six lenses, adversarially verified) and [probe-2026-09-23.md](probe-2026-09-23.md) (live `/proc` probe)
+
+This file records the earlier chapter-one assignment. Its live commands, model default and acceptance claims are not current instructions. The branch was rebased onto `main` after the direct-token path was retired; see [the rebase review](rebase-review-2026-09-25.md).
 
 ## Goal
 

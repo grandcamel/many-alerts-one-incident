@@ -374,8 +374,7 @@ def _verify_context_readback(context: ssl.SSLContext, trust_sha256: tuple[str, .
         and (context.options & ssl.OP_NO_RENEGOTIATION) == ssl.OP_NO_RENEGOTIATION
         and (context.options & ssl.OP_NO_TICKET) == ssl.OP_NO_TICKET
         and (context.options & ssl.OP_IGNORE_UNEXPECTED_EOF) == 0
-        # ssl names it from Python 3.12; 0x4 is OpenSSL's SSL_OP_LEGACY_SERVER_CONNECT on 3.11.
-        and (context.options & getattr(ssl, "OP_LEGACY_SERVER_CONNECT", 0x4)) == 0
+        and (context.options & ssl.OP_LEGACY_SERVER_CONNECT) == 0
         and (context.options & _OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION) == 0
         and context.keylog_filename is None
         and context.post_handshake_auth is False

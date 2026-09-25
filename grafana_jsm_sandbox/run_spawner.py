@@ -8,41 +8,25 @@ sentinel the moment the process ends, so a sentinel that leaks out of a
 Transcript is worth nothing by the time anyone reads it.
 
 Everything the Run says on stdout is a Transcript, rendered into the log by the
-formatter as it arrives and teed, raw, to `transcript.jsonl` in the Run's own
-working directory, because the log is trimmed and redacted and the question
-after a failure is usually about what it left out. The stream is also where a
-Run says whether it worked: a Run the API refused exits 0 all the same, so the
-spawner reads the result event and hands the Receiver the reason with the exit
-status. A Run that runs long is killed, because a demo cannot wait and the queue
-behind it cannot either.
+formatter as it arrives. A Run that runs long is killed, because a demo cannot
+wait and the queue behind it cannot either.
 """
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import secrets
 import signal
 import subprocess
 import threading
-from collections.abc import Iterable, Iterator, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import IO, Self, cast
+from typing import IO, cast
 
 from grafana_jsm_sandbox.forwarder import ENVIRONMENT_VARIABLES, Forwarder
-from grafana_jsm_sandbox.log_formatter import (
-    DENIED,
-    FAILED,
-    HINT,
-    LIMIT,
-    RETRY,
-    format_stream,
-    redact,
-    run_failure,
-)
-from grafana_jsm_sandbox.receiver import Run, RunOutcome
+from grafana_jsm_sandbox.log_formatter import format_stream, redact
+from grafana_jsm_sandbox.receiver import Run
 
 logger = logging.getLogger(__name__)
 
@@ -59,26 +43,8 @@ of them: `getServerInfo`. A Run has no clock — `date` is not on its allow list
 duration it reports is Jira's `serverTime` minus the Incident's `created` (ticket 04). Without
 this, a Run outside a tree holding a jira-as settings file cannot read the time at all.
 
-It is not narrow. jira-as has no switch for one site-scoped call: this unlocks all of them,
-610 of its operations in 2.0.0, users, groups and schemes among them, besides the one a Run
-needs. What any of those can then do is whatever the account behind the Forwarder may do,
-because the Forwarder swaps the sentinel for that account's real token on every request. So
-the limit on a Run's site-wide reach is the Skill it follows and that account's own Jira
-permissions, and the account the demo runs as should hold no more than the demo needs."""
-
-ALLOWED_PROJECTS_VARIABLE = "JIRA_ALLOWED_PROJECTS"
-"""The one Jira project a Run may name, the demo's own. jira-as refuses a call that names any
-other project literally, as a project argument, in an issue key or in a JQL `project` clause,
-before it sends anything; a `deleteIssue PROD-1` from a Run is refused in the Run, not left to
-the account's permissions (the 2026-09-23 audit, F7). The variable wins over any
-`allowed_projects` in a jira-as settings file (jira_as/config_manager.py:211-216 in 2.0.0).
-
-It is jira-as's own defence in depth and not a boundary: by its own account it checks literal
-references and does not evaluate JQL or authorize HTTP. The Forwarder still forwards whatever
-path a Run's request names, so what bounds a Run's writes is still its tool allow list (ADR
-0003), the Skill and the account's own permissions. With it set, jira-as also takes a label like
-`fp-1234` in JQL for an issue key and refuses it, which a Fingerprint that happens to hold no
-letter a-f would trip."""
+It gates which calls jira-as will make, not what the credential behind the Forwarder can reach,
+so it widens nothing: the boundary is the sentinel and the allow list."""
 
 TRUST_STORE_VARIABLES = (
     "SSL_CERT_FILE",
@@ -106,17 +72,6 @@ STDERR_TIMEOUT = 5.0
 STDERR_TAIL = 2000
 """How much of a failed Run's stderr reaches the log: the end of it, where a crash says
 what went wrong. The log window is a screen in a room, not a file anyone will scroll."""
-
-
-LEVELS = {
-    FAILED: logging.ERROR,
-    HINT: logging.WARNING,
-    DENIED: logging.WARNING,
-    RETRY: logging.WARNING,
-    LIMIT: logging.WARNING,
-}
-"""The Transcript lines logged above INFO, by label: the ones that say a Run failed, was
-refused something, or is waiting on the API. Everything else a Run says is INFO."""
 
 
 class MissingAnthropicToken(ValueError):
@@ -150,13 +105,12 @@ class RunSpawner:
     forwarder: Forwarder
     anthropic_token: str
     jira_email: str
-    project_key: str
     timeout: float = RUN_TIMEOUT
     path: str = field(default_factory=lambda: os.environ.get("PATH", os.defpath))
     trust_store: Mapping[str, str] = field(default_factory=trust_store_from_environment)
 
-    def __call__(self, run: Run) -> RunOutcome:
-        """Run one Run to completion and say how it ended."""
+    def __call__(self, run: Run) -> int:
+        """Run one Run to completion and return its exit status."""
         sentinel = secrets.token_urlsafe(SENTINEL_BYTES)
         self.forwarder.set_sentinel(sentinel)
         try:
@@ -164,10 +118,8 @@ class RunSpawner:
         finally:
             self.forwarder.clear_sentinel()
 
-    def _execute(self, run: Run, sentinel: str) -> RunOutcome:
+    def _execute(self, run: Run, sentinel: str) -> int:
         timed_out = threading.Event()
-        transcript = _Transcript(run.transcript_path)
-        logger.info("run %s transcript: %s", run.run_id, run.transcript_path)
         process = subprocess.Popen(
             list(self.command),
             cwd=run.working_directory,
@@ -191,10 +143,9 @@ class RunSpawner:
         try:
             # The timer stays armed across this whole block, the reaping in
             # `__exit__` included, so nothing here can outlive the timeout.
-            with process, transcript:
-                stream = transcript.tee(cast("IO[str]", process.stdout))
-                for line in format_stream(stream):
-                    logger.log(LEVELS.get(line.split(" ", 1)[0], logging.INFO), "%s", line)
+            with process:
+                for line in format_stream(cast("IO[str]", process.stdout)):
+                    logger.info("%s", line)
                 exit_status = process.wait()
         finally:
             killer.cancel()
@@ -206,35 +157,15 @@ class RunSpawner:
             )
         if exit_status != 0 and errors.text:
             logger.warning("run %s wrote to stderr: %s", run.run_id, redact(errors.text))
-        return RunOutcome(exit_status, self._failure(timed_out, transcript, exit_status))
-
-    def _failure(
-        self, timed_out: threading.Event, transcript: _Transcript, exit_status: int
-    ) -> str | None:
-        """Why the Run failed, most telling reason first, or None when it did its job.
-
-        The Run's own result comes before its exit status, because it names the
-        cause where a status only says there was one. A Run that exits 0 without
-        a result at all did not finish either.
-        """
-        if timed_out.is_set():
-            return f"killed after its {self.timeout:g}s timeout"
-        if transcript.failure is not None:
-            return transcript.failure
-        if exit_status != 0:
-            return f"exit status {exit_status}"
-        if not transcript.finished:
-            return "the Transcript ended without a result"
-        return None
+        return exit_status
 
     def _environment(self, sentinel: str) -> dict[str, str]:
         """Everything the Run's process gets, and it is built here rather than inherited.
 
         The Jira variables are the ones jira-as reads, so a Run needs no patching
-        to talk to the Forwarder — it only ever holds the sentinel — and it may name
-        the demo's project and no other. HOME is not among them: the Claude CLI
-        falls back to the account's home directory, and leaving it out keeps the
-        list short enough to read aloud. The trust
+        to talk to the Forwarder — it only ever holds the sentinel. HOME is not
+        among them: the Claude CLI falls back to the account's home directory,
+        and leaving it out keeps the list short enough to read aloud. The trust
         store is the one thing carried over from the Receiver's own environment,
         and only when the Receiver has one.
         """
@@ -244,72 +175,9 @@ class RunSpawner:
             ENVIRONMENT_VARIABLES["site_url"]: self.forwarder.url,
             ENVIRONMENT_VARIABLES["email"]: self.jira_email,
             ENVIRONMENT_VARIABLES["api_token"]: sentinel,
-            ALLOWED_PROJECTS_VARIABLE: self.project_key,
             SITE_OPERATIONS_VARIABLE: "true",
             "PATH": self.path,
         }
-
-
-class _Transcript:
-    """A Run's stdout on its way to the formatter: copied to disk, and read for its result.
-
-    The copy is the raw stream-json, line for line, in the Run's working directory,
-    so it is there for as long as the Run's Notification is, and a Run's `Read` rule
-    reaches it exactly as it reaches the Notification. It is written as each line
-    arrives, so a Run that is killed leaves everything it said up to then. A file
-    that cannot be written costs one warning and the copy, never the Run: the log
-    still gets every line.
-    """
-
-    def __init__(self, path: Path):
-        self.path = path
-        self.failure: str | None = None
-        self.finished = False
-        self._file: IO[str] | None = None
-
-    def __enter__(self) -> Self:
-        try:
-            self._file = open(self.path, "w", encoding="utf-8", buffering=1)
-        except OSError as error:
-            logger.warning("the transcript %s cannot be written: %s", self.path, error)
-        return self
-
-    def __exit__(self, *exc_info) -> None:
-        self._close()
-
-    def tee(self, lines: Iterable[str]) -> Iterator[str]:
-        for line in lines:
-            self._write(line)
-            self._read(line)
-            yield line
-
-    def _write(self, line: str) -> None:
-        if self._file is None:
-            return
-        try:
-            self._file.write(line)
-        except OSError as error:
-            logger.warning("the transcript %s stopped being written: %s", self.path, error)
-            self._close()
-
-    def _close(self) -> None:
-        """Close the copy. A full tmpfs can refuse the last flush too, and that costs nothing."""
-        file, self._file = self._file, None
-        if file is not None:
-            try:
-                file.close()
-            except OSError:
-                pass
-
-    def _read(self, line: str) -> None:
-        """Note the result event: whether one came, and the first failure one reported."""
-        try:
-            event = json.loads(line)
-        except ValueError:
-            return
-        if isinstance(event, dict) and event.get("type") == "result":
-            self.finished = True
-            self.failure = self.failure or run_failure(event)
 
 
 class _Drained:

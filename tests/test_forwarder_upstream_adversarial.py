@@ -234,18 +234,11 @@ def test_ast_scoped_tls_attrs_appear_only_in_the_readback_assertion():
     span = range(readback.lineno, readback.end_lineno + 1)
     seen = {name: 0 for name in SCOPED_TLS_ATTRS}
     for node in ast.walk(tree):
-        # `ssl.OP_...`, or the name as a string: Python 3.11's ssl lacks
-        # OP_LEGACY_SERVER_CONNECT, so the module reads it with getattr and a fallback.
         if isinstance(node, ast.Attribute) and node.attr in SCOPED_TLS_ATTRS:
-            name = node.attr
-        elif isinstance(node, ast.Constant) and node.value in SCOPED_TLS_ATTRS:
-            name = node.value
-        else:
-            continue
-        assert node.lineno in span, (
-            f"{name} used outside _verify_context_readback at line {node.lineno}"
-        )
-        seen[name] += 1
+            assert node.lineno in span, (
+                f"{node.attr} used outside _verify_context_readback at line {node.lineno}"
+            )
+            seen[node.attr] += 1
     assert all(count == 1 for count in seen.values()), seen
 
 
