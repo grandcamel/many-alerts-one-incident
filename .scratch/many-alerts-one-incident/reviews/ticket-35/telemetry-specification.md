@@ -100,6 +100,15 @@ resource labels such as `service.instance.id` and `k8s.pod.name`.
 | `notification_admitted` | source-group reference, admission state | Receiver / ticket 37 |
 | `incident_touched` | Incident key, observed operation/effect state | Receiver / ticket 37; not candidate-read evidence |
 | `usage_observed` | measure ID, scope, coverage, units, value or `unknown`, source reference | One selected usage source |
+
+`telemetry_omitted` and `telemetry_gap` use the envelope's `run_gaps` feed,
+not `run_events`; they retain the same trusted shared-stream label `feed=run`
+at the collector boundary. The [35a local grammar](design-35a-receiver-gap-codec.md)
+pins only a Receiver-origin synthetic subset. Native, queue and transport
+gap emitters remain separate unimplemented profiles.
+
+| Gap kind (`run_gaps`) | Required payload | Source authority |
+| --- | --- | --- |
 | `telemetry_omitted` / `telemetry_gap` | loss code, count, first/last time, affected sequence range | Projection/transport |
 
 The payload never contains prompt text, assistant text, commands, arguments,

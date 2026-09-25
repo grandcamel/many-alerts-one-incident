@@ -34,3 +34,14 @@ See the [cross-ticket integration review](../reviews/telemetry-change-reference-
 Accepted ADR policy is separate from proposed implementation choices and current
 public documentation from intended-venue or tenant evidence. The ticket remains
 open for unresolved inputs and final integration; no runtime acceptance is claimed.
+
+## Local Receiver gap codec, 2026-09-25: unit 35a
+
+The [35a outcome](../reviews/ticket-35/outcome-35a-receiver-gap-codec.md)
+corrects the proposed `run_gaps` record classification and adds a pure,
+closed synthetic Receiver gap codec with canonical bytes and stable identity.
+Independent Standards and Spec source reviews, 20 focused tests, Ruff and the
+full local suite (**5,685 passed, 39 skipped**) pass. It has no trusted
+Receiver caller, queue, transport, native source, retention or audience
+binding. Native, provider, paid, tenant, venue and human acceptance are
+**NOT RUN**; this ticket stays open.
