@@ -45,6 +45,7 @@ from .journal_reducer import (
     CapacityRefusal,
     InitialReservationIntentClaim,
     JournalBounds,
+    Projection,
     RefusalNotRecorded,
     ReplayError,
     ReservationConfirmationClaim,
@@ -66,9 +67,12 @@ from .journal_reducer import (
     plan_operator_resume,
     plan_restart,
     plan_run_hold,
+    release_intent_claim_digest,
+    release_observation_claim_digest,
     reservation_claims_digest,
     run_holds_digest,
     run_intent_claim_digest,
+    spawn_attestation_claim_digest,
     state_digest,
     verify_commit,
 )
@@ -82,6 +86,25 @@ from .journal_store import (
     StoreError,
     _check_directory,
 )
+
+
+def _spawn_release_claim_summary(projection: Projection) -> dict[str, object] | None:
+    """Only a prefix label and replay digest; never an authorization result."""
+    if projection.launch_claim is None:
+        return None
+    if projection.release_observation is not None:
+        phase, digest = "release_observed", release_observation_claim_digest(projection)
+    elif projection.release_intent is not None:
+        phase, digest = "release_intended", release_intent_claim_digest(projection)
+    elif projection.spawn_attestation is not None:
+        phase, digest = "attested", spawn_attestation_claim_digest(projection)
+    else:
+        phase, digest = "launch_claimed", launch_claim_digest(projection)
+    return {
+        "claimed_phase": phase, "digest": digest,
+        "state": "outstanding_unqualified_launch_claim",
+    }
+
 
 HOLD_SCOPES = ("recovery", "process")
 
@@ -991,6 +1014,22 @@ class RecoveryJournal:
                     "count": 1, "digest": launch_claim_digest(p),
                     "state": "outstanding_unqualified_launch_claim",
                 }
+                result["spawn_release_claims"] = _spawn_release_claim_summary(p)
+            if p.spawn_attestation is not None:
+                result["spawn_attestation_claim"] = {
+                    "count": 1, "digest": spawn_attestation_claim_digest(p),
+                    "state": "outstanding_unqualified_launch_claim",
+                }
+            if p.release_intent is not None:
+                result["release_intent_claim"] = {
+                    "count": 1, "digest": release_intent_claim_digest(p),
+                    "state": "outstanding_unqualified_launch_claim",
+                }
+            if p.release_observation is not None:
+                result["release_observation_claim"] = {
+                    "count": 1, "digest": release_observation_claim_digest(p),
+                    "state": "outstanding_unqualified_launch_claim",
+                }
             return result
 
     def close(self) -> None:
@@ -1124,6 +1163,22 @@ def _ready_report(
     if candidate.launch_claim is not None:
         journal_json["launch_claim"] = {
             "count": 1, "digest": launch_claim_digest(candidate),
+            "state": "outstanding_unqualified_launch_claim",
+        }
+        journal_json["spawn_release_claims"] = _spawn_release_claim_summary(candidate)
+    if candidate.spawn_attestation is not None:
+        journal_json["spawn_attestation_claim"] = {
+            "count": 1, "digest": spawn_attestation_claim_digest(candidate),
+            "state": "outstanding_unqualified_launch_claim",
+        }
+    if candidate.release_intent is not None:
+        journal_json["release_intent_claim"] = {
+            "count": 1, "digest": release_intent_claim_digest(candidate),
+            "state": "outstanding_unqualified_launch_claim",
+        }
+    if candidate.release_observation is not None:
+        journal_json["release_observation_claim"] = {
+            "count": 1, "digest": release_observation_claim_digest(candidate),
             "state": "outstanding_unqualified_launch_claim",
         }
     refusals_json = {

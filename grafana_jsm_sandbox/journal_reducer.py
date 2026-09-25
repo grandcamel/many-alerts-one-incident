@@ -29,9 +29,12 @@ from .journal_records import (
     MAX_ID_BYTES,
     MAX_LAUNCH_CLAIM_RECORD_BYTES,
     MAX_REFUSAL_RECORDS,
+    MAX_RELEASE_INTENT_RECORD_BYTES,
+    MAX_RELEASE_OBSERVATION_RECORD_BYTES,
     MAX_RUN_HOLD_RECORD_BYTES,
     MAX_RUN_INTENT_RECORD_BYTES,
     MAX_SEQ,
+    MAX_SPAWN_ATTESTATION_RECORD_BYTES,
     REFUSAL_RESOLVED_RESERVE,
     REFUSAL_RULE,
     RESUMABLE_HOLDS,
@@ -83,6 +86,12 @@ RUN_INTENT_TAG = "rj.run-intent.v3"
 RUN_INTENT_STATE_TAG = "rj.run-intent-state.v3"
 LAUNCH_CLAIM_TAG = "rj.launch-claim.v3"
 LAUNCH_CLAIM_STATE_TAG = "rj.launch-claim-state.v3"
+SPAWN_ATTESTATION_TAG = "rj.spawn-attestation.v3"
+SPAWN_ATTESTATION_STATE_TAG = "rj.spawn-attestation-state.v3"
+RELEASE_INTENT_TAG = "rj.release-intent.v3"
+RELEASE_INTENT_STATE_TAG = "rj.release-intent-state.v3"
+RELEASE_OBSERVATION_TAG = "rj.release-observation.v3"
+RELEASE_OBSERVATION_STATE_TAG = "rj.release-observation-state.v3"
 _UUID_DASHES = frozenset({8, 13, 18, 23})
 _UUID_HEX = frozenset("0123456789abcdef")
 
@@ -242,6 +251,41 @@ class LaunchClaim:
 
 
 @dataclasses.dataclass(frozen=True)
+class SpawnAttestationClaim:
+    event_id: str
+    claim_digest: str
+    launch_claim_id: str
+    run_id: str
+    attempt_id: str
+    receiver_boot_id: str
+    observed_us: int
+    witness_locator: str
+    witness_identity_digest: str
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
+class ReleaseIntentClaim:
+    event_id: str
+    claim_digest: str
+    spawn_attestation_id: str
+    receiver_boot_id: str
+    intended_release_us: int
+    activated_grants: tuple[tuple[str, str, str, int], ...]
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
+class ReleaseObservationClaim:
+    event_id: str
+    claim_digest: str
+    release_intent_id: str
+    receiver_boot_id: str
+    observed_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -294,6 +338,9 @@ class Delta:
     initial_reservation_confirmation_add: ReservationConfirmationClaim | None = None
     run_intent_add: RunIntentClaim | None = None
     launch_claim_add: LaunchClaim | None = None
+    spawn_attestation_add: SpawnAttestationClaim | None = None
+    release_intent_add: ReleaseIntentClaim | None = None
+    release_observation_add: ReleaseObservationClaim | None = None
 
 
 class Projection:
@@ -322,6 +369,9 @@ class Projection:
         self.initial_confirmations: dict[str, ReservationConfirmationClaim] = {}
         self.run_intent: RunIntentClaim | None = None
         self.launch_claim: LaunchClaim | None = None
+        self.spawn_attestation: SpawnAttestationClaim | None = None
+        self.release_intent: ReleaseIntentClaim | None = None
+        self.release_observation: ReleaseObservationClaim | None = None
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -1228,6 +1278,190 @@ def plan_launch_claim(
     }))
 
 
+def _launch_claim_ids(claim: LaunchClaim) -> dict[str, str]:
+    return {
+        "journal_uuid": claim.journal_uuid, "admission_id": claim.admission_id,
+        "job_id": claim.job_id, "intent_id": claim.intent_id,
+        "attempt_id": claim.attempt_id, "reservation_id": claim.reservation_id,
+        "run_id": claim.run_id, "lease_id": claim.model_lease_id,
+    }
+
+
+def _claim_event_id_ok(p: Projection, event_id: str) -> bool:
+    used = _known_reservation_ids(p)
+    if p.run_intent is not None:
+        used.add(p.run_intent.run_intent_id)
+        used.update(service[1] for service in p.run_intent.services)
+    if p.launch_claim is not None:
+        used.add(p.launch_claim.launch_claim_id)
+        used.update(grant[3] for grant in p.launch_claim.grants)
+    for claim in (p.spawn_attestation, p.release_intent, p.release_observation):
+        if claim is not None:
+            used.add(claim.event_id)
+    return _canonical_uuid(event_id) and event_id not in used
+
+
+def _claim_pre_release(p: Projection, stamp: Stamp) -> LaunchClaim:
+    launch = p.launch_claim
+    intent = p.run_intent
+    if (p.head is None or p.bounds is None or launch is None
+        or intent is None or launch.run_intent_id != intent.run_intent_id
+        or launch.run_intent_digest != intent.run_intent_digest
+        or p.boot_id != stamp.boot_id or launch.receiver_boot_id != stamp.boot_id
+        or p.dispatch_holds or p.run_holds
+        or p.boot_start_commit_seq is None
+        or launch.committed_at_seq < p.boot_start_commit_seq
+        or type(stamp.mono_us) is not int
+        or not p.last_mono_us <= stamp.mono_us < launch.work_deadline_us):
+        _fail_replay("replay_mismatch")
+    members = tuple(sorted(
+        fingerprint for fingerprint, entry in p.pending.items()
+        if entry.admission_id == intent.admission_id
+    ))
+    if (len(members) != intent.member_count
+        or tagged_digest(INITIAL_INTENT_MEMBERS_TAG, members) != intent.member_digest):
+        _fail_replay("replay_mismatch")
+    return launch
+
+
+def plan_spawn_attestation(
+    p: Projection, *, event_id: str, blocked_ack_digest: str,
+    anchor_key_digest: str, witness_kind: str, verifier_version: str,
+    witness_locator: str, witness_identity_digest: str,
+    registry_entry_digest: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Plan an untrusted blocked-child observation with no spawn authority."""
+    launch = _claim_pre_release(p, stamp)
+    if (p.spawn_attestation is not None or not _claim_event_id_ok(p, event_id)
+        or not all(_digest64(value) for value in (
+            blocked_ack_digest, anchor_key_digest, witness_identity_digest,
+            registry_entry_digest,
+        ))
+        or not all(_safe_grant_id(value) for value in (
+            witness_kind, verifier_version, witness_locator,
+        ))):
+        _fail_replay("replay_mismatch")
+    ids = _launch_claim_ids(launch)
+    data = {
+        "rule": "spawn-attestation-v3", "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "launch_claim_event_id": launch.launch_claim_id,
+        "launch_claim_digest": launch.launch_claim_digest,
+        "launch_claim_commit_seq": launch.committed_at_seq,
+        "receiver_boot_id": p.boot_id, "observed_us": stamp.mono_us,
+        "blocked_ack_digest": blocked_ack_digest,
+        "anchor_key_digest": anchor_key_digest,
+        "witness_kind": witness_kind, "verifier_version": verifier_version,
+        "witness_locator": witness_locator,
+        "witness_identity_digest": witness_identity_digest,
+        "registry_entry_digest": registry_entry_digest,
+    }
+    data["spawn_attestation_digest"] = tagged_digest(
+        SPAWN_ATTESTATION_TAG, {"event_id": event_id, "ids": ids, "data": data},
+    )
+    record = seal(Draft(event_id, "spawn_attestation", "receiver", ids, data),
+                  _single_position(p), stamp, schema_version=3)
+    if len(record.body) > MAX_SPAWN_ATTESTATION_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.ordinary_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.ordinary_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "outstanding_unqualified_launch_claim", "claimed_phase": "attested",
+    }))
+
+
+def plan_release_intent(
+    p: Projection, *, event_id: str,
+    activated_grants: tuple[tuple[str, str, str, int], ...], stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Plan a release-intent claim; do not send a barrier byte."""
+    launch = _claim_pre_release(p, stamp)
+    attested = p.spawn_attestation
+    if (attested is None or p.release_intent is not None
+        or not _claim_event_id_ok(p, event_id)
+        or attested.receiver_boot_id != stamp.boot_id
+        or type(activated_grants) is not tuple
+        or len(activated_grants) != len(launch.grants)
+        or any(type(row) is not tuple or len(row) != 4 for row in activated_grants)):
+        _fail_replay("replay_mismatch")
+    activations: list[dict[str, object]] = []
+    for row, grant in zip(activated_grants, launch.grants, strict=True):
+        name, grant_id, digest, activated_us = row
+        if (name != grant[0] or grant_id != grant[3]
+            or not _digest64(digest) or type(activated_us) is not int
+            or not attested.observed_us <= activated_us <= stamp.mono_us
+            or not activated_us < grant[4]):
+            _fail_replay("replay_mismatch")
+        activations.append({
+            "service": name, "grant_id": grant_id,
+            "activation_digest": digest, "activation_us": activated_us,
+        })
+    ids = _launch_claim_ids(launch)
+    data = {
+        "rule": "release-intent-v3", "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "spawn_attestation_event_id": attested.event_id,
+        "spawn_attestation_digest": attested.claim_digest,
+        "spawn_attestation_commit_seq": attested.committed_at_seq,
+        "receiver_boot_id": p.boot_id,
+        "forwarder_generation": launch.forwarder_generation,
+        "intended_release_us": stamp.mono_us,
+        "activated_grants": activations,
+    }
+    data["release_intent_digest"] = tagged_digest(
+        RELEASE_INTENT_TAG, {"event_id": event_id, "ids": ids, "data": data},
+    )
+    record = seal(Draft(event_id, "release_intent", "receiver", ids, data),
+                  _single_position(p), stamp, schema_version=3)
+    if len(record.body) > MAX_RELEASE_INTENT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.ordinary_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.ordinary_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "outstanding_unqualified_launch_claim", "claimed_phase": "release_intended",
+    }))
+
+
+def plan_release_observation(
+    p: Projection, *, event_id: str, ack_digest: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Preserve a claimed acknowledgment, even after a hold or deadline."""
+    launch = p.launch_claim
+    intended = p.release_intent
+    if (p.head is None or p.bounds is None or launch is None or intended is None
+        or p.release_observation is not None or not _claim_event_id_ok(p, event_id)
+        or p.boot_id != stamp.boot_id or intended.receiver_boot_id != stamp.boot_id
+        or type(stamp.mono_us) is not int
+        or not max(p.last_mono_us, intended.intended_release_us) <= stamp.mono_us <= MAX_SEQ
+        or not _digest64(ack_digest)):
+        _fail_replay("replay_mismatch")
+    ids = _launch_claim_ids(launch)
+    data = {
+        "rule": "release-observation-v3", "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "release_intent_event_id": intended.event_id,
+        "release_intent_digest": intended.claim_digest,
+        "release_intent_commit_seq": intended.committed_at_seq,
+        "receiver_boot_id": p.boot_id, "observed_us": stamp.mono_us,
+        "ack_digest": ack_digest,
+    }
+    data["release_observation_digest"] = tagged_digest(
+        RELEASE_OBSERVATION_TAG, {"event_id": event_id, "ids": ids, "data": data},
+    )
+    record = seal(Draft(event_id, "release_observation", "receiver", ids, data),
+                  _single_position(p), stamp, schema_version=3)
+    if len(record.body) > MAX_RELEASE_OBSERVATION_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "outstanding_unqualified_launch_claim", "claimed_phase": "release_observed",
+    }))
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -1253,6 +1487,12 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "run_intent"
     if types == ("launch_claim",):
         return "launch_claim"
+    if types == ("spawn_attestation",):
+        return "spawn_attestation"
+    if types == ("release_intent",):
+        return "release_intent"
+    if types == ("release_observation",):
+        return "release_observation"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -1657,6 +1897,96 @@ def _verify_launch_claim(p: Projection, record: Record, commit_seq: int) -> Delt
     )
 
 
+def _verify_exact_claim_plan(plan: Plan | CapacityRefusal, record: Record) -> Plan:
+    if isinstance(plan, CapacityRefusal) or (
+        plan.records[0].body != record.body
+        or plan.records[0].record_digest != record.record_digest
+        or plan.records[0].ids != record.ids
+        or plan.records[0].data != record.data
+    ):
+        _fail_replay("replay_mismatch")
+    return plan
+
+
+def _claim_delta(
+    p: Projection, record: Record, commit_seq: int, charge: int, *,
+    attestation: SpawnAttestationClaim | None = None,
+    intent: ReleaseIntentClaim | None = None,
+    observation: ReleaseObservationClaim | None = None,
+) -> Delta:
+    return Delta(
+        head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
+        generation=p.generation, journal_uuid=None, bounds=None,
+        boot_id=p.boot_id, last_mono_us=record.stamp.mono_us, new_boot_id=None,
+        logical_bytes=p.logical_bytes + charge, admission_count=p.admission_count,
+        last_arrival_seq=p.last_arrival_seq, baseline_update=None, pending_updates=(),
+        dispatch_hold_add=None, spawn_attestation_add=attestation,
+        release_intent_add=intent, release_observation_add=observation,
+    )
+
+
+def _verify_spawn_attestation(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_SPAWN_ATTESTATION_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_spawn_attestation(
+        p, event_id=record.event_id,
+        blocked_ack_digest=data["blocked_ack_digest"],
+        anchor_key_digest=data["anchor_key_digest"],
+        witness_kind=data["witness_kind"], verifier_version=data["verifier_version"],
+        witness_locator=data["witness_locator"],
+        witness_identity_digest=data["witness_identity_digest"],
+        registry_entry_digest=data["registry_entry_digest"], stamp=record.stamp,
+    ), record)
+    claim = SpawnAttestationClaim(
+        event_id=record.event_id, claim_digest=data["spawn_attestation_digest"],
+        launch_claim_id=data["launch_claim_event_id"], run_id=record.ids["run_id"],
+        attempt_id=record.ids["attempt_id"], receiver_boot_id=data["receiver_boot_id"],
+        observed_us=data["observed_us"], witness_locator=data["witness_locator"],
+        witness_identity_digest=data["witness_identity_digest"],
+        committed_at_seq=commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, attestation=claim)
+
+
+def _verify_release_intent(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_RELEASE_INTENT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    data = record.data
+    activations = tuple(
+        (item["service"], item["grant_id"], item["activation_digest"],
+         item["activation_us"])
+        for item in data["activated_grants"]
+    )
+    plan = _verify_exact_claim_plan(plan_release_intent(
+        p, event_id=record.event_id, activated_grants=activations, stamp=record.stamp,
+    ), record)
+    claim = ReleaseIntentClaim(
+        event_id=record.event_id, claim_digest=data["release_intent_digest"],
+        spawn_attestation_id=data["spawn_attestation_event_id"],
+        receiver_boot_id=data["receiver_boot_id"],
+        intended_release_us=data["intended_release_us"],
+        activated_grants=activations, committed_at_seq=commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, intent=claim)
+
+
+def _verify_release_observation(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_RELEASE_OBSERVATION_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_release_observation(
+        p, event_id=record.event_id, ack_digest=data["ack_digest"], stamp=record.stamp,
+    ), record)
+    claim = ReleaseObservationClaim(
+        event_id=record.event_id, claim_digest=data["release_observation_digest"],
+        release_intent_id=data["release_intent_event_id"],
+        receiver_boot_id=data["receiver_boot_id"], observed_us=data["observed_us"],
+        committed_at_seq=commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, observation=claim)
+
+
 def _verify_admission_pair(
     p: Projection, admission: Record, dedupe: Record, commit_seq: int,
 ) -> Delta:
@@ -1790,6 +2120,12 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_run_intent(p, records[0], commit_seq)
     if shape == "launch_claim":
         return _verify_launch_claim(p, records[0], commit_seq)
+    if shape == "spawn_attestation":
+        return _verify_spawn_attestation(p, records[0], commit_seq)
+    if shape == "release_intent":
+        return _verify_release_intent(p, records[0], commit_seq)
+    if shape == "release_observation":
+        return _verify_release_observation(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -1847,6 +2183,12 @@ def apply_delta(p: Projection, delta: Delta) -> None:
         p.run_intent = delta.run_intent_add
     if delta.launch_claim_add is not None:
         p.launch_claim = delta.launch_claim_add
+    if delta.spawn_attestation_add is not None:
+        p.spawn_attestation = delta.spawn_attestation_add
+    if delta.release_intent_add is not None:
+        p.release_intent = delta.release_intent_add
+    if delta.release_observation_add is not None:
+        p.release_observation = delta.release_observation_add
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -1960,6 +2302,27 @@ def launch_claim_digest(p: Projection) -> str:
     )
 
 
+def spawn_attestation_claim_digest(p: Projection) -> str:
+    return tagged_digest(
+        SPAWN_ATTESTATION_STATE_TAG,
+        None if p.spawn_attestation is None else dataclasses.asdict(p.spawn_attestation),
+    )
+
+
+def release_intent_claim_digest(p: Projection) -> str:
+    return tagged_digest(
+        RELEASE_INTENT_STATE_TAG,
+        None if p.release_intent is None else dataclasses.asdict(p.release_intent),
+    )
+
+
+def release_observation_claim_digest(p: Projection) -> str:
+    return tagged_digest(
+        RELEASE_OBSERVATION_STATE_TAG,
+        None if p.release_observation is None else dataclasses.asdict(p.release_observation),
+    )
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -2005,8 +2368,11 @@ __all__ = [
     "MAX_RUN_HOLDS",
     "RECORD_OVERHEAD_BYTES",
     "REFUSAL_KEY_TAG",
+    "RELEASE_INTENT_STATE_TAG",
+    "RELEASE_OBSERVATION_STATE_TAG",
     "REPLAY_ERROR_CODES",
     "RUN_INTENT_STATE_TAG",
+    "SPAWN_ATTESTATION_STATE_TAG",
     "Baseline",
     "CapacityRefusal",
     "Delta",
@@ -2017,11 +2383,14 @@ __all__ = [
     "Plan",
     "Projection",
     "RefusalNotRecorded",
+    "ReleaseIntentClaim",
+    "ReleaseObservationClaim",
     "ReplayError",
     "ReservationConfirmationClaim",
     "ReservationIntentClaim",
     "RunHold",
     "RunIntentClaim",
+    "SpawnAttestationClaim",
     "apply_delta",
     "dispatch_holds",
     "front_door_digest",
@@ -2040,16 +2409,22 @@ __all__ = [
     "plan_initial_reservation_intent",
     "plan_launch_claim",
     "plan_operator_resume",
+    "plan_release_intent",
+    "plan_release_observation",
     "plan_reservation_confirmation",
     "plan_reservation_intent",
     "plan_restart",
     "plan_run_hold",
     "plan_run_intent",
+    "plan_spawn_attestation",
     "refusal_key",
+    "release_intent_claim_digest",
+    "release_observation_claim_digest",
     "replay",
     "reservation_claims_digest",
     "run_holds_digest",
     "run_intent_claim_digest",
+    "spawn_attestation_claim_digest",
     "state_digest",
     "verify_commit",
 ]

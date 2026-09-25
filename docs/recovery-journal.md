@@ -711,8 +711,23 @@ pytest -q tests/test_journal_source.py tests/test_journal_records.py tests/test_
 
 The versioned claim tests are in `tests/test_reservation_claim_journal.py`,
 `tests/test_initial_reservation_intent_journal.py` and
-`tests/test_run_intent_claim_journal.py`; the full repository suite includes
-them.
+`tests/test_run_intent_claim_journal.py`, `tests/test_launch_claim_journal.py`
+and `tests/test_spawn_release_claim_journal.py`; the full repository suite
+includes them.
+
+The private v3 `spawn_attestation`, `release_intent` and
+`release_observation` records replay after a launch claim with exact
+predecessor identity, same-boot monotonic order and bounded byte charges.
+The first two consume ordinary capacity; the historical release observation
+can use recovery capacity after a new hold or elapsed Run deadline. Live and
+stopped inspection show an explicit `spawn_release_claims.claimed_phase`
+and separate phase digests, always under
+`outstanding_unqualified_launch_claim`. A record is a syntactically and
+semantically replayed **claim**, not proof of a stable containment witness,
+blocked or released child, current grants, accounting or external effect.
+No application writer, release byte or production launcher uses these types.
+The future writer still needs protected capacity escrow and the reviewed 19n
+pre-release checks; the present source cannot supply them.
 
 Receiver integration is opt-in and admission-only. Dispatch, Runs, effects,
 accounting, reset, retention and reconstruction remain unimplemented here.

@@ -51,6 +51,7 @@ EVENT_TYPES = (
 FRONT_DOOR_EVENT_TYPES = ("ingress_refusal", "operator_action")
 RUN_EVENT_TYPES_V2 = ("run_hold",)
 RUN_EVENT_TYPES_V3 = ("run_intent", "launch_claim")
+SPAWN_EVENT_TYPES_V3 = ("spawn_attestation", "release_intent", "release_observation")
 REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
@@ -64,6 +65,10 @@ RECORD_CLASS = MappingProxyType({
 RUN_RECORD_CLASS_V2 = MappingProxyType({"run_hold": "recovery"})
 RUN_RECORD_CLASS_V3 = MappingProxyType({
     "run_intent": "ordinary", "launch_claim": "ordinary",
+})
+SPAWN_RECORD_CLASS_V3 = MappingProxyType({
+    "spawn_attestation": "ordinary", "release_intent": "ordinary",
+    "release_observation": "recovery",
 })
 RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
@@ -115,6 +120,9 @@ RUN_HOLD_REASONS_V2 = (
 MAX_RUN_HOLD_RECORD_BYTES = 2_048
 MAX_RUN_INTENT_RECORD_BYTES = 4_096
 MAX_LAUNCH_CLAIM_RECORD_BYTES = 6_144
+MAX_SPAWN_ATTESTATION_RECORD_BYTES = 4_096
+MAX_RELEASE_INTENT_RECORD_BYTES = 4_096
+MAX_RELEASE_OBSERVATION_RECORD_BYTES = 2_048
 
 # Private copies of journal_ingress/journal_source vocabulary the strict
 # refusal-summary checker needs; never imported (A12's import pin).
@@ -398,6 +406,27 @@ _LAUNCH_CLAIM_DATA_KEYS = frozenset({
 })
 _LAUNCH_CLAIM_GRANT_KEYS = frozenset({
     "service", "lease_claim_id", "scope_digest", "grant_id", "grant_expiry_us",
+})
+_SPAWN_ATTESTATION_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "launch_claim_event_id", "launch_claim_digest", "launch_claim_commit_seq",
+    "receiver_boot_id", "observed_us", "blocked_ack_digest", "anchor_key_digest",
+    "witness_kind", "verifier_version", "witness_locator", "witness_identity_digest",
+    "registry_entry_digest", "spawn_attestation_digest",
+})
+_RELEASE_INTENT_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "spawn_attestation_event_id", "spawn_attestation_digest",
+    "spawn_attestation_commit_seq", "receiver_boot_id", "forwarder_generation",
+    "intended_release_us", "activated_grants", "release_intent_digest",
+})
+_RELEASE_ACTIVATION_KEYS = frozenset({
+    "service", "grant_id", "activation_digest", "activation_us",
+})
+_RELEASE_OBSERVATION_DATA_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "release_intent_event_id", "release_intent_digest", "release_intent_commit_seq",
+    "receiver_boot_id", "observed_us", "ack_digest", "release_observation_digest",
 })
 
 
@@ -884,6 +913,84 @@ def _validate_launch_claim_v3(ids: object, data: object, event_id: str) -> None:
         _fail_record("record_field")
 
 
+def _validate_spawn_attestation_v3(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _RUN_INTENT_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    data = _require_keys(data, _SPAWN_ATTESTATION_DATA_KEYS)
+    _require_literal(data["rule"], "spawn-attestation-v3", "record_unsupported")
+    for key in ("based_on_commit_seq", "launch_claim_commit_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "launch_claim_digest", "blocked_ack_digest",
+                "anchor_key_digest", "witness_identity_digest", "registry_entry_digest",
+                "spawn_attestation_digest"):
+        _require_hex64(data[key])
+    _require_uuid(data["launch_claim_event_id"])
+    for key in ("receiver_boot_id", "witness_kind", "verifier_version", "witness_locator"):
+        validate_id(data[key])
+    _require_bound_int(data["observed_us"], 0, MAX_SEQ, "record_field")
+    if len({*ids.values(), event_id, data["launch_claim_event_id"]}) != len(ids) + 2:
+        _fail_record("record_field")
+
+
+def _validate_release_intent_v3(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _RUN_INTENT_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    data = _require_keys(data, _RELEASE_INTENT_DATA_KEYS)
+    _require_literal(data["rule"], "release-intent-v3", "record_unsupported")
+    for key in ("based_on_commit_seq", "spawn_attestation_commit_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "spawn_attestation_digest",
+                "release_intent_digest"):
+        _require_hex64(data[key])
+    _require_uuid(data["spawn_attestation_event_id"])
+    validate_id(data["receiver_boot_id"])
+    validate_id(data["forwarder_generation"])
+    _require_bound_int(data["intended_release_us"], 0, MAX_SEQ, "record_field")
+    grants = data["activated_grants"]
+    if type(grants) not in (list, tuple) or not 4 <= len(grants) <= 5:
+        _fail_record("record_field")
+    names: list[str] = []
+    grant_ids: list[str] = []
+    for item in grants:
+        item = _require_keys(item, _RELEASE_ACTIVATION_KEYS)
+        name = item["service"]
+        if type(name) is not str or name not in _RUN_INTENT_ALLOWED_SERVICES:
+            _fail_record("record_field")
+        names.append(name)
+        grant_ids.append(validate_id(item["grant_id"]))
+        _require_hex64(item["activation_digest"])
+        _require_bound_int(item["activation_us"], 0, MAX_SEQ, "record_field")
+    if (names != sorted(names) or len(set(names)) != len(names)
+        or not _RUN_INTENT_MANDATORY_SERVICES.issubset(names)
+        or len(set(grant_ids)) != len(grant_ids)):
+        _fail_record("record_field")
+    if len({*ids.values(), event_id, data["spawn_attestation_event_id"]}) != len(ids) + 2:
+        _fail_record("record_field")
+
+
+def _validate_release_observation_v3(ids: object, data: object, event_id: str) -> None:
+    ids = _require_keys(ids, _RUN_INTENT_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    data = _require_keys(data, _RELEASE_OBSERVATION_DATA_KEYS)
+    _require_literal(data["rule"], "release-observation-v3", "record_unsupported")
+    for key in ("based_on_commit_seq", "release_intent_commit_seq"):
+        _require_bound_int(data[key], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "release_intent_digest", "ack_digest",
+                "release_observation_digest"):
+        _require_hex64(data[key])
+    _require_uuid(data["release_intent_event_id"])
+    validate_id(data["receiver_boot_id"])
+    _require_bound_int(data["observed_us"], 0, MAX_SEQ, "record_field")
+    if len({*ids.values(), event_id, data["release_intent_event_id"]}) != len(ids) + 2:
+        _fail_record("record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -903,6 +1010,9 @@ _V3_TYPE_VALIDATORS = MappingProxyType({
     ("reservation_confirmation", 3): _validate_reservation_confirmation_v3,
     ("run_intent", 3): _validate_run_intent_v3,
     ("launch_claim", 3): _validate_launch_claim_v3,
+    ("spawn_attestation", 3): _validate_spawn_attestation_v3,
+    ("release_intent", 3): _validate_release_intent_v3,
+    ("release_observation", 3): _validate_release_observation_v3,
 })
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
@@ -923,6 +1033,9 @@ _V3_TYPE_ACTORS = MappingProxyType({
     ("reservation_confirmation", 3): "receiver",
     ("run_intent", 3): "receiver",
     ("launch_claim", 3): "receiver",
+    ("spawn_attestation", 3): "receiver",
+    ("release_intent", 3): "receiver",
+    ("release_observation", 3): "receiver",
 })
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
@@ -1036,6 +1149,9 @@ def seal(
     private_cap = {
         ("run_intent", 3): MAX_RUN_INTENT_RECORD_BYTES,
         ("launch_claim", 3): MAX_LAUNCH_CLAIM_RECORD_BYTES,
+        ("spawn_attestation", 3): MAX_SPAWN_ATTESTATION_RECORD_BYTES,
+        ("release_intent", 3): MAX_RELEASE_INTENT_RECORD_BYTES,
+        ("release_observation", 3): MAX_RELEASE_OBSERVATION_RECORD_BYTES,
     }.get((draft.event_type, schema_version), MAX_RUN_HOLD_RECORD_BYTES)
     if schema_version in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
@@ -1075,6 +1191,9 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
     private_cap = {
         ("run_intent", 3): MAX_RUN_INTENT_RECORD_BYTES,
         ("launch_claim", 3): MAX_LAUNCH_CLAIM_RECORD_BYTES,
+        ("spawn_attestation", 3): MAX_SPAWN_ATTESTATION_RECORD_BYTES,
+        ("release_intent", 3): MAX_RELEASE_INTENT_RECORD_BYTES,
+        ("release_observation", 3): MAX_RELEASE_OBSERVATION_RECORD_BYTES,
     }.get((envelope["event_type"], envelope["schema_version"]),
           MAX_RUN_HOLD_RECORD_BYTES)
     if envelope["schema_version"] in (2, 3) and len(body) > private_cap:
@@ -1134,9 +1253,12 @@ __all__ = [
     "MAX_LAUNCH_CLAIM_RECORD_BYTES",
     "MAX_RECORD_BYTES",
     "MAX_REFUSAL_RECORDS",
+    "MAX_RELEASE_INTENT_RECORD_BYTES",
+    "MAX_RELEASE_OBSERVATION_RECORD_BYTES",
     "MAX_RUN_HOLD_RECORD_BYTES",
     "MAX_RUN_INTENT_RECORD_BYTES",
     "MAX_SEQ",
+    "MAX_SPAWN_ATTESTATION_RECORD_BYTES",
     "OPERATOR_ACTIONS",
     "RECORD_CLASS",
     "RECORD_ERROR_CODES",
@@ -1155,6 +1277,8 @@ __all__ = [
     "RUN_RECORD_CLASS_V3",
     "SCHEMA_VERSION",
     "SCHEMA_VERSIONS",
+    "SPAWN_EVENT_TYPES_V3",
+    "SPAWN_RECORD_CLASS_V3",
     "TYPE_ACTORS",
     "V1_BOUND_CEILINGS",
     "ZERO_DIGEST",

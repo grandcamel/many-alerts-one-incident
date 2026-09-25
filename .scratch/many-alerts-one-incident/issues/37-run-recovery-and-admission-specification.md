@@ -365,3 +365,15 @@ reviews, 207 focused tests and the full local suite (**5,558 passed, 39
 skipped**) pass. This adds no Receiver permit endpoint, durable effect intent,
 trusted receipt finalization or production dispatch. Accounting and venue
 gates remain open; this ticket stays open.
+
+## Local unqualified spawn/release replay, 2026-09-25: unit 19n1
+
+The [19n1 outcome](../reviews/run-recovery/outcome-19n1-no-writer-spawn-replay.md)
+adds strict no-writer replay for separate attestation, release-intent and
+release-observation claims. Live and stopped inspection label every prefix
+unqualified; an observation after a hold or deadline records history without
+clearing either. Independent source reviews, 317 focused journal regressions
+(2 skipped), Ruff and the full local suite (**5,573 passed, 39 skipped**)
+pass. There is no protected anchor, stable witness, child, release byte,
+capacity escrow, effect writer or production Run. Accounting and intended-
+venue gates remain open; this ticket stays open.
