@@ -23,14 +23,24 @@ from collections.abc import Iterable, Iterator, Sequence
 from types import MappingProxyType
 
 from .forwarder_json import canonical_json, tagged_digest
+from .journal_execution_adapter import (
+    ExecutionAssessment,
+    ProcessFacts,
+    TerminalFacts,
+    assess_execution,
+    seal_execution_claim,
+    validate_execution_process,
+)
 from .journal_records import (
     CAPACITY_CODES,
     DEDUPE_RULE,
     EFFECT_CLAIM_REASONS,
     MAX_EFFECT_INTENT_RECORD_BYTES,
     MAX_EFFECT_RECEIPT_RECORD_BYTES,
+    MAX_EXECUTION_ASSESSMENT_RECORD_BYTES,
     MAX_ID_BYTES,
     MAX_LAUNCH_CLAIM_RECORD_BYTES,
+    MAX_PROCESS_OBSERVATION_RECORD_BYTES,
     MAX_REFUSAL_RECORDS,
     MAX_RELEASE_INTENT_RECORD_BYTES,
     MAX_RELEASE_OBSERVATION_RECORD_BYTES,
@@ -40,6 +50,7 @@ from .journal_records import (
     MAX_SPAWN_ATTESTATION_RECORD_BYTES,
     MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES,
     MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES,
+    MAX_TERMINAL_OBSERVATION_RECORD_BYTES,
     REFUSAL_RESOLVED_RESERVE,
     REFUSAL_RULE,
     RESUMABLE_HOLDS,
@@ -107,6 +118,12 @@ SUPERVISION_ACTION_INTENT_TAG = "rj.supervision-action-intent.v3"
 SUPERVISION_ACTION_RESULT_TAG = "rj.supervision-action-result.v3"
 SUPERVISION_ACTION_INTENTS_STATE_TAG = "rj.supervision-action-intents-state.v3"
 SUPERVISION_ACTION_RESULTS_STATE_TAG = "rj.supervision-action-results-state.v3"
+PROCESS_OBSERVATION_TAG = "rj.process-observation.v3"
+TERMINAL_OBSERVATION_TAG = "rj.terminal-observation.v3"
+EXECUTION_ASSESSMENT_TAG = "rj.execution-assessment.v3"
+PROCESS_OBSERVATION_STATE_TAG = "rj.process-observation-state.v3"
+TERMINAL_OBSERVATION_STATE_TAG = "rj.terminal-observation-state.v3"
+EXECUTION_ASSESSMENT_STATE_TAG = "rj.execution-assessment-state.v3"
 EFFECT_ROUTE_SERVICE_V3 = MappingProxyType({
     "anthropic.messages": "anthropic",
     "draft.create": "confluence", "draft.read": "confluence",
@@ -379,6 +396,48 @@ class SupervisionActionResultClaim:
 
 
 @dataclasses.dataclass(frozen=True)
+class ProcessObservationClaim:
+    event_id: str
+    claim_digest: str
+    launch_claim_id: str
+    receiver_boot_id: str
+    facts: ProcessFacts
+    source_digest: str
+    observed_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
+class TerminalObservationClaim:
+    event_id: str
+    claim_digest: str
+    process_event_id: str
+    receiver_boot_id: str
+    count_class: str
+    quality: str | None
+    invalidity_code: str | None
+    subtype: str | None
+    is_error: bool | None
+    reason_code: str | None
+    usage_state: str | None
+    source_digest: str | None
+    observed_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
+class ExecutionAssessmentClaim:
+    event_id: str
+    claim_digest: str
+    process_event_id: str
+    terminal_event_id: str
+    receiver_boot_id: str
+    assessment: ExecutionAssessment
+    observed_us: int
+    committed_at_seq: int
+
+
+@dataclasses.dataclass(frozen=True)
 class CapacityRefusal:
     code: str
     limit: int
@@ -438,6 +497,9 @@ class Delta:
     effect_receipt_add: EffectReceiptClaim | None = None
     supervision_action_intent_add: SupervisionActionIntentClaim | None = None
     supervision_action_result_add: SupervisionActionResultClaim | None = None
+    process_observation_add: ProcessObservationClaim | None = None
+    terminal_observation_add: TerminalObservationClaim | None = None
+    execution_assessment_add: ExecutionAssessmentClaim | None = None
 
 
 class Projection:
@@ -473,6 +535,9 @@ class Projection:
         self.effect_receipts: dict[str, EffectReceiptClaim] = {}
         self.supervision_action_intents: dict[str, SupervisionActionIntentClaim] = {}
         self.supervision_action_results: dict[str, SupervisionActionResultClaim] = {}
+        self.process_observation: ProcessObservationClaim | None = None
+        self.terminal_observation: TerminalObservationClaim | None = None
+        self.execution_assessment: ExecutionAssessmentClaim | None = None
         self.dispatch_holds: dict[str, int] = {}
         # Front-door fields (unit 17): no admission transition reads or writes
         # these (R4).
@@ -1405,6 +1470,10 @@ def _claim_event_id_ok(p: Projection, event_id: str) -> bool:
     used.update(p.supervision_action_intents)
     used.update(claim.event_id for claim in p.supervision_action_intents.values())
     used.update(claim.event_id for claim in p.supervision_action_results.values())
+    for claim in (p.process_observation, p.terminal_observation,
+                  p.execution_assessment):
+        if claim is not None:
+            used.add(claim.event_id)
     return _canonical_uuid(event_id) and event_id not in used
 
 
@@ -1439,7 +1508,8 @@ def plan_spawn_attestation(
 ) -> Plan | CapacityRefusal:
     """Plan an untrusted blocked-child observation with no spawn authority."""
     launch = _claim_pre_release(p, stamp)
-    if (p.spawn_attestation is not None or not _claim_event_id_ok(p, event_id)
+    if (p.spawn_attestation is not None or p.process_observation is not None
+        or not _claim_event_id_ok(p, event_id)
         or not all(_digest64(value) for value in (
             blocked_ack_digest, anchor_key_digest, witness_identity_digest,
             registry_entry_digest,
@@ -1486,6 +1556,7 @@ def plan_release_intent(
     launch = _claim_pre_release(p, stamp)
     attested = p.spawn_attestation
     if (attested is None or p.release_intent is not None
+        or p.process_observation is not None
         or p.supervision_action_intents
         or not _claim_event_id_ok(p, event_id)
         or attested.receiver_boot_id != stamp.boot_id
@@ -1586,6 +1657,7 @@ def plan_effect_intent(
     used_flights = {claim.flight_id for claim in p.effect_intents.values()}
     used_receipts = {claim.forwarder_receipt_id for claim in p.effect_intents.values()}
     if (released is None or released.receiver_boot_id != stamp.boot_id
+        or p.process_observation is not None
         or p.supervision_action_intents
         or released.observed_us > stamp.mono_us
         or not _claim_event_id_ok(p, event_id)
@@ -1834,6 +1906,150 @@ def plan_supervision_action_result(
     }))
 
 
+def _execution_base(
+    p: Projection, event_id: str, stamp: Stamp, rule: str,
+) -> tuple[LaunchClaim, dict[str, str], dict[str, object]]:
+    launch = p.launch_claim
+    if (p.head is None or p.bounds is None or launch is None
+        or not _claim_event_id_ok(p, event_id)
+        or p.boot_id != stamp.boot_id or launch.receiver_boot_id != stamp.boot_id
+        or p.boot_start_commit_seq is None
+        or launch.committed_at_seq < p.boot_start_commit_seq
+        or type(stamp.mono_us) is not int
+        or not p.last_mono_us <= stamp.mono_us <= MAX_SEQ):
+        _fail_replay("replay_mismatch")
+    ids = {
+        "journal_uuid": launch.journal_uuid, "run_id": launch.run_id,
+        "attempt_id": launch.attempt_id,
+    }
+    data: dict[str, object] = {
+        "rule": rule, "based_on_commit_seq": p.head.commit_seq,
+        "based_on_record_digest": p.head.record_digest,
+        "launch_claim_event_id": launch.launch_claim_id,
+        "launch_claim_digest": launch.launch_claim_digest,
+        "receiver_boot_id": p.boot_id, "observed_us": stamp.mono_us,
+    }
+    return launch, ids, data
+
+
+def _seal_execution(
+    p: Projection, event_id: str, event_type: str, ids: dict[str, str],
+    data: dict[str, object], digest_key: str, tag: str, cap: int, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    record = seal_execution_claim(
+        Draft(event_id, event_type, "receiver", ids, data),
+        _single_position(p), stamp, tag=tag, digest_key=digest_key,
+    )
+    if record is None:
+        _fail_replay("replay_mismatch")
+    if len(record.body) > cap:
+        _fail_replay("replay_mismatch")
+    charge = len(record.body) + RECORD_OVERHEAD_BYTES
+    if p.logical_bytes + charge > p.bounds.total_bytes:
+        return CapacityRefusal(_BYTES_CODE, p.bounds.total_bytes, p.logical_bytes, charge)
+    return Plan((record,), charge, MappingProxyType({
+        "state": "execution_unqualified", "claim": event_type,
+    }))
+
+
+def plan_process_observation(
+    p: Projection, *, event_id: str, facts: ProcessFacts,
+    source_digest: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Record a sanitized Receiver process claim; never prove containment."""
+    _launch, ids, data = _execution_base(p, event_id, stamp, "process-observation-v3")
+    if (p.process_observation is not None
+        or (type(facts) is ProcessFacts and facts.spawn_state == "failed_before_process"
+            and p.spawn_attestation is not None)):
+        _fail_replay("replay_mismatch")
+    if not validate_execution_process(facts) or not _digest64(source_digest):
+        _fail_replay("replay_mismatch")
+    data.update(dataclasses.asdict(facts))
+    data["source_digest"] = source_digest
+    return _seal_execution(
+        p, event_id, "process_observation", ids, data,
+        "process_observation_digest", PROCESS_OBSERVATION_TAG,
+        MAX_PROCESS_OBSERVATION_RECORD_BYTES, stamp,
+    )
+
+
+def plan_terminal_observation(
+    p: Projection, *, event_id: str, count_class: str,
+    quality: str | None = None, invalidity_code: str | None = None,
+    subtype: str | None = None, is_error: bool | None = None,
+    reason_code: str | None = None, usage_state: str | None = None,
+    source_digest: str | None = None, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Record a bounded terminal summary; native source custody is unknown."""
+    _launch, ids, data = _execution_base(p, event_id, stamp, "terminal-observation-v3")
+    process = p.process_observation
+    if (process is None or p.terminal_observation is not None
+        or process.receiver_boot_id != p.boot_id):
+        _fail_replay("replay_mismatch")
+    data.update({
+        "process_event_id": process.event_id,
+        "process_digest": process.claim_digest,
+        "process_commit_seq": process.committed_at_seq,
+        "count_class": count_class, "quality": quality,
+        "invalidity_code": invalidity_code, "subtype": subtype,
+        "is_error": is_error, "reason_code": reason_code,
+        "usage_state": usage_state, "source_digest": source_digest,
+    })
+    return _seal_execution(
+        p, event_id, "terminal_observation", ids, data,
+        "terminal_observation_digest", TERMINAL_OBSERVATION_TAG,
+        MAX_TERMINAL_OBSERVATION_RECORD_BYTES, stamp,
+    )
+
+
+def _derive_execution(p: Projection) -> ExecutionAssessment:
+    process, terminal = p.process_observation, p.terminal_observation
+    if process is None or terminal is None:
+        _fail_replay("replay_mismatch")
+    digest = terminal.source_digest or ZERO_DIGEST
+    if terminal.count_class == "none":
+        facts: tuple[TerminalFacts, ...] = ()
+    elif terminal.count_class == "multiple":
+        sentinel = TerminalFacts("success", False, None, "absent", digest)
+        facts = (sentinel, sentinel)
+    elif terminal.quality == "invalid":
+        facts = (TerminalFacts("invalid", False, None, "absent", digest),)
+    else:
+        facts = (TerminalFacts(
+            terminal.subtype, terminal.is_error, terminal.reason_code,
+            terminal.usage_state, digest,
+        ),)
+    return assess_execution(process.facts, facts)
+
+
+def plan_execution_assessment(
+    p: Projection, *, event_id: str, stamp: Stamp,
+) -> Plan | CapacityRefusal:
+    """Store only the re-derived, unqualified pure classifier output."""
+    _launch, ids, data = _execution_base(p, event_id, stamp, "execution-assessment-v3")
+    process, terminal = p.process_observation, p.terminal_observation
+    if (process is None or terminal is None or p.execution_assessment is not None
+        or process.receiver_boot_id != p.boot_id
+        or terminal.receiver_boot_id != p.boot_id):
+        _fail_replay("replay_mismatch")
+    assessment = _derive_execution(p)
+    data.update({
+        "process_event_id": process.event_id,
+        "process_digest": process.claim_digest,
+        "process_commit_seq": process.committed_at_seq,
+        "terminal_event_id": terminal.event_id,
+        "terminal_digest": terminal.claim_digest,
+        "terminal_commit_seq": terminal.committed_at_seq,
+        "state": assessment.state, "reasons": list(assessment.reasons),
+        "usage": assessment.usage, "never_started": assessment.never_started,
+    })
+    return _seal_execution(
+        p, event_id, "execution_assessment", ids, data,
+        "execution_assessment_digest", EXECUTION_ASSESSMENT_TAG,
+        MAX_EXECUTION_ASSESSMENT_RECORD_BYTES, stamp,
+    )
+
+
 # --- verify_commit: re-derive every journal-computed field, or raise ----------
 
 
@@ -1873,6 +2089,12 @@ def _commit_shape(records: tuple[Record, ...]) -> str:
         return "supervision_action_intent"
     if types == ("supervision_action_result",):
         return "supervision_action_result"
+    if types == ("process_observation",):
+        return "process_observation"
+    if types == ("terminal_observation",):
+        return "terminal_observation"
+    if types == ("execution_assessment",):
+        return "execution_assessment"
     if types == _ADMISSION_PAIR_SHAPE:
         return "admission_pair"
     _fail_replay("replay_shape")
@@ -2297,6 +2519,9 @@ def _claim_delta(
     effect_receipt: EffectReceiptClaim | None = None,
     supervision_action_intent: SupervisionActionIntentClaim | None = None,
     supervision_action_result: SupervisionActionResultClaim | None = None,
+    process_observation: ProcessObservationClaim | None = None,
+    terminal_observation: TerminalObservationClaim | None = None,
+    execution_assessment: ExecutionAssessmentClaim | None = None,
 ) -> Delta:
     return Delta(
         head=Head(p.generation, commit_seq, record.position.event_seq, record.record_digest),
@@ -2309,6 +2534,9 @@ def _claim_delta(
         effect_intent_add=effect_intent, effect_receipt_add=effect_receipt,
         supervision_action_intent_add=supervision_action_intent,
         supervision_action_result_add=supervision_action_result,
+        process_observation_add=process_observation,
+        terminal_observation_add=terminal_observation,
+        execution_assessment_add=execution_assessment,
     )
 
 
@@ -2473,6 +2701,65 @@ def _verify_supervision_action_result(
     )
 
 
+def _verify_process_observation(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_PROCESS_OBSERVATION_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    data = record.data
+    facts = ProcessFacts(**{key: data[key] for key in (
+        "spawn_state", "exit_observed", "exit_code", "exit_signal", "timed_out",
+        "cancelled", "containment",
+    )})
+    plan = _verify_exact_claim_plan(plan_process_observation(
+        p, event_id=record.event_id, facts=facts,
+        source_digest=data["source_digest"], stamp=record.stamp,
+    ), record)
+    claim = ProcessObservationClaim(
+        record.event_id, data["process_observation_digest"],
+        data["launch_claim_event_id"], data["receiver_boot_id"], facts,
+        data["source_digest"], data["observed_us"], commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, process_observation=claim)
+
+
+def _verify_terminal_observation(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_TERMINAL_OBSERVATION_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_terminal_observation(
+        p, event_id=record.event_id, count_class=data["count_class"],
+        quality=data["quality"], invalidity_code=data["invalidity_code"],
+        subtype=data["subtype"], is_error=data["is_error"],
+        reason_code=data["reason_code"], usage_state=data["usage_state"],
+        source_digest=data["source_digest"], stamp=record.stamp,
+    ), record)
+    claim = TerminalObservationClaim(
+        record.event_id, data["terminal_observation_digest"],
+        data["process_event_id"], data["receiver_boot_id"],
+        data["count_class"], data["quality"], data["invalidity_code"],
+        data["subtype"], data["is_error"], data["reason_code"],
+        data["usage_state"], data["source_digest"], data["observed_us"], commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, terminal_observation=claim)
+
+
+def _verify_execution_assessment(p: Projection, record: Record, commit_seq: int) -> Delta:
+    if record.schema_version != 3 or len(record.body) > MAX_EXECUTION_ASSESSMENT_RECORD_BYTES:
+        _fail_replay("replay_mismatch")
+    data = record.data
+    plan = _verify_exact_claim_plan(plan_execution_assessment(
+        p, event_id=record.event_id, stamp=record.stamp,
+    ), record)
+    assessment = ExecutionAssessment(
+        data["state"], tuple(data["reasons"]), data["usage"], data["never_started"],
+    )
+    claim = ExecutionAssessmentClaim(
+        record.event_id, data["execution_assessment_digest"],
+        data["process_event_id"], data["terminal_event_id"],
+        data["receiver_boot_id"], assessment, data["observed_us"], commit_seq,
+    )
+    return _claim_delta(p, record, commit_seq, plan.charge, execution_assessment=claim)
+
+
 def _verify_admission_pair(
     p: Projection, admission: Record, dedupe: Record, commit_seq: int,
 ) -> Delta:
@@ -2620,6 +2907,12 @@ def verify_commit(p: Projection, records: Sequence[Record]) -> Delta:
         return _verify_supervision_action_intent(p, records[0], commit_seq)
     if shape == "supervision_action_result":
         return _verify_supervision_action_result(p, records[0], commit_seq)
+    if shape == "process_observation":
+        return _verify_process_observation(p, records[0], commit_seq)
+    if shape == "terminal_observation":
+        return _verify_terminal_observation(p, records[0], commit_seq)
+    if shape == "execution_assessment":
+        return _verify_execution_assessment(p, records[0], commit_seq)
     return _verify_admission_pair(p, records[0], records[1], commit_seq)
 
 
@@ -2695,6 +2988,12 @@ def apply_delta(p: Projection, delta: Delta) -> None:
     if delta.supervision_action_result_add is not None:
         claim = delta.supervision_action_result_add
         p.supervision_action_results[claim.action_id] = claim
+    if delta.process_observation_add is not None:
+        p.process_observation = delta.process_observation_add
+    if delta.terminal_observation_add is not None:
+        p.terminal_observation = delta.terminal_observation_add
+    if delta.execution_assessment_add is not None:
+        p.execution_assessment = delta.execution_assessment_add
     if delta.resume_commit_seq is not None:
         p.resume_count += 1
         p.last_resume_commit_seq = delta.resume_commit_seq
@@ -2851,6 +3150,27 @@ def supervision_action_results_claim_digest(p: Projection) -> str:
     return tagged_digest(SUPERVISION_ACTION_RESULTS_STATE_TAG, claims)
 
 
+def process_observation_claim_digest(p: Projection) -> str:
+    return tagged_digest(
+        PROCESS_OBSERVATION_STATE_TAG,
+        None if p.process_observation is None else dataclasses.asdict(p.process_observation),
+    )
+
+
+def terminal_observation_claim_digest(p: Projection) -> str:
+    return tagged_digest(
+        TERMINAL_OBSERVATION_STATE_TAG,
+        None if p.terminal_observation is None else dataclasses.asdict(p.terminal_observation),
+    )
+
+
+def execution_assessment_claim_digest(p: Projection) -> str:
+    return tagged_digest(
+        EXECUTION_ASSESSMENT_STATE_TAG,
+        None if p.execution_assessment is None else dataclasses.asdict(p.execution_assessment),
+    )
+
+
 def state_digest(p: Projection) -> str:
     head = None
     if p.head is not None:
@@ -2911,11 +3231,13 @@ __all__ = [
     "Delta",
     "EffectIntentClaim",
     "EffectReceiptClaim",
+    "ExecutionAssessmentClaim",
     "InitialReservationIntentClaim",
     "JournalBounds",
     "LaunchClaim",
     "PendingEntry",
     "Plan",
+    "ProcessObservationClaim",
     "Projection",
     "RefusalNotRecorded",
     "ReleaseIntentClaim",
@@ -2928,10 +3250,12 @@ __all__ = [
     "SpawnAttestationClaim",
     "SupervisionActionIntentClaim",
     "SupervisionActionResultClaim",
+    "TerminalObservationClaim",
     "apply_delta",
     "dispatch_holds",
     "effect_intents_claim_digest",
     "effect_receipts_claim_digest",
+    "execution_assessment_claim_digest",
     "front_door_digest",
     "group_commits",
     "initial_confirmations_digest",
@@ -2944,12 +3268,14 @@ __all__ = [
     "plan_capacity_hold",
     "plan_effect_intent",
     "plan_effect_receipt",
+    "plan_execution_assessment",
     "plan_genesis",
     "plan_ingress_refusal",
     "plan_initial_reservation_confirmation",
     "plan_initial_reservation_intent",
     "plan_launch_claim",
     "plan_operator_resume",
+    "plan_process_observation",
     "plan_release_intent",
     "plan_release_observation",
     "plan_reservation_confirmation",
@@ -2960,6 +3286,8 @@ __all__ = [
     "plan_spawn_attestation",
     "plan_supervision_action_intent",
     "plan_supervision_action_result",
+    "plan_terminal_observation",
+    "process_observation_claim_digest",
     "refusal_key",
     "release_intent_claim_digest",
     "release_observation_claim_digest",
@@ -2971,5 +3299,6 @@ __all__ = [
     "state_digest",
     "supervision_action_intents_claim_digest",
     "supervision_action_results_claim_digest",
+    "terminal_observation_claim_digest",
     "verify_commit",
 ]

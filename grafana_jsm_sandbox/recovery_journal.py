@@ -54,6 +54,7 @@ from .journal_reducer import (
     dispatch_holds,
     effect_intents_claim_digest,
     effect_receipts_claim_digest,
+    execution_assessment_claim_digest,
     front_door_digest,
     group_commits,
     initial_confirmations_digest,
@@ -69,6 +70,7 @@ from .journal_reducer import (
     plan_operator_resume,
     plan_restart,
     plan_run_hold,
+    process_observation_claim_digest,
     release_intent_claim_digest,
     release_observation_claim_digest,
     reservation_claims_digest,
@@ -78,6 +80,7 @@ from .journal_reducer import (
     state_digest,
     supervision_action_intents_claim_digest,
     supervision_action_results_claim_digest,
+    terminal_observation_claim_digest,
     verify_commit,
 )
 from .journal_source import SourceError, SourceRecord, source_digest, validate_source
@@ -137,6 +140,27 @@ def _supervision_action_summary(projection: Projection) -> dict[str, object] | N
         "results_digest": supervision_action_results_claim_digest(projection),
         "state": "supervision_actions_unqualified",
         "trigger_and_due_time": "unqualified",
+    }
+
+
+def _execution_claim_summary(projection: Projection) -> dict[str, object] | None:
+    process = projection.process_observation
+    terminal = projection.terminal_observation
+    assessment = projection.execution_assessment
+    if process is None:
+        return None
+    return {
+        "state": "execution_unqualified",
+        "process": {"count": 1, "digest": process_observation_claim_digest(projection)},
+        "terminal": None if terminal is None else {
+            "count": 1, "digest": terminal_observation_claim_digest(projection),
+            "count_class": terminal.count_class, "quality": terminal.quality,
+            "reason_code": terminal.reason_code,
+        },
+        "assessment": None if assessment is None else {
+            "count": 1, "digest": execution_assessment_claim_digest(projection),
+            "derived_state": assessment.assessment.state,
+        },
     }
 
 
@@ -1068,6 +1092,8 @@ class RecoveryJournal:
                 result["effect_claims"] = _effect_claim_summary(p)
             if p.supervision_action_intents or p.supervision_action_results:
                 result["supervision_action_claims"] = _supervision_action_summary(p)
+            if p.process_observation is not None:
+                result["execution_claims"] = _execution_claim_summary(p)
             return result
 
     def close(self) -> None:
@@ -1223,6 +1249,8 @@ def _ready_report(
         journal_json["effect_claims"] = _effect_claim_summary(candidate)
     if candidate.supervision_action_intents or candidate.supervision_action_results:
         journal_json["supervision_action_claims"] = _supervision_action_summary(candidate)
+    if candidate.process_observation is not None:
+        journal_json["execution_claims"] = _execution_claim_summary(candidate)
     refusals_json = {
         "recorded": candidate.refusal_count, "limit": MAX_REFUSAL_RECORDS,
         "reserve": REFUSAL_RESOLVED_RESERVE,

@@ -114,11 +114,13 @@ opaque ASCII <=128 bytes, sequence numbers nonnegative bounded integers, wall
 time UTC RFC3339, and monotonic time nonnegative bounded integers. The full
 schema remains proposed until Receiver and ticket-38 owners ratify it.
 
-`terminal_observation` has subtype enum, exact boolean `is_error`, bounded
-nullable reason, exact boolean `exit_observed`, signed 32-bit exit code or
-signal 1--64 when observed, `usage_state` (`known`, `absent`, `malformed`), and
-evidence digest. Raw result/prompt/tool bodies are excluded; missing required
-fields are rejected. `spawn_observation` has accepted/failed status, bounded
+The revised private v3 split records Receiver process/exit facts in
+`process_observation` and parsed terminal facts in `terminal_observation`;
+exit fields are not duplicated in the latter. `terminal_observation` has
+subtype enum, exact boolean `is_error`, bounded nullable sanitized reason
+code from a closed vocabulary, `usage_state` (`known`, `absent`, `malformed`),
+and evidence digest. Raw result/prompt/tool bodies are excluded; missing
+required fields are rejected. The earlier `spawn_observation` proposal has accepted/failed status, bounded
 positive process/group IDs, monotonic start, exit/reaped/pipe flags, exit code or
 signal, and containment (`contained`, `pending`, `failed`, `unknown`). Accepted
 spawn without a trusted group is containment unknown, never proof of absence.
@@ -133,7 +135,7 @@ conflicting receipts are retained and held, never last-write-wins.
 Terminal validation is deterministic before classification: accept exactly one
 recognized terminal record; require an exact boolean error indicator, a recognized
 subtype, and an explicit process exit observation. Preserve a separately named
-terminal reason and usage state. A second terminal, an unknown subtype, a
+sanitized terminal reason code and usage state. A second terminal, an unknown subtype, a
 non-boolean error indicator, a missing exit, malformed encoding, or conflicting
 terminal fields produces INCOMPLETE. The reported terminal and the Receiver's
 derived disposition are both journaled; normalization never silently repairs a
@@ -183,10 +185,12 @@ The required record types are:
   an indeterminate accounting hold, never a guessed zero.
 - run_intent: input admission IDs, job/attempt/run IDs, lease scope, work and
   hard deadlines, and reservation ID, written before spawn.
-- spawn_observation: process-group identity, accepted/failed observation,
-  containment handle and bounded exit metadata; no command body or credential.
-- terminal_observation: normalized subtype, error indicator, terminal reason,
-  exit status, usage-known flag and evidence digest.
+- spawn_observation: process-group identity, accepted/failed observation and
+  containment handle; no command body or credential.
+- process_observation: Receiver process exit/timeout/cancellation and
+  containment summary, with a sanitized source digest.
+- terminal_observation: normalized subtype, error indicator, closed terminal
+  reason code, usage state and evidence digest; no duplicated exit status.
 - effect_intent: effect/operation/intent IDs, target service, operation kind,
   target OPS identity, payload schema and digest, written before Forwarder
   dispatch.

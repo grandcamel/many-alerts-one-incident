@@ -1318,9 +1318,13 @@ def test_b11_imports_match_the_exact_allowlist():
     assert (0, "collections.abc", ("Iterable", "Iterator", "Sequence")) in from_imports
     assert (0, "types", ("MappingProxyType",)) in from_imports
     assert (1, "forwarder_json", ("canonical_json", "tagged_digest")) in from_imports
-    # Exactly these six `from` imports: __future__, collections.abc, types,
-    # forwarder_json, journal_records and journal_source.
-    assert len(from_imports) == 6
+    assert (1, "journal_execution_adapter", (
+        "ExecutionAssessment", "ProcessFacts", "TerminalFacts",
+        "assess_execution", "seal_execution_claim", "validate_execution_process",
+    )) in from_imports
+    # Exactly these seven `from` imports: the pinned six and the pure v3
+    # execution adapter. Direct run_outcome imports remain excluded.
+    assert len(from_imports) == 7
 
 
 def test_b11_no_clock_random_os_filesystem_sqlite_or_threading():

@@ -128,7 +128,8 @@ registry, records and `rj.state.v1` digest remain byte-for-byte stable.
    Memory or telemetry failure. No path automatically reissues the request.
 5. **`terminal_observation` and `execution_assessment`**, after bounded
    parsing and containment observation. Preserve the recognized terminal
-   subtype, exact boolean error indicator, bounded nullable reason, usage
+   subtype, exact boolean error indicator, bounded nullable sanitized reason
+   code (closed vocabulary; never freeform native text), usage
    state and evidence digest without raw output. Record the Receiver process
    facts separately. Replay re-derives `run_outcome.assess_execution`; a
    claimed derived result that disagrees holds. Missing, duplicate or

@@ -56,6 +56,9 @@ EFFECT_EVENT_TYPES_V3 = ("effect_intent", "effect_receipt")
 SUPERVISION_ACTION_EVENT_TYPES_V3 = (
     "supervision_action_intent", "supervision_action_result",
 )
+EXECUTION_EVENT_TYPES_V3 = (
+    "process_observation", "terminal_observation", "execution_assessment",
+)
 REGISTERED_EVENT_TYPES = EVENT_TYPES + FRONT_DOOR_EVENT_TYPES
 RECORD_CLASS = MappingProxyType({
     "journal_genesis": "recovery",
@@ -80,6 +83,10 @@ EFFECT_RECORD_CLASS_V3 = MappingProxyType({
 SUPERVISION_ACTION_RECORD_CLASS_V3 = MappingProxyType({
     "supervision_action_intent": "recovery",
     "supervision_action_result": "recovery",
+})
+EXECUTION_RECORD_CLASS_V3 = MappingProxyType({
+    "process_observation": "recovery", "terminal_observation": "recovery",
+    "execution_assessment": "recovery",
 })
 RESERVATION_RECORD_CLASS_V2 = MappingProxyType({
     "reservation_intent": "recovery",
@@ -138,6 +145,9 @@ MAX_EFFECT_INTENT_RECORD_BYTES = 4_096
 MAX_EFFECT_RECEIPT_RECORD_BYTES = 2_048
 MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES = 4_096
 MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES = 2_048
+MAX_PROCESS_OBSERVATION_RECORD_BYTES = 4_096
+MAX_TERMINAL_OBSERVATION_RECORD_BYTES = 4_096
+MAX_EXECUTION_ASSESSMENT_RECORD_BYTES = 2_048
 
 # Private copies of journal_ingress/journal_source vocabulary the strict
 # refusal-summary checker needs; never imported (A12's import pin).
@@ -481,6 +491,42 @@ _SUPERVISION_ACTION_RESULT_DATA_KEYS = frozenset({
     "action_intent_event_id", "action_intent_digest",
     "action_intent_commit_seq", "receiver_boot_id", "action_kind",
     "claimed_outcome", "observed_us", "action_result_digest",
+})
+_EXECUTION_IDS_KEYS = frozenset({"journal_uuid", "run_id", "attempt_id"})
+_OBSERVATION_BASE_KEYS = frozenset({
+    "rule", "based_on_commit_seq", "based_on_record_digest",
+    "launch_claim_event_id", "launch_claim_digest", "receiver_boot_id",
+    "observed_us",
+})
+_PROCESS_OBSERVATION_DATA_KEYS = _OBSERVATION_BASE_KEYS | frozenset({
+    "spawn_state", "exit_observed", "exit_code", "exit_signal", "timed_out",
+    "cancelled", "containment", "source_digest", "process_observation_digest",
+})
+_TERMINAL_OBSERVATION_DATA_KEYS = _OBSERVATION_BASE_KEYS | frozenset({
+    "process_event_id", "process_digest", "process_commit_seq",
+    "count_class", "quality", "invalidity_code", "subtype", "is_error",
+    "reason_code", "usage_state", "source_digest", "terminal_observation_digest",
+})
+_EXECUTION_ASSESSMENT_DATA_KEYS = _OBSERVATION_BASE_KEYS | frozenset({
+    "process_event_id", "process_digest", "process_commit_seq",
+    "terminal_event_id", "terminal_digest", "terminal_commit_seq",
+    "state", "reasons", "usage", "never_started", "execution_assessment_digest",
+})
+TERMINAL_REASON_CODES = frozenset({
+    "reported_error", "provider_unavailable", "interrupted", "runtime_error",
+    "unknown_error",
+})
+TERMINAL_INVALIDITY_CODES = frozenset({
+    "parse_invalid", "shape_invalid", "field_invalid", "contradictory",
+})
+_EXECUTION_STATES = frozenset({
+    "succeeded", "failed", "cancelled", "containment_failed", "incomplete",
+})
+_EXECUTION_REASONS = frozenset({
+    "containment_failed", "containment_unknown", "timeout", "cancelled",
+    "spawn_failed", "spawn_unknown", "exit_missing", "signaled_exit",
+    "nonzero_exit", "missing_terminal", "duplicate_terminal", "terminal_invalid",
+    "result_error", "usage_malformed",
 })
 # A closed syntax copy of the current Forwarder receipt state/reason pairs.
 # It validates a claim's shape; it does not authenticate its source or facts.
@@ -1200,6 +1246,115 @@ def _validate_supervision_action_result_v3(
     _require_bound_int(data["observed_us"], 0, MAX_SEQ, "record_field")
 
 
+def _validate_execution_base(ids: object, data: object, event_id: str,
+                             keys: frozenset[str], rule: str, digest_key: str) -> dict:
+    ids = _require_keys(ids, _EXECUTION_IDS_KEYS)
+    for value in ids.values():
+        _require_uuid(value)
+    _require_uuid(event_id)
+    if event_id in ids.values():
+        _fail_record("record_field")
+    data = _require_keys(data, keys)
+    _require_literal(data["rule"], rule, "record_unsupported")
+    _require_bound_int(data["based_on_commit_seq"], 1, MAX_SEQ, "record_field")
+    for key in ("based_on_record_digest", "launch_claim_digest", digest_key):
+        _require_hex64(data[key])
+    _require_uuid(data["launch_claim_event_id"])
+    validate_id(data["receiver_boot_id"])
+    _require_bound_int(data["observed_us"], 0, MAX_SEQ, "record_field")
+    return data
+
+
+def _validate_process_observation_v3(ids: object, data: object, event_id: str) -> None:
+    data = _validate_execution_base(
+        ids, data, event_id, _PROCESS_OBSERVATION_DATA_KEYS,
+        "process-observation-v3", "process_observation_digest",
+    )
+    _require_hex64(data["source_digest"])
+    if (type(data["spawn_state"]) is not str
+        or data["spawn_state"] not in ("accepted", "failed_before_process", "unknown")
+        or type(data["containment"]) is not str
+        or data["containment"] not in ("confirmed", "failed", "unknown")
+        or any(type(data[key]) is not bool for key in
+               ("exit_observed", "timed_out", "cancelled"))):
+        _fail_record("record_field")
+    code, signal = data["exit_code"], data["exit_signal"]
+    if data["exit_observed"]:
+        valid_code = type(code) is int and -(2**31) <= code < 2**31 and signal is None
+        valid_signal = type(signal) is int and 1 <= signal <= 64 and code is None
+        if not (valid_code or valid_signal):
+            _fail_record("record_field")
+    elif code is not None or signal is not None:
+        _fail_record("record_field")
+    if (data["spawn_state"] == "failed_before_process"
+        and (data["exit_observed"] or data["containment"] == "failed")):
+        _fail_record("record_field")
+
+
+def _validate_terminal_observation_v3(ids: object, data: object, event_id: str) -> None:
+    data = _validate_execution_base(
+        ids, data, event_id, _TERMINAL_OBSERVATION_DATA_KEYS,
+        "terminal-observation-v3", "terminal_observation_digest",
+    )
+    _require_uuid(data["process_event_id"])
+    _require_hex64(data["process_digest"])
+    _require_bound_int(data["process_commit_seq"], 1, MAX_SEQ, "record_field")
+    count = data["count_class"]
+    parsed = ("subtype", "is_error", "reason_code", "usage_state")
+    if type(count) is not str or count not in ("none", "one", "multiple"):
+        _fail_record("record_field")
+    if count == "none":
+        if any(data[key] is not None for key in
+               ("quality", "invalidity_code", "source_digest", *parsed)):
+            _fail_record("record_field")
+        return
+    _require_hex64(data["source_digest"])
+    if count == "multiple":
+        if any(data[key] is not None for key in ("quality", "invalidity_code", *parsed)):
+            _fail_record("record_field")
+        return
+    quality = data["quality"]
+    if quality == "invalid":
+        if (type(data["invalidity_code"]) is not str
+            or data["invalidity_code"] not in TERMINAL_INVALIDITY_CODES
+            or any(data[key] is not None for key in parsed)):
+            _fail_record("record_field")
+        return
+    if quality != "recognized" or data["invalidity_code"] is not None:
+        _fail_record("record_field")
+    subtype, is_error, reason = (data[key] for key in
+                                  ("subtype", "is_error", "reason_code"))
+    if (type(subtype) is not str or subtype not in ("success", "error")
+        or type(is_error) is not bool or (subtype == "error") != is_error
+        or (reason is not None and
+            (type(reason) is not str or reason not in TERMINAL_REASON_CODES))
+        or (subtype == "success" and reason is not None)
+        or type(data["usage_state"]) is not str
+        or data["usage_state"] not in ("known", "absent", "malformed")):
+        _fail_record("record_field")
+
+
+def _validate_execution_assessment_v3(ids: object, data: object, event_id: str) -> None:
+    data = _validate_execution_base(
+        ids, data, event_id, _EXECUTION_ASSESSMENT_DATA_KEYS,
+        "execution-assessment-v3", "execution_assessment_digest",
+    )
+    for prefix in ("process", "terminal"):
+        _require_uuid(data[f"{prefix}_event_id"])
+        _require_hex64(data[f"{prefix}_digest"])
+        _require_bound_int(data[f"{prefix}_commit_seq"], 1, MAX_SEQ, "record_field")
+    reasons = data["reasons"]
+    if (type(data["state"]) is not str or data["state"] not in _EXECUTION_STATES
+        or type(data["usage"]) is not str or data["usage"] not in ("known", "unknown")
+        or type(data["never_started"]) is not bool
+        or type(reasons) not in (tuple, list)
+        or any(type(reason) is not str or reason not in _EXECUTION_REASONS
+               for reason in reasons)):
+        _fail_record("record_field")
+    if tuple(reasons) != tuple(sorted(set(reasons))):
+        _fail_record("record_field")
+
+
 _TYPE_VALIDATORS = MappingProxyType({
     ("journal_genesis", 1): _validate_journal_genesis,
     ("restart_recovery", 1): _validate_restart_recovery,
@@ -1226,6 +1381,9 @@ _V3_TYPE_VALIDATORS = MappingProxyType({
     ("effect_receipt", 3): _validate_effect_receipt_v3,
     ("supervision_action_intent", 3): _validate_supervision_action_intent_v3,
     ("supervision_action_result", 3): _validate_supervision_action_result_v3,
+    ("process_observation", 3): _validate_process_observation_v3,
+    ("terminal_observation", 3): _validate_terminal_observation_v3,
+    ("execution_assessment", 3): _validate_execution_assessment_v3,
 })
 TYPE_ACTORS = MappingProxyType({
     ("journal_genesis", 1): "receiver",
@@ -1253,6 +1411,9 @@ _V3_TYPE_ACTORS = MappingProxyType({
     ("effect_receipt", 3): "receiver",
     ("supervision_action_intent", 3): "receiver",
     ("supervision_action_result", 3): "receiver",
+    ("process_observation", 3): "receiver",
+    ("terminal_observation", 3): "receiver",
+    ("execution_assessment", 3): "receiver",
 })
 SCHEMA_VERSIONS = frozenset(version for _event_type, version in _TYPE_VALIDATORS)
 
@@ -1373,6 +1534,9 @@ def seal(
         ("effect_receipt", 3): MAX_EFFECT_RECEIPT_RECORD_BYTES,
         ("supervision_action_intent", 3): MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES,
         ("supervision_action_result", 3): MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES,
+        ("process_observation", 3): MAX_PROCESS_OBSERVATION_RECORD_BYTES,
+        ("terminal_observation", 3): MAX_TERMINAL_OBSERVATION_RECORD_BYTES,
+        ("execution_assessment", 3): MAX_EXECUTION_ASSESSMENT_RECORD_BYTES,
     }.get((draft.event_type, schema_version), MAX_RUN_HOLD_RECORD_BYTES)
     if schema_version in (2, 3) and len(body) > private_cap:
         _fail_record("record_too_large")
@@ -1419,6 +1583,9 @@ def decode_record(envelope: dict, body: bytes, record_digest: str) -> Record:
         ("effect_receipt", 3): MAX_EFFECT_RECEIPT_RECORD_BYTES,
         ("supervision_action_intent", 3): MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES,
         ("supervision_action_result", 3): MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES,
+        ("process_observation", 3): MAX_PROCESS_OBSERVATION_RECORD_BYTES,
+        ("terminal_observation", 3): MAX_TERMINAL_OBSERVATION_RECORD_BYTES,
+        ("execution_assessment", 3): MAX_EXECUTION_ASSESSMENT_RECORD_BYTES,
     }.get((envelope["event_type"], envelope["schema_version"]),
           MAX_RUN_HOLD_RECORD_BYTES)
     if envelope["schema_version"] in (2, 3) and len(body) > private_cap:
@@ -1472,15 +1639,19 @@ __all__ = [
     "EFFECT_EVENT_TYPES_V3",
     "EFFECT_RECORD_CLASS_V3",
     "EVENT_TYPES",
+    "EXECUTION_EVENT_TYPES_V3",
+    "EXECUTION_RECORD_CLASS_V3",
     "FRONT_DOOR_EVENT_TYPES",
     "IDENTITY_KEYS",
     "INGRESS_REFUSAL_CODES_V1",
     "MAX_COMMIT_RECORDS",
     "MAX_EFFECT_INTENT_RECORD_BYTES",
     "MAX_EFFECT_RECEIPT_RECORD_BYTES",
+    "MAX_EXECUTION_ASSESSMENT_RECORD_BYTES",
     "MAX_GENERATION",
     "MAX_ID_BYTES",
     "MAX_LAUNCH_CLAIM_RECORD_BYTES",
+    "MAX_PROCESS_OBSERVATION_RECORD_BYTES",
     "MAX_RECORD_BYTES",
     "MAX_REFUSAL_RECORDS",
     "MAX_RELEASE_INTENT_RECORD_BYTES",
@@ -1491,6 +1662,7 @@ __all__ = [
     "MAX_SPAWN_ATTESTATION_RECORD_BYTES",
     "MAX_SUPERVISION_ACTION_INTENT_RECORD_BYTES",
     "MAX_SUPERVISION_ACTION_RESULT_RECORD_BYTES",
+    "MAX_TERMINAL_OBSERVATION_RECORD_BYTES",
     "OPERATOR_ACTIONS",
     "RECORD_CLASS",
     "RECORD_ERROR_CODES",
@@ -1515,6 +1687,8 @@ __all__ = [
     "SUPERVISION_ACTION_OUTCOMES",
     "SUPERVISION_ACTION_PHASES",
     "SUPERVISION_ACTION_RECORD_CLASS_V3",
+    "TERMINAL_INVALIDITY_CODES",
+    "TERMINAL_REASON_CODES",
     "TYPE_ACTORS",
     "V1_BOUND_CEILINGS",
     "ZERO_DIGEST",
