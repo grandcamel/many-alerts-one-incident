@@ -81,3 +81,15 @@ builder, citations, immutable revision custody, bounded native transport,
 tenant permission/effect read-back and human review remain open. Native,
 provider, paid, tenant, venue and human acceptance are **NOT RUN**; this
 ticket stays open.
+
+## Local seven-section ADF layout, 2026-09-25: unit 16b
+
+The [16b outcome](../reviews/ticket-16/outcome-16b-seven-section-layout.md)
+adds a pure seven-section heading/paragraph layout over the 16a byte
+preflight. It requires all section texts, fixes their order, and preserves
+unknown or partial wording without asserting citation support or semantic
+completeness. Independent source reviews, 26 focused layout/ADF tests, Ruff
+and the full local suite (**5,695 passed, 39 skipped**) pass. Actual
+claim-to-retrieval linkage, immutable revision custody, native Jira adapter,
+effect read-back and human review remain open. Native, provider, paid,
+tenant, venue and human acceptance are **NOT RUN**; this ticket stays open.
