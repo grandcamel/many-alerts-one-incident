@@ -57,3 +57,13 @@ writer, private storage, redaction, manifest, retention, native provenance
 or human adjudication. Offline integration and every native, tenant,
 provider, venue and human acceptance gate remain open; this ticket stays
 open.
+
+## Local claim-link precheck, 2026-09-25: unit 16c
+
+The [16c outcome](../reviews/ticket-16/outcome-16c-claim-link-precheck.md)
+checks bounded untrusted claim/citation IDs and states for structural defects.
+It always reports `support_unverified`, even with no defects. Independent
+source reviews, 27 focused tests, Ruff and the full local suite (**5,722
+passed, 39 skipped**) pass. It does not capture an exchange, retain reviewed
+response bytes, establish source provenance or perform human grading. The
+private audit integration and external acceptance gates remain open.

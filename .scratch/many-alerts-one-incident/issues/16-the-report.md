@@ -93,3 +93,14 @@ and the full local suite (**5,695 passed, 39 skipped**) pass. Actual
 claim-to-retrieval linkage, immutable revision custody, native Jira adapter,
 effect read-back and human review remain open. Native, provider, paid,
 tenant, venue and human acceptance are **NOT RUN**; this ticket stays open.
+
+## Local content-free claim links, 2026-09-25: unit 16c
+
+The [16c outcome](../reviews/ticket-16/outcome-16c-claim-link-precheck.md)
+adds a bounded structural check over untrusted claim/citation IDs and enum
+claims. Every result is `support_unverified`, including a clean link graph.
+Independent source reviews, 27 focused tests, Ruff and the full local suite
+(**5,722 passed, 39 skipped**) pass. Trusted returned-response capture,
+semantic support, revision custody, Jira effects and human adjudication
+remain open. Native, provider, paid, tenant, venue and human acceptance are
+**NOT RUN**; this ticket stays open.
